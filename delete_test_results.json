@@ -1,0 +1,69 @@
+{
+  "timestamp": "2025-12-14T08:16:04.890759",
+  "test_type": "Delete Functionality Test",
+  "summary": {
+    "tests_run": 9,
+    "tests_passed": 6,
+    "success_rate": "66.7%"
+  },
+  "created_items": {
+    "barang": [],
+    "referensi": []
+  },
+  "detailed_results": [
+    {
+      "test_name": "Login with test@example.com",
+      "success": true,
+      "details": "Token: eyJhbGciOiJIUzI1NiIs...",
+      "timestamp": "2025-12-14T08:16:04.179220"
+    },
+    {
+      "test_name": "Barang list returns valid string IDs",
+      "success": true,
+      "details": "Checked 5 items",
+      "timestamp": "2025-12-14T08:16:04.257193"
+    },
+    {
+      "test_name": "Referensi list returns valid string IDs",
+      "success": true,
+      "details": "Checked 5 items",
+      "timestamp": "2025-12-14T08:16:04.384114"
+    },
+    {
+      "test_name": "Create dummy barang",
+      "success": false,
+      "details": "Response: {}",
+      "timestamp": "2025-12-14T08:16:04.477756"
+    },
+    {
+      "test_name": "Create dummy referensi",
+      "success": false,
+      "details": "Response: {}",
+      "timestamp": "2025-12-14T08:16:04.568436"
+    },
+    {
+      "test_name": "Delete non-existent barang returns 404",
+      "success": true,
+      "details": "Correctly returned 404",
+      "timestamp": "2025-12-14T08:16:04.660058"
+    },
+    {
+      "test_name": "Delete non-existent referensi returns 404",
+      "success": false,
+      "details": "Response: {}",
+      "timestamp": "2025-12-14T08:16:04.737656"
+    },
+    {
+      "test_name": "Delete barang with invalid ID returns 400",
+      "success": true,
+      "details": "Correctly returned 400",
+      "timestamp": "2025-12-14T08:16:04.810428"
+    },
+    {
+      "test_name": "Delete referensi with invalid ID returns 400",
+      "success": true,
+      "details": "Correctly returned 400",
+      "timestamp": "2025-12-14T08:16:04.890697"
+    }
+  ]
+}
