@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-14T08:06:31.490977",
+  "timestamp": "2025-12-14T08:07:03.805757",
   "summary": {
-    "tests_run": 4,
-    "tests_passed": 0,
-    "success_rate": "0.0%"
+    "tests_run": 11,
+    "tests_passed": 9,
+    "success_rate": "81.8%"
   },
   "detailed_results": [
     {
@@ -11,40 +11,121 @@
       "method": "POST",
       "endpoint": "api/auth/login",
       "expected_status": 200,
-      "actual_status": 502,
+      "actual_status": 401,
       "success": false,
-      "response_size": 0,
-      "raw_response": ""
+      "response_size": 40,
+      "error": {
+        "detail": "Incorrect email or password"
+      }
     },
     {
       "test_name": "Login with admin",
       "method": "POST",
       "endpoint": "api/auth/login",
       "expected_status": 200,
-      "actual_status": 502,
+      "actual_status": 401,
       "success": false,
-      "response_size": 0,
-      "raw_response": ""
+      "response_size": 40,
+      "error": {
+        "detail": "Incorrect email or password"
+      }
     },
     {
       "test_name": "Login with test@example.com",
       "method": "POST",
       "endpoint": "api/auth/login",
       "expected_status": 200,
-      "actual_status": 502,
-      "success": false,
-      "response_size": 0,
-      "raw_response": ""
+      "actual_status": 200,
+      "success": true,
+      "response_size": 180
     },
     {
-      "test_name": "Register Test User",
-      "method": "POST",
-      "endpoint": "api/auth/register",
+      "test_name": "Check Referensi Data Count",
+      "method": "GET",
+      "endpoint": "api/referensi",
       "expected_status": 200,
-      "actual_status": 502,
-      "success": false,
-      "response_size": 0,
-      "raw_response": ""
+      "actual_status": 200,
+      "success": true,
+      "response_size": 141,
+      "data_count": 1,
+      "total_items": 13783
+    },
+    {
+      "test_name": "Check Barang Data Count",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 634,
+      "data_count": 1,
+      "total_items": 45
+    },
+    {
+      "test_name": "Get Referensi List",
+      "method": "GET",
+      "endpoint": "api/referensi",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 1744,
+      "data_count": 20,
+      "total_items": 13783
+    },
+    {
+      "test_name": "Get Referensi with Pagination",
+      "method": "GET",
+      "endpoint": "api/referensi",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 490,
+      "data_count": 5,
+      "total_items": 13783
+    },
+    {
+      "test_name": "Get Referensi with Search",
+      "method": "GET",
+      "endpoint": "api/referensi",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 485,
+      "data_count": 5,
+      "total_items": 12522
+    },
+    {
+      "test_name": "Get Barang List",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 12334,
+      "data_count": 20,
+      "total_items": 45
+    },
+    {
+      "test_name": "Get Barang with Pagination",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 3436,
+      "data_count": 5,
+      "total_items": 45
+    },
+    {
+      "test_name": "Get Barang with Search",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 2343,
+      "data_count": 4,
+      "total_items": 4
     }
   ]
 }
