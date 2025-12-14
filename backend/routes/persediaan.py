@@ -989,8 +989,13 @@ async def bulk_delete_persediaan(request: BulkDeleteRequest, current_user: str =
                 {"kode_barang": {"$regex": request.search, "$options": "i"}}
             ]
         if request.filters:
-            for key, value in request.filters.items():
-                if value: query[key] = {"$regex": value, "$options": "i"}
+            filters = request.filters
+            if filters.get('kode'): query["kode_barang"] = {"$regex": filters['kode'], "$options": "i"}
+            if filters.get('nama'): query["nama_barang"] = {"$regex": filters['nama'], "$options": "i"}
+            if filters.get('merk'): query["merk"] = {"$regex": filters['merk'], "$options": "i"}
+            if filters.get('kondisi'): query["kondisi"] = filters['kondisi']
+            if filters.get('lokasi'): query["lokasi_fisik"] = {"$regex": filters['lokasi'], "$options": "i"}
+            if filters.get('golongan'): query["golongan_barang"] = {"$regex": filters['golongan'], "$options": "i"}
         
         result = await db.persediaan.delete_many(query)
         return {"message": f"{result.deleted_count} items deleted"}
