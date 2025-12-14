@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download } from 'lucide-react';
+import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download, PackageX } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Pengaturan() {
@@ -87,13 +87,15 @@ export default function Pengaturan() {
   };
 
   const runReset = async (target) => {
-      const confirmMsg = target === 'all' 
-        ? "PERINGATAN KERAS: SEMUA DATA (Barang, Transaksi, Pegawai) akan DIHAPUS PERMANEN. Ketik 'SETUJU' untuk melanjutkan."
-        : `Yakin ingin menghapus semua data ${target.toUpperCase()}? Data tidak bisa dikembalikan.`;
-        
+      let confirmMsg = `Yakin ingin menghapus semua data ${target.toUpperCase()}? Data tidak bisa dikembalikan.`;
+      
       if (target === 'all') {
+          confirmMsg = "PERINGATAN KERAS: SEMUA DATA (Barang, Transaksi, Pegawai) akan DIHAPUS PERMANEN. Ketik 'SETUJU' untuk melanjutkan.";
           const check = window.prompt(confirmMsg);
           if (check !== 'SETUJU') return;
+      } else if (target === 'barang') {
+          confirmMsg = "Yakin HAPUS SEMUA MASTER BARANG? Ini akan menghapus seluruh data aset yang terdaftar. Data transaksi mungkin menjadi yatim (orphan).";
+          if(!window.confirm(confirmMsg)) return;
       } else {
           if(!window.confirm(confirmMsg)) return;
       }
@@ -214,6 +216,17 @@ export default function Pengaturan() {
                                 <Eraser size={16} className="mr-2"/> 
                                 Hapus Referensi Kode
                             </Button>
+                            
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start bg-white hover:bg-red-100 border-red-200 text-red-700"
+                                onClick={() => runReset('barang')}
+                                disabled={maintenanceLoading}
+                            >
+                                <PackageX size={16} className="mr-2"/> 
+                                Hapus Master Barang
+                            </Button>
+
                             <Button 
                                 className="w-full bg-red-600 hover:bg-red-700 text-white mt-4"
                                 onClick={() => runReset('all')}
@@ -228,6 +241,7 @@ export default function Pengaturan() {
             </TabsContent>
 
             <TabsContent value="users" className="mt-4">
+                {/* ... (Existing Users Content) ... */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Daftar Pengguna</CardTitle>
@@ -259,6 +273,7 @@ export default function Pengaturan() {
             </TabsContent>
             
             <TabsContent value="unit" className="mt-4">
+                {/* ... (Existing Units Content) ... */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card className="md:col-span-1">
                         <CardHeader>
