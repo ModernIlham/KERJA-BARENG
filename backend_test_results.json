@@ -1,58 +1,85 @@
 {
   "summary": {
-    "tests_run": 8,
-    "tests_passed": 3,
-    "success_rate": 37.5
+    "tests_run": 12,
+    "tests_passed": 11,
+    "success_rate": 91.66666666666666
   },
   "results": [
     {
       "test": "API Health Check",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T00:59:27.885494"
+      "timestamp": "2025-12-14T01:00:43.320023"
     },
     {
       "test": "Admin Login",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T00:59:28.393342"
+      "timestamp": "2025-12-14T01:00:43.837062"
     },
     {
       "test": "Get Barang List",
-      "success": false,
-      "details": "Response: {'detail': 'Not authenticated'}",
-      "timestamp": "2025-12-14T00:59:28.648975"
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:43.997799"
     },
     {
       "test": "Create Barang",
-      "success": false,
-      "details": "Response: {'detail': 'Not authenticated'}",
-      "timestamp": "2025-12-14T00:59:28.867671"
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:44.229493"
+    },
+    {
+      "test": "Get Barang List After Create",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:44.381592"
+    },
+    {
+      "test": "Get Barang Stats",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:44.535604"
     },
     {
       "test": "Get Pegawai List",
-      "success": false,
-      "details": "Response: {'detail': 'Not authenticated'}",
-      "timestamp": "2025-12-14T00:59:28.975259"
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:44.677354"
     },
     {
       "test": "Create Pegawai",
-      "success": false,
-      "details": "Response: {'detail': 'Not authenticated'}",
-      "timestamp": "2025-12-14T00:59:29.147540"
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:44.839847"
     },
     {
-      "test": "Transaksi Test Setup",
-      "success": false,
-      "details": "No barang_id available for transaction",
-      "timestamp": "2025-12-14T00:59:29.147591"
+      "test": "Get Transaksi List",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:44.973204"
+    },
+    {
+      "test": "Create Transaksi MASUK",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:45.135420"
+    },
+    {
+      "test": "Create Transaksi KELUAR",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:00:45.277187"
     },
     {
       "test": "Get Dashboard Summary",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T00:59:29.354677"
+      "success": false,
+      "details": "Response: {'status_code': 500, 'text': 'Internal Server Error'}",
+      "timestamp": "2025-12-14T01:00:45.389498"
     }
   ],
-  "created_items": {}
+  "created_items": {
+    "barang_id": "693e0c3c5f67905fa8d59f89",
+    "pegawai_id": "693e0c3c5f67905fa8d59f8a"
+  }
 }
