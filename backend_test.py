@@ -209,14 +209,9 @@ class SIMANGAPITester:
         """Test Dashboard statistics"""
         print("\n🔍 Testing Dashboard Operations...")
         
-        # Test dashboard stats
-        success, response = self.make_request('GET', 'dashboard/stats')
-        self.log_test("Get Dashboard Stats", success, 
-                     "" if success else f"Response: {response}")
-
-        # Test recent activities
-        success, response = self.make_request('GET', 'dashboard/recent-activities')
-        self.log_test("Get Recent Activities", success, 
+        # Test dashboard summary (correct endpoint)
+        success, response = self.make_request('GET', 'dashboard/summary')
+        self.log_test("Get Dashboard Summary", success, 
                      "" if success else f"Response: {response}")
 
         return True
