@@ -35,6 +35,7 @@ api_router = APIRouter(prefix="/api")
 # Include Sub-routers
 api_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 api_router.include_router(barang.router, prefix="/barang", tags=["Barang"])
+api_router.include_router(persediaan.router, prefix="/persediaan", tags=["Persediaan"])
 api_router.include_router(pegawai.router, prefix="/pegawai", tags=["Pegawai"])
 api_router.include_router(transaksi.router, prefix="/transaksi", tags=["Transaksi"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
