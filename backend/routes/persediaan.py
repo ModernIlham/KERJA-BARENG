@@ -297,6 +297,182 @@ async def download_template(current_user: str = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating template: {str(e)}")
 
+# GET - Auto-update Expired Items Status
+@router.get("/update-expired-status")
+async def update_expired_status(current_user: str = Depends(get_current_user)):
+    """Auto-update status barang expired menjadi 'Barang Rusak'"""
+    try:
+        today = datetime.now(timezone.utc)
+        
+        # Find items with expired_date in the past
+        result = await db.persediaan.update_many(
+            {
+                "expired_date": {"$exists": True, "$ne": None, "$lt": today.strftime("%Y-%m-%d")},
+                "kondisi": {"$ne": "Barang Rusak"}
+            },
+            {
+                "$set": {
+                    "kondisi": "Barang Rusak",
+                    "updated_at": today
+                }
+            }
+        )
+        
+        return {"message": f"Updated {result.modified_count} expired items to 'Barang Rusak'"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating expired status: {str(e)}")
+
+# GET - Generate Nota Dinas Expired Items
+@router.get("/nota-dinas-expired")
+async def generate_nota_dinas_expired(
+    filter_type: str = Query("all", description="all, expired, 2weeks, 1month"),
+    current_user: str = Depends(get_current_user)
+):
+    """Generate nota dinas untuk barang expired"""
+    try:
+        today = datetime.now(timezone.utc)
+        
+        # Build query based on filter
+        if filter_type == "expired":
+            query = {"expired_date": {"$exists": True, "$ne": None, "$lt": today.strftime("%Y-%m-%d")}}
+            title = "Barang SUDAH EXPIRED"
+        elif filter_type == "2weeks":
+            two_weeks = today + pd.Timedelta(days=14)
+            query = {
+                "expired_date": {"$exists": True, "$ne": None, "$gte": today.strftime("%Y-%m-%d"), "$lte": two_weeks.strftime("%Y-%m-%d")}
+            }
+            title = "Barang AKAN EXPIRED dalam 2 Minggu"
+        elif filter_type == "1month":
+            one_month = today + pd.Timedelta(days=30)
+            query = {
+                "expired_date": {"$exists": True, "$ne": None, "$gte": today.strftime("%Y-%m-%d"), "$lte": one_month.strftime("%Y-%m-%d")}
+            }
+            title = "Barang AKAN EXPIRED dalam 1 Bulan"
+        else:  # all
+            one_month = today + pd.Timedelta(days=30)
+            query = {
+                "$or": [
+                    {"expired_date": {"$exists": True, "$ne": None, "$lt": today.strftime("%Y-%m-%d")}},
+                    {"expired_date": {"$exists": True, "$ne": None, "$gte": today.strftime("%Y-%m-%d"), "$lte": one_month.strftime("%Y-%m-%d")}}
+                ]
+            }
+            title = "Barang Expired dan Akan Expired"
+        
+        cursor = db.persediaan.find(query).sort("expired_date", 1)
+        items = await cursor.to_list(None)
+        
+        if not items:
+            raise HTTPException(status_code=404, detail="Tidak ada barang expired/akan expired")
+        
+        # Create PDF
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, 
+                               leftMargin=2*cm, rightMargin=2*cm,
+                               topMargin=2*cm, bottomMargin=2*cm)
+        
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Header
+        header_style = ParagraphStyle('HeaderCenter', parent=styles['Heading1'], fontSize=14, alignment=TA_CENTER, spaceAfter=5)
+        elements.append(Paragraph("KEMENTERIAN/LEMBAGA", header_style))
+        elements.append(Paragraph("UNIT KERJA", header_style))
+        elements.append(Spacer(1, 0.5*cm))
+        
+        # Title
+        title_style = ParagraphStyle('TitleCenter', parent=styles['Heading2'], fontSize=12, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold')
+        elements.append(Paragraph("<u>NOTA DINAS</u>", title_style))
+        
+        # Info
+        info_style = ParagraphStyle('InfoStyle', parent=styles['Normal'], fontSize=10, spaceAfter=5)
+        elements.append(Paragraph(f"Nomor: ___/ND/____/{datetime.now().year}", info_style))
+        elements.append(Paragraph(f"Tanggal: {today.strftime('%d %B %Y')}", info_style))
+        elements.append(Spacer(1, 0.3*cm))
+        
+        elements.append(Paragraph("Kepada Yth.", info_style))
+        elements.append(Paragraph("Kepala Bagian Umum", info_style))
+        elements.append(Paragraph("Di Tempat", info_style))
+        elements.append(Spacer(1, 0.3*cm))
+        
+        elements.append(Paragraph(f"Hal: <b>Pemberitahuan {title}</b>", info_style))
+        elements.append(Spacer(1, 0.5*cm))
+        
+        # Body
+        body_style = ParagraphStyle('BodyStyle', parent=styles['Normal'], fontSize=10, alignment=TA_JUSTIFY, spaceAfter=10, leading=14)
+        elements.append(Paragraph(
+            f"Yang bertanda tangan di bawah ini menyampaikan bahwa terdapat beberapa barang persediaan "
+            f"yang {title.lower()}. Berikut daftar barang yang perlu ditindaklanjuti:",
+            body_style
+        ))
+        elements.append(Spacer(1, 0.3*cm))
+        
+        # Table
+        table_data = [['No', 'Kode Barang', 'Nama Barang', 'Expired Date', 'Stok', 'Satuan', 'Status']]
+        
+        for idx, item in enumerate(items, 1):
+            kode = str(item.get('kode_barang', ''))[:16] if item.get('kode_barang') else '-'
+            nama = str(item.get('nama_barang', ''))[:35] if item.get('nama_barang') else '-'
+            expired = str(item.get('expired_date', '-'))
+            satuan = str(item.get('satuan', '-'))[:10] if item.get('satuan') else '-'
+            
+            # Check status
+            if item.get('expired_date'):
+                exp_date = datetime.strptime(item['expired_date'], "%Y-%m-%d")
+                days_diff = (exp_date - today).days
+                if days_diff < 0:
+                    status = "EXPIRED"
+                elif days_diff <= 14:
+                    status = f"{days_diff} hari lagi"
+                else:
+                    status = f"{days_diff} hari lagi"
+            else:
+                status = "-"
+            
+            table_data.append([str(idx), kode, nama, expired, str(item.get('stok', 0)), satuan, status])
+        
+        table = Table(table_data, colWidths=[1*cm, 3.5*cm, 5.5*cm, 2.3*cm, 1.5*cm, 1.5*cm, 2.2*cm])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (2, 1), (2, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 0.5*cm))
+        
+        elements.append(Paragraph(
+            "Demikian nota dinas ini kami sampaikan. Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.",
+            body_style
+        ))
+        elements.append(Spacer(1, 1*cm))
+        
+        # TTD
+        ttd_style = ParagraphStyle('TTDStyle', parent=styles['Normal'], fontSize=10, alignment=TA_CENTER)
+        elements.append(Paragraph("Hormat kami,", ttd_style))
+        elements.append(Spacer(1, 1.5*cm))
+        elements.append(Paragraph("<u>(_____________________)</u>", ttd_style))
+        elements.append(Paragraph("Kepala Bagian Umum", ttd_style))
+        
+        doc.build(elements)
+        buffer.seek(0)
+        
+        filename = f"Nota_Dinas_Expired_{filter_type}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        
+        return StreamingResponse(buffer, media_type='application/pdf', headers={'Content-Disposition': f'attachment; filename="{filename}"'})
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating nota dinas: {str(e)}")
+
 # GET - Generate Nota Dinas Stok Kritis
 @router.get("/nota-dinas-kritis")
 async def generate_nota_dinas_kritis(current_user: str = Depends(get_current_user)):
