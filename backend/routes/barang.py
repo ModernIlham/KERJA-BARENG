@@ -100,83 +100,42 @@ async def get_barang_list(
         "total_pages": math.ceil(total / limit)
     }
 
-@router.post("/import")
-async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
-    if not file.filename.endswith(('.xls', '.xlsx')): raise HTTPException(status_code=400, detail="Excel only")
-
-    try:
-        contents = await file.read()
-        df = pd.read_excel(io.BytesIO(contents))
-        df = df.where(pd.notnull(df), None)
-        
-        count_processed = 0
-        count_inserted = 0
-        count_skipped = 0
-        
-        for index, row in df.iterrows():
-            try:
-                kode = clean_code_str(row.get('Kode Barang', ''))
-                nup = clean_code_str(row.get('NUP', ''))
-                reg = clean_code_str(row.get('Kode Register', ''))
-                if not kode or not nup: continue
-                
-                # Duplicate Check
-                dup_query = { "$or": [{"kode_barang": kode, "nup": nup}] }
-                if reg: dup_query["$or"].append({"kode_register": reg})
-                if await db.barang.find_one(dup_query):
-                    count_skipped += 1
-                    continue
-                
-                gol = await get_golongan_uraian(kode)
-                
-                # EXTENDED MAPPING
-                item_data = {
-                    "kode_barang": kode, "nup": nup, "golongan_barang": gol,
-                    "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
-                    "merk": row.get('Merk'), "tipe": row.get('Tipe'), "kondisi": row.get('Kondisi'),
-                    "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
-                    "nilai_buku": clean_currency(row.get('Nilai Buku')),
-                    "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
-                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')),
-                    "tgl_perolehan": str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None,
-                    "tahun_anggaran": str(row.get('Tahun Anggaran', '')),
-                    
-                    # Extended Fields
-                    "lokasi_fisik": row.get('Lokasi'), "ruang": row.get('Ruang'),
-                    "alamat": row.get('Alamat'), "kab_kota": row.get('Kab/Kota'), "provinsi": row.get('Provinsi'),
-                    "kecamatan": row.get('Kecamatan'), "kelurahan": row.get('Kelurahan/Desa'), "rt_rw": row.get('RT/RW'),
-                    "kode_pos": str(row.get('Kode Pos', '')),
-                    
-                    "kode_satker": str(row.get('Kode Satker', '')), "nama_satker": row.get('Nama Satker'),
-                    "intra_ekstra": row.get('Aset Intra / Extra'), "kode_register": reg,
-                    "status_penggunaan": row.get('Status Penggunaan'),
-                    
-                    "luas_tanah": clean_currency(row.get('Luas Tanah Seluruhnya')),
-                    "luas_bangunan": clean_currency(row.get('Luas Bangunan')),
-                    
-                    "no_sertifikat": str(row.get('No Sertifikat', '')),
-                    "status_sertifikasi": row.get('Status Sertifikasi'),
-                    "tgl_sertifikat": str(row.get('Tanggal Sertifikat'))[:10] if row.get('Tanggal Sertifikat') else None,
-                    "no_psp": str(row.get('No PSP', '')),
-                    "tgl_psp": str(row.get('Tanggal PSP'))[:10] if row.get('Tanggal PSP') else None,
-                    
-                    "status_aset": "Aktif", "stok": 1, "updated_at": datetime.now(timezone.utc)
-                }
-                
-                result = await db.barang.insert_one(item_data)
-                if result.inserted_id: count_inserted += 1
-                count_processed += 1
-            except: continue
-        return {"message": "Import selesai", "processed": count_processed, "inserted": count_inserted, "skipped_duplicates": count_skipped}
-    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
-
-# ... (Previous Endpoints create/update need to accept extended fields implicitly via BarangCreate model) ...
-# I will re-write them to ensure imports are clean.
+@router.post("/bulk-delete")
+async def bulk_delete_barang(
+    ids: Optional[List[str]] = Body(default=None),
+    select_all_mode: bool = Body(default=False),
+    search: Optional[str] = Body(default=None),
+    filters: Optional[Dict[str, Any]] = Body(default=None),
+    current_user: str = Depends(get_current_user)
+):
+    query = {}
+    if select_all_mode:
+        if search:
+            query["$or"] = [{"nama_barang": {"$regex": search, "$options": "i"}}, {"kode_barang": {"$regex": search, "$options": "i"}}, {"nup": {"$regex": search, "$options": "i"}}]
+        if filters:
+            if filters.get('kode'): query["kode_barang"] = {"$regex": filters['kode'], "$options": "i"}
+            if filters.get('nama'): query["nama_barang"] = {"$regex": filters['nama'], "$options": "i"}
+            if filters.get('merk'): query["merk"] = {"$regex": filters['merk'], "$options": "i"}
+            if filters.get('kondisi'): query["kondisi"] = filters['kondisi']
+            if filters.get('lokasi'): query["lokasi_fisik"] = {"$regex": filters['lokasi'], "$options": "i"}
+            if filters.get('nup'): query["nup"] = {"$regex": filters['nup'], "$options": "i"}
+            if filters.get('golongan'): query["golongan_barang"] = {"$regex": filters['golongan'], "$options": "i"}
+        result = await db.barang.delete_many(query)
+        return {"message": f"Berhasil menghapus {result.deleted_count} data terpilih (Global)."}
+    else:
+        if not ids: raise HTTPException(status_code=400, detail="No IDs provided")
+        obj_ids = [ObjectId(i) for i in ids if ObjectId.is_valid(i)]
+        result = await db.barang.delete_many({"_id": {"$in": obj_ids}})
+        return {"message": f"Berhasil menghapus {result.deleted_count} data."}
 
 @router.post("", response_model=Barang)
 async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
     barang_in.kode_barang = clean_code_str(barang_in.kode_barang)
     barang_in.nup = clean_code_str(barang_in.nup)
+    
+    # Auto Year
+    if barang_in.tgl_perolehan and not barang_in.tahun_anggaran:
+        barang_in.tahun_anggaran = barang_in.tgl_perolehan[:4]
     
     existing = await db.barang.find_one({"kode_barang": barang_in.kode_barang, "nup": barang_in.nup})
     if existing: raise HTTPException(status_code=400, detail="Barang exists")
@@ -191,10 +150,15 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
 @router.put("/{id}", response_model=Barang)
 async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
     if barang_update.kode_barang: barang_update.kode_barang = clean_code_str(barang_update.kode_barang)
     if barang_update.nup: barang_update.nup = clean_code_str(barang_update.nup)
     if barang_update.kode_barang and not barang_update.golongan_barang:
         barang_update.golongan_barang = await get_golongan_uraian(barang_update.kode_barang)
+        
+    # Auto Year on Update
+    if barang_update.tgl_perolehan:
+        barang_update.tahun_anggaran = barang_update.tgl_perolehan[:4]
         
     update_data = barang_update.dict(exclude_unset=True)
     update_data['updated_at'] = datetime.now(timezone.utc)
@@ -209,34 +173,63 @@ async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
     if res.deleted_count == 0: raise HTTPException(status_code=404)
     return {"message": "Deleted"}
 
-@router.post("/bulk-delete")
-async def bulk_delete_barang(
-    ids: Optional[List[str]] = Body(default=None),
-    select_all_mode: bool = Body(default=False),
-    search: Optional[str] = Body(default=None),
-    filters: Optional[Dict[str, Any]] = Body(default=None),
-    current_user: str = Depends(get_current_user)
-):
-    query = {}
-    if select_all_mode:
-        if search:
-            query["$or"] = [{"nama_barang": {"$regex": search, "$options": "i"}}, 
-                            {"kode_barang": {"$regex": search, "$options": "i"}},
-                            {"nup": {"$regex": search, "$options": "i"}}]
-        if filters:
-            if filters.get('kode'): query["kode_barang"] = {"$regex": filters['kode'], "$options": "i"}
-            if filters.get('nama'): query["nama_barang"] = {"$regex": filters['nama'], "$options": "i"}
-            if filters.get('merk'): query["merk"] = {"$regex": filters['merk'], "$options": "i"}
-            if filters.get('kondisi'): query["kondisi"] = filters['kondisi']
-            if filters.get('lokasi'): query["lokasi_fisik"] = {"$regex": filters['lokasi'], "$options": "i"}
-            if filters.get('nup'): query["nup"] = {"$regex": filters['nup'], "$options": "i"}
-            if filters.get('golongan'): query["golongan_barang"] = {"$regex": filters['golongan'], "$options": "i"}
-        result = await db.barang.delete_many(query)
-    else:
-        if not ids: raise HTTPException(status_code=400, detail="No IDs")
-        obj_ids = [ObjectId(i) for i in ids if ObjectId.is_valid(i)]
-        result = await db.barang.delete_many({"_id": {"$in": obj_ids}})
-    return {"message": f"Deleted {result.deleted_count}"}
+@router.post("/import")
+async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+    if not file.filename.endswith(('.xls', '.xlsx')): raise HTTPException(status_code=400, detail="Excel only")
+    try:
+        contents = await file.read()
+        df = pd.read_excel(io.BytesIO(contents))
+        df = df.where(pd.notnull(df), None)
+        count_p, count_i, count_s = 0, 0, 0
+        for index, row in df.iterrows():
+            try:
+                kode = clean_code_str(row.get('Kode Barang', ''))
+                nup = clean_code_str(row.get('NUP', ''))
+                reg = clean_code_str(row.get('Kode Register', ''))
+                if not kode or not nup: continue
+                
+                dup_query = { "$or": [{"kode_barang": kode, "nup": nup}] }
+                if reg: dup_query["$or"].append({"kode_register": reg})
+                if await db.barang.find_one(dup_query): count_s += 1; continue
+                
+                gol = await get_golongan_uraian(kode)
+                
+                # Date Logic
+                tgl = str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None
+                thn = str(row.get('Tahun Anggaran', '')).strip()
+                if tgl and not thn: thn = tgl[:4]
+                
+                item_data = {
+                    "kode_barang": kode, "nup": nup, "golongan_barang": gol,
+                    "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
+                    "merk": row.get('Merk'), "tipe": row.get('Tipe'), "kondisi": row.get('Kondisi'),
+                    "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
+                    "nilai_buku": clean_currency(row.get('Nilai Buku')),
+                    "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
+                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')),
+                    "tgl_perolehan": tgl, "tahun_anggaran": thn,
+                    "lokasi_fisik": row.get('Lokasi'), "ruang": row.get('Ruang'),
+                    "alamat": row.get('Alamat'), "kab_kota": row.get('Kab/Kota'), "provinsi": row.get('Provinsi'),
+                    "kecamatan": row.get('Kecamatan'), "kelurahan": row.get('Kelurahan/Desa'), "rt_rw": row.get('RT/RW'),
+                    "kode_pos": str(row.get('Kode Pos', '')),
+                    "kode_satker": str(row.get('Kode Satker', '')), "nama_satker": row.get('Nama Satker'),
+                    "intra_ekstra": row.get('Aset Intra / Extra'), "kode_register": reg,
+                    "status_penggunaan": row.get('Status Penggunaan'),
+                    "luas_tanah": clean_currency(row.get('Luas Tanah Seluruhnya')),
+                    "luas_bangunan": clean_currency(row.get('Luas Bangunan')),
+                    "no_sertifikat": str(row.get('No Sertifikat', '')),
+                    "status_sertifikasi": row.get('Status Sertifikasi'),
+                    "tgl_sertifikat": str(row.get('Tanggal Sertifikat'))[:10] if row.get('Tanggal Sertifikat') else None,
+                    "no_psp": str(row.get('No PSP', '')),
+                    "tgl_psp": str(row.get('Tanggal PSP'))[:10] if row.get('Tanggal PSP') else None,
+                    "status_aset": "Aktif", "stok": 1, "updated_at": datetime.now(timezone.utc)
+                }
+                result = await db.barang.insert_one(item_data)
+                if result.inserted_id: count_i += 1
+                count_p += 1
+            except: continue
+        return {"message": "Import selesai", "processed": count_p, "inserted": count_i, "skipped_duplicates": count_s}
+    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/pdf")
 async def download_barang_pdf(
@@ -253,7 +246,7 @@ async def download_barang_pdf(
     else:
         if search: query["$or"] = [{"nama_barang": {"$regex": search, "$options": "i"}}, {"kode_barang": {"$regex": search, "$options": "i"}}]
         if filter_golongan: query["golongan_barang"] = {"$regex": filter_golongan, "$options": "i"}
-        
+    
     collation = {'locale': 'en_US', 'numericOrdering': True}
     cursor = db.barang.find(query).collation(collation).sort([("golongan_barang", 1), ("kode_barang", 1), ("nup", 1)]).limit(5000)
     items = await cursor.to_list(None)
@@ -264,8 +257,11 @@ async def download_barang_pdf(
     elements = []
     styles = getSampleStyleSheet()
     style_normal = styles['Normal']; style_normal.fontSize = 8
+    style_header = styles['Heading3']; style_header.fontSize = 10
     
     elements.append(Paragraph("DAFTAR MASTER BARANG (BMN)", styles['Title']))
+    filter_text = "Data Terpilih" if ids and not all_selected else f"Filter: {search or 'Semua'}"
+    elements.append(Paragraph(f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y')} | {filter_text}", style_normal))
     elements.append(Spacer(1, 12))
     
     current_gol = None; table_data = []
@@ -280,22 +276,21 @@ async def download_barang_pdf(
                 t = Table(table_data, colWidths=col_widths, repeatRows=1)
                 t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.lightgrey), ('GRID',(0,0),(-1,-1),0.5,colors.grey), ('ALIGN',(6,0),(7,-1),'RIGHT'), ('VALIGN',(0,0),(-1,-1),'TOP')]))
                 elements.append(t); elements.append(Spacer(1, 12)); table_data = []
-            elements.append(Paragraph(f"<b>GOLONGAN: {gol}</b>", styles['Heading3'])); table_data.append(headers); current_gol = gol
+            elements.append(Paragraph(f"<b>GOLONGAN: {gol}</b>", style_header)); table_data.append(headers); current_gol = gol
             
+        merk_tipe_str = f"{item.get('merk', '')} {item.get('tipe', '')}".strip()
         row = [
             str(idx), item.get('kode_barang',''), item.get('nup',''),
-            Paragraph(item.get('nama_barang',''), style_normal), Paragraph(f"{item.get('merk','')} {item.get('tipe','')}", style_normal),
+            Paragraph(item.get('nama_barang',''), style_normal), Paragraph(merk_tipe_str, style_normal),
             item.get('kondisi',''), f"{item.get('nilai_perolehan',0):,.0f}", f"{item.get('nilai_buku',0):,.0f}"
         ]
         table_data.append(row); idx+=1
-        
     if table_data:
         t = Table(table_data, colWidths=col_widths, repeatRows=1)
         t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.lightgrey), ('GRID',(0,0),(-1,-1),0.5,colors.grey), ('ALIGN',(6,0),(7,-1),'RIGHT'), ('VALIGN',(0,0),(-1,-1),'TOP')]))
         elements.append(t)
-        
     doc.build(elements); buffer.seek(0)
-    return StreamingResponse(buffer, headers={'Content-Disposition': f'attachment; filename="Laporan.pdf"'}, media_type='application/pdf')
+    return StreamingResponse(buffer, headers={'Content-Disposition': f'attachment; filename="Laporan_Barang_{datetime.now().strftime("%Y%m%d")}.pdf"'}, media_type='application/pdf')
 
 @router.get("/export")
 async def export_barang_excel(
@@ -311,7 +306,7 @@ async def export_barang_excel(
     else:
         if search: query["$or"] = [{"nama_barang": {"$regex": search, "$options": "i"}}, {"kode_barang": {"$regex": search, "$options": "i"}}]
         if filter_kode: query["kode_barang"] = {"$regex": filter_kode, "$options": "i"}
-        # ... (rest of filters handled if passed)
+        # ...
     
     cursor = db.barang.find(query).limit(50000)
     items = await cursor.to_list(None)

@@ -18,15 +18,15 @@ export default function BarangList() {
   const [barang, setBarang] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Global Select State
+  // Selection & Filters
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isAllSelected, setIsAllSelected] = useState(false);
-  
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
       kode: '', nama: '', merk: '', kondisi: '', lokasi: '', nup: '', golongan: ''
   });
   
+  // FIXED Column Visibility: Match KEYS exactly with TableBody logic
   const [visibleColumns, setVisibleColumns] = useState({
       gol: true, kode: true, nup: true, nama: true, kondisi: true, 
       stok: true, rata: true, perolehan: true, penyusutan: true, 
@@ -48,16 +48,38 @@ export default function BarangList() {
 
   const { register, handleSubmit, reset, setValue, watch } = useForm();
   const { register: registerImport, handleSubmit: handleImportSubmit } = useForm();
+  
+  // Watch fields for automation
   const kodeBarangValue = watch('kode_barang');
+  const tglPerolehanValue = watch('tgl_perolehan');
 
+  // Automation: Year from Date
   useEffect(() => {
-      const t = setTimeout(() => {
-          if (currentPage !== 1) setCurrentPage(1); 
-          else fetchBarang();
-      }, 600);
-      return () => clearTimeout(t);
-  }, [filters, search]);
+      if (tglPerolehanValue) {
+          const year = tglPerolehanValue.split('-')[0];
+          if(year && year.length === 4) setValue('tahun_anggaran', year);
+      }
+  }, [tglPerolehanValue, setValue]);
 
+  // Automation: Lookup Code (Full Levels)
+  useEffect(() => {
+      if (kodeBarangValue && kodeBarangValue.length >= 1) {
+          const t = setTimeout(async () => {
+              try {
+                  const res = await api.get('/api/referensi/lookup', { params: { kode: kodeBarangValue } });
+                  setKodefikasiHint(res.data);
+                  
+                  // Auto Fill
+                  if (!editingItem && res.data.golongan) setValue('golongan_barang', res.data.golongan);
+                  if (!editingItem && res.data.uraian_barang && kodeBarangValue.length >= 10 && !watch('nama_barang')) {
+                      setValue('nama_barang', res.data.uraian_barang);
+                  }
+              } catch (e) {}
+          }, 500); return () => clearTimeout(t);
+      } else { setKodefikasiHint(null); }
+  }, [kodeBarangValue, setValue, editingItem, watch]);
+
+  // Fetch Logic
   const fetchBarang = useCallback(async () => {
     setLoading(true);
     try {
@@ -86,109 +108,39 @@ export default function BarangList() {
   }, [currentPage, limit, search, filters]);
 
   useEffect(() => {
-      fetchBarang(); 
-  }, [currentPage, fetchBarang]);
+      const t = setTimeout(() => {
+          if (currentPage !== 1) setCurrentPage(1); 
+          else fetchBarang();
+      }, 600);
+      return () => clearTimeout(t);
+  }, [filters, search]);
 
+  useEffect(() => {
+      if(currentPage > 1) fetchBarang(); 
+  }, [currentPage]);
+
+  // ... (Select, Export, Delete Logic - Kept Same) ...
   const toggleSelectAllPage = (checked) => {
       setIsAllSelected(false);
-      if (checked) {
-          const newSet = new Set(selectedIds);
-          barang.forEach(item => newSet.add(item._id));
-          setSelectedIds(newSet);
-      } else {
-          const newSet = new Set(selectedIds);
-          barang.forEach(item => newSet.delete(item._id));
-          setSelectedIds(newSet);
-      }
+      if (checked) { const ids = new Set(selectedIds); barang.forEach(item => ids.add(item._id)); setSelectedIds(ids); } 
+      else { const ids = new Set(selectedIds); barang.forEach(item => ids.delete(item._id)); setSelectedIds(ids); }
   };
-  
-  const selectGlobal = () => {
-      setIsAllSelected(true);
-      setSelectedIds(new Set());
-      toast.info(`Seluruh ${totalItems} data terpilih.`);
-  };
-  
-  const clearSelection = () => {
-      setIsAllSelected(false);
-      setSelectedIds(new Set());
-  };
-
-  const toggleSelectRow = (id) => {
-      if(isAllSelected) setIsAllSelected(false);
-      const newSet = new Set(selectedIds);
-      if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
-      setSelectedIds(newSet);
-  };
-
-  // ... (Export, PDF, Delete handlers same as before) ...
-  const handleBulkDelete = async () => {
-      if(!window.confirm(`Yakin hapus ${isAllSelected ? totalItems : selectedIds.size} data terpilih?`)) return;
-      try {
-          await api.post('/api/barang/bulk-delete', {
-              select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters
-          });
-          toast.success("Deleted"); clearSelection(); fetchBarang();
-      } catch(e) { toast.error("Fail"); }
-  };
-  const handleExport = async () => {
-      const t = toast.loading("Excel...");
-      try {
-          const params = { search, ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null, all_selected: isAllSelected };
-          const response = await api.get('/api/barang/export', { params, responseType: 'blob' });
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Barang.xlsx`);
-          document.body.appendChild(link); link.click(); link.remove(); toast.success("Done", {id: t});
-      } catch (e) { toast.error("Fail", {id: t}); }
-  };
-  const handlePdf = async () => {
-      const t = toast.loading("PDF...");
-      try {
-          const params = { search, filter_golongan: filters.golongan, ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null, all_selected: isAllSelected };
-          const response = await api.get('/api/barang/pdf', { params, responseType: 'blob' });
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Barang.pdf`);
-          document.body.appendChild(link); link.click(); link.remove(); toast.success("Done", {id: t});
-      } catch (e) { toast.error("Fail", {id: t}); }
-  };
-
+  const selectGlobal = () => { setIsAllSelected(true); setSelectedIds(new Set()); toast.info(`Seluruh ${totalItems} data terpilih.`); };
+  const clearSelection = () => { setIsAllSelected(false); setSelectedIds(new Set()); };
+  const toggleSelectRow = (id) => { if(isAllSelected) setIsAllSelected(false); const s = new Set(selectedIds); if(s.has(id)) s.delete(id); else s.add(id); setSelectedIds(s); };
+  const handleBulkDelete = async () => { if(!window.confirm(`Yakin hapus?`)) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
+  const handleExport = async () => { try { const p = { search, ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null, all_selected: isAllSelected }; const r = await api.get('/api/barang/export', { params: p, responseType: 'blob' }); const u = window.URL.createObjectURL(new Blob([r.data])); const l = document.createElement('a'); l.href = u; l.setAttribute('download', `Barang.xlsx`); document.body.appendChild(l); l.click(); l.remove(); } catch(e) { toast.error("Fail"); } };
+  const handlePdf = async () => { try { const p = { search, filter_golongan: filters.golongan, ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null, all_selected: isAllSelected }; const r = await api.get('/api/barang/pdf', { params: p, responseType: 'blob' }); const u = window.URL.createObjectURL(new Blob([r.data])); const l = document.createElement('a'); l.href = u; l.setAttribute('download', `Barang.pdf`); document.body.appendChild(l); l.click(); l.remove(); } catch(e) { toast.error("Fail"); } };
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); setKodefikasiHint(null);
-      // Map All Fields
       Object.keys(item).forEach(key => setValue(key, item[key]));
-      // Specific Date format fix if needed
       if(item.tgl_perolehan) setValue("tgl_perolehan", item.tgl_perolehan.split("T")[0]);
       setIsModalOpen(true); 
   };
-  const onSubmit = async (data) => {
-      try {
-          if (editingItem) { await api.put(`/api/barang/${editingItem._id}`, data); toast.success("Updated"); } 
-          else { await api.post('/api/barang', data); toast.success("Created"); }
-          setIsModalOpen(false); reset(); fetchBarang();
-      } catch(e) { toast.error("Error saving"); }
-  };
-  const handleDelete = async (id) => {
-      if(!window.confirm("Hapus?")) return;
-      try { await api.delete(`/api/barang/${id}`); toast.success("Deleted"); fetchBarang(); } catch(e) { toast.error("Fail"); }
-  };
-  const onImport = async (data) => {
-      setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]);
-      try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); }
-      catch(e) { toast.error("Import failed"); } finally { setImporting(false); }
-  };
-  // Lookup
-  useEffect(() => {
-      if (kodeBarangValue && kodeBarangValue.length >= 1) {
-          const t = setTimeout(async () => {
-              try {
-                  const res = await api.get('/api/referensi/lookup', { params: { kode: kodeBarangValue } });
-                  setKodefikasiHint(res.data);
-                  if (!editingItem && res.data.golongan) setValue('golongan_barang', res.data.golongan);
-                  if (!editingItem && res.data.uraian_barang && kodeBarangValue.length >= 10 && !watch('nama_barang')) setValue('nama_barang', res.data.uraian_barang);
-              } catch (e) {}
-          }, 500); return () => clearTimeout(t);
-      } else { setKodefikasiHint(null); }
-  }, [kodeBarangValue, setValue, editingItem, watch]);
+  const onSubmit = async (data) => { try { if (editingItem) { await api.put(`/api/barang/${editingItem._id}`, data); toast.success("Updated"); } else { await api.post('/api/barang', data); toast.success("Created"); } setIsModalOpen(false); reset(); fetchBarang(); } catch(e) { toast.error("Error"); } };
+  const handleDelete = async (id) => { if(!window.confirm("Hapus?")) return; try { await api.delete(`/api/barang/${id}`); toast.success("Deleted"); fetchBarang(); } catch(e) { toast.error("Fail"); } };
+  const onImport = async (data) => { setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]); try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); } catch(e) { toast.error("Import failed"); } finally { setImporting(false); } };
 
   return (
     <div className="space-y-6">
@@ -214,11 +166,13 @@ export default function BarangList() {
                 </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Actions ... */}
             {(selectedIds.size > 0 || isAllSelected) && (
                 <div className="flex gap-2 bg-slate-100 p-1 rounded-md">
-                    <span className="text-xs self-center px-2 font-bold text-slate-600">{isAllSelected ? `ALL (${totalItems})` : `${selectedIds.size}`} Selected</span>
+                    <span className="text-xs self-center px-2 font-bold text-slate-600">{isAllSelected ? `ALL` : `${selectedIds.size}`} Selected</span>
                     <Button size="sm" variant="destructive" onClick={handleBulkDelete}><Trash size={14}/></Button>
                     <Button size="sm" variant="outline" onClick={handleExport}><Download size={14}/></Button>
+                    <Button size="sm" variant="outline" onClick={handlePdf}><FileText size={14}/></Button>
                     <Button size="sm" variant="ghost" onClick={clearSelection}><CheckSquare size={14}/></Button>
                 </div>
             )}
@@ -244,6 +198,8 @@ export default function BarangList() {
                   <TableHead className="w-[40px] text-center p-2">
                       <input type="checkbox" onChange={(e) => toggleSelectAllPage(e.target.checked)} checked={barang.length > 0 && (isAllSelected || selectedIds.size === barang.length)} className="rounded border-slate-300"/>
                   </TableHead>
+                  
+                  {/* Conditional Headers */}
                   {visibleColumns.gol && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Gol</TableHead>}
                   {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang</TableHead>}
                   {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode / NUP</TableHead>}
@@ -254,28 +210,31 @@ export default function BarangList() {
                   {visibleColumns.penyusutan && <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Penyusutan</TableHead>}
                   {visibleColumns.buku && <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Nilai Buku</TableHead>}
                   {visibleColumns.lokasi && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Lokasi</TableHead>}
+                  {visibleColumns.satker && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Satker</TableHead>}
+                  {visibleColumns.register && <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Register</TableHead>}
+                  {visibleColumns.tahun && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Tahun</TableHead>}
                   {visibleColumns.status && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
+                  
                   <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
                 </TableRow>
                 
                 {showFilters && (
                     <TableRow className="bg-slate-50">
                         <TableHead className="p-1"></TableHead>
-                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>
-                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Nama..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>
-                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Kode/NUP..." value={filters.kode} onChange={e=>setFilters({...filters, kode: e.target.value})} /></TableHead>
-                        <TableHead className="p-1">
-                            <select className="h-7 text-[10px] w-full border rounded px-1" value={filters.kondisi} onChange={e=>setFilters({...filters, kondisi: e.target.value})}>
-                                <option value="">All</option><option value="Baik">Baik</option><option value="RR">RR</option><option value="RB">RB</option>
-                            </select>
-                        </TableHead>
-                        <TableHead className="p-1"></TableHead>
-                        <TableHead className="p-1"></TableHead>
-                        <TableHead className="p-1"></TableHead>
-                        <TableHead className="p-1"></TableHead>
-                        <TableHead className="p-1"></TableHead>
-                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Lokasi..." value={filters.lokasi} onChange={e=>setFilters({...filters, lokasi: e.target.value})} /></TableHead>
-                        <TableHead className="p-1"></TableHead>
+                        {visibleColumns.gol && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>}
+                        {visibleColumns.nama && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Nama..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>}
+                        {visibleColumns.kode && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Kode/NUP..." value={filters.kode} onChange={e=>setFilters({...filters, kode: e.target.value})} /></TableHead>}
+                        {visibleColumns.kondisi && <TableHead className="p-1"><select className="h-7 text-[10px] w-full border rounded px-1" value={filters.kondisi} onChange={e=>setFilters({...filters, kondisi: e.target.value})}><option value="">All</option><option value="Baik">Baik</option><option value="RR">RR</option><option value="RB">RB</option></select></TableHead>}
+                        {visibleColumns.stok && <TableHead className="p-1"></TableHead>}
+                        {visibleColumns.rata && <TableHead className="p-1"></TableHead>}
+                        {visibleColumns.perolehan && <TableHead className="p-1"></TableHead>}
+                        {visibleColumns.penyusutan && <TableHead className="p-1"></TableHead>}
+                        {visibleColumns.buku && <TableHead className="p-1"></TableHead>}
+                        {visibleColumns.lokasi && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Lokasi..." value={filters.lokasi} onChange={e=>setFilters({...filters, lokasi: e.target.value})} /></TableHead>}
+                        {visibleColumns.satker && <TableHead className="p-1"></TableHead>}
+                        {visibleColumns.register && <TableHead className="p-1"></TableHead>}
+                        {visibleColumns.tahun && <TableHead className="p-1"></TableHead>}
+                        {visibleColumns.status && <TableHead className="p-1"></TableHead>}
                         <TableHead className="sticky right-0 bg-slate-50 p-1"></TableHead>
                     </TableRow>
                 )}
@@ -289,17 +248,22 @@ export default function BarangList() {
                       <TableCell className="text-center p-2">
                           <input type="checkbox" checked={isAllSelected || selectedIds.has(item._id)} onChange={() => toggleSelectRow(item._id)} className="rounded border-slate-300"/>
                       </TableCell>
+                      
                       {visibleColumns.gol && <TableCell className="p-2 truncate max-w-[80px]" title={item.golongan_barang}>{item.golongan_barang || '-'}</TableCell>}
                       {visibleColumns.nama && <TableCell className="p-2"><div className="font-semibold text-slate-900 truncate max-w-[200px]" title={item.nama_barang}>{item.nama_barang}</div><div className="text-[10px] text-slate-500 truncate max-w-[200px]">{item.merk} {item.tipe}</div></TableCell>}
                       {visibleColumns.kode && <TableCell className="p-2 font-mono text-[10px]"><div title={item.kode_barang}>{item.kode_barang}</div><div className="text-slate-500">NUP: {item.nup}</div></TableCell>}
-                      {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : item.kondisi === 'Rusak Berat' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>{item.kondisi}</span></TableCell>}
+                      {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{item.kondisi}</span></TableCell>}
                       {visibleColumns.stok && <TableCell className="text-center font-bold p-2">{item.stok}</TableCell>}
                       {visibleColumns.rata && <TableCell className="text-right p-2 whitespace-nowrap">{formatCurrency(item.nilai_satuan || 0)}</TableCell>}
                       {visibleColumns.perolehan && <TableCell className="text-right p-2 whitespace-nowrap font-medium">{formatCurrency(item.nilai_perolehan || 0)}</TableCell>}
                       {visibleColumns.penyusutan && <TableCell className="text-right p-2 whitespace-nowrap text-red-600">({formatCurrency(item.nilai_penyusutan || 0)})</TableCell>}
                       {visibleColumns.buku && <TableCell className="text-right p-2 whitespace-nowrap font-bold text-slate-800">{formatCurrency(item.nilai_buku || 0)}</TableCell>}
                       {visibleColumns.lokasi && <TableCell className="p-2 truncate max-w-[120px]" title={item.lokasi_fisik}>{item.lokasi_fisik || '-'}</TableCell>}
+                      {visibleColumns.satker && <TableCell className="p-2 truncate max-w-[120px]" title={item.nama_satker}>{item.nama_satker || '-'}</TableCell>}
+                      {visibleColumns.register && <TableCell className="p-2 text-center">{item.kode_register || '-'}</TableCell>}
+                      {visibleColumns.tahun && <TableCell className="p-2 text-center">{item.tahun_anggaran || '-'}</TableCell>}
                       {visibleColumns.status && <TableCell className="text-center p-2"><span className={`px-1 py-0.5 rounded text-[10px] ${item.status_aset === 'Aktif' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>{item.status_aset || 'Aktif'}</span></TableCell>}
+                      
                       <TableCell className="text-center sticky right-0 bg-white/90 backdrop-blur shadow-sm p-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild><Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button></DropdownMenuTrigger>
@@ -319,12 +283,23 @@ export default function BarangList() {
         </CardContent>
       </Card>
       
-      {/* Expanded Edit Modal with TABS */}
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      {/* Import & Edit Modals (Same as before) with improved Auto-Detect Hint display */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editingItem ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle></DialogHeader>
-            {kodefikasiHint && (<div className="bg-blue-50 p-2 rounded text-xs border border-blue-100 mb-2">Auto-Detected: {kodefikasiHint.golongan} &gt; {kodefikasiHint.uraian_barang}</div>)}
-            
+            {kodefikasiHint && (
+                <div className="bg-blue-50 p-3 rounded-md text-xs text-blue-800 border border-blue-100 space-y-1">
+                    <div className="font-bold">Auto-Detected Hierarchy:</div>
+                    <div className="grid grid-cols-2 gap-x-4">
+                        <div>1. {kodefikasiHint.golongan || '-'}</div>
+                        <div>2. {kodefikasiHint.bidang || '-'}</div>
+                        <div>3. {kodefikasiHint.kelompok || '-'}</div>
+                        <div>4. {kodefikasiHint.sub_kelompok || '-'}</div>
+                        <div className="col-span-2 font-semibold">5. {kodefikasiHint.sub_sub_kelompok || '-'}</div>
+                    </div>
+                </div>
+            )}
+            {/* ... Form Content Same ... */}
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Tabs defaultValue="utama">
                     <TabsList className="w-full bg-slate-100">
@@ -357,7 +332,7 @@ export default function BarangList() {
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-1"><label className="text-xs font-bold">Nilai Penyusutan</label><Input type="number" {...register("nilai_penyusutan")}/></div>
                             <div className="space-y-1"><label className="text-xs font-bold">Nilai Buku</label><Input type="number" {...register("nilai_buku")}/></div>
-                            <div className="space-y-1"><label className="text-xs font-bold">Tahun Anggaran</label><Input {...register("tahun_anggaran")}/></div>
+                            <div className="space-y-1"><label className="text-xs font-bold">Tahun Anggaran</label><Input {...register("tahun_anggaran")} readOnly className="bg-slate-50"/></div>
                         </div>
                     </TabsContent>
                     
@@ -411,6 +386,17 @@ export default function BarangList() {
                 </div>
             </form>
           </DialogContent>
+        </Dialog>
+        <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Import Data Barang (SIMAN)</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-4">
+                    <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
+                        <div className="space-y-2"><label className="text-sm font-medium">Pilih File Excel</label><Input type="file" accept=".xlsx, .xls" {...registerImport('file')} /></div>
+                        <Button type="submit" disabled={importing} className="w-full bg-green-600 hover:bg-green-700 text-white">{importing ? <Loader2 className="animate-spin mr-2"/> : <FileUp className="mr-2"/>} Mulai Import</Button>
+                    </form>
+                </div>
+            </DialogContent>
         </Dialog>
     </div>
   );
