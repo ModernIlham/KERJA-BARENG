@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Trash, Edit, FileUp, Download, AlertTriangle } from 'lucide-react';
+import { Search, Loader2, FileUp, Download, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
@@ -54,15 +54,23 @@ export default function ReferensiKode() {
   };
 
   const downloadTemplate = () => {
-      const ws = XLSX.utils.json_to_sheet([
+      // Create Data Array
+      const data = [
           { "kd_brg": "3", "ur_sskel": "Peralatan dan Mesin" },
           { "kd_brg": "3.01", "ur_sskel": "Alat Besar" },
           { "kd_brg": "3.01.01", "ur_sskel": "Alat Besar Darat" },
           { "kd_brg": "3.01.01.01", "ur_sskel": "Tractor" },
           { "kd_brg": "3.01.01.01.001", "ur_sskel": "Crawler Tractor" }
-      ]);
+      ];
+
+      // Create Worksheet
+      const ws = XLSX.utils.json_to_sheet(data);
+      
+      // Create Workbook
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "MasterKode");
+      
+      // Write File
       XLSX.writeFile(wb, "Template_Master_Kode_Barang.xlsx");
   };
 
@@ -150,7 +158,13 @@ export default function ReferensiKode() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <Button variant="outline" size="sm" onClick={downloadTemplate} className="w-fit">
+                        <Button 
+                            type="button" // Prevent form submit triggering
+                            variant="outline" 
+                            size="sm" 
+                            onClick={downloadTemplate} 
+                            className="w-fit"
+                        >
                             <Download className="mr-2 h-3 w-3"/> Download Template
                         </Button>
                     </div>
