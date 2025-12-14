@@ -151,7 +151,7 @@ async def recalculate_stock(current_user: str = Depends(get_current_user)):
             
         # Detailed Chronological Calculation (Safe Method)
         # Fetch all transactions for this item sorted by time
-        txs = await db.transaksi.find({"barang_id": bid_str}).sort("timestamp", 1).to_list(None)
+        txs = await db.transaksi.find({"barang_id": bid_str}).sort("timestamp", 1).to_list(10000)
         
         running_stok = 0
         for tx in txs:
