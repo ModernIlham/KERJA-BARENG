@@ -1,63 +1,57 @@
 {
   "summary": {
-    "tests_run": 9,
-    "tests_passed": 2,
-    "success_rate": 22.22222222222222
+    "tests_run": 8,
+    "tests_passed": 3,
+    "success_rate": 37.5
   },
   "results": [
     {
       "test": "API Health Check",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T00:58:47.926550"
+      "timestamp": "2025-12-14T00:59:27.885494"
     },
     {
       "test": "Admin Login",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T00:58:50.423444"
+      "timestamp": "2025-12-14T00:59:28.393342"
     },
     {
       "test": "Get Barang List",
       "success": false,
       "details": "Response: {'detail': 'Not authenticated'}",
-      "timestamp": "2025-12-14T00:58:50.824943"
+      "timestamp": "2025-12-14T00:59:28.648975"
     },
     {
       "test": "Create Barang",
       "success": false,
       "details": "Response: {'detail': 'Not authenticated'}",
-      "timestamp": "2025-12-14T00:58:51.822368"
+      "timestamp": "2025-12-14T00:59:28.867671"
     },
     {
       "test": "Get Pegawai List",
       "success": false,
       "details": "Response: {'detail': 'Not authenticated'}",
-      "timestamp": "2025-12-14T00:58:52.509669"
+      "timestamp": "2025-12-14T00:59:28.975259"
     },
     {
       "test": "Create Pegawai",
       "success": false,
       "details": "Response: {'detail': 'Not authenticated'}",
-      "timestamp": "2025-12-14T00:58:53.057201"
+      "timestamp": "2025-12-14T00:59:29.147540"
     },
     {
       "test": "Transaksi Test Setup",
       "success": false,
       "details": "No barang_id available for transaction",
-      "timestamp": "2025-12-14T00:58:53.057268"
+      "timestamp": "2025-12-14T00:59:29.147591"
     },
     {
-      "test": "Get Dashboard Stats",
-      "success": false,
-      "details": "Response: {'detail': 'Not Found'}",
-      "timestamp": "2025-12-14T00:58:53.236837"
-    },
-    {
-      "test": "Get Recent Activities",
-      "success": false,
-      "details": "Response: {'detail': 'Not Found'}",
-      "timestamp": "2025-12-14T00:58:53.717721"
+      "test": "Get Dashboard Summary",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T00:59:29.354677"
     }
   ],
   "created_items": {}
