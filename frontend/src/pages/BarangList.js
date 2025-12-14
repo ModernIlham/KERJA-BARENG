@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Edit, Trash } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Plus, Search, Loader2, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
 
@@ -16,7 +17,7 @@ export default function BarangList() {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, setValue } = useForm();
 
   const fetchBarang = async () => {
     setLoading(true);
@@ -67,43 +68,72 @@ export default function BarangList() {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
             <Button className="bg-slate-900 hover:bg-slate-800 text-white">
-              <Plus className="mr-2 h-4 w-4" /> Tambah Barang
+              <Plus className="mr-2 h-4 w-4" /> Tambah Aset
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Tambah Barang Baru</DialogTitle>
+              <DialogTitle>Tambah Aset Baru</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Kode Barang</label>
-                  <Input {...register("kode_barang", { required: true })} placeholder="BRG-001" />
+                  <Input {...register("kode_barang", { required: true })} placeholder="Contoh: 305010..." />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Kategori</label>
-                  <Input {...register("kategori", { required: true })} placeholder="Elektronik" />
+                  <label className="text-sm font-medium">NUP (No Urut Pendaftaran)</label>
+                  <Input {...register("nup", { required: true })} placeholder="1" />
                 </div>
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nama Barang</label>
-                <Input {...register("nama_barang", { required: true })} placeholder="Laptop ASUS" />
+                <Input {...register("nama_barang", { required: true })} placeholder="Laptop / Tanah / Bangunan..." />
               </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Merk</label>
+                    <Input {...register("merk")} placeholder="Dell / Toyota" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Tipe</label>
+                    <Input {...register("tipe")} placeholder="Latitude 5420" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Kondisi</label>
+                    <select {...register("kondisi")} className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 text-sm">
+                        <option value="Baik">Baik</option>
+                        <option value="Rusak Ringan">Rusak Ringan</option>
+                        <option value="Rusak Berat">Rusak Berat</option>
+                    </select>
+                  </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Satuan</label>
-                  <Input {...register("satuan", { required: true })} placeholder="Unit" />
+                  <label className="text-sm font-medium">Tanggal Perolehan</label>
+                  <Input type="date" {...register("tgl_perolehan")} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Nilai Per Unit (Rp)</label>
-                  <Input type="number" {...register("nilai_per_unit", { required: true })} placeholder="5000000" />
+                  <label className="text-sm font-medium">Nilai Perolehan (Rp)</label>
+                  <Input type="number" {...register("nilai_perolehan")} placeholder="0" />
                 </div>
               </div>
-              <div className="space-y-2">
-                  <label className="text-sm font-medium">Lokasi</label>
-                  <Input {...register("lokasi")} placeholder="Gudang A" />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Lokasi Fisik</label>
+                  <Input {...register("lokasi_fisik")} placeholder="Gudang / Ruang Rapat" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Jumlah Stok (Awal)</label>
+                  <Input type="number" {...register("stok")} defaultValue={1} />
+                </div>
               </div>
-              <Button type="submit" className="w-full bg-slate-900 text-white">Simpan Barang</Button>
+
+              <Button type="submit" className="w-full bg-slate-900 text-white mt-4">Simpan Data Aset</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -114,7 +144,7 @@ export default function BarangList() {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
             <Input 
-              placeholder="Cari nama atau kode barang..." 
+              placeholder="Cari nama, kode, atau NUP..." 
               className="pl-9 max-w-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -126,10 +156,11 @@ export default function BarangList() {
             <Table>
               <TableHeader className="bg-slate-50">
                 <TableRow>
-                  <TableHead>Kode</TableHead>
+                  <TableHead className="w-[150px]">Kode / NUP</TableHead>
                   <TableHead>Nama Barang</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead className="text-right">Stok</TableHead>
+                  <TableHead>Merk/Tipe</TableHead>
+                  <TableHead>Tgl Perolehan</TableHead>
+                  <TableHead>Kondisi</TableHead>
                   <TableHead className="text-right">Nilai Aset</TableHead>
                   <TableHead className="text-center">Aksi</TableHead>
                 </TableRow>
@@ -137,30 +168,44 @@ export default function BarangList() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin mx-auto text-slate-400" />
                     </TableCell>
                   </TableRow>
                 ) : barang.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
                       Tidak ada data barang ditemukan.
                     </TableCell>
                   </TableRow>
                 ) : (
                   barang.map((item) => (
                     <TableRow key={item._id} className="hover:bg-slate-50">
-                      <TableCell className="font-medium">{item.kode_barang}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        <div className="font-bold">{item.kode_barang}</div>
+                        <div className="text-slate-500">NUP: {item.nup}</div>
+                      </TableCell>
                       <TableCell>
                         <div className="font-medium text-slate-900">{item.nama_barang}</div>
-                        <div className="text-xs text-slate-500">{item.lokasi || '-'}</div>
+                        <div className="text-xs text-slate-500">{item.lokasi_fisik || '-'}</div>
                       </TableCell>
-                      <TableCell><span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">{item.kategori}</span></TableCell>
-                      <TableCell className={`text-right font-bold ${item.stok <= 5 ? 'text-red-600' : 'text-slate-700'}`}>
-                        {item.stok} {item.satuan}
+                      <TableCell className="text-sm text-slate-600">
+                        {item.merk} {item.tipe}
                       </TableCell>
-                      <TableCell className="text-right text-slate-600">
-                        {formatCurrency(item.nilai_per_unit * item.stok)}
+                      <TableCell className="text-sm text-slate-600">
+                        {item.tgl_perolehan}
+                      </TableCell>
+                      <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                              item.kondisi === 'Baik' ? 'bg-green-100 text-green-700' :
+                              item.kondisi === 'Rusak Berat' ? 'bg-red-100 text-red-700' :
+                              'bg-yellow-100 text-yellow-700'
+                          }`}>
+                              {item.kondisi}
+                          </span>
+                      </TableCell>
+                      <TableCell className="text-right text-slate-900 font-medium">
+                        {formatCurrency(item.nilai_perolehan)}
                       </TableCell>
                       <TableCell className="text-center">
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(item._id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">

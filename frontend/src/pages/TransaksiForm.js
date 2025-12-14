@@ -4,9 +4,8 @@ import api from '../api/axios';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Loader2, ArrowRightLeft } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TransaksiList() {
@@ -49,8 +48,8 @@ export default function TransaksiList() {
         jumlah: parseInt(data.jumlah)
       });
       toast.success("Transaksi berhasil dicatat");
-      reset();
-      fetchData(); // Refresh list
+      reset({ jenis: selectedJenis }); // Keep selected type
+      fetchData(); 
     } catch (error) {
       toast.error(error.response?.data?.detail || "Gagal mencatat transaksi");
     }
@@ -71,57 +70,67 @@ export default function TransaksiList() {
                   <Button 
                     type="button"
                     variant={selectedJenis === 'MASUK' ? 'default' : 'outline'}
-                    className={selectedJenis === 'MASUK' ? 'bg-green-600 hover:bg-green-700 w-full' : 'w-full'}
+                    className={`flex-1 ${selectedJenis === 'MASUK' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
                     onClick={() => setValue('jenis', 'MASUK')}
                   >
-                    Masuk (In)
+                    Masuk
                   </Button>
                   <Button 
                     type="button"
                     variant={selectedJenis === 'KELUAR' ? 'default' : 'outline'}
-                    className={selectedJenis === 'KELUAR' ? 'bg-amber-600 hover:bg-amber-700 w-full' : 'w-full'}
+                    className={`flex-1 ${selectedJenis === 'KELUAR' ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''}`}
                     onClick={() => setValue('jenis', 'KELUAR')}
                   >
-                    Keluar (Out)
+                    Keluar
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant={selectedJenis === 'OPNAME' ? 'default' : 'outline'}
+                    className={`flex-1 ${selectedJenis === 'OPNAME' ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+                    onClick={() => setValue('jenis', 'OPNAME')}
+                  >
+                    Opname
                   </Button>
                 </div>
                 <input type="hidden" {...register('jenis')} />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Barang</label>
+                <label className="text-sm font-medium">Pilih Aset (Barang)</label>
                 <select 
                   {...register('barang_id', { required: true })} 
                   className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                 >
-                  <option value="">Pilih Barang...</option>
+                  <option value="">-- Pilih Barang --</option>
                   {barangList.map(b => (
-                    <option key={b._id} value={b._id}>{b.nama_barang} (Stok: {b.stok})</option>
+                    <option key={b._id} value={b._id}>
+                        {b.nama_barang} | NUP: {b.nup} | Stok: {b.stok}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Jumlah</label>
-                <Input type="number" {...register('jumlah', { required: true, min: 1 })} placeholder="Contoh: 5" />
+                <Input type="number" {...register('jumlah', { required: true, min: 1 })} placeholder="Contoh: 1" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Penerima / Petugas</label>
+                <label className="text-sm font-medium">Pihak Terkait (Pegawai/Unit)</label>
                 <select 
                   {...register('pegawai_id')} 
                   className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                 >
-                  <option value="">Pilih Pegawai...</option>
+                  <option value="">-- Pilih Pegawai --</option>
                   {pegawaiList.map(p => (
-                    <option key={p._id} value={p._id}>{p.nama_lengkap}</option>
+                    <option key={p._id} value={p._id}>{p.nama_lengkap} - {p.jabatan}</option>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Keterangan</label>
-                <Input {...register('keterangan')} placeholder="Opsional..." />
+                <label className="text-sm font-medium">Keterangan / No. Dokumen</label>
+                <Input {...register('keterangan')} placeholder="No. BA Serah Terima..." />
               </div>
 
               <Button type="submit" className="w-full bg-slate-900 mt-4">Simpan Transaksi</Button>
@@ -144,7 +153,7 @@ export default function TransaksiList() {
                     <TableHead>Jenis</TableHead>
                     <TableHead>Barang</TableHead>
                     <TableHead>Jumlah</TableHead>
-                    <TableHead>Pegawai</TableHead>
+                    <TableHead>Pihak Terkait</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -156,14 +165,21 @@ export default function TransaksiList() {
                     transaksi.map((tx) => (
                       <TableRow key={tx._id} className="hover:bg-slate-50">
                         <TableCell className="text-xs text-slate-500">
-                          {new Date(tx.timestamp).toLocaleDateString('id-ID')} {new Date(tx.timestamp).toLocaleTimeString('id-ID')}
+                          {new Date(tx.timestamp).toLocaleDateString('id-ID')}
                         </TableCell>
                         <TableCell>
-                          <span className={`px-2 py-1 rounded text-xs font-bold ${tx.jenis === 'MASUK' ? 'text-green-700 bg-green-100' : 'text-amber-700 bg-amber-100'}`}>
+                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                              tx.jenis === 'MASUK' ? 'text-green-700 bg-green-100' : 
+                              tx.jenis === 'KELUAR' ? 'text-amber-700 bg-amber-100' :
+                              'text-blue-700 bg-blue-100'
+                          }`}>
                             {tx.jenis}
                           </span>
                         </TableCell>
-                        <TableCell className="font-medium">{tx.nama_barang}</TableCell>
+                        <TableCell className="font-medium text-sm">
+                            {tx.nama_barang}
+                            {tx.nup && <span className="text-xs text-slate-400 block">NUP: {tx.nup}</span>}
+                        </TableCell>
                         <TableCell className="font-bold">{tx.jumlah}</TableCell>
                         <TableCell className="text-sm text-slate-600">{tx.nama_pegawai || '-'}</TableCell>
                       </TableRow>

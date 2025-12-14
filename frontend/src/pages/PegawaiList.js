@@ -51,34 +51,54 @@ export default function PegawaiList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Data Pegawai</h1>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Data Pegawai & Struktur Organisasi</h1>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
             <Button className="bg-slate-900 hover:bg-slate-800 text-white">
               <Plus className="mr-2 h-4 w-4" /> Tambah Pegawai
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Tambah Pegawai Baru</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">NIP</label>
-                <Input {...register("nip", { required: true })} placeholder="1980xxxx" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <label className="text-sm font-medium">NIP</label>
+                    <Input {...register("nip", { required: true })} placeholder="1980xxxx" />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-medium">Nama Lengkap</label>
+                    <Input {...register("nama_lengkap", { required: true })} placeholder="Budi Santoso" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nama Lengkap</label>
-                <Input {...register("nama_lengkap", { required: true })} placeholder="Budi Santoso" />
-              </div>
+              
               <div className="space-y-2">
                 <label className="text-sm font-medium">Jabatan</label>
                 <Input {...register("jabatan", { required: true })} placeholder="Pengelola BMN" />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Unit Kerja</label>
-                <Input {...register("unit_kerja", { required: true })} placeholder="Bagian Umum" />
+              
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 space-y-3">
+                  <h3 className="text-sm font-bold text-slate-700 mb-2">Unit Kerja (Struktur Organisasi)</h3>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-500">Eselon I</label>
+                    <Input {...register("eselon1")} placeholder="Sekretariat Jenderal" className="h-8 text-sm"/>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-500">Eselon II</label>
+                    <Input {...register("eselon2")} placeholder="Biro Umum" className="h-8 text-sm"/>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-500">Eselon III</label>
+                    <Input {...register("eselon3")} placeholder="Bagian Perlengkapan" className="h-8 text-sm"/>
+                  </div>
+                   <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-500">Eselon IV</label>
+                    <Input {...register("eselon4")} placeholder="Subbagian Gudang" className="h-8 text-sm"/>
+                  </div>
               </div>
+
               <Button type="submit" className="w-full bg-slate-900 text-white">Simpan Data</Button>
             </form>
           </DialogContent>
@@ -90,7 +110,7 @@ export default function PegawaiList() {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
             <Input 
-              placeholder="Cari NIP atau Nama..." 
+              placeholder="Cari NIP, Nama, atau Unit Kerja..." 
               className="pl-9 max-w-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -102,33 +122,39 @@ export default function PegawaiList() {
             <Table>
               <TableHeader className="bg-slate-50">
                 <TableRow>
-                  <TableHead>NIP</TableHead>
-                  <TableHead>Nama Lengkap</TableHead>
+                  <TableHead>NIP / Nama</TableHead>
                   <TableHead>Jabatan</TableHead>
-                  <TableHead>Unit Kerja</TableHead>
+                  <TableHead>Unit Kerja (Eselon)</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={4} className="text-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin mx-auto text-slate-400" />
                     </TableCell>
                   </TableRow>
                 ) : pegawai.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={4} className="text-center py-8 text-slate-500">
                       Tidak ada data pegawai.
                     </TableCell>
                   </TableRow>
                 ) : (
                   pegawai.map((item) => (
                     <TableRow key={item._id} className="hover:bg-slate-50">
-                      <TableCell className="font-mono text-xs text-slate-600">{item.nip}</TableCell>
-                      <TableCell className="font-medium text-slate-900">{item.nama_lengkap}</TableCell>
+                      <TableCell>
+                         <div className="font-bold text-slate-900">{item.nama_lengkap}</div>
+                         <div className="font-mono text-xs text-slate-500">{item.nip}</div>
+                      </TableCell>
                       <TableCell className="text-slate-600">{item.jabatan}</TableCell>
-                      <TableCell className="text-slate-600">{item.unit_kerja}</TableCell>
+                      <TableCell className="text-xs text-slate-600">
+                          {item.eselon1 && <div className="font-semibold">{item.eselon1}</div>}
+                          {item.eselon2 && <div>&rdsh; {item.eselon2}</div>}
+                          {item.eselon3 && <div className="pl-2">&rdsh; {item.eselon3}</div>}
+                          {item.eselon4 && <div className="pl-4 text-slate-500">{item.eselon4}</div>}
+                      </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${item.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
                           {item.status}
