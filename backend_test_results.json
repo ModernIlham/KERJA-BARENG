@@ -1,85 +1,58 @@
 {
   "summary": {
-    "tests_run": 12,
-    "tests_passed": 11,
-    "success_rate": 91.66666666666666
+    "tests_run": 8,
+    "tests_passed": 5,
+    "success_rate": 62.5
   },
   "results": [
     {
       "test": "API Health Check",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:00:43.320023"
+      "timestamp": "2025-12-14T01:01:16.768716"
     },
     {
       "test": "Admin Login",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:00:43.837062"
+      "timestamp": "2025-12-14T01:01:17.259156"
     },
     {
       "test": "Get Barang List",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:00:43.997799"
+      "timestamp": "2025-12-14T01:01:17.346217"
     },
     {
       "test": "Create Barang",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:00:44.229493"
-    },
-    {
-      "test": "Get Barang List After Create",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:00:44.381592"
-    },
-    {
-      "test": "Get Barang Stats",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:00:44.535604"
+      "success": false,
+      "details": "Response: {'detail': 'Kode barang already exists'}",
+      "timestamp": "2025-12-14T01:01:17.424456"
     },
     {
       "test": "Get Pegawai List",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:00:44.677354"
+      "timestamp": "2025-12-14T01:01:17.502103"
     },
     {
       "test": "Create Pegawai",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:00:44.839847"
+      "success": false,
+      "details": "Response: {'detail': 'NIP already exists'}",
+      "timestamp": "2025-12-14T01:01:17.574387"
     },
     {
-      "test": "Get Transaksi List",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:00:44.973204"
-    },
-    {
-      "test": "Create Transaksi MASUK",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:00:45.135420"
-    },
-    {
-      "test": "Create Transaksi KELUAR",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:00:45.277187"
+      "test": "Transaksi Test Setup",
+      "success": false,
+      "details": "No barang_id available for transaction",
+      "timestamp": "2025-12-14T01:01:17.574432"
     },
     {
       "test": "Get Dashboard Summary",
-      "success": false,
-      "details": "Response: {'status_code': 500, 'text': 'Internal Server Error'}",
-      "timestamp": "2025-12-14T01:00:45.389498"
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:01:17.661802"
     }
   ],
-  "created_items": {
-    "barang_id": "693e0c3c5f67905fa8d59f89",
-    "pegawai_id": "693e0c3c5f67905fa8d59f8a"
-  }
+  "created_items": {}
 }
