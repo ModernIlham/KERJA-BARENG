@@ -35,7 +35,7 @@ export default function ReferensiKode() {
   useEffect(() => {
     const t = setTimeout(fetchData, 500);
     return () => clearTimeout(t);
-  }, [search]);
+  }, [search, fetchData]);
 
   const openAdd = () => {
       setEditingItem(null);
