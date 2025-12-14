@@ -103,8 +103,9 @@ class SIMANGAPITester:
                      "" if success else f"Response: {response}")
 
         # Test CREATE barang
+        timestamp = datetime.now().strftime('%H%M%S')
         barang_data = {
-            "kode_barang": "LPT-001",
+            "kode_barang": f"LPT-{timestamp}",
             "nama_barang": "Laptop Dell",
             "kategori": "Elektronik",
             "satuan": "Unit",
