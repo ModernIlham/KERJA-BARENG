@@ -11,6 +11,12 @@ from datetime import datetime, timezone
 import pandas as pd
 import io
 import math
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
