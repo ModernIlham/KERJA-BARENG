@@ -181,7 +181,7 @@ export default function ReferensiKode() {
             <DialogContent>
                 <DialogHeader><DialogTitle>Import Kodefikasi</DialogTitle></DialogHeader>
                 <div className="space-y-4">
-                    <p className="text-sm text-slate-500">Upload file Excel dengan sheet <strong>"KodefikasiBarang"</strong>. Kolom: <strong>Kode, Uraian</strong>.</p>
+                    <p className="text-sm text-slate-500">Upload file Excel dengan sheet <strong>&quot;KodefikasiBarang&quot;</strong>. Kolom: <strong>Kode, Uraian</strong>.</p>
                     <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
                         <Input type="file" accept=".xlsx" {...registerImport('file', {required:true})} />
                         <Button className="w-full bg-green-600 hover:bg-green-700">Mulai Import</Button>
