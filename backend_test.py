@@ -146,8 +146,9 @@ class SIMANGAPITester:
                      "" if success else f"Response: {response}")
 
         # Test CREATE pegawai
+        timestamp = datetime.now().strftime('%H%M%S')
         pegawai_data = {
-            "nip": "19900101",
+            "nip": f"199001{timestamp}",
             "nama_lengkap": "Budi Santoso",
             "jabatan": "Staff IT",
             "unit_kerja": "IT Department"
