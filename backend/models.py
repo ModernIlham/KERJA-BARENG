@@ -106,6 +106,13 @@ class Barang(MongoBaseModel):
     alamat: Optional[str] = None
     kelurahan: Optional[str] = None
     kecamatan: Optional[str] = None
+    tipe: Optional[str] = None
+    kategori: Optional[str] = None
+    kondisi: Optional[str] = None
+    tgl_perolehan: Optional[str] = None
+    nilai_perolehan: Optional[float] = 0
+    lokasi_fisik: Optional[str] = None
+    satuan: Optional[str] = None
     kab_kota: Optional[str] = None
     provinsi: Optional[str] = None
     
