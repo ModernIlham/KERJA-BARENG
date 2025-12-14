@@ -1,22 +1,36 @@
 {
+  "timestamp": "2025-12-14T08:03:23.273169",
   "summary": {
-    "tests_run": 2,
-    "tests_passed": 1,
-    "success_rate": 50.0
+    "tests_run": 1,
+    "tests_passed": 0,
+    "success_rate": "0.0%"
   },
-  "results": [
+  "detailed_results": [
     {
-      "test": "API Health Check",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T04:37:47.623403"
-    },
-    {
-      "test": "Admin Login",
+      "test_name": "Login",
+      "method": "POST",
+      "endpoint": "api/auth/login",
+      "expected_status": 200,
+      "actual_status": 422,
       "success": false,
-      "details": "Response: {'detail': 'Incorrect email or password'}",
-      "timestamp": "2025-12-14T04:37:47.813347"
+      "response_size": 179,
+      "error": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "email"
+            ],
+            "msg": "Field required",
+            "input": {
+              "username": "admin",
+              "password": "admin123"
+            },
+            "url": "https://errors.pydantic.dev/2.12/v/missing"
+          }
+        ]
+      }
     }
-  ],
-  "created_items": {}
+  ]
 }
