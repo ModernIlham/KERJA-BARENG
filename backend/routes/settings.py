@@ -137,7 +137,7 @@ async def recalculate_stock(current_user: str = Depends(get_current_user)):
         }}
     ]
     
-    tx_aggs = await db.transaksi.aggregate(pipeline).to_list(None)
+    tx_aggs = await db.transaksi.aggregate(pipeline).to_list(10000)
     
     count = 0
     for agg in tx_aggs:
