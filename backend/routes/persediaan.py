@@ -807,14 +807,34 @@ async def export_persediaan_excel(request: dict = Body(...), current_user: str =
     try:
         ids = request.get('ids', [])
         select_all = request.get('select_all_mode', False)
+        search = request.get('search')
+        filters = request.get('filters', {})
+        
+        query = {}
         
         if select_all:
-            cursor = db.persediaan.find({})
+            # Apply filters
+            if search:
+                query["$or"] = [
+                    {"nama_barang": {"$regex": search, "$options": "i"}},
+                    {"kode_barang": {"$regex": search, "$options": "i"}},
+                    {"batch_number": {"$regex": search, "$options": "i"}}
+                ]
+            
+            if filters:
+                if filters.get('kode'): query["kode_barang"] = {"$regex": filters['kode'], "$options": "i"}
+                if filters.get('nama'): query["nama_barang"] = {"$regex": filters['nama'], "$options": "i"}
+                if filters.get('merk'): query["merk"] = {"$regex": filters['merk'], "$options": "i"}
+                if filters.get('kondisi'): query["kondisi"] = filters['kondisi']
+                if filters.get('lokasi'): query["lokasi_fisik"] = {"$regex": filters['lokasi'], "$options": "i"}
+                if filters.get('golongan'): query["golongan_barang"] = {"$regex": filters['golongan'], "$options": "i"}
+            
+            cursor = db.persediaan.find(query).sort("kode_barang", 1)
         else:
             if not ids:
                 raise HTTPException(status_code=400, detail="No items selected")
             valid_ids = [ObjectId(id) for id in ids if ObjectId.is_valid(id)]
-            cursor = db.persediaan.find({"_id": {"$in": valid_ids}})
+            cursor = db.persediaan.find({"_id": {"$in": valid_ids}}).sort("kode_barang", 1)
         
         items = await cursor.to_list(None)
         
@@ -867,9 +887,29 @@ async def export_persediaan_pdf(request: dict = Body(...), current_user: str = D
     try:
         ids = request.get('ids', [])
         select_all = request.get('select_all_mode', False)
+        search = request.get('search')
+        filters = request.get('filters', {})
+        
+        query = {}
         
         if select_all:
-            cursor = db.persediaan.find({}).sort("kode_barang", 1)
+            # Apply filters
+            if search:
+                query["$or"] = [
+                    {"nama_barang": {"$regex": search, "$options": "i"}},
+                    {"kode_barang": {"$regex": search, "$options": "i"}},
+                    {"batch_number": {"$regex": search, "$options": "i"}}
+                ]
+            
+            if filters:
+                if filters.get('kode'): query["kode_barang"] = {"$regex": filters['kode'], "$options": "i"}
+                if filters.get('nama'): query["nama_barang"] = {"$regex": filters['nama'], "$options": "i"}
+                if filters.get('merk'): query["merk"] = {"$regex": filters['merk'], "$options": "i"}
+                if filters.get('kondisi'): query["kondisi"] = filters['kondisi']
+                if filters.get('lokasi'): query["lokasi_fisik"] = {"$regex": filters['lokasi'], "$options": "i"}
+                if filters.get('golongan'): query["golongan_barang"] = {"$regex": filters['golongan'], "$options": "i"}
+
+            cursor = db.persediaan.find(query).sort("kode_barang", 1)
         else:
             if not ids:
                 raise HTTPException(status_code=400, detail="No items selected")
