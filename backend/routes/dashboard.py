@@ -3,6 +3,7 @@ from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from typing import Optional
+from datetime import datetime, timezone
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -11,8 +12,8 @@ db = client[os.environ['DB_NAME']]
 
 @router.get("/summary")
 async def get_dashboard_summary(current_user: str = Depends(get_current_user)):
-    # 1. Stats
-    stats_pipeline = [
+    # 1. Aset Tetap Stats
+    aset_pipeline = [
         {"$group": {
             "_id": None,
             "total_items": {"$sum": 1},
@@ -20,28 +21,62 @@ async def get_dashboard_summary(current_user: str = Depends(get_current_user)):
             "critical_stock": {"$sum": {"$cond": [{"$lte": ["$stok", 0]}, 1, 0]}}
         }}
     ]
-    stats = await db.barang.aggregate(stats_pipeline).to_list(1)
-    stats_res = stats[0] if stats else {"total_items": 0, "total_value": 0, "critical_stock": 0}
+    aset_stats = await db.barang.aggregate(aset_pipeline).to_list(1)
+    aset_res = aset_stats[0] if aset_stats else {"total_items": 0, "total_value": 0, "critical_stock": 0}
     
-    # 2. Recent Transactions
-    recent_tx = await db.transaksi.find().sort("timestamp", -1).limit(5).to_list(5)
-    
-    # 3. Monthly Expenditure (Global) - Default View
-    expenditure_pipeline = [
-        {"$match": {"jenis": "KELUAR"}},
+    # 2. Persediaan Stats
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    persediaan_pipeline = [
         {"$group": {
-            "_id": {"month": {"$month": "$timestamp"}, "year": {"$year": "$timestamp"}},
-            "total_keluar": {"$sum": "$jumlah"}
-        }},
-        {"$sort": {"_id.year": 1, "_id.month": 1}},
-        {"$limit": 6}
+            "_id": None,
+            "total_items": {"$sum": 1},
+            "total_value": {"$sum": {"$multiply": ["$stok", "$nilai_satuan"]}}, 
+            "low_stock": {
+                "$sum": {
+                    "$cond": [
+                        {"$and": [{"$lte": ["$stok", "$batas_kritis"]}, {"$gt": ["$batas_kritis", 0]}]}, 
+                        1, 
+                        0
+                    ]
+                }
+            },
+            "expired": {
+                "$sum": {
+                    "$cond": [
+                        {"$and": [{"$ne": ["$expired_date", None]}, {"$lt": ["$expired_date", today_str]}]}, 
+                        1, 
+                        0
+                    ]
+                }
+            }
+        }}
     ]
-    expenditure = await db.transaksi.aggregate(expenditure_pipeline).to_list(6)
+    inv_stats = await db.persediaan.aggregate(persediaan_pipeline).to_list(1)
+    inv_res = inv_stats[0] if inv_stats else {"total_items": 0, "total_value": 0, "low_stock": 0, "expired": 0}
+
+    # 3. Recent Transactions (Merge Asset & Inventory)
+    # Asset Transactions
+    recent_tx_asset = await db.transaksi.find().sort("timestamp", -1).limit(5).to_list(5)
+    # Inventory Transactions
+    recent_tx_inv = await db.transaksi_persediaan.find().sort("timestamp", -1).limit(5).to_list(5)
     
+    # Combine and Sort
+    all_tx = recent_tx_asset + recent_tx_inv
+    all_tx.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+    recent_tx = all_tx[:5]
+    
+    # Format sanitized response
+    def sanitize(item):
+        if not item: return item
+        item['_id'] = str(item['_id'])
+        if 'timestamp' in item and item['timestamp']:
+            item['timestamp'] = item['timestamp'].isoformat()
+        return item
+
     return {
-        "stats": stats_res,
-        "recent_activity": recent_tx,
-        "expenditure_trend": expenditure
+        "aset_stats": aset_res,
+        "persediaan_stats": inv_res,
+        "recent_activity": [sanitize(tx) for tx in recent_tx]
     }
 
 @router.get("/rekap-pengeluaran")
@@ -56,10 +91,6 @@ async def get_rekap_pengeluaran(
     Used for the hierarchical chart.
     """
     match_stage = {"jenis": "KELUAR"}
-    
-    # We need to filter transactions where the 'unit_penerima' matches the hierarchy.
-    # However, 'unit_penerima' in Transaction is flat. 
-    # Better approach: Join with Pegawai collection to get the hierarchy of the person who took the item.
     
     lookup_stage = {
         "$lookup": {
