@@ -79,7 +79,6 @@ export default function BarangList() {
       if(currentPage > 1) fetchBarang(); 
   }, [currentPage]);
 
-  // ... (Select Logic)
   const toggleSelectAll = (checked) => {
       if (checked) { const ids = new Set(barang.map(item => item._id)); setSelectedIds(ids); } 
       else { setSelectedIds(new Set()); }
@@ -93,8 +92,23 @@ export default function BarangList() {
   const handleExport = async () => {
       const t = toast.loading("Downloading Excel...");
       try {
-          const params = { search, filter_kode: filters.kode, filter_nama: filters.nama, filter_merk: filters.merk, filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup };
-          const response = await api.get('/api/barang/export', { params, responseType: 'blob' });
+          const params = {
+              search,
+              filter_kode: filters.kode,
+              filter_nama: filters.nama,
+              filter_merk: filters.merk,
+              filter_kondisi: filters.kondisi,
+              filter_lokasi: filters.lokasi,
+              filter_nup: filters.nup,
+              // Pass Selected IDs
+              ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null
+          };
+          
+          const response = await api.get('/api/barang/export', { 
+              params,
+              responseType: 'blob' 
+          });
+          
           const url = window.URL.createObjectURL(new Blob([response.data]));
           const link = document.createElement('a'); link.href = url;
           link.setAttribute('download', `Master_Barang_${new Date().toLocaleDateString()}.xlsx`);
@@ -106,7 +120,11 @@ export default function BarangList() {
   const handlePdf = async () => {
       const t = toast.loading("Generating PDF...");
       try {
-          const params = { search, filter_golongan: filters.golongan };
+          const params = { 
+              search, 
+              filter_golongan: filters.golongan,
+              ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null
+          };
           const response = await api.get('/api/barang/pdf', { params, responseType: 'blob' });
           const url = window.URL.createObjectURL(new Blob([response.data]));
           const link = document.createElement('a'); link.href = url;
@@ -116,7 +134,7 @@ export default function BarangList() {
       } catch (e) { toast.error("Gagal PDF", {id: t}); }
   };
 
-  // ... (Modals & Actions Logic) ...
+  // ... (Other functions: openAdd, openEdit, onSubmit, onDelete, onImport, etc. same as before)
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); setKodefikasiHint(null);
@@ -144,8 +162,6 @@ export default function BarangList() {
       try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); }
       catch(e) { toast.error("Import failed"); } finally { setImporting(false); }
   };
-
-  // ... (Lookup Logic) ...
   useEffect(() => {
       if (kodeBarangValue && kodeBarangValue.length >= 1) {
           const lookup = async () => {
@@ -168,26 +184,20 @@ export default function BarangList() {
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Barang</h1>
         
         <div className="flex flex-wrap gap-2 w-full xl:w-auto">
+            {/* ... Buttons ... */}
             <div className="relative flex-1 xl:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
                 <Input placeholder="Cari Global..." className="pl-9 h-10" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
-            
-            <Button variant={showFilters ? "secondary" : "outline"} onClick={() => setShowFilters(!showFilters)}>
-                <Filter className="mr-2 h-4 w-4" /> Filter
+            <Button variant={showFilters ? "secondary" : "outline"} onClick={() => setShowFilters(!showFilters)}><Filter className="mr-2 h-4 w-4" /> Filter</Button>
+            <Button variant={selectedIds.size > 0 ? "default" : "outline"} onClick={handleExport} className={selectedIds.size > 0 ? "bg-green-600 text-white hover:bg-green-700" : ""}>
+                <Download className="mr-2 h-4 w-4" /> {selectedIds.size > 0 ? `Excel (${selectedIds.size})` : "Excel"}
             </Button>
-            <Button variant="outline" onClick={handleExport}>
-                <Download className="mr-2 h-4 w-4" /> Excel
+            <Button variant={selectedIds.size > 0 ? "default" : "outline"} onClick={handlePdf} className={selectedIds.size > 0 ? "bg-red-600 text-white hover:bg-red-700" : ""}>
+                <FileText className="mr-2 h-4 w-4" /> {selectedIds.size > 0 ? `PDF (${selectedIds.size})` : "PDF"}
             </Button>
-            <Button variant="outline" onClick={handlePdf}>
-                <FileText className="mr-2 h-4 w-4" /> PDF (Gol)
-            </Button>
-            <Button variant="outline" onClick={() => setIsImportOpen(true)}>
-                <FileUp className="mr-2 h-4 w-4" /> Import
-            </Button>
-            <Button className="bg-slate-900 text-white" onClick={openAddModal}>
-                <Plus className="mr-2 h-4 w-4" /> Tambah
-            </Button>
+            <Button variant="outline" onClick={() => setIsImportOpen(true)}><FileUp className="mr-2 h-4 w-4" /> Import</Button>
+            <Button className="bg-slate-900 text-white" onClick={openAddModal}><Plus className="mr-2 h-4 w-4" /> Tambah</Button>
         </div>
       </div>
 
@@ -219,8 +229,8 @@ export default function BarangList() {
                 {showFilters && (
                     <TableRow className="bg-slate-50">
                         <TableHead className="p-1"></TableHead>
-                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>
-                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Nama..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>
+                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Filter Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>
+                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Filter Nama..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>
                         <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Kode/NUP..." value={filters.kode} onChange={e=>setFilters({...filters, kode: e.target.value})} /></TableHead>
                         <TableHead className="p-1">
                             <select className="h-7 text-[10px] w-full border rounded px-1" value={filters.kondisi} onChange={e=>setFilters({...filters, kondisi: e.target.value})}>
@@ -290,8 +300,9 @@ export default function BarangList() {
           <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} limit={limit} onPageChange={setCurrentPage}/>
         </CardContent>
       </Card>
+      
       {/* Import & Add Modals... (Same as before) */}
-      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+        <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
                 <DialogHeader><DialogTitle>Import Data Barang (SIMAN)</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-4">

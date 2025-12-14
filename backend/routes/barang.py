@@ -80,10 +80,7 @@ async def get_barang_list(
         
     total = await db.barang.count_documents(query)
     
-    # Sort: Kode Barang ASC, NUP ASC (Numeric)
-    # Using collation for numeric sort of strings
     collation = {'locale': 'en_US', 'numericOrdering': True}
-    
     cursor = db.barang.find(query).collation(collation).sort([("kode_barang", 1), ("nup", 1)]).skip(skip).limit(limit)
     items = await cursor.to_list(length=limit)
     
@@ -102,87 +99,95 @@ async def get_barang_list(
 async def download_barang_pdf(
     search: Optional[str] = None,
     filter_golongan: Optional[str] = None,
+    ids: Optional[str] = None, # Comma separated IDs
     current_user: str = Depends(get_current_user)
 ):
-    """
-    Download PDF Laporan Master Barang grouped by Golongan
-    """
     query = {}
-    if search:
-        query["$or"] = [
-            {"nama_barang": {"$regex": search, "$options": "i"}},
-            {"kode_barang": {"$regex": search, "$options": "i"}}
-        ]
-    if filter_golongan: query["golongan_barang"] = {"$regex": filter_golongan, "$options": "i"}
     
-    # Sort by Golongan -> Kode -> NUP
+    # Priority: IDs > Filters
+    if ids:
+        id_list = [ObjectId(i) for i in ids.split(",") if ObjectId.is_valid(i)]
+        if id_list:
+            query["_id"] = {"$in": id_list}
+    else:
+        if search:
+            query["$or"] = [
+                {"nama_barang": {"$regex": search, "$options": "i"}},
+                {"kode_barang": {"$regex": search, "$options": "i"}}
+            ]
+        if filter_golongan: query["golongan_barang"] = {"$regex": filter_golongan, "$options": "i"}
+    
     collation = {'locale': 'en_US', 'numericOrdering': True}
     cursor = db.barang.find(query).collation(collation).sort([("golongan_barang", 1), ("kode_barang", 1), ("nup", 1)]).limit(5000)
     items = await cursor.to_list(None)
     
     if not items: raise HTTPException(status_code=404, detail="No data")
     
-    # Prepare PDF
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
     elements = []
     styles = getSampleStyleSheet()
     
-    # Title
+    # Custom styles
+    style_normal = styles['Normal']
+    style_normal.fontSize = 8
+    style_header = styles['Heading3']
+    style_header.fontSize = 10
+    
     elements.append(Paragraph("DAFTAR MASTER BARANG (BMN)", styles['Title']))
-    elements.append(Paragraph(f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y')}", styles['Normal']))
+    filter_text = "Data Terpilih" if ids else f"Filter: {search or 'Semua'}"
+    elements.append(Paragraph(f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y')} | {filter_text}", style_normal))
     elements.append(Spacer(1, 12))
     
-    # Grouping Logic
     current_gol = None
     table_data = []
-    
-    # Header Row
     headers = ["No", "Kode Barang", "NUP", "Nama Barang", "Merk/Tipe", "Kondisi", "Perolehan (Rp)", "Nilai Buku (Rp)"]
     
-    col_widths = [1*cm, 3*cm, 1.5*cm, 8*cm, 4*cm, 2*cm, 3.5*cm, 3.5*cm]
+    # Adjusted Widths
+    col_widths = [0.8*cm, 3*cm, 1.2*cm, 8*cm, 4.5*cm, 1.5*cm, 3*cm, 3*cm]
     
-    for idx, item in enumerate(items):
+    row_idx = 1
+    for item in items:
         gol = item.get('golongan_barang', 'Tanpa Golongan')
         
-        # New Group?
         if gol != current_gol:
             if table_data:
-                # Flush previous table
                 t = Table(table_data, colWidths=col_widths, repeatRows=1)
                 t.setStyle(TableStyle([
                     ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
                     ('TEXTCOLOR', (0,0), (-1,0), colors.black),
                     ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                     ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                    ('FONTSIZE', (0,0), (-1,0), 9),
-                    ('BOTTOMPADDING', (0,0), (-1,0), 6),
+                    ('FONTSIZE', (0,0), (-1,0), 8),
+                    ('BOTTOMPADDING', (0,0), (-1,0), 4),
                     ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-                    ('ALIGN', (6,0), (7,-1), 'RIGHT'), # Align numbers right
+                    ('ALIGN', (6,0), (7,-1), 'RIGHT'),
+                    ('VALIGN', (0,0), (-1,-1), 'TOP'), # Top align specifically for wrapping text
                 ]))
                 elements.append(t)
                 elements.append(Spacer(1, 12))
                 table_data = []
             
-            # Print Group Header
-            elements.append(Paragraph(f"<b>GOLONGAN: {gol}</b>", styles['Heading3']))
+            elements.append(Paragraph(f"<b>GOLONGAN: {gol}</b>", style_header))
             table_data.append(headers)
             current_gol = gol
             
-        # Add Row
+        # Wrapping Logic: Use Paragraph for wrapping columns
+        merk_tipe_str = f"{item.get('merk', '')} {item.get('tipe', '')}".strip()
+        
         row = [
-            str(idx + 1),
+            str(row_idx),
             item.get('kode_barang', ''),
             item.get('nup', ''),
-            Paragraph(item.get('nama_barang', ''), styles['Normal']),
-            f"{item.get('merk', '')} {item.get('tipe', '')}",
+            Paragraph(item.get('nama_barang', ''), style_normal), # Wrap Name
+            Paragraph(merk_tipe_str, style_normal),               # Wrap Merk/Tipe (FIX)
             item.get('kondisi', ''),
             f"{item.get('nilai_perolehan', 0):,.0f}",
             f"{item.get('nilai_buku', 0):,.0f}"
         ]
         table_data.append(row)
+        row_idx += 1
         
-    # Flush last table
     if table_data:
         t = Table(table_data, colWidths=col_widths, repeatRows=1)
         t.setStyle(TableStyle([
@@ -190,10 +195,11 @@ async def download_barang_pdf(
             ('TEXTCOLOR', (0,0), (-1,0), colors.black),
             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0,0), (-1,0), 9),
-            ('BOTTOMPADDING', (0,0), (-1,0), 6),
+            ('FONTSIZE', (0,0), (-1,0), 8),
+            ('BOTTOMPADDING', (0,0), (-1,0), 4),
             ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ('ALIGN', (6,0), (7,-1), 'RIGHT'),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ]))
         elements.append(t)
         
@@ -215,22 +221,28 @@ async def export_barang_excel(
     filter_kondisi: Optional[str] = None,
     filter_lokasi: Optional[str] = None,
     filter_nup: Optional[str] = None,
+    ids: Optional[str] = None, # Comma separated IDs
     current_user: str = Depends(get_current_user)
 ):
     query = {}
-    if search:
-        query["$or"] = [
-            {"nama_barang": {"$regex": search, "$options": "i"}},
-            {"kode_barang": {"$regex": search, "$options": "i"}}
-        ]
-    if filter_kode: query["kode_barang"] = {"$regex": filter_kode, "$options": "i"}
-    if filter_nama: query["nama_barang"] = {"$regex": filter_nama, "$options": "i"}
-    if filter_merk: query["merk"] = {"$regex": filter_merk, "$options": "i"}
-    if filter_kondisi: query["kondisi"] = filter_kondisi
-    if filter_lokasi: query["lokasi_fisik"] = {"$regex": filter_lokasi, "$options": "i"}
-    if filter_nup: query["nup"] = {"$regex": filter_nup, "$options": "i"}
     
-    # Sort for Excel too
+    if ids:
+        id_list = [ObjectId(i) for i in ids.split(",") if ObjectId.is_valid(i)]
+        if id_list:
+            query["_id"] = {"$in": id_list}
+    else:
+        if search:
+            query["$or"] = [
+                {"nama_barang": {"$regex": search, "$options": "i"}},
+                {"kode_barang": {"$regex": search, "$options": "i"}}
+            ]
+        if filter_kode: query["kode_barang"] = {"$regex": filter_kode, "$options": "i"}
+        if filter_nama: query["nama_barang"] = {"$regex": filter_nama, "$options": "i"}
+        if filter_merk: query["merk"] = {"$regex": filter_merk, "$options": "i"}
+        if filter_kondisi: query["kondisi"] = filter_kondisi
+        if filter_lokasi: query["lokasi_fisik"] = {"$regex": filter_lokasi, "$options": "i"}
+        if filter_nup: query["nup"] = {"$regex": filter_nup, "$options": "i"}
+    
     collation = {'locale': 'en_US', 'numericOrdering': True}
     cursor = db.barang.find(query).collation(collation).sort([("kode_barang", 1), ("nup", 1)]).limit(50000)
     items = await cursor.to_list(None)
@@ -268,6 +280,7 @@ async def export_barang_excel(
 
 @router.post("", response_model=Barang)
 async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
+    # ... (Same as before)
     existing = await db.barang.find_one({
         "kode_barang": barang_in.kode_barang,
         "nup": barang_in.nup
@@ -284,11 +297,10 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
 
 @router.put("/{id}", response_model=Barang)
 async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
+    # ... (Same as before)
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
-    
     if barang_update.kode_barang and not barang_update.golongan_barang:
         barang_update.golongan_barang = await get_golongan_uraian(barang_update.kode_barang)
-        
     update_data = barang_update.dict(exclude_unset=True)
     update_data['updated_at'] = datetime.now(timezone.utc)
     result = await db.barang.find_one_and_update(
@@ -308,8 +320,8 @@ async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
 
 @router.post("/import")
 async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+    # ... (Same as before)
     if not file.filename.endswith(('.xls', '.xlsx')): raise HTTPException(status_code=400, detail="Excel only")
-
     try:
         contents = await file.read()
         df = pd.read_excel(io.BytesIO(contents))
@@ -324,9 +336,7 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 kode = str(row.get('Kode Barang', '')).strip()
                 nup = str(row.get('NUP', '')).strip()
                 if not kode or not nup: continue
-                
                 golongan_text = await get_golongan_uraian(kode)
-                    
                 item_data = {
                     "kode_barang": kode,
                     "nup": nup,
@@ -353,26 +363,21 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "stok": 1,
                     "updated_at": datetime.now(timezone.utc)
                 }
-                
                 result = await db.barang.update_one(
                     {"kode_barang": kode, "nup": nup},
                     {"$set": item_data},
                     upsert=True
                 )
-                
                 if result.upserted_id: count_inserted += 1
                 elif result.modified_count > 0: count_updated += 1
                 count_processed += 1
-                
             except Exception as e: continue
-                
         return {
             "message": "Import selesai",
             "processed": count_processed,
             "inserted": count_inserted,
             "updated": count_updated
         }
-
     except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/summary/stats")
