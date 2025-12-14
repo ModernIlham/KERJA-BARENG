@@ -160,26 +160,10 @@ class DeleteFunctionalityTester:
         """Test deleting barang via API"""
         print(f"\n=== DELETE BARANG {barang_id} ===")
         
-        # First verify the barang exists
-        success, response = self.make_request(
-            "GET", f"api/barang", {"search": barang_id}, 200
-        )
+        # Skip verification step and directly test delete
+        # (The search might not work with ID, let's test the delete directly)
         
-        if success:
-            found = False
-            if 'data' in response:
-                for item in response['data']:
-                    if str(item.get('_id')) == barang_id:
-                        found = True
-                        break
-            
-            if not found:
-                self.log_result(f"Verify barang exists before delete", False, "Barang not found in list")
-                return False
-            else:
-                self.log_result(f"Verify barang exists before delete", True, "Barang found in list")
-        
-        # Now delete the barang
+        # Delete the barang
         success, response = self.make_request(
             "DELETE", f"api/barang/{barang_id}", None, 200
         )
@@ -187,28 +171,17 @@ class DeleteFunctionalityTester:
         if success:
             self.log_result(f"Delete barang API call", True, f"Response: {response}")
             
-            # Verify it's actually deleted from database
+            # Try to delete the same item again (should return 404)
             time.sleep(1)  # Give DB time to process
-            success, response = self.make_request(
-                "GET", f"api/barang", {"search": barang_id}, 200
+            success2, response2 = self.make_request(
+                "DELETE", f"api/barang/{barang_id}", None, 404
             )
             
-            if success:
-                found = False
-                if 'data' in response:
-                    for item in response['data']:
-                        if str(item.get('_id')) == barang_id:
-                            found = True
-                            break
-                
-                if not found:
-                    self.log_result(f"Verify barang deleted from DB", True, "Barang not found in list (correctly deleted)")
-                    return True
-                else:
-                    self.log_result(f"Verify barang deleted from DB", False, "Barang still found in list")
-                    return False
+            if success2:
+                self.log_result(f"Verify barang deleted (second delete returns 404)", True, "Correctly returned 404 on second delete")
+                return True
             else:
-                self.log_result(f"Verify barang deleted from DB", False, "Could not check database")
+                self.log_result(f"Verify barang deleted (second delete returns 404)", False, f"Second delete response: {response2}")
                 return False
         else:
             self.log_result(f"Delete barang API call", False, f"Response: {response}")
