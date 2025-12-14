@@ -238,8 +238,35 @@ export default function BarangList() {
       console.error(err);
     }
   };
-  const handleBulkDelete = async () => { if(!window.confirm("Hapus Massal?")) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
-  const onImport = async (data) => { setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]); try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); } catch(e) { toast.error("Import failed"); } finally { setImporting(false); } };
+  const handleBulkDelete = async () => { 
+    if(!window.confirm("Hapus Massal?")) return; 
+    try { 
+      const endpoint = activeTab === 'persediaan' ? '/api/persediaan/bulk-delete' : '/api/barang/bulk-delete';
+      await api.post(endpoint, { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); 
+      toast.success("Deleted"); 
+      clearSelection(); 
+      fetchBarang(); 
+    } catch(e) { 
+      toast.error("Fail"); 
+    } 
+  };
+  
+  const onImport = async (data) => { 
+    setImporting(true); 
+    const fd = new FormData(); 
+    fd.append('file', data.file[0]); 
+    try { 
+      const endpoint = activeTab === 'persediaan' ? '/api/persediaan/import' : '/api/barang/import';
+      const res = await api.post(endpoint, fd, { headers: {'Content-Type':'multipart/form-data'}}); 
+      toast.success(res.data.message || "Imported"); 
+      setIsImportOpen(false); 
+      fetchBarang(); 
+    } catch(e) { 
+      toast.error(e.response?.data?.detail || "Import failed"); 
+    } finally { 
+      setImporting(false); 
+    } 
+  };
 
   const isReadonly = editingItem && !String(editingItem.nup || "").includes("(Sementara)");
 
