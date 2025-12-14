@@ -782,6 +782,7 @@ export default function BarangList() {
                   </div>
                 ) : (
                   /* Form Aset Tetap - Original Complex Form */
+                  <>
                   <Tabs defaultValue="utama">
                     <TabsList className="w-full bg-slate-100 flex-wrap h-auto">
                         <TabsTrigger value="utama">Data Utama</TabsTrigger>
