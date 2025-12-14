@@ -26,7 +26,7 @@ export default function Laporan() {
   const [posisiReport, setPosisiReport] = useState(null);
 
   useEffect(() => {
-    api.get('/api/barang').then(res => setBarangList(res.data));
+    api.get('/api/barang').then(res => setBarangList(res.data.data || []));
   }, []);
 
   // Fetch data when tab changes
