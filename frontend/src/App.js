@@ -12,6 +12,7 @@ import BandingData from './pages/BandingData';
 import StockOpname from './pages/StockOpname';
 import Laporan from './pages/Laporan';
 import Pengaturan from './pages/Pengaturan';
+import ReferensiKode from './pages/ReferensiKode';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -38,14 +39,13 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="barang" element={<BarangList />} />
             <Route path="pegawai" element={<PegawaiList />} />
+            <Route path="referensi" element={<ReferensiKode />} />
             
-            {/* Transaksi Routes */}
             <Route path="transaksi" element={<Navigate to="/transaksi/riwayat" replace />} />
             <Route path="transaksi/:type" element={<TransaksiList />} />
             
             <Route path="opname" element={<StockOpname />} />
             
-            {/* Laporan Routes */}
             <Route path="laporan" element={<Navigate to="/laporan/posisi" replace />} />
             <Route path="laporan/:type" element={<Laporan />} />
             

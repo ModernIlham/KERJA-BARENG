@@ -14,7 +14,8 @@ import {
   FileText,
   Settings,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Book
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -48,6 +49,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           {/* Master Barang */}
           <NavLink to="/barang" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
             <Package size={18} /> Master Barang
+          </NavLink>
+
+          {/* Referensi Kode (NEW) */}
+          <NavLink to="/referensi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+            <Book size={18} /> Referensi Kode
           </NavLink>
 
           {/* Transaksi Group */}
@@ -125,54 +131,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         </Button>
       </div>
     </aside>
-  );
-};
-
-const Layout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
-
-  return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <main className="md:ml-64 min-h-screen flex flex-col transition-all duration-300">
-        <header className="h-16 bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200 px-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button className="md:hidden p-2 -ml-2 hover:bg-slate-100 rounded-md" onClick={() => setSidebarOpen(true)}>
-              <Menu size={20} />
-            </button>
-            <h2 className="text-lg font-semibold text-slate-800 hidden md:block">
-              Sistem Informasi Manajemen Aset Gudang (SIMAN-G)
-            </h2>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-right hidden sm:block">
-              <p className="font-medium text-slate-900">{user?.email || 'Admin User'}</p>
-              <p className="text-xs text-slate-500">Administrator</p>
-            </div>
-            <div className="h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold">
-              {user?.email?.charAt(0).toUpperCase() || 'A'}
-            </div>
-          </div>
-        </header>
-
-        <div className="flex-1 p-6 md:p-8">
-          <div className="max-w-7xl mx-auto w-full animate-in fade-in duration-500 slide-in-from-bottom-2">
-            <Outlet />
-          </div>
-        </div>
-      </main>
-    </div>
   );
 };
 
