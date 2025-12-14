@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
-import { Card, CardContent, CardHeader } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
@@ -40,15 +40,8 @@ export default function BarangList() {
   const { register: registerImport, handleSubmit: handleImportSubmit } = useForm();
   const kodeBarangValue = watch('kode_barang');
 
-  useEffect(() => {
-      const t = setTimeout(() => {
-          setCurrentPage(1); 
-          fetchBarang();
-      }, 600);
-      return () => clearTimeout(t);
-  }, [filters, search]);
-
-  const fetchBarang = async () => {
+  // useCallback for fetch to be stable
+  const fetchBarang = useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -73,12 +66,23 @@ export default function BarangList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, limit, search, filters]);
 
+  // Main Effect for Fetching
   useEffect(() => {
-      if(currentPage > 1) fetchBarang(); 
-  }, [currentPage]);
+      fetchBarang();
+  }, [fetchBarang]);
 
+  // Debounce Effect for Search & Filters (Reset Page)
+  useEffect(() => {
+      const t = setTimeout(() => {
+          if (currentPage !== 1) setCurrentPage(1); // Logic handled in fetchBarang if page changes
+          else fetchBarang(); // Force fetch if page is already 1
+      }, 600);
+      return () => clearTimeout(t);
+  }, [search, filters]); // Only trigger on filter/search change
+
+  // ... (Rest of logic: Select, Export, Modal, Delete) ...
   const toggleSelectAll = (checked) => {
       if (checked) { const ids = new Set(barang.map(item => item._id)); setSelectedIds(ids); } 
       else { setSelectedIds(new Set()); }
@@ -93,22 +97,11 @@ export default function BarangList() {
       const t = toast.loading("Downloading Excel...");
       try {
           const params = {
-              search,
-              filter_kode: filters.kode,
-              filter_nama: filters.nama,
-              filter_merk: filters.merk,
-              filter_kondisi: filters.kondisi,
-              filter_lokasi: filters.lokasi,
-              filter_nup: filters.nup,
-              // Pass Selected IDs
+              search, filter_kode: filters.kode, filter_nama: filters.nama, filter_merk: filters.merk, 
+              filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup,
               ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null
           };
-          
-          const response = await api.get('/api/barang/export', { 
-              params,
-              responseType: 'blob' 
-          });
-          
+          const response = await api.get('/api/barang/export', { params, responseType: 'blob' });
           const url = window.URL.createObjectURL(new Blob([response.data]));
           const link = document.createElement('a'); link.href = url;
           link.setAttribute('download', `Master_Barang_${new Date().toLocaleDateString()}.xlsx`);
@@ -121,8 +114,7 @@ export default function BarangList() {
       const t = toast.loading("Generating PDF...");
       try {
           const params = { 
-              search, 
-              filter_golongan: filters.golongan,
+              search, filter_golongan: filters.golongan,
               ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null
           };
           const response = await api.get('/api/barang/pdf', { params, responseType: 'blob' });
@@ -134,7 +126,6 @@ export default function BarangList() {
       } catch (e) { toast.error("Gagal PDF", {id: t}); }
   };
 
-  // ... (Other functions: openAdd, openEdit, onSubmit, onDelete, onImport, etc. same as before)
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); setKodefikasiHint(null);
@@ -184,7 +175,7 @@ export default function BarangList() {
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Barang</h1>
         
         <div className="flex flex-wrap gap-2 w-full xl:w-auto">
-            {/* ... Buttons ... */}
+            {/* Buttons same as before */}
             <div className="relative flex-1 xl:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
                 <Input placeholder="Cari Global..." className="pl-9 h-10" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -229,8 +220,8 @@ export default function BarangList() {
                 {showFilters && (
                     <TableRow className="bg-slate-50">
                         <TableHead className="p-1"></TableHead>
-                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Filter Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>
-                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Filter Nama..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>
+                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>
+                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Nama..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>
                         <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Kode/NUP..." value={filters.kode} onChange={e=>setFilters({...filters, kode: e.target.value})} /></TableHead>
                         <TableHead className="p-1">
                             <select className="h-7 text-[10px] w-full border rounded px-1" value={filters.kondisi} onChange={e=>setFilters({...filters, kondisi: e.target.value})}>
@@ -301,7 +292,7 @@ export default function BarangList() {
         </CardContent>
       </Card>
       
-      {/* Import & Add Modals... (Same as before) */}
+      {/* Modals omitted, same as before */}
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
                 <DialogHeader><DialogTitle>Import Data Barang (SIMAN)</DialogTitle></DialogHeader>

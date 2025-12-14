@@ -33,6 +33,14 @@ def clean_currency(value):
         except ValueError: return 0.0
     return 0.0
 
+def clean_code_str(val):
+    """Remove .0 from float-strings (e.g. '301.0' -> '301')"""
+    if val is None: return ""
+    s = str(val).strip()
+    if s.endswith(".0"):
+        return s[:-2]
+    return s
+
 async def get_golongan_uraian(kode: str):
     if not kode: return None
     k = kode[:1]
@@ -80,6 +88,7 @@ async def get_barang_list(
         
     total = await db.barang.count_documents(query)
     
+    # Sort numeric strings properly? For now standard sort
     collation = {'locale': 'en_US', 'numericOrdering': True}
     cursor = db.barang.find(query).collation(collation).sort([("kode_barang", 1), ("nup", 1)]).skip(skip).limit(limit)
     items = await cursor.to_list(length=limit)
@@ -95,6 +104,143 @@ async def get_barang_list(
         "total_pages": math.ceil(total / limit)
     }
 
+@router.post("", response_model=Barang)
+async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
+    # Clean Inputs
+    barang_in.kode_barang = clean_code_str(barang_in.kode_barang)
+    barang_in.nup = clean_code_str(barang_in.nup)
+    
+    existing = await db.barang.find_one({
+        "kode_barang": barang_in.kode_barang,
+        "nup": barang_in.nup
+    })
+    if existing: raise HTTPException(status_code=400, detail="Barang dengan Kode dan NUP tersebut sudah ada")
+    
+    if not barang_in.golongan_barang:
+        barang_in.golongan_barang = await get_golongan_uraian(barang_in.kode_barang)
+        
+    new_barang = Barang(**barang_in.dict())
+    result = await db.barang.insert_one(new_barang.model_dump(by_alias=True, exclude=["id"]))
+    created_barang = await db.barang.find_one({"_id": result.inserted_id})
+    return created_barang
+
+@router.put("/{id}", response_model=Barang)
+async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    if barang_update.kode_barang: barang_update.kode_barang = clean_code_str(barang_update.kode_barang)
+    if barang_update.nup: barang_update.nup = clean_code_str(barang_update.nup)
+    
+    if barang_update.kode_barang and not barang_update.golongan_barang:
+        barang_update.golongan_barang = await get_golongan_uraian(barang_update.kode_barang)
+        
+    update_data = barang_update.dict(exclude_unset=True)
+    update_data['updated_at'] = datetime.now(timezone.utc)
+    result = await db.barang.find_one_and_update(
+        {"_id": ObjectId(id)},
+        {"$set": update_data},
+        return_document=True
+    )
+    if not result: raise HTTPException(status_code=404)
+    return result
+
+@router.post("/import")
+async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+    if not file.filename.endswith(('.xls', '.xlsx')): raise HTTPException(status_code=400, detail="Excel only")
+
+    try:
+        contents = await file.read()
+        df = pd.read_excel(io.BytesIO(contents))
+        df = df.where(pd.notnull(df), None)
+        
+        count_processed = 0
+        count_inserted = 0
+        count_skipped = 0
+        
+        for index, row in df.iterrows():
+            try:
+                # 1. Map Columns & Clean
+                kode = clean_code_str(row.get('Kode Barang', ''))
+                nup = clean_code_str(row.get('NUP', ''))
+                register_code = clean_code_str(row.get('Kode Register', ''))
+                
+                # Check empty rows
+                if not kode or not nup:
+                    continue
+                
+                # 2. Duplicate Check (Skip logic)
+                # Check Kode+NUP OR Register
+                dup_query = {
+                    "$or": [
+                        {"kode_barang": kode, "nup": nup}
+                    ]
+                }
+                if register_code:
+                    dup_query["$or"].append({"kode_register": register_code})
+                    
+                existing = await db.barang.find_one(dup_query)
+                if existing:
+                    count_skipped += 1
+                    continue
+                
+                # 3. Prepare Data
+                golongan_text = await get_golongan_uraian(kode)
+                    
+                item_data = {
+                    "kode_barang": kode,
+                    "nup": nup,
+                    "golongan_barang": golongan_text, 
+                    "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
+                    "merk": row.get('Merk'),
+                    "tipe": row.get('Tipe'),
+                    "kondisi": row.get('Kondisi'),
+                    "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
+                    "nilai_buku": clean_currency(row.get('Nilai Buku')),
+                    "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
+                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')), 
+                    "tgl_perolehan": str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None,
+                    "tahun_anggaran": str(row.get('Tahun Anggaran', '')),
+                    
+                    # Full Data Mapping
+                    "lokasi_fisik": row.get('Lokasi'),
+                    "ruang": row.get('Ruang'),
+                    "alamat": row.get('Alamat'),
+                    "kab_kota": row.get('Kab/Kota'),
+                    "provinsi": row.get('Provinsi'),
+                    "kode_satker": str(row.get('Kode Satker', '')),
+                    "nama_satker": row.get('Nama Satker'),
+                    "intra_ekstra": row.get('Aset Intra / Extra'),
+                    "kode_register": register_code,
+                    
+                    "status_aset": "Aktif",
+                    "stok": 1,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+                
+                # 4. Insert (Not Upsert)
+                result = await db.barang.insert_one(item_data)
+                if result.inserted_id: count_inserted += 1
+                
+                count_processed += 1
+                
+            except Exception as e: continue
+                
+        return {
+            "message": "Import selesai",
+            "processed": count_processed,
+            "inserted": count_inserted,
+            "skipped_duplicates": count_skipped
+        }
+
+    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{id}")
+async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    result = await db.barang.delete_one({"_id": ObjectId(id)})
+    if result.deleted_count == 0: raise HTTPException(status_code=404)
+    return {"message": "Deleted"}
+
 @router.get("/pdf")
 async def download_barang_pdf(
     search: Optional[str] = None,
@@ -104,7 +250,6 @@ async def download_barang_pdf(
 ):
     query = {}
     
-    # Priority: IDs > Filters
     if ids:
         id_list = [ObjectId(i) for i in ids.split(",") if ObjectId.is_valid(i)]
         if id_list:
@@ -128,7 +273,6 @@ async def download_barang_pdf(
     elements = []
     styles = getSampleStyleSheet()
     
-    # Custom styles
     style_normal = styles['Normal']
     style_normal.fontSize = 8
     style_header = styles['Heading3']
@@ -142,8 +286,6 @@ async def download_barang_pdf(
     current_gol = None
     table_data = []
     headers = ["No", "Kode Barang", "NUP", "Nama Barang", "Merk/Tipe", "Kondisi", "Perolehan (Rp)", "Nilai Buku (Rp)"]
-    
-    # Adjusted Widths
     col_widths = [0.8*cm, 3*cm, 1.2*cm, 8*cm, 4.5*cm, 1.5*cm, 3*cm, 3*cm]
     
     row_idx = 1
@@ -162,7 +304,7 @@ async def download_barang_pdf(
                     ('BOTTOMPADDING', (0,0), (-1,0), 4),
                     ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
                     ('ALIGN', (6,0), (7,-1), 'RIGHT'),
-                    ('VALIGN', (0,0), (-1,-1), 'TOP'), # Top align specifically for wrapping text
+                    ('VALIGN', (0,0), (-1,-1), 'TOP'), 
                 ]))
                 elements.append(t)
                 elements.append(Spacer(1, 12))
@@ -172,15 +314,14 @@ async def download_barang_pdf(
             table_data.append(headers)
             current_gol = gol
             
-        # Wrapping Logic: Use Paragraph for wrapping columns
         merk_tipe_str = f"{item.get('merk', '')} {item.get('tipe', '')}".strip()
         
         row = [
             str(row_idx),
             item.get('kode_barang', ''),
             item.get('nup', ''),
-            Paragraph(item.get('nama_barang', ''), style_normal), # Wrap Name
-            Paragraph(merk_tipe_str, style_normal),               # Wrap Merk/Tipe (FIX)
+            Paragraph(item.get('nama_barang', ''), style_normal), 
+            Paragraph(merk_tipe_str, style_normal),               
             item.get('kondisi', ''),
             f"{item.get('nilai_perolehan', 0):,.0f}",
             f"{item.get('nilai_buku', 0):,.0f}"
@@ -221,7 +362,7 @@ async def export_barang_excel(
     filter_kondisi: Optional[str] = None,
     filter_lokasi: Optional[str] = None,
     filter_nup: Optional[str] = None,
-    ids: Optional[str] = None, # Comma separated IDs
+    ids: Optional[str] = None, 
     current_user: str = Depends(get_current_user)
 ):
     query = {}
@@ -277,119 +418,3 @@ async def export_barang_excel(
         headers={'Content-Disposition': f'attachment; filename="Export_Barang_{datetime.now().strftime("%Y%m%d")}.xlsx"'},
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-
-@router.post("", response_model=Barang)
-async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
-    # ... (Same as before)
-    existing = await db.barang.find_one({
-        "kode_barang": barang_in.kode_barang,
-        "nup": barang_in.nup
-    })
-    if existing: raise HTTPException(status_code=400, detail="Barang exists")
-    
-    if not barang_in.golongan_barang:
-        barang_in.golongan_barang = await get_golongan_uraian(barang_in.kode_barang)
-        
-    new_barang = Barang(**barang_in.dict())
-    result = await db.barang.insert_one(new_barang.model_dump(by_alias=True, exclude=["id"]))
-    created_barang = await db.barang.find_one({"_id": result.inserted_id})
-    return created_barang
-
-@router.put("/{id}", response_model=Barang)
-async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
-    # ... (Same as before)
-    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
-    if barang_update.kode_barang and not barang_update.golongan_barang:
-        barang_update.golongan_barang = await get_golongan_uraian(barang_update.kode_barang)
-    update_data = barang_update.dict(exclude_unset=True)
-    update_data['updated_at'] = datetime.now(timezone.utc)
-    result = await db.barang.find_one_and_update(
-        {"_id": ObjectId(id)},
-        {"$set": update_data},
-        return_document=True
-    )
-    if not result: raise HTTPException(status_code=404)
-    return result
-
-@router.delete("/{id}")
-async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
-    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
-    result = await db.barang.delete_one({"_id": ObjectId(id)})
-    if result.deleted_count == 0: raise HTTPException(status_code=404)
-    return {"message": "Deleted"}
-
-@router.post("/import")
-async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
-    # ... (Same as before)
-    if not file.filename.endswith(('.xls', '.xlsx')): raise HTTPException(status_code=400, detail="Excel only")
-    try:
-        contents = await file.read()
-        df = pd.read_excel(io.BytesIO(contents))
-        df = df.where(pd.notnull(df), None)
-        
-        count_processed = 0
-        count_inserted = 0
-        count_updated = 0
-        
-        for index, row in df.iterrows():
-            try:
-                kode = str(row.get('Kode Barang', '')).strip()
-                nup = str(row.get('NUP', '')).strip()
-                if not kode or not nup: continue
-                golongan_text = await get_golongan_uraian(kode)
-                item_data = {
-                    "kode_barang": kode,
-                    "nup": nup,
-                    "golongan_barang": golongan_text, 
-                    "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
-                    "merk": row.get('Merk'),
-                    "tipe": row.get('Tipe'),
-                    "kondisi": row.get('Kondisi'),
-                    "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
-                    "nilai_buku": clean_currency(row.get('Nilai Buku')),
-                    "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
-                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')), 
-                    "tgl_perolehan": str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None,
-                    "tahun_anggaran": str(row.get('Tahun Anggaran', '')),
-                    "lokasi_fisik": row.get('Lokasi') or row.get('Alamat'),
-                    "ruang": row.get('Ruang'),
-                    "alamat": row.get('Alamat'),
-                    "kab_kota": row.get('Kab/Kota'),
-                    "provinsi": row.get('Provinsi'),
-                    "kode_satker": str(row.get('Kode Satker', '')),
-                    "nama_satker": row.get('Nama Satker'),
-                    "intra_ekstra": row.get('Aset Intra / Extra'),
-                    "status_aset": "Aktif",
-                    "stok": 1,
-                    "updated_at": datetime.now(timezone.utc)
-                }
-                result = await db.barang.update_one(
-                    {"kode_barang": kode, "nup": nup},
-                    {"$set": item_data},
-                    upsert=True
-                )
-                if result.upserted_id: count_inserted += 1
-                elif result.modified_count > 0: count_updated += 1
-                count_processed += 1
-            except Exception as e: continue
-        return {
-            "message": "Import selesai",
-            "processed": count_processed,
-            "inserted": count_inserted,
-            "updated": count_updated
-        }
-    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/summary/stats")
-async def get_barang_stats(current_user: str = Depends(get_current_user)):
-    pipeline = [
-         {"$group": {
-            "_id": None,
-            "total_items": {"$sum": 1},
-            "total_value": {"$sum": "$nilai_perolehan"}, 
-            "critical_stock": {"$sum": {"$cond": [{"$lte": ["$stok", 0]}, 1, 0]}}
-        }}
-    ]
-    result = await db.barang.aggregate(pipeline).to_list(1)
-    if not result: return {"total_items": 0, "total_value": 0, "critical_stock": 0}
-    return result[0]
