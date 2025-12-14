@@ -24,7 +24,7 @@ async def get_laporan_mutasi(
     ed = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
     
     # 1. Get All Items
-    items = await db.barang.find({}, {"nama_barang": 1, "kode_barang": 1, "satuan": 1}).to_list(None)
+    items = await db.barang.find({}, {"nama_barang": 1, "kode_barang": 1, "satuan": 1}).to_list(1000)
     
     report = []
     
