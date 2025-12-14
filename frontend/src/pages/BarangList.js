@@ -879,10 +879,12 @@ export default function BarangList() {
                     </TabsContent>
                 </Tabs>
                 
-                <div className="pt-4 border-t flex justify-end">
-                    {!isReadonly && <Button type="submit" className="bg-slate-900 text-white min-w-[150px]">Simpan Perubahan</Button>}
-                    {isReadonly && <Button type="button" onClick={() => setIsModalOpen(false)} className="bg-slate-500 text-white">Tutup (Read Only)</Button>}
-                </div>
+                {activeTab !== 'persediaan' && (
+                  <div className="pt-4 border-t flex justify-end">
+                      {!isReadonly && <Button type="submit" className="bg-slate-900 text-white min-w-[150px]">Simpan Perubahan</Button>}
+                      {isReadonly && <Button type="button" onClick={() => setIsModalOpen(false)} className="bg-slate-500 text-white">Tutup (Read Only)</Button>}
+                  </div>
+                )}
                 )}
             </form>
           </DialogContent>
