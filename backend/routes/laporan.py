@@ -44,7 +44,7 @@ async def get_laporan_mutasi(
                 # Opname diffs logic omitted for speed, assuming processed as adj
             }}
         ]
-        res_awal = await db.transaksi.aggregate(pipeline_awal).to_list(1)
+        res_awal = await db.transaksi.aggregate(pipeline_awal).to_list(1000)
         saldo_awal = (res_awal[0]['masuk'] - res_awal[0]['keluar']) if res_awal else 0
         
         # Calculate Mutasi (Tx within range)
