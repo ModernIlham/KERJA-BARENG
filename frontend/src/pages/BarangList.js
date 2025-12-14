@@ -293,7 +293,14 @@ export default function BarangList() {
           </div>
       )}
 
-      <Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="aset-tetap">Aset Tetap</TabsTrigger>
+          <TabsTrigger value="persediaan">Aset Lancar (Persediaan)</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="aset-tetap" className="mt-4">
+          <Card>
         <CardContent className="p-0">
           <div className="rounded-md border border-slate-200 overflow-x-auto">
             <Table className="w-full min-w-[1500px]">
