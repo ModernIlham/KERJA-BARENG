@@ -584,14 +584,28 @@ export default function BarangList() {
                           <TableCell className="text-center p-2">
                             <input type="checkbox" checked={isSelected} onChange={() => toggleSelectRow(item._id)} className="rounded border-slate-300"/>
                           </TableCell>
-                          {visibleColumns.gol && <TableCell className="p-2 truncate max-w-[80px]" title={item.golongan_barang}>{item.golongan_barang || '-'}</TableCell>}
-                          {visibleColumns.nama && <TableCell className="p-2"><div className="font-semibold text-slate-900 truncate max-w-[200px]" title={item.nama_barang}>{item.nama_barang}</div><div className="text-[10px] text-slate-500">{item.merk} {item.tipe}</div></TableCell>}
-                          {visibleColumns.kode && <TableCell className="p-2 font-mono text-[10px]"><div title={item.kode_barang}>{item.kode_barang}</div></TableCell>}
+                          {visibleColumns.nama && (
+                            <TableCell className="p-2">
+                              <div className="font-semibold text-slate-900 text-xs truncate max-w-[220px]" title={item.nama_barang}>{item.nama_barang}</div>
+                              <div className="text-[10px] text-slate-500 font-mono">{item.kode_barang}</div>
+                            </TableCell>
+                          )}
+                          {visibleColumns.gol && <TableCell className="p-2 text-[10px] truncate max-w-[80px]" title={item.golongan_barang}>{item.golongan_barang || '-'}</TableCell>}
+                          <TableCell className="p-2 text-[10px]">
+                            <div className="truncate max-w-[100px]" title={`${item.merk || ''} ${item.tipe || ''}`}>
+                              {item.merk && <span className="font-medium">{item.merk}</span>}
+                              {item.tipe && <span className="text-slate-500"> {item.tipe}</span>}
+                              {!item.merk && !item.tipe && '-'}
+                            </div>
+                          </TableCell>
                           <TableCell className="p-2 text-[10px]">{item.expired_date || '-'}</TableCell>
-                          {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : item.kondisi === 'Rusak Berat' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>{item.kondisi}</span></TableCell>}
+                          {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : item.kondisi === 'Barang Rusak' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>{item.kondisi}</span></TableCell>}
                           {visibleColumns.stok && (
                             <TableCell className="text-center font-bold p-2">
-                              <span className={isBelowKritis ? 'text-red-600' : ''}>{item.stok}</span>
+                              <div className={isBelowKritis ? 'text-red-600' : 'text-slate-900'}>
+                                {item.stok}
+                                {item.satuan && <span className="text-[9px] font-normal ml-1">{item.satuan}</span>}
+                              </div>
                             </TableCell>
                           )}
                           <TableCell className="text-center p-2">
