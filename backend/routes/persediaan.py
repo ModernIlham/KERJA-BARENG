@@ -471,9 +471,25 @@ async def import_persediaan(file: UploadFile = File(...), current_user: str = De
         df = df.where(pd.notnull(df), None)
         df.columns = [str(c).strip() for c in df.columns]
         
+        # Validate required columns
+        required_cols = ['kodebarang', 'namabarang']
+        df_cols_lower = [c.lower().replace(' ', '') for c in df.columns]
+        
+        missing_cols = []
+        for req in required_cols:
+            if not any(req in col for col in df_cols_lower):
+                missing_cols.append(req)
+        
+        if missing_cols:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Format file tidak sesuai! Kolom wajib yang hilang: {', '.join(missing_cols)}. Silakan download template yang benar."
+            )
+        
         count_processed = 0
         count_inserted = 0
         count_updated = 0
+        errors = []
         
         for index, row in df.iterrows():
             try:
