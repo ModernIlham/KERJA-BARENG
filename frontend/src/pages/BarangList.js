@@ -774,11 +774,7 @@ export default function BarangList() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="font-semibold text-sm">Batch Number</label>
-                        <Input {...register('batch_number')} placeholder="BATCH-001" />
-                      </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="font-semibold text-sm">Expired Date</label>
                         <Input type="date" {...register('expired_date')} />
