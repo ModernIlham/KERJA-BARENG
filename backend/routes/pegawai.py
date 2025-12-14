@@ -11,7 +11,7 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-@router.get("/", response_model=List[Pegawai])
+@router.get("", response_model=List[Pegawai])
 async def get_pegawai_list(
     skip: int = 0, 
     limit: int = 50, 
@@ -28,7 +28,7 @@ async def get_pegawai_list(
     cursor = db.pegawai.find(query).skip(skip).limit(limit).sort("nama_lengkap", 1)
     return await cursor.to_list(length=limit)
 
-@router.post("/", response_model=Pegawai)
+@router.post("", response_model=Pegawai)
 async def create_pegawai(pegawai_in: PegawaiCreate, current_user: str = Depends(get_current_user)):
     existing = await db.pegawai.find_one({"nip": pegawai_in.nip})
     if existing:

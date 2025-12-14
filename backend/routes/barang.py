@@ -8,13 +8,32 @@ from bson import ObjectId
 from datetime import datetime, timezone
 import pandas as pd
 import io
+import math
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-@router.get("/", response_model=List[Barang])
+def clean_currency(value):
+    if value is None:
+        return 0.0
+    if isinstance(value, (int, float)):
+        if math.isnan(value) or math.isinf(value):
+            return 0.0
+        return float(value)
+    if isinstance(value, str):
+        # Remove Rp, dots, spaces
+        clean = value.replace('Rp', '').replace('.', '').replace(',', '').strip()
+        if not clean:
+            return 0.0
+        try:
+            return float(clean)
+        except ValueError:
+            return 0.0
+    return 0.0
+
+@router.get("", response_model=List[Barang])
 async def get_barang_list(
     skip: int = 0, 
     limit: int = 50, 
@@ -34,7 +53,7 @@ async def get_barang_list(
     barang_list = await cursor.to_list(length=limit)
     return barang_list
 
-@router.post("/", response_model=Barang)
+@router.post("", response_model=Barang)
 async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
     # Check duplicate code + NUP (Composite Key)
     existing = await db.barang.find_one({
@@ -113,11 +132,11 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "tipe": row.get('Tipe'),
                     "kondisi": row.get('Kondisi'),
                     
-                    # Financials
-                    "nilai_perolehan": float(row.get('Nilai Perolehan', 0) or 0),
-                    "nilai_buku": float(row.get('Nilai Buku', 0) or 0),
-                    "nilai_penyusutan": float(row.get('Nilai Penyusutan', 0) or 0),
-                    "nilai_satuan": float(row.get('Nilai Perolehan', 0) or 0), # Default to acquisition value
+                    # Financials (Clean Currency)
+                    "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
+                    "nilai_buku": clean_currency(row.get('Nilai Buku')),
+                    "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
+                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')), 
                     
                     # Dates (Try to parse)
                     "tgl_perolehan": str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None,
@@ -137,7 +156,7 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "status_aset": "Aktif", # Default
                     
                     # Inventory
-                    "stok": 1, # SIMAN is itemized, so 1 per row usually
+                    "stok": 1, # SIMAN is itemized
                     "updated_at": datetime.now(timezone.utc)
                 }
                 
