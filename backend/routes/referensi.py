@@ -37,7 +37,7 @@ async def get_referensi_list(
     cursor = db.kodefikasi.find(query).skip(skip).limit(limit).sort("kode", 1)
     items = await cursor.to_list(length=limit)
     
-    # Convert ObjectId to string for JSON serialization
+    # Ensure ObjectId is converted to string for Pydantic/JSON
     for item in items:
         if "_id" in item:
             item["_id"] = str(item["_id"])
@@ -50,6 +50,7 @@ async def get_referensi_list(
         "total_pages": math.ceil(total / limit)
     }
 
+# ... (Rest of the file logic kept same, template, import, crud etc) ...
 @router.get("/template")
 async def get_import_template():
     try:
@@ -73,11 +74,6 @@ async def get_import_template():
 
 @router.post("/import")
 async def import_referensi(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
-    """
-    Smart Import accepting:
-    1. Standard Template ('kd_brg', 'ur_sskel')
-    2. 'Coba 2' Format ('Kode Barang', 'Golongan Barang', 'Bidang Barang'...) -> Auto-generates hierarchy
-    """
     if not file.filename.endswith(('.xls', '.xlsx')):
         raise HTTPException(status_code=400, detail="File harus format Excel (.xlsx)")
         
@@ -90,17 +86,13 @@ async def import_referensi(file: UploadFile = File(...), current_user: str = Dep
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"File rusak: {str(e)}")
             
-        # Scan first 20 rows for header candidates
         header_idx = -1
-        found_mode = None # 'STANDARD' or 'HIERARCHY'
+        found_mode = None 
         
         for i, row in df_raw.head(20).iterrows():
             row_str = row.astype(str).str.lower().tolist()
-            
-            # Check for Standard ('kd_brg')
             if any('kd_brg' in s or 'kode barang' in s for s in row_str):
                 header_idx = i
-                # Determine mode
                 if any('golongan barang' in s for s in row_str):
                     found_mode = 'HIERARCHY'
                 elif any('ur_sskel' in s or 'uraian' in s for s in row_str):
@@ -110,16 +102,13 @@ async def import_referensi(file: UploadFile = File(...), current_user: str = Dep
         if header_idx == -1:
             raise HTTPException(status_code=400, detail="Header tidak ditemukan. Pastikan ada kolom 'Kode Barang' atau 'kd_brg'.")
             
-        # Re-read with correct header
         df = pd.read_excel(io.BytesIO(contents), header=header_idx)
         df = df.where(pd.notnull(df), None)
         df.columns = [str(c).strip().lower() for c in df.columns]
         
         count = 0
         
-        # 2. Process based on Mode
         if found_mode == 'HIERARCHY':
-            # Mapping columns
             col_kode = next((c for c in df.columns if 'kode' in c or 'kd_brg' in c), None)
             col_gol = next((c for c in df.columns if 'golongan' in c), None)
             col_bid = next((c for c in df.columns if 'bidang' in c), None)
@@ -130,43 +119,26 @@ async def import_referensi(file: UploadFile = File(...), current_user: str = Dep
             for index, row in df.iterrows():
                 raw_kode = str(row.get(col_kode, ''))
                 full_kode = ''.join(filter(str.isdigit, raw_kode))
-                
                 if not full_kode: continue
                 
-                # Hierarchical Upsert (Level 1 to 5)
-                # Level 1: Golongan (1 Digit)
                 if len(full_kode) >= 1 and col_gol:
-                    k = full_kode[:1]
-                    u = str(row.get(col_gol, '')).strip()
+                    k = full_kode[:1]; u = str(row.get(col_gol, '')).strip()
                     if u: await upsert_kode(k, u, 1)
-                        
-                # Level 2: Bidang (3 Digit)
                 if len(full_kode) >= 3 and col_bid:
-                    k = full_kode[:3]
-                    u = str(row.get(col_bid, '')).strip()
+                    k = full_kode[:3]; u = str(row.get(col_bid, '')).strip()
                     if u: await upsert_kode(k, u, 2)
-                        
-                # Level 3: Kelompok (5 Digit)
                 if len(full_kode) >= 5 and col_kel:
-                    k = full_kode[:5]
-                    u = str(row.get(col_kel, '')).strip()
+                    k = full_kode[:5]; u = str(row.get(col_kel, '')).strip()
                     if u: await upsert_kode(k, u, 3)
-                        
-                # Level 4: Sub Kelompok (7 Digit)
                 if len(full_kode) >= 7 and col_sub:
-                    k = full_kode[:7]
-                    u = str(row.get(col_sub, '')).strip()
+                    k = full_kode[:7]; u = str(row.get(col_sub, '')).strip()
                     if u: await upsert_kode(k, u, 4)
-                        
-                # Level 5: Sub Sub Kelompok (10 Digit)
                 if len(full_kode) >= 10 and col_subsub:
-                    k = full_kode[:10]
-                    u = str(row.get(col_subsub, '')).strip()
+                    k = full_kode[:10]; u = str(row.get(col_subsub, '')).strip()
                     if u: await upsert_kode(k, u, 5)
-                
                 count += 1
 
-        else: # STANDARD MODE
+        else: # STANDARD
             col_kode = next((c for c in df.columns if 'kode' in c or 'kd_brg' in c), None)
             col_uraian = next((c for c in df.columns if 'uraian' in c or 'ur_sskel' in c or 'nama' in c), None)
             
@@ -174,10 +146,8 @@ async def import_referensi(file: UploadFile = File(...), current_user: str = Dep
                 raw_kode = str(row.get(col_kode, ''))
                 kode = ''.join(filter(str.isdigit, raw_kode))
                 uraian = str(row.get(col_uraian, '')).strip()
-                
                 if not kode or not uraian: continue
                 
-                # Auto-detect level
                 level = 5
                 l = len(kode)
                 if l == 1: level = 1
@@ -192,8 +162,6 @@ async def import_referensi(file: UploadFile = File(...), current_user: str = Dep
         
     except HTTPException as he: raise he
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"System Error: {str(e)}")
 
 async def upsert_kode(kode, uraian, level):
@@ -203,7 +171,6 @@ async def upsert_kode(kode, uraian, level):
         upsert=True
     )
 
-# ... (Existing CRUD Endpoints: create, update, delete, lookup) ...
 @router.post("", response_model=Kodefikasi)
 async def create_referensi(item: KodefikasiCreate, current_user: str = Depends(get_current_user)):
     clean_kode = item.kode.replace(".", "").strip()

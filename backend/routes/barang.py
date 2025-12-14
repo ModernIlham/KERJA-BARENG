@@ -16,20 +16,15 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 def clean_currency(value):
-    if value is None:
-        return 0.0
+    if value is None: return 0.0
     if isinstance(value, (int, float)):
-        if math.isnan(value) or math.isinf(value):
-            return 0.0
+        if math.isnan(value) or math.isinf(value): return 0.0
         return float(value)
     if isinstance(value, str):
         clean = value.replace('Rp', '').replace('.', '').replace(',', '').strip()
-        if not clean:
-            return 0.0
-        try:
-            return float(clean)
-        except ValueError:
-            return 0.0
+        if not clean: return 0.0
+        try: return float(clean)
+        except ValueError: return 0.0
     return 0.0
 
 @router.get("", response_model=Dict[str, Any])
@@ -52,10 +47,9 @@ async def get_barang_list(
     cursor = db.barang.find(query).skip(skip).limit(limit).sort("nama_barang", 1)
     items = await cursor.to_list(length=limit)
     
-    # Convert ObjectId to string for JSON serialization
+    # Ensure ObjectId is string
     for item in items:
-        if "_id" in item:
-            item["_id"] = str(item["_id"])
+        if "_id" in item: item["_id"] = str(item["_id"])
     
     return {
         "data": items,
@@ -81,30 +75,22 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
 
 @router.put("/{id}", response_model=Barang)
 async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
-    if not ObjectId.is_valid(id):
-        raise HTTPException(status_code=400, detail="Invalid ID")
-        
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400, detail="Invalid ID")
     update_data = barang_update.dict(exclude_unset=True)
     update_data['updated_at'] = datetime.now(timezone.utc)
-    
     result = await db.barang.find_one_and_update(
         {"_id": ObjectId(id)},
         {"$set": update_data},
         return_document=True
     )
-    
-    if not result:
-        raise HTTPException(status_code=404, detail="Barang not found")
+    if not result: raise HTTPException(status_code=404, detail="Barang not found")
     return result
 
 @router.delete("/{id}")
 async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
-    if not ObjectId.is_valid(id):
-        raise HTTPException(status_code=400, detail="Invalid ID")
-        
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400, detail="Invalid ID")
     result = await db.barang.delete_one({"_id": ObjectId(id)})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Barang not found")
+    if result.deleted_count == 0: raise HTTPException(status_code=404, detail="Barang not found")
     return {"message": "Barang deleted successfully"}
 
 @router.post("/import")
@@ -125,9 +111,7 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
             try:
                 kode = str(row.get('Kode Barang', '')).strip()
                 nup = str(row.get('NUP', '')).strip()
-                
-                if not kode or not nup:
-                    continue
+                if not kode or not nup: continue
                     
                 item_data = {
                     "kode_barang": kode,
@@ -161,15 +145,11 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     upsert=True
                 )
                 
-                if result.upserted_id:
-                    count_inserted += 1
-                elif result.modified_count > 0:
-                    count_updated += 1
-                
+                if result.upserted_id: count_inserted += 1
+                elif result.modified_count > 0: count_updated += 1
                 count_processed += 1
                 
-            except Exception as e:
-                continue
+            except Exception as e: continue
                 
         return {
             "message": "Import selesai",
@@ -191,7 +171,6 @@ async def get_barang_stats(current_user: str = Depends(get_current_user)):
             "critical_stock": {"$sum": {"$cond": [{"$lte": ["$stok", 0]}, 1, 0]}}
         }}
     ]
-    
     result = await db.barang.aggregate(pipeline).to_list(1)
     if not result:
         return {"total_items": 0, "total_value": 0, "critical_stock": 0}
