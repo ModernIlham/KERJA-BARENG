@@ -210,12 +210,31 @@ export default function BarangList() {
 
   const handleStatusChange = async (itemId, newStatus) => {
     try {
-      await api.patch(`/api/barang/${itemId}/status`, { status_aset: newStatus });
+      const endpoint = activeTab === 'persediaan' ? `/api/persediaan/${itemId}/status` : `/api/barang/${itemId}/status`;
+      await api.patch(endpoint, { status_aset: newStatus });
       toast.success('Status berhasil diubah');
       setEditingStatusId(null);
       fetchBarang();
     } catch (err) {
       toast.error('Gagal mengubah status');
+      console.error(err);
+    }
+  };
+
+  const handleBatasKritisChange = async (itemId) => {
+    try {
+      const value = parseInt(batasKritisValue);
+      if (isNaN(value) || value < 0) {
+        toast.error('Nilai harus angka positif');
+        return;
+      }
+      await api.patch(`/api/persediaan/${itemId}/batas-kritis`, { batas_kritis: value });
+      toast.success('Batas kritis berhasil diubah');
+      setEditingBatasKritisId(null);
+      setBatasKritisValue('');
+      fetchBarang();
+    } catch (err) {
+      toast.error('Gagal mengubah batas kritis');
       console.error(err);
     }
   };
