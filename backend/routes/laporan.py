@@ -137,7 +137,7 @@ async def get_kartu_gudang(
         "timestamp": {"$gte": sd, "$lte": ed}
     }).sort("timestamp", 1)
     
-    txs = await cursor.to_list(None)
+    txs = await cursor.to_list(10000)
     mutasi = []
     
     for tx in txs:
