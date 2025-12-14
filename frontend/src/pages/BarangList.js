@@ -6,11 +6,12 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Trash, Edit, RefreshCw, FileUp, Download, Printer, Filter } from 'lucide-react';
+import { Plus, Search, Loader2, Trash, Edit, RefreshCw, FileUp, Download, Printer, Filter, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
 import { Pagination } from '../components/ui/pagination';
 import { TableSkeleton } from '../components/ui/skeleton-table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 
 export default function BarangList() {
   const [barang, setBarang] = useState([]);
@@ -80,7 +81,7 @@ export default function BarangList() {
     }
   };
 
-  // Trigger fetch when page changes (separate effect to avoid double fetch with filters)
+  // Trigger fetch when page changes
   useEffect(() => {
       if(currentPage > 1) fetchBarang(); 
   }, [currentPage]);
@@ -105,7 +106,6 @@ export default function BarangList() {
   const handleExport = async () => {
       const t = toast.loading("Downloading Excel...");
       try {
-          // Pass current filters
           const params = {
               search,
               filter_kode: filters.kode,
@@ -134,13 +134,10 @@ export default function BarangList() {
       }
   };
 
-  // ... (Keep existing Modal/Import/Delete logic) ...
-  // Re-inserting helper functions for clarity
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); 
       setKodefikasiHint(null);
-      // ... populate fields ...
       setValue("kode_barang", item.kode_barang); setValue("nup", item.nup); setValue("nama_barang", item.nama_barang);
       setValue("merk", item.merk); setValue("tipe", item.tipe); setValue("kondisi", item.kondisi);
       setValue("tgl_perolehan", item.tgl_perolehan); setValue("nilai_perolehan", item.nilai_perolehan);
@@ -184,7 +181,7 @@ export default function BarangList() {
             </div>
             
             <Button variant={showFilters ? "secondary" : "outline"} onClick={() => setShowFilters(!showFilters)}>
-                <Filter className="mr-2 h-4 w-4" /> Filter Kolom
+                <Filter className="mr-2 h-4 w-4" /> Filter
             </Button>
             
             <Button variant="outline" onClick={handleExport}>
@@ -212,7 +209,7 @@ export default function BarangList() {
               <TableHeader className="bg-slate-50">
                 <TableRow>
                   {/* Checkbox Column */}
-                  <TableHead className="w-[40px] text-center">
+                  <TableHead className="w-[40px] text-center p-2">
                       <input 
                         type="checkbox" 
                         onChange={(e) => toggleSelectAll(e.target.checked)}
@@ -221,53 +218,64 @@ export default function BarangList() {
                       />
                   </TableHead>
                   
-                  <TableHead className="w-[100px]">Golongan</TableHead>
-                  <TableHead className="min-w-[150px]">Kode Barang</TableHead>
-                  <TableHead className="w-[80px]">NUP</TableHead>
-                  <TableHead className="min-w-[200px]">Nama Barang</TableHead>
-                  <TableHead className="min-w-[150px]">Merk/Tipe</TableHead>
-                  <TableHead className="w-[100px]">Kondisi</TableHead>
-                  <TableHead className="min-w-[150px]">Lokasi</TableHead>
-                  <TableHead className="text-right min-w-[120px]">Nilai (Rp)</TableHead>
-                  <TableHead className="text-center w-[100px] sticky right-0 bg-slate-50 shadow-sm">Aksi</TableHead>
+                  {/* Dense Headers for Information Density */}
+                  <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Gol</TableHead>
+                  <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang / Spesifikasi</TableHead>
+                  <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode / NUP</TableHead>
+                  <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Kondisi</TableHead>
+                  <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Stok</TableHead>
+                  <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Rata-Rata</TableHead>
+                  <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Perolehan</TableHead>
+                  <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Penyusutan</TableHead>
+                  <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Nilai Buku</TableHead>
+                  <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Lokasi</TableHead>
+                  <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>
+                  <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Kritis</TableHead>
+                  <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Sync</TableHead>
+                  <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
                 </TableRow>
                 
                 {/* Column Filters Row */}
                 {showFilters && (
                     <TableRow className="bg-slate-50">
-                        <TableHead></TableHead>
-                        <TableHead><Input className="h-8 text-xs" placeholder="Filter Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>
-                        <TableHead><Input className="h-8 text-xs" placeholder="Filter Kode..." value={filters.kode} onChange={e=>setFilters({...filters, kode: e.target.value})} /></TableHead>
-                        <TableHead><Input className="h-8 text-xs" placeholder="NUP..." value={filters.nup} onChange={e=>setFilters({...filters, nup: e.target.value})} /></TableHead>
-                        <TableHead><Input className="h-8 text-xs" placeholder="Filter Nama..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>
-                        <TableHead><Input className="h-8 text-xs" placeholder="Filter Merk..." value={filters.merk} onChange={e=>setFilters({...filters, merk: e.target.value})} /></TableHead>
-                        <TableHead>
-                            <select className="h-8 text-xs w-full border rounded" value={filters.kondisi} onChange={e=>setFilters({...filters, kondisi: e.target.value})}>
-                                <option value="">Semua</option>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Filter Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>
+                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Filter Nama..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>
+                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Kode/NUP..." value={filters.kode} onChange={e=>setFilters({...filters, kode: e.target.value})} /></TableHead>
+                        <TableHead className="p-1">
+                            <select className="h-7 text-[10px] w-full border rounded px-1" value={filters.kondisi} onChange={e=>setFilters({...filters, kondisi: e.target.value})}>
+                                <option value="">All</option>
                                 <option value="Baik">Baik</option>
-                                <option value="Rusak Ringan">Rusak Ringan</option>
-                                <option value="Rusak Berat">Rusak Berat</option>
+                                <option value="RR">R.Ringan</option>
+                                <option value="RB">R.Berat</option>
                             </select>
                         </TableHead>
-                        <TableHead><Input className="h-8 text-xs" placeholder="Lokasi..." value={filters.lokasi} onChange={e=>setFilters({...filters, lokasi: e.target.value})} /></TableHead>
-                        <TableHead></TableHead>
-                        <TableHead className="sticky right-0 bg-slate-50"></TableHead>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Lokasi..." value={filters.lokasi} onChange={e=>setFilters({...filters, lokasi: e.target.value})} /></TableHead>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="p-1"></TableHead>
+                        <TableHead className="sticky right-0 bg-slate-50 p-1"></TableHead>
                     </TableRow>
                 )}
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableSkeleton columns={10} rows={10} />
+                  <TableSkeleton columns={14} rows={15} />
                 ) : barang.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={14} className="text-center py-8 text-slate-500">
                       Tidak ada data barang ditemukan.
                     </TableCell>
                   </TableRow>
                 ) : (
                   barang.map((item) => (
-                    <TableRow key={item._id} className={selectedIds.has(item._id) ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-slate-50"}>
-                      <TableCell className="text-center">
+                    <TableRow key={item._id} className={`text-xs ${selectedIds.has(item._id) ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-slate-50"}`}>
+                      <TableCell className="text-center p-2">
                           <input 
                             type="checkbox" 
                             checked={selectedIds.has(item._id)}
@@ -275,31 +283,56 @@ export default function BarangList() {
                             className="rounded border-slate-300"
                           />
                       </TableCell>
-                      <TableCell className="text-xs">{item.golongan_barang || '-'}</TableCell>
-                      <TableCell className="text-xs font-mono">{item.kode_barang}</TableCell>
-                      <TableCell className="text-xs">{item.nup}</TableCell>
-                      <TableCell className="font-medium text-sm">{item.nama_barang}</TableCell>
-                      <TableCell className="text-xs text-slate-600">{item.merk} {item.tipe}</TableCell>
-                      <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
-                              item.kondisi === 'Baik' ? 'bg-green-100 text-green-700' :
-                              item.kondisi === 'Rusak Berat' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                      <TableCell className="p-2 truncate max-w-[80px]" title={item.golongan_barang}>{item.golongan_barang || '-'}</TableCell>
+                      <TableCell className="p-2">
+                        <div className="font-semibold text-slate-900 truncate max-w-[200px]" title={item.nama_barang}>{item.nama_barang}</div>
+                        <div className="text-[10px] text-slate-500 truncate max-w-[200px]" title={`${item.merk || ''} ${item.tipe || ''}`}>
+                            {item.merk} {item.tipe}
+                        </div>
+                      </TableCell>
+                      <TableCell className="p-2 font-mono text-[10px]">
+                          <div title={item.kode_barang}>{item.kode_barang}</div>
+                          <div className="text-slate-500">NUP: {item.nup}</div>
+                      </TableCell>
+                      <TableCell className="p-2 text-center">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${
+                              item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' :
+                              item.kondisi === 'Rusak Berat' ? 'bg-red-50 text-red-700 border-red-200' :
+                              'bg-yellow-50 text-yellow-700 border-yellow-200'
                           }`}>
-                              {item.kondisi || '-'}
+                              {item.kondisi === 'Rusak Ringan' ? 'RR' : item.kondisi === 'Rusak Berat' ? 'RB' : item.kondisi || '-'}
                           </span>
                       </TableCell>
-                      <TableCell className="text-xs">{item.lokasi_fisik || '-'}</TableCell>
-                      <TableCell className="text-right text-xs font-bold">{formatCurrency(item.nilai_perolehan || 0)}</TableCell>
+                      <TableCell className="text-center font-bold p-2">{item.stok}</TableCell>
                       
-                      <TableCell className="text-center sticky right-0 bg-white/80 backdrop-blur shadow-sm">
-                        <div className="flex items-center justify-center gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => openEditModal(item)} className="text-blue-500 h-8 w-8 p-0">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(item._id)} className="text-red-500 h-8 w-8 p-0">
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                        </div>
+                      {/* Financials (Compact) */}
+                      <TableCell className="text-right p-2 whitespace-nowrap">{formatCurrency(item.nilai_satuan || 0)}</TableCell>
+                      <TableCell className="text-right p-2 whitespace-nowrap font-medium">{formatCurrency(item.nilai_perolehan || 0)}</TableCell>
+                      <TableCell className="text-right p-2 whitespace-nowrap text-red-600">({formatCurrency(item.nilai_penyusutan || 0)})</TableCell>
+                      <TableCell className="text-right p-2 whitespace-nowrap font-bold text-slate-800">{formatCurrency(item.nilai_buku || 0)}</TableCell>
+                      
+                      <TableCell className="p-2 truncate max-w-[120px]" title={item.lokasi_fisik}>{item.lokasi_fisik || '-'}</TableCell>
+                      <TableCell className="text-center p-2">
+                          <span className={`px-1 py-0.5 rounded text-[10px] ${item.status_aset === 'Aktif' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {item.status_aset || 'Aktif'}
+                          </span>
+                      </TableCell>
+                      <TableCell className="text-center text-red-600 font-bold p-2">{item.batas_stok_kritis || 1}</TableCell>
+                      
+                      <TableCell className="text-center p-2">
+                          {item.penggolongan_siman ? <RefreshCw size={12} className="text-green-600 mx-auto" /> : <span className="text-slate-300">-</span>}
+                      </TableCell>
+                      
+                      <TableCell className="text-center sticky right-0 bg-white/90 backdrop-blur shadow-sm p-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDelete(item._id)} className="text-xs text-red-600"><Trash size={12} className="mr-2"/> Hapus</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -318,25 +351,33 @@ export default function BarangList() {
         </CardContent>
       </Card>
       
-      {/* Modals omitted, same as before */}
-      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+      {/* Import Modal */}
+        <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
-                <DialogHeader><DialogTitle>Import Data Barang</DialogTitle></DialogHeader>
+                <DialogHeader>
+                    <DialogTitle>Import Data Barang (SIMAN)</DialogTitle>
+                </DialogHeader>
                 <div className="space-y-4 pt-4">
                     <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Pilih File Excel</label>
                             <Input type="file" accept=".xlsx, .xls" {...registerImport('file')} />
                         </div>
-                        <Button type="submit" disabled={importing} className="w-full bg-slate-900 text-white">Mulai Import</Button>
+                        <Button type="submit" disabled={importing} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                            {importing ? <Loader2 className="animate-spin mr-2"/> : <FileUp className="mr-2"/>}
+                            Mulai Import
+                        </Button>
                     </form>
                 </div>
             </DialogContent>
         </Dialog>
 
+        {/* Add/Edit Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{editingItem ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>{editingItem ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle>
+            </DialogHeader>
             {kodefikasiHint && (
                 <div className="bg-blue-50 p-3 rounded-md text-xs text-blue-800 border border-blue-100 grid grid-cols-2 gap-2">
                     <div><strong>Golongan:</strong> {kodefikasiHint.golongan || '-'}</div>
