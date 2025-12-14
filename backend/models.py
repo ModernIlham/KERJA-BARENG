@@ -42,6 +42,12 @@ class User(MongoBaseModel):
     hashed_password: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    full_name: str
+    password: str
+    role: str = "user"
+
 # --- Referensi Kodefikasi (NEW) ---
 class Kodefikasi(MongoBaseModel):
     kode: str # e.g., "3", "3.01", "3.01.01" etc. or just pure digits "30101"
