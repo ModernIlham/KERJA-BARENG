@@ -4,7 +4,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Loader2, Printer, Download, ArrowLeft } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { formatCurrency } from '../../lib/utils';
+import { formatCurrency } from '../lib/utils';
 
 export default function LaporanBMN({ onBack }) {
   const [data, setData] = useState(null);
