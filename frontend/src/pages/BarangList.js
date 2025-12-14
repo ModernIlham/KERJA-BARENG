@@ -365,9 +365,30 @@ export default function BarangList() {
             
             {activeTab === 'persediaan' && (
               <>
-                <Button variant="outline" onClick={downloadNotaDinas} size="sm" className="text-xs">
-                  <FileText className="mr-1 h-3 w-3" /> Nota Dinas Stok Kritis
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <FileText className="mr-1 h-3 w-3" /> Nota Dinas
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => downloadNotaDinas('kritis')} className="text-xs">
+                      Stok Kritis
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => downloadNotaDinas('expired')} className="text-xs">
+                      Sudah Expired
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => downloadNotaDinas('2weeks')} className="text-xs">
+                      Expired 2 Minggu
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => downloadNotaDinas('1month')} className="text-xs">
+                      Expired 1 Bulan
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => downloadNotaDinas('all')} className="text-xs">
+                      Semua Expired
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
             
