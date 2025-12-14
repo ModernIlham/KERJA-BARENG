@@ -73,7 +73,9 @@ export default function BarangList() {
           filter_golongan: filters.golongan
       };
       
-      const res = await api.get('/api/barang', { params });
+      // Determine endpoint based on active tab
+      const endpoint = activeTab === 'persediaan' ? '/api/persediaan/' : '/api/barang';
+      const res = await api.get(endpoint, { params });
       setBarang(res.data.data || []);
       setTotalPages(res.data.total_pages);
       setTotalItems(res.data.total);
@@ -83,7 +85,7 @@ export default function BarangList() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, limit, search, filters]);
+  }, [currentPage, limit, search, filters, activeTab]);
 
   // Debounce Effect
   useEffect(() => {
