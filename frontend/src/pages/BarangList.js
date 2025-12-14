@@ -101,6 +101,14 @@ export default function BarangList() {
       fetchBarang(); 
   }, [currentPage, fetchBarang]);
 
+  // Reset when tab changes
+  useEffect(() => {
+      setCurrentPage(1);
+      setSelectedIds(new Set());
+      setIsAllSelected(false);
+      clearSelection();
+  }, [activeTab]);
+
   // Automation Hooks
   useEffect(() => {
       if (tglPerolehanValue && !editingItem) {
