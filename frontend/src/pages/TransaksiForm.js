@@ -7,22 +7,31 @@ import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export default function TransaksiList() {
+  const { type } = useParams(); // masuk, keluar, riwayat
+  const navigate = useNavigate();
+  
   const [transaksi, setTransaksi] = useState([]);
   const [barangList, setBarangList] = useState([]);
   const [pegawaiList, setPegawaiList] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Automation State
   const [selectedBarangDetail, setSelectedBarangDetail] = useState(null);
   
-  const { register, handleSubmit, setValue, reset, watch } = useForm({
-    defaultValues: { jenis: 'KELUAR' }
+  const { register, handleSubmit, reset, watch, setValue } = useForm({
+    defaultValues: { jenis: type === 'masuk' ? 'MASUK' : 'KELUAR' }
   });
 
-  const selectedJenis = watch('jenis');
   const selectedBarangId = watch('barang_id');
+  const currentTab = type || 'riwayat';
+
+  useEffect(() => {
+      // Sync tab with form value if needed
+      if(type === 'masuk') setValue('jenis', 'MASUK');
+      if(type === 'keluar') setValue('jenis', 'KELUAR');
+  }, [type, setValue]);
 
   const fetchData = async () => {
     try {
@@ -45,7 +54,6 @@ export default function TransaksiList() {
     fetchData();
   }, []);
 
-  // Automation: Update Detail when Barang Selected
   useEffect(() => {
       if (selectedBarangId) {
           const item = barangList.find(b => b._id === selectedBarangId);
@@ -56,7 +64,6 @@ export default function TransaksiList() {
   }, [selectedBarangId, barangList]);
 
   const onSubmit = async (data) => {
-    // Validation
     if (data.jenis === 'KELUAR' && selectedBarangDetail && parseInt(data.jumlah) > selectedBarangDetail.stok) {
         return toast.error("Stok tidak mencukupi!");
     }
@@ -67,171 +74,152 @@ export default function TransaksiList() {
         jumlah: parseInt(data.jumlah)
       });
       toast.success("Transaksi berhasil dicatat");
-      reset({ jenis: selectedJenis }); // Keep selected type
+      reset({ jenis: data.jenis });
       fetchData(); 
     } catch (error) {
       toast.error(error.response?.data?.detail || "Gagal mencatat transaksi");
     }
   };
 
+  const handleTabChange = (val) => {
+      navigate(`/transaksi/${val}`);
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-1">
-        <Card className="border-slate-200 shadow-sm sticky top-24">
-          <CardHeader>
-            <CardTitle>Catat Transaksi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Jenis Transaksi</label>
-                <div className="flex gap-2">
-                  <Button 
-                    type="button"
-                    variant={selectedJenis === 'MASUK' ? 'default' : 'outline'}
-                    className={`flex-1 ${selectedJenis === 'MASUK' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
-                    onClick={() => setValue('jenis', 'MASUK')}
-                  >
-                    Masuk
-                  </Button>
-                  <Button 
-                    type="button"
-                    variant={selectedJenis === 'KELUAR' ? 'default' : 'outline'}
-                    className={`flex-1 ${selectedJenis === 'KELUAR' ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''}`}
-                    onClick={() => setValue('jenis', 'KELUAR')}
-                  >
-                    Keluar
-                  </Button>
-                  <Button 
-                    type="button"
-                    variant={selectedJenis === 'OPNAME' ? 'default' : 'outline'}
-                    className={`flex-1 ${selectedJenis === 'OPNAME' ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
-                    onClick={() => setValue('jenis', 'OPNAME')}
-                  >
-                    Opname
-                  </Button>
-                </div>
-                <input type="hidden" {...register('jenis')} />
-              </div>
+    <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">Transaksi Gudang</h1>
+        
+        <Tabs value={currentTab} onValueChange={handleTabChange}>
+            <TabsList className="bg-slate-100">
+                <TabsTrigger value="masuk">Barang Masuk</TabsTrigger>
+                <TabsTrigger value="keluar">Barang Keluar</TabsTrigger>
+                <TabsTrigger value="riwayat">Riwayat Transaksi</TabsTrigger>
+            </TabsList>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Pilih Aset (Barang)</label>
-                <select 
-                  {...register('barang_id', { required: true })} 
-                  className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                >
-                  <option value="">-- Pilih Barang --</option>
-                  {barangList.map(b => (
-                    <option key={b._id} value={b._id}>
-                        {b.nama_barang} (Stok: {b.stok})
-                    </option>
-                  ))}
-                </select>
-                {/* Automation Info Display */}
-                {selectedBarangDetail && (
-                    <div className="text-xs p-2 bg-slate-50 rounded border border-slate-100 text-slate-600 space-y-1">
-                        <div><strong>NUP:</strong> {selectedBarangDetail.nup}</div>
-                        <div><strong>Merk/Tipe:</strong> {selectedBarangDetail.merk} {selectedBarangDetail.tipe}</div>
-                        <div><strong>Lokasi:</strong> {selectedBarangDetail.lokasi_fisik}</div>
-                        <div className={selectedBarangDetail.stok === 0 ? 'text-red-600 font-bold' : 'text-green-600 font-bold'}>
-                            Sisa Stok: {selectedBarangDetail.stok}
-                        </div>
-                    </div>
-                )}
-              </div>
+            <TabsContent value="masuk">
+                <Card className="max-w-2xl">
+                    <CardHeader><CardTitle>Form Barang Masuk</CardTitle></CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                            <input type="hidden" {...register('jenis')} value="MASUK" />
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Pilih Barang</label>
+                                <select {...register('barang_id', {required:true})} className="w-full border rounded p-2 text-sm">
+                                    <option value="">-- Pilih --</option>
+                                    {barangList.map(b => <option key={b._id} value={b._id}>{b.nama_barang} (Stok: {b.stok})</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Jumlah Masuk</label>
+                                <Input type="number" {...register('jumlah', {required:true})} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Nilai Satuan (Rp)</label>
+                                <Input type="number" {...register('nilai_satuan')} placeholder="Opsional (update harga)" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">No. Dokumen / BAST</label>
+                                <Input {...register('dokumen_ref')} placeholder="No. BAST..." />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Diterima Dari (Penyedia/Pihak Lain)</label>
+                                <Input {...register('keterangan')} placeholder="PT. Vendor..." />
+                            </div>
+                             <div className="space-y-2">
+                                <label className="text-sm font-medium">Penerima (Pegawai)</label>
+                                <select {...register('pegawai_id')} className="w-full border rounded p-2 text-sm">
+                                    <option value="">-- Pilih --</option>
+                                    {pegawaiList.map(p => <option key={p._id} value={p._id}>{p.nama_lengkap}</option>)}
+                                </select>
+                            </div>
+                            <Button className="w-full bg-green-700 hover:bg-green-800">Simpan Barang Masuk</Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            </TabsContent>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                    {selectedJenis === 'OPNAME' ? 'Jumlah Fisik (Aktual)' : 'Jumlah'}
-                </label>
-                <Input type="number" {...register('jumlah', { required: true, min: 1 })} placeholder="Contoh: 1" />
-              </div>
+            <TabsContent value="keluar">
+                <Card className="max-w-2xl">
+                    <CardHeader><CardTitle>Form Barang Keluar</CardTitle></CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                            <input type="hidden" {...register('jenis')} value="KELUAR" />
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Pilih Barang</label>
+                                <select {...register('barang_id', {required:true})} className="w-full border rounded p-2 text-sm">
+                                    <option value="">-- Pilih --</option>
+                                    {barangList.map(b => <option key={b._id} value={b._id}>{b.nama_barang} (Stok: {b.stok})</option>)}
+                                </select>
+                                {selectedBarangDetail && (
+                                    <div className="text-xs text-slate-500">Stok Tersedia: {selectedBarangDetail.stok}</div>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Jumlah Keluar</label>
+                                <Input type="number" {...register('jumlah', {required:true})} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Penerima (Pegawai)</label>
+                                <select {...register('pegawai_id')} className="w-full border rounded p-2 text-sm">
+                                    <option value="">-- Pilih --</option>
+                                    {pegawaiList.map(p => <option key={p._id} value={p._id}>{p.nama_lengkap} ({p.jabatan})</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">No. Dokumen Permintaan</label>
+                                <Input {...register('dokumen_ref')} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Keperluan</label>
+                                <Input {...register('keterangan')} />
+                            </div>
+                            <Button className="w-full bg-amber-600 hover:bg-amber-700">Proses Barang Keluar</Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            </TabsContent>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Pihak Terkait (Pegawai/Unit)</label>
-                <select 
-                  {...register('pegawai_id')} 
-                  className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                >
-                  <option value="">-- Pilih Pegawai --</option>
-                  {pegawaiList.map(p => (
-                    <option key={p._id} value={p._id}>{p.nama_lengkap} - {p.jabatan}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Bukti / No. Dokumen</label>
-                <Input {...register('bukti_dokumen')} placeholder="No. BA Serah Terima / Nota" />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Keterangan Tambahan</label>
-                <Input {...register('keterangan')} placeholder="Opsional..." />
-              </div>
-
-              <Button type="submit" className="w-full bg-slate-900 mt-4">Simpan Transaksi</Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="lg:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Riwayat Transaksi Terkini</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border border-slate-200 overflow-hidden">
-              <Table>
-                <TableHeader className="bg-slate-50">
-                  <TableRow>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Jenis</TableHead>
-                    <TableHead>Detail Barang</TableHead>
-                    <TableHead>Jumlah</TableHead>
-                    <TableHead>Pihak Terkait</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-8"><Loader2 className="animate-spin mx-auto" /></TableCell></TableRow>
-                  ) : transaksi.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">Belum ada transaksi</TableCell></TableRow>
-                  ) : (
-                    transaksi.map((tx) => (
-                      <TableRow key={tx._id} className="hover:bg-slate-50">
-                        <TableCell className="text-xs text-slate-500">
-                          {new Date(tx.timestamp).toLocaleDateString('id-ID')}
-                          <div className="text-[10px] text-slate-400">{tx.bukti_dokumen || '-'}</div>
-                        </TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                              tx.jenis === 'MASUK' ? 'text-green-700 bg-green-100' : 
-                              tx.jenis === 'KELUAR' ? 'text-amber-700 bg-amber-100' :
-                              'text-blue-700 bg-blue-100'
-                          }`}>
-                            {tx.jenis}
-                          </span>
-                        </TableCell>
-                        <TableCell className="font-medium text-sm">
-                            {tx.nama_barang}
-                            {tx.nup && <span className="text-xs text-slate-400 block">NUP: {tx.nup}</span>}
-                        </TableCell>
-                        <TableCell className="font-bold">{tx.jumlah}</TableCell>
-                        <TableCell className="text-sm text-slate-600">
-                            <div>{tx.nama_pegawai || '-'}</div>
-                            {tx.unit_penerima && <div className="text-[10px] text-slate-400">{tx.unit_penerima}</div>}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <TabsContent value="riwayat">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Riwayat Transaksi Terkini</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Tanggal</TableHead>
+                            <TableHead>Jenis</TableHead>
+                            <TableHead>Barang</TableHead>
+                            <TableHead>Jumlah</TableHead>
+                            <TableHead>Pihak Terkait</TableHead>
+                            <TableHead>Dokumen</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {transaksi.map((tx) => (
+                              <TableRow key={tx._id}>
+                                <TableCell className="text-xs">{new Date(tx.timestamp).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                      tx.jenis === 'MASUK' ? 'bg-green-100 text-green-700' : 
+                                      tx.jenis === 'KELUAR' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                                  }`}>
+                                    {tx.jenis}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-sm font-medium">{tx.nama_barang}</TableCell>
+                                <TableCell className="font-bold">{tx.jumlah}</TableCell>
+                                <TableCell className="text-xs">{tx.nama_pegawai}</TableCell>
+                                <TableCell className="text-xs font-mono">{tx.dokumen_ref || '-'}</TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
     </div>
   );
 }

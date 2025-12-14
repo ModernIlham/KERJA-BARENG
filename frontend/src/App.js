@@ -11,6 +11,7 @@ import TransaksiList from './pages/TransaksiForm';
 import BandingData from './pages/BandingData';
 import StockOpname from './pages/StockOpname';
 import Laporan from './pages/Laporan';
+import Pengaturan from './pages/Pengaturan';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -37,10 +38,19 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="barang" element={<BarangList />} />
             <Route path="pegawai" element={<PegawaiList />} />
-            <Route path="transaksi" element={<TransaksiList />} />
+            
+            {/* Transaksi Routes */}
+            <Route path="transaksi" element={<Navigate to="/transaksi/riwayat" replace />} />
+            <Route path="transaksi/:type" element={<TransaksiList />} />
+            
             <Route path="opname" element={<StockOpname />} />
-            <Route path="laporan" element={<Laporan />} />
+            
+            {/* Laporan Routes */}
+            <Route path="laporan" element={<Navigate to="/laporan/posisi" replace />} />
+            <Route path="laporan/:type" element={<Laporan />} />
+            
             <Route path="banding" element={<BandingData />} />
+            <Route path="pengaturan" element={<Pengaturan />} />
           </Route>
         </Routes>
       </AuthProvider>
