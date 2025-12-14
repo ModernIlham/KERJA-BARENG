@@ -257,6 +257,40 @@ export default function BarangList() {
       console.error(err);
     }
   };
+
+  const downloadTemplate = async () => {
+    const t = toast.loading("Mengunduh template...");
+    try {
+      const response = await api.get('/api/persediaan/template', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'Template_Import_Persediaan.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Template berhasil diunduh", {id: t});
+    } catch (error) {
+      toast.error("Gagal mengunduh template", {id: t});
+    }
+  };
+
+  const downloadNotaDinas = async () => {
+    const t = toast.loading("Membuat nota dinas...");
+    try {
+      const response = await api.get('/api/persediaan/nota-dinas-kritis', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Nota_Dinas_Stok_Kritis_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Nota dinas berhasil dibuat", {id: t});
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Gagal membuat nota dinas. Pastikan ada barang dengan stok kritis.", {id: t});
+    }
+  };
   const handleBulkDelete = async () => { 
     if(!window.confirm("Hapus Massal?")) return; 
     try { 
