@@ -15,6 +15,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMe
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 
 export default function BarangList() {
+  // Tab State
+  const [activeTab, setActiveTab] = useState('aset-tetap');
+  
   const [barang, setBarang] = useState([]);
   const [loading, setLoading] = useState(true);
   
