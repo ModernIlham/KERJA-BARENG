@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi.responses import StreamingResponse
 from typing import List, Optional
 import pandas as pd
 import io
@@ -33,17 +34,51 @@ async def get_referensi_list(
     cursor = db.kodefikasi.find(query).skip(skip).limit(limit).sort("kode", 1)
     return await cursor.to_list(length=limit)
 
+@router.get("/template")
+async def get_import_template():
+    """
+    Generate and download Excel Template for Referensi Import
+    """
+    try:
+        # Data Contoh
+        data = [
+            {"kd_brg": "3", "ur_sskel": "Peralatan dan Mesin"},
+            {"kd_brg": "301", "ur_sskel": "Alat Besar"},
+            {"kd_brg": "30101", "ur_sskel": "Alat Besar Darat"},
+            {"kd_brg": "3010101", "ur_sskel": "Tractor"},
+            {"kd_brg": "3010101001", "ur_sskel": "Crawler Tractor"}
+        ]
+        
+        df = pd.DataFrame(data)
+        
+        # Create Buffer
+        output = io.BytesIO()
+        
+        # Write Excel using openpyxl (engine='openpyxl')
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='KodefikasiBarang')
+            
+        output.seek(0)
+        
+        headers = {
+            'Content-Disposition': 'attachment; filename="Template_Master_Kode_Barang.xlsx"'
+        }
+        
+        return StreamingResponse(
+            output, 
+            headers=headers, 
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Gagal generate template: {str(e)}")
+
 @router.post("/import")
 async def import_referensi(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
     """
     STRICT IMPORT for 'Master Kode Barang Referensi.xlsx'
     Mandatory Columns: 'kd_brg', 'ur_sskel'
-    Logic:
-    - 1 Digit: Golongan (Level 1)
-    - 3 Digits: Bidang (Level 2)
-    - 5 Digits: Kelompok (Level 3)
-    - 7 Digits: Sub Kelompok (Level 4)
-    - 10 Digits: Sub Sub Kelompok (Level 5)
     """
     if not file.filename.endswith(('.xls', '.xlsx')):
         raise HTTPException(status_code=400, detail="File harus format Excel (.xlsx)")
@@ -73,33 +108,19 @@ async def import_referensi(file: UploadFile = File(...), current_user: str = Dep
         count = 0
         for index, row in df.iterrows():
             raw_kode = str(row.get('kd_brg', ''))
-            # Remove all non-numeric characters EXCEPT if needed, but standard BMN is digits.
-            # Usually BMN codes like 3.01.01... are stored as '30101...' in DB for indexing.
-            # We strip '.', ' ', etc.
             kode = ''.join(filter(str.isdigit, raw_kode))
             uraian = str(row.get('ur_sskel', '')).strip()
             
             if not kode or not uraian: continue
             
-            # Determine Level based on Digit Length
-            # 1 digit  (1)          -> Golongan
-            # 3 digits (1.01)       -> Bidang
-            # 5 digits (1.01.01)    -> Kelompok
-            # 7 digits (1.01.01.01) -> Sub Kelompok
-            # 10 digits (1.01.01.01.001) -> Sub Sub Kelompok
-            
+            # Level Logic
             level = 5 # Default
             length = len(kode)
-            
             if length == 1: level = 1
             elif length == 3: level = 2
             elif length == 5: level = 3
             elif length == 7: level = 4
             elif length >= 10: level = 5
-            else:
-                # Invalid length for standard BMN, but save anyway as level 5 or skip?
-                # Let's save as level 0 or Unknown to avoid data loss, or just skip logic.
-                pass 
             
             await db.kodefikasi.update_one(
                 {"kode": kode},
@@ -117,21 +138,12 @@ async def import_referensi(file: UploadFile = File(...), current_user: str = Dep
 
 @router.get("/lookup")
 async def lookup_kode(kode: str, current_user: str = Depends(get_current_user)):
-    """
-    Auto-Lookup logic based on 10-digit BMN Code
-    """
     clean_kode = ''.join(filter(str.isdigit, kode))
-    
     result = {
-        "golongan": None,
-        "bidang": None,
-        "kelompok": None,
-        "sub_kelompok": None,
-        "sub_sub_kelompok": None,
-        "uraian_barang": None
+        "golongan": None, "bidang": None, "kelompok": None, 
+        "sub_kelompok": None, "sub_sub_kelompok": None, "uraian_barang": None
     }
     
-    # Generate prefixes
     prefixes = []
     if len(clean_kode) >= 1: prefixes.append(clean_kode[:1])
     if len(clean_kode) >= 3: prefixes.append(clean_kode[:3])

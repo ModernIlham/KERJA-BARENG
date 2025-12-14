@@ -6,19 +6,16 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Search, Loader2, FileUp, Download, AlertTriangle, Plus, Edit, Trash } from 'lucide-react';
+import { Search, Loader2, FileUp, Download, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
 
 export default function ReferensiKode() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [downloading, setDownloading] = useState(false);
   
-  const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerImport, handleSubmit: handleImportSubmit } = useForm();
 
   const fetchData = useCallback(async () => {
@@ -38,46 +35,6 @@ export default function ReferensiKode() {
     return () => clearTimeout(t);
   }, [fetchData]);
 
-  const openAdd = () => {
-      setEditingItem(null);
-      reset();
-      setIsModalOpen(true);
-  };
-
-  const openEdit = (item) => {
-      setEditingItem(item);
-      setValue('kode', item.kode);
-      setValue('uraian', item.uraian);
-      setIsModalOpen(true);
-  };
-
-  const onSubmit = async (form) => {
-      try {
-          if (editingItem) {
-              await api.put(`/api/referensi/${editingItem._id}`, form);
-              toast.success("Update berhasil");
-          } else {
-              await api.post('/api/referensi', form);
-              toast.success("Tambah berhasil");
-          }
-          setIsModalOpen(false);
-          fetchData();
-      } catch (e) {
-          toast.error("Gagal menyimpan");
-      }
-  };
-
-  const onDelete = async (id) => {
-      if(!window.confirm("Hapus kode ini?")) return;
-      try {
-          await api.delete(`/api/referensi/${id}`);
-          toast.success("Terhapus");
-          fetchData();
-      } catch (e) {
-          toast.error("Gagal menghapus");
-      }
-  };
-
   const onImport = async (form) => {
       if(!form.file[0]) return toast.error("Pilih file");
       const formData = new FormData();
@@ -96,30 +53,31 @@ export default function ReferensiKode() {
       }
   };
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
+      setDownloading(true);
       try {
-          // Create Data Array
-          const data = [
-              { "kd_brg": "3", "ur_sskel": "Peralatan dan Mesin" },
-              { "kd_brg": "3.01", "ur_sskel": "Alat Besar" },
-              { "kd_brg": "3.01.01", "ur_sskel": "Alat Besar Darat" },
-              { "kd_brg": "3.01.01.01", "ur_sskel": "Tractor" },
-              { "kd_brg": "3.01.01.01.001", "ur_sskel": "Crawler Tractor" }
-          ];
-
-          // Create Worksheet
-          const ws = XLSX.utils.json_to_sheet(data);
+          const response = await api.get('/api/referensi/template', { responseType: 'blob' });
           
-          // Create Workbook
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "MasterKode");
+          // Create Blob URL
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'Template_Master_Kode_Barang.xlsx');
           
-          // Write File
-          XLSX.writeFile(wb, "Template_Master_Kode_Barang.xlsx");
+          // Trigger Download
+          document.body.appendChild(link);
+          link.click();
+          
+          // Cleanup
+          link.remove();
+          window.URL.revokeObjectURL(url);
+          
           toast.success("Template berhasil diunduh");
       } catch (error) {
-          console.error("Download failed:", error);
-          toast.error("Gagal mengunduh template. Pastikan browser mengizinkan download.");
+          console.error("Download error:", error);
+          toast.error("Gagal mengunduh template dari server.");
+      } finally {
+          setDownloading(false);
       }
   };
 
@@ -131,11 +89,6 @@ export default function ReferensiKode() {
                 <Button variant="outline" onClick={() => setIsImportOpen(true)}>
                     <FileUp className="mr-2 h-4 w-4"/> Import Excel
                 </Button>
-                {/* 
-                <Button className="bg-slate-900" onClick={openAdd}>
-                    <Plus className="mr-2 h-4 w-4"/> Tambah Kode
-                </Button>
-                */}
             </div>
         </div>
 
@@ -159,7 +112,6 @@ export default function ReferensiKode() {
                                 <TableHead className="w-[150px]">Kode Barang</TableHead>
                                 <TableHead>Uraian / Nama Barang</TableHead>
                                 <TableHead className="w-[100px]">Level</TableHead>
-                                {/* <TableHead className="w-[100px] text-center">Aksi</TableHead> */}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -188,24 +140,6 @@ export default function ReferensiKode() {
                 </div>
             </CardContent>
         </Card>
-
-        {/* Add/Edit Modal */}
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent>
-                <DialogHeader><DialogTitle>{editingItem ? 'Edit Kode' : 'Tambah Kode Baru'}</DialogTitle></DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Kode (Tanpa Titik)</label>
-                        <Input {...register('kode', {required: true})} placeholder="Contoh: 3010101001" />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Uraian</label>
-                        <Input {...register('uraian', {required: true})} placeholder="Contoh: Sepeda Motor..." />
-                    </div>
-                    <Button className="w-full bg-slate-900">Simpan</Button>
-                </form>
-            </DialogContent>
-        </Dialog>
 
         {/* Import Modal */}
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
@@ -236,9 +170,11 @@ export default function ReferensiKode() {
                             variant="outline" 
                             size="sm" 
                             onClick={downloadTemplate} 
+                            disabled={downloading}
                             className="w-fit"
                         >
-                            <Download className="mr-2 h-3 w-3"/> Download Template
+                            {downloading ? <Loader2 className="animate-spin mr-2 h-3 w-3"/> : <Download className="mr-2 h-3 w-3"/>}
+                            Download Template
                         </Button>
                     </div>
 
