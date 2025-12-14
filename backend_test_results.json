@@ -1,36 +1,135 @@
 {
-  "timestamp": "2025-12-14T08:03:23.273169",
+  "timestamp": "2025-12-14T08:04:44.381788",
   "summary": {
-    "tests_run": 1,
-    "tests_passed": 0,
-    "success_rate": "0.0%"
+    "tests_run": 12,
+    "tests_passed": 1,
+    "success_rate": "8.3%"
   },
   "detailed_results": [
     {
-      "test_name": "Login",
+      "test_name": "Login with admin@example.com",
       "method": "POST",
       "endpoint": "api/auth/login",
       "expected_status": 200,
-      "actual_status": 422,
+      "actual_status": 401,
       "success": false,
-      "response_size": 179,
+      "response_size": 40,
       "error": {
-        "detail": [
-          {
-            "type": "missing",
-            "loc": [
-              "body",
-              "email"
-            ],
-            "msg": "Field required",
-            "input": {
-              "username": "admin",
-              "password": "admin123"
-            },
-            "url": "https://errors.pydantic.dev/2.12/v/missing"
-          }
-        ]
+        "detail": "Incorrect email or password"
       }
+    },
+    {
+      "test_name": "Login with admin",
+      "method": "POST",
+      "endpoint": "api/auth/login",
+      "expected_status": 200,
+      "actual_status": 401,
+      "success": false,
+      "response_size": 40,
+      "error": {
+        "detail": "Incorrect email or password"
+      }
+    },
+    {
+      "test_name": "Login with test@example.com",
+      "method": "POST",
+      "endpoint": "api/auth/login",
+      "expected_status": 200,
+      "actual_status": 401,
+      "success": false,
+      "response_size": 40,
+      "error": {
+        "detail": "Incorrect email or password"
+      }
+    },
+    {
+      "test_name": "Register Test User",
+      "method": "POST",
+      "endpoint": "api/auth/register",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 180
+    },
+    {
+      "test_name": "Check Referensi Data Count",
+      "method": "GET",
+      "endpoint": "api/referensi",
+      "expected_status": 200,
+      "actual_status": 500,
+      "success": false,
+      "response_size": 21,
+      "raw_response": "Internal Server Error"
+    },
+    {
+      "test_name": "Check Barang Data Count",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 500,
+      "success": false,
+      "response_size": 21,
+      "raw_response": "Internal Server Error"
+    },
+    {
+      "test_name": "Get Referensi List",
+      "method": "GET",
+      "endpoint": "api/referensi",
+      "expected_status": 200,
+      "actual_status": 500,
+      "success": false,
+      "response_size": 21,
+      "raw_response": "Internal Server Error"
+    },
+    {
+      "test_name": "Get Referensi with Pagination",
+      "method": "GET",
+      "endpoint": "api/referensi",
+      "expected_status": 200,
+      "actual_status": 500,
+      "success": false,
+      "response_size": 21,
+      "raw_response": "Internal Server Error"
+    },
+    {
+      "test_name": "Get Referensi with Search",
+      "method": "GET",
+      "endpoint": "api/referensi",
+      "expected_status": 200,
+      "actual_status": 500,
+      "success": false,
+      "response_size": 21,
+      "raw_response": "Internal Server Error"
+    },
+    {
+      "test_name": "Get Barang List",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 500,
+      "success": false,
+      "response_size": 21,
+      "raw_response": "Internal Server Error"
+    },
+    {
+      "test_name": "Get Barang with Pagination",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 500,
+      "success": false,
+      "response_size": 21,
+      "raw_response": "Internal Server Error"
+    },
+    {
+      "test_name": "Get Barang with Search",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 500,
+      "success": false,
+      "response_size": 21,
+      "raw_response": "Internal Server Error"
     }
   ]
 }
