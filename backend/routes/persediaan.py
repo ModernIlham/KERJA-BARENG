@@ -417,14 +417,17 @@ async def generate_nota_dinas_expired(
             
             # Check status
             if item.get('expired_date'):
-                exp_date = datetime.strptime(item['expired_date'], "%Y-%m-%d")
-                days_diff = (exp_date - today).days
-                if days_diff < 0:
-                    status = "EXPIRED"
-                elif days_diff <= 14:
-                    status = f"{days_diff} hari lagi"
-                else:
-                    status = f"{days_diff} hari lagi"
+                try:
+                    exp_date = datetime.strptime(item['expired_date'], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                    days_diff = (exp_date - today).days
+                    if days_diff < 0:
+                        status = "EXPIRED"
+                    elif days_diff <= 14:
+                        status = f"{days_diff} hari lagi"
+                    else:
+                        status = f"{days_diff} hari lagi"
+                except:
+                    status = "-"
             else:
                 status = "-"
             

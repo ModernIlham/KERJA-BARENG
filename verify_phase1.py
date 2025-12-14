@@ -53,9 +53,10 @@ def verify():
         
     # 3. Check Status Update
     print("Checking Status Update...")
-    res = requests.get(f"{BASE_URL}/persediaan/{item_id}", headers=headers)
+    res = requests.get(f"{BASE_URL}/persediaan/detail/{item_id}", headers=headers)
     item = res.json()
-    status = item['status_aset']
+    print(f"Item JSON: {item}")
+    status = item.get('status_aset', 'Unknown')
     print(f"Current Status: {status}")
     
     if status == "Barang Rusak":
