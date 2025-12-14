@@ -133,9 +133,7 @@ export default function BarangList() {
               barang.forEach(item => { if(item && item._id) newSet.delete(item._id); });
           }
           setSelectedIds(newSet);
-      } catch(e) {
-          console.error("Select error", e);
-      }
+      } catch(e) { console.error("Select error", e); }
   };
   
   const selectGlobal = () => { setIsAllSelected(true); setSelectedIds(new Set()); toast.info(`Seluruh ${totalItems} data terpilih.`); };
@@ -145,7 +143,6 @@ export default function BarangList() {
   const handleExport = async () => {
       const t = toast.loading("Downloading Excel...");
       try {
-          // PASS ALL FILTERS
           const params = {
               search, filter_kode: filters.kode, filter_nama: filters.nama, filter_merk: filters.merk, 
               filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup, filter_golongan: filters.golongan,
@@ -162,7 +159,6 @@ export default function BarangList() {
   const handlePdf = async () => {
       const t = toast.loading("Generating PDF...");
       try {
-          // PASS ALL FILTERS
           const params = { 
               search, filter_golongan: filters.golongan, filter_kode: filters.kode, filter_nama: filters.nama,
               filter_merk: filters.merk, filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup,
@@ -176,7 +172,6 @@ export default function BarangList() {
       } catch (e) { toast.error("Gagal PDF", {id: t}); }
   };
 
-  // ... (Other handlers) ...
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); setKodefikasiHint(null);
@@ -186,30 +181,14 @@ export default function BarangList() {
   };
   const onSubmit = async (data) => { try { if (editingItem) { await api.put(`/api/barang/${editingItem._id}`, data); toast.success("Updated"); } else { await api.post('/api/barang', data); toast.success("Created"); } setIsModalOpen(false); reset(); fetchBarang(); } catch(e) { toast.error("Error saving"); } };
   const handleDelete = async (id) => { if(!window.confirm("Hapus?")) return; try { await api.delete(`/api/barang/${id}`); toast.success("Deleted"); fetchBarang(); } catch(e) { toast.error("Fail"); } };
-  
-  // FIX: handleBulkDelete sends Pydantic Model structure
-  const handleBulkDelete = async () => { 
-      if(!window.confirm(`Yakin hapus ${isAllSelected ? totalItems : selectedIds.size} data?`)) return; 
-      try { 
-          // Payload must match BulkDeleteRequest
-          const payload = {
-              ids: Array.from(selectedIds),
-              select_all_mode: isAllSelected,
-              search: search || null,
-              filters: filters
-          };
-          await api.post('/api/barang/bulk-delete', payload); 
-          toast.success("Deleted"); clearSelection(); fetchBarang(); 
-      } catch(e) { toast.error("Fail"); } 
-  };
-  
+  const handleBulkDelete = async () => { if(!window.confirm("Hapus Massal?")) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
   const onImport = async (data) => { setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]); try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); } catch(e) { toast.error("Import failed"); } finally { setImporting(false); } };
 
-  const isReadonly = editingItem?.source === 'import';
+  // Logic: ReadOnly IF NOT contains "(Sementara)" AND editing existing item
+  const isReadonly = editingItem && !String(editingItem.nup || "").includes("(Sementara)");
 
   return (
     <div className="space-y-6">
-      {/* ... Header ... */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Barang</h1>
         
@@ -267,7 +246,7 @@ export default function BarangList() {
                   
                   {/* Conditional Headers */}
                   {visibleColumns.gol && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Gol</TableHead>}
-                  {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang</TableHead>}
+                  {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang / Spesifikasi</TableHead>}
                   {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode / NUP</TableHead>}
                   {visibleColumns.kondisi && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Kondisi</TableHead>}
                   {visibleColumns.stok && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Stok</TableHead>}
@@ -371,6 +350,8 @@ export default function BarangList() {
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editingItem ? (isReadonly ? 'Detail Aset (Imported - Read Only)' : 'Edit Aset (Manual)') : 'Tambah Aset Baru'}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
+                {isReadonly && <div className="bg-orange-50 text-orange-800 p-2 text-xs border border-orange-200 mb-2 rounded">Data ini hasil import (Read Only) kecuali NUP Sementara.</div>}
+                
                 <Tabs defaultValue="utama">
                     <TabsList className="w-full bg-slate-100 flex-wrap h-auto">
                         <TabsTrigger value="utama">Data Utama</TabsTrigger>
