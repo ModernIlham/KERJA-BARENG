@@ -1,58 +1,85 @@
 {
   "summary": {
-    "tests_run": 8,
-    "tests_passed": 5,
-    "success_rate": 62.5
+    "tests_run": 12,
+    "tests_passed": 12,
+    "success_rate": 100.0
   },
   "results": [
     {
       "test": "API Health Check",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:01:16.768716"
+      "timestamp": "2025-12-14T01:01:34.408190"
     },
     {
       "test": "Admin Login",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:01:17.259156"
+      "timestamp": "2025-12-14T01:01:34.830503"
     },
     {
       "test": "Get Barang List",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:01:17.346217"
+      "timestamp": "2025-12-14T01:01:34.904616"
     },
     {
       "test": "Create Barang",
-      "success": false,
-      "details": "Response: {'detail': 'Kode barang already exists'}",
-      "timestamp": "2025-12-14T01:01:17.424456"
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:01:34.977135"
+    },
+    {
+      "test": "Get Barang List After Create",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:01:35.047349"
+    },
+    {
+      "test": "Get Barang Stats",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:01:35.121568"
     },
     {
       "test": "Get Pegawai List",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:01:17.502103"
+      "timestamp": "2025-12-14T01:01:35.192482"
     },
     {
       "test": "Create Pegawai",
-      "success": false,
-      "details": "Response: {'detail': 'NIP already exists'}",
-      "timestamp": "2025-12-14T01:01:17.574387"
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:01:35.262493"
     },
     {
-      "test": "Transaksi Test Setup",
-      "success": false,
-      "details": "No barang_id available for transaction",
-      "timestamp": "2025-12-14T01:01:17.574432"
+      "test": "Get Transaksi List",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:01:35.347565"
+    },
+    {
+      "test": "Create Transaksi MASUK",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:01:35.448533"
+    },
+    {
+      "test": "Create Transaksi KELUAR",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-14T01:01:35.529993"
     },
     {
       "test": "Get Dashboard Summary",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:01:17.661802"
+      "timestamp": "2025-12-14T01:01:35.603184"
     }
   ],
-  "created_items": {}
+  "created_items": {
+    "barang_id": "693e0c6ecf4fa9ed326a8884",
+    "pegawai_id": "693e0c6fcf4fa9ed326a8885"
+  }
 }
