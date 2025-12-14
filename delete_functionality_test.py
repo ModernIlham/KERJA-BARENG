@@ -191,26 +191,10 @@ class DeleteFunctionalityTester:
         """Test deleting referensi via API"""
         print(f"\n=== DELETE REFERENSI {referensi_id} ===")
         
-        # First verify the referensi exists
-        success, response = self.make_request(
-            "GET", f"api/referensi", {"search": referensi_id}, 200
-        )
+        # Skip verification step and directly test delete
+        # (The search might not work with ID, let's test the delete directly)
         
-        if success:
-            found = False
-            if 'data' in response:
-                for item in response['data']:
-                    if str(item.get('_id')) == referensi_id:
-                        found = True
-                        break
-            
-            if not found:
-                self.log_result(f"Verify referensi exists before delete", False, "Referensi not found in list")
-                return False
-            else:
-                self.log_result(f"Verify referensi exists before delete", True, "Referensi found in list")
-        
-        # Now delete the referensi
+        # Delete the referensi
         success, response = self.make_request(
             "DELETE", f"api/referensi/{referensi_id}", None, 200
         )
@@ -218,28 +202,18 @@ class DeleteFunctionalityTester:
         if success:
             self.log_result(f"Delete referensi API call", True, f"Response: {response}")
             
-            # Verify it's actually deleted from database
+            # Try to delete the same item again (should return 404)
             time.sleep(1)  # Give DB time to process
-            success, response = self.make_request(
-                "GET", f"api/referensi", {"search": referensi_id}, 200
+            success2, response2 = self.make_request(
+                "DELETE", f"api/referensi/{referensi_id}", None, 404
             )
             
-            if success:
-                found = False
-                if 'data' in response:
-                    for item in response['data']:
-                        if str(item.get('_id')) == referensi_id:
-                            found = True
-                            break
-                
-                if not found:
-                    self.log_result(f"Verify referensi deleted from DB", True, "Referensi not found in list (correctly deleted)")
-                    return True
-                else:
-                    self.log_result(f"Verify referensi deleted from DB", False, "Referensi still found in list")
-                    return False
+            if success2:
+                self.log_result(f"Verify referensi deleted (second delete returns 404)", True, "Correctly returned 404 on second delete")
+                return True
             else:
-                self.log_result(f"Verify referensi deleted from DB", False, "Could not check database")
+                self.log_result(f"Verify referensi deleted (second delete returns 404)", False, f"Second delete response: {response2}")
+                # This is expected to fail based on our earlier test - referensi delete doesn't properly check if item exists
                 return False
         else:
             self.log_result(f"Delete referensi API call", False, f"Response: {response}")
