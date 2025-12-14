@@ -788,6 +788,137 @@ async def import_persediaan(file: UploadFile = File(...), current_user: str = De
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Import error: {str(e)}")
 
+# POST - Export Excel
+@router.post("/export-excel")
+async def export_persediaan_excel(request: dict = Body(...), current_user: str = Depends(get_current_user)):
+    try:
+        ids = request.get('ids', [])
+        select_all = request.get('select_all_mode', False)
+        
+        if select_all:
+            cursor = db.persediaan.find({})
+        else:
+            if not ids:
+                raise HTTPException(status_code=400, detail="No items selected")
+            valid_ids = [ObjectId(id) for id in ids if ObjectId.is_valid(id)]
+            cursor = db.persediaan.find({"_id": {"$in": valid_ids}})
+        
+        items = await cursor.to_list(None)
+        
+        if not items:
+            raise HTTPException(status_code=404, detail="No data to export")
+        
+        # Prepare data
+        data_list = []
+        for item in items:
+            data_list.append({
+                "Kode Barang": item.get('kode_barang', ''),
+                "Nama Barang": item.get('nama_barang', ''),
+                "Golongan": item.get('golongan_barang', ''),
+                "Merk": item.get('merk', ''),
+                "Tipe": item.get('tipe', ''),
+                "Satuan": item.get('satuan', ''),
+                "Stok": item.get('stok', 0),
+                "Batas Kritis": item.get('batas_kritis', 0),
+                "Harga Satuan": item.get('nilai_satuan', 0),
+                "Total Harga": (item.get('stok', 0) * item.get('nilai_satuan', 0)),
+                "Kondisi": item.get('kondisi', ''),
+                "Expired Date": item.get('expired_date', ''),
+                "Lokasi": item.get('lokasi_fisik', ''),
+                "Status": item.get('status_aset', 'Aktif')
+            })
+        
+        df = pd.DataFrame(data_list)
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Persediaan', index=False)
+            worksheet = writer.sheets['Persediaan']
+            for idx, col in enumerate(df.columns):
+                max_length = max(df[col].astype(str).apply(len).max(), len(col)) + 2
+                worksheet.column_dimensions[chr(65 + idx)].width = min(max_length, 40)
+        
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': f'attachment; filename="Export_Persediaan_{datetime.now().strftime("%Y%m%d")}.xlsx"'}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exporting: {str(e)}")
+
+# POST - Export PDF
+@router.post("/export-pdf")
+async def export_persediaan_pdf(request: dict = Body(...), current_user: str = Depends(get_current_user)):
+    try:
+        ids = request.get('ids', [])
+        select_all = request.get('select_all_mode', False)
+        
+        if select_all:
+            cursor = db.persediaan.find({}).sort("kode_barang", 1)
+        else:
+            if not ids:
+                raise HTTPException(status_code=400, detail="No items selected")
+            valid_ids = [ObjectId(id) for id in ids if ObjectId.is_valid(id)]
+            cursor = db.persediaan.find({"_id": {"$in": valid_ids}}).sort("kode_barang", 1)
+        
+        items = await cursor.to_list(None)
+        
+        if not items:
+            raise HTTPException(status_code=404, detail="No data to export")
+        
+        # Create PDF
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=1*cm, rightMargin=1*cm, topMargin=1.5*cm, bottomMargin=1.5*cm)
+        
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=14, textColor=colors.HexColor('#1e40af'), spaceAfter=15, alignment=TA_CENTER)
+        elements.append(Paragraph("DAFTAR PERSEDIAAN", title_style))
+        elements.append(Spacer(1, 0.3*cm))
+        
+        # Table
+        table_data = [['No', 'Kode', 'Nama Barang', 'Gol', 'Stok', 'Satuan', 'Batas Kritis', 'Harga', 'Total', 'Kondisi']]
+        
+        for idx, item in enumerate(items, 1):
+            table_data.append([
+                str(idx),
+                str(item.get('kode_barang', ''))[:14],
+                str(item.get('nama_barang', ''))[:25],
+                str(item.get('golongan_barang', '-'))[:10],
+                str(item.get('stok', 0)),
+                str(item.get('satuan', '-'))[:5],
+                str(item.get('batas_kritis', 0)),
+                f"Rp {item.get('nilai_satuan', 0):,.0f}",
+                f"Rp {(item.get('stok', 0) * item.get('nilai_satuan', 0)):,.0f}",
+                str(item.get('kondisi', '-'))[:8]
+            ])
+        
+        table = Table(table_data, colWidths=[1*cm, 3*cm, 5*cm, 2.5*cm, 1.5*cm, 1.5*cm, 1.8*cm, 2.5*cm, 2.8*cm, 2*cm])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (2, 1), (2, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        buffer.seek(0)
+        
+        return StreamingResponse(buffer, media_type='application/pdf', headers={'Content-Disposition': f'attachment; filename="Export_Persediaan_{datetime.now().strftime("%Y%m%d")}.pdf"'})
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exporting PDF: {str(e)}")
+
 # POST - Bulk Delete
 class BulkDeleteRequest(BaseModel):
     ids: Optional[List[str]] = []
