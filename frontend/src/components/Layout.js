@@ -8,7 +8,8 @@ import {
   LogOut, 
   Menu,
   ArrowRightLeft,
-  X
+  X,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -20,6 +21,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { to: '/barang', icon: Package, label: 'Master Barang' },
     { to: '/pegawai', icon: Users, label: 'Data Pegawai' },
     { to: '/transaksi', icon: ArrowRightLeft, label: 'Riwayat Transaksi' },
+    { to: '/banding', icon: FileSpreadsheet, label: 'Banding Data SIMAN' },
   ];
 
   return (

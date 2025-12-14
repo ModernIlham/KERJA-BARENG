@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 
 # Import Routers
-from routes import auth, barang, pegawai, transaksi, dashboard
+from routes import auth, barang, pegawai, transaksi, dashboard, banding
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -38,6 +38,7 @@ api_router.include_router(barang.router, prefix="/barang", tags=["Barang"])
 api_router.include_router(pegawai.router, prefix="/pegawai", tags=["Pegawai"])
 api_router.include_router(transaksi.router, prefix="/transaksi", tags=["Transaksi"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
+api_router.include_router(banding.router, prefix="/banding", tags=["Banding"]) # NEW
 
 @api_router.get("/")
 async def root():

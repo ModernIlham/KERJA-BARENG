@@ -48,33 +48,70 @@ class UserCreate(BaseModel):
     password: str
     role: str = "user"
 
-# --- Barang (Asset) Models ---
+# --- Barang (Asset) Models - UPDATED to match Excel Schema ---
 class Barang(MongoBaseModel):
+    # Identifiers
     kode_barang: str
+    nup: str  # Nomor Urut Pendaftaran
+    kode_satker: Optional[str] = None
+    nama_satker: Optional[str] = None
+    
+    # Details
     nama_barang: str
-    kategori: str
-    sub_kategori: Optional[str] = None
-    satuan: str
-    stok: int = 0
-    nilai_per_unit: float = 0
-    lokasi: Optional[str] = None
-    keterangan: Optional[str] = None
+    merk: Optional[str] = None
+    tipe: Optional[str] = None
+    kondisi: Optional[str] = None  # Baik, Rusak Ringan, Rusak Berat
+    tgl_perolehan: Optional[str] = None # YYYY-MM-DD
+    tgl_buku: Optional[str] = None
+    
+    # Financials
+    nilai_perolehan_pertama: float = 0
+    nilai_perolehan: float = 0
+    nilai_buku: float = 0
+    nilai_penyusutan: float = 0
+    
+    # Location / Certs
+    alamat: Optional[str] = None
+    kelurahan: Optional[str] = None
+    kecamatan: Optional[str] = None
+    kab_kota: Optional[str] = None
+    provinsi: Optional[str] = None
+    no_sertifikat: Optional[str] = None
+    luas_tanah: float = 0
+    luas_bangunan: float = 0
+    
+    # Inventory
+    stok: int = 1 # Default 1 for unique assets (NUP), but flexible for inventory
+    satuan: str = "Unit"
+    lokasi_fisik: Optional[str] = None # 'Lokasi' col in Excel
+    ruang: Optional[str] = None
+    
+    # System Metadata
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    is_active: bool = True
 
 class BarangCreate(BaseModel):
     kode_barang: str
+    nup: str
     nama_barang: str
-    kategori: str
-    satuan: str
-    nilai_per_unit: float
-    lokasi: Optional[str] = None
+    merk: Optional[str] = None
+    kondisi: str = "Baik"
+    nilai_perolehan: float = 0
+    tgl_perolehan: Optional[str] = None
+    stok: int = 1
+    satuan: str = "Unit"
 
 # --- Pegawai (Employee) Models ---
 class Pegawai(MongoBaseModel):
     nip: str
     nama_lengkap: str
     jabatan: str
-    unit_kerja: str
+    # Hierarchy
+    eselon1: Optional[str] = None
+    eselon2: Optional[str] = None
+    eselon3: Optional[str] = None
+    eselon4: Optional[str] = None
+    
     status: str = "AKTIF"  # AKTIF, NON_AKTIF
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -82,16 +119,25 @@ class PegawaiCreate(BaseModel):
     nip: str
     nama_lengkap: str
     jabatan: str
-    unit_kerja: str
+    eselon1: Optional[str] = None
+    eselon2: Optional[str] = None
+    eselon3: Optional[str] = None
+    eselon4: Optional[str] = None
 
 # --- Transaksi Models ---
 class Transaksi(MongoBaseModel):
-    jenis: str  # MASUK, KELUAR
+    jenis: str  # MASUK, KELUAR, OPNAME (Penyesuaian)
     barang_id: str
+    kode_barang: str
+    nup: Optional[str] = None
     nama_barang: str
     jumlah: int
-    pegawai_id: Optional[str] = None  # Who took/received it
+    
+    # Parties
+    pegawai_id: Optional[str] = None
     nama_pegawai: Optional[str] = None
+    unit_penerima: Optional[str] = None # Eselon name or similar
+    
     keterangan: Optional[str] = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
