@@ -54,6 +54,11 @@ class Kodefikasi(MongoBaseModel):
     uraian: str # "Peralatan dan Mesin"
     level: int # 1=Gol, 2=Bidang, 3=Kelompok, 4=Sub, 5=Sub-Sub
     parent_kode: Optional[str] = None
+class KodefikasiCreate(BaseModel):
+    kode: str
+    uraian: str
+    level: Optional[int] = None
+
 
 # --- Stok FIFO Batch Model ---
 class StokBatch(MongoBaseModel):
