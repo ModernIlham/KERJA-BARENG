@@ -127,7 +127,7 @@ async def get_kartu_gudang(
             "keluar": {"$sum": {"$cond": [{"$eq": ["$jenis", "KELUAR"]}, "$jumlah", 0]}}
         }}
     ]
-    res_awal = await db.transaksi.aggregate(pipeline_awal).to_list(1)
+    res_awal = await db.transaksi.aggregate(pipeline_awal).to_list(1000)
     current_saldo = (res_awal[0]['masuk'] - res_awal[0]['keluar']) if res_awal else 0
     initial_saldo = current_saldo
     
