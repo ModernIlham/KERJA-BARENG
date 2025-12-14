@@ -40,6 +40,7 @@ export default function BarangList() {
   const [editingItem, setEditingItem] = useState(null);
   const [importing, setImporting] = useState(false);
   const [kodefikasiHint, setKodefikasiHint] = useState(null);
+  const [editingStatusId, setEditingStatusId] = useState(null);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
