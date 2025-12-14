@@ -6,8 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Plus, Search, Loader2, Trash } from 'lucide-react';
+import { Plus, Search, Loader2, Trash, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
 
@@ -16,6 +15,7 @@ export default function BarangList() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   
   const { register, handleSubmit, reset, setValue } = useForm();
 
@@ -38,12 +38,42 @@ export default function BarangList() {
     return () => clearTimeout(timeout);
   }, [search]);
 
+  const openAddModal = () => {
+      setEditingItem(null);
+      reset({});
+      setIsModalOpen(true);
+  };
+
+  const openEditModal = (item) => {
+      setEditingItem(item);
+      // Populate Form
+      setValue("kode_barang", item.kode_barang);
+      setValue("nup", item.nup);
+      setValue("nama_barang", item.nama_barang);
+      setValue("merk", item.merk);
+      setValue("tipe", item.tipe);
+      setValue("kondisi", item.kondisi);
+      setValue("tgl_perolehan", item.tgl_perolehan);
+      setValue("nilai_perolehan", item.nilai_perolehan);
+      setValue("lokasi_fisik", item.lokasi_fisik);
+      setValue("stok", item.stok);
+      setIsModalOpen(true);
+  };
+
   const onSubmit = async (data) => {
     try {
-      await api.post('/api/barang', data);
-      toast.success("Barang berhasil ditambahkan");
+      if (editingItem) {
+          // Update Mode
+          await api.put(`/api/barang/${editingItem._id}`, data);
+          toast.success("Barang berhasil diperbarui");
+      } else {
+          // Create Mode
+          await api.post('/api/barang', data);
+          toast.success("Barang berhasil ditambahkan");
+      }
       setIsModalOpen(false);
       reset();
+      setEditingItem(null);
       fetchBarang();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Gagal menyimpan barang");
@@ -65,15 +95,14 @@ export default function BarangList() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Barang</h1>
+        <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={openAddModal}>
+            <Plus className="mr-2 h-4 w-4" /> Tambah Aset
+        </Button>
+        
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-slate-900 hover:bg-slate-800 text-white">
-              <Plus className="mr-2 h-4 w-4" /> Tambah Aset
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Tambah Aset Baru</DialogTitle>
+              <DialogTitle>{editingItem ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
               <div className="grid grid-cols-2 gap-4">
@@ -128,12 +157,14 @@ export default function BarangList() {
                   <Input {...register("lokasi_fisik")} placeholder="Gudang / Ruang Rapat" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Jumlah Stok (Awal)</label>
+                  <label className="text-sm font-medium">Jumlah Stok</label>
                   <Input type="number" {...register("stok")} defaultValue={1} />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full bg-slate-900 text-white mt-4">Simpan Data Aset</Button>
+              <Button type="submit" className="w-full bg-slate-900 text-white mt-4">
+                  {editingItem ? 'Simpan Perubahan' : 'Simpan Data Aset'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -208,9 +239,14 @@ export default function BarangList() {
                         {formatCurrency(item.nilai_perolehan)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(item._id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-center gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => openEditModal(item)} className="text-blue-500 hover:text-blue-700 hover:bg-blue-50">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(item._id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
