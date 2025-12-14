@@ -14,11 +14,15 @@ export default function TransaksiList() {
   const [pegawaiList, setPegawaiList] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  // Automation State
+  const [selectedBarangDetail, setSelectedBarangDetail] = useState(null);
+  
   const { register, handleSubmit, setValue, reset, watch } = useForm({
     defaultValues: { jenis: 'KELUAR' }
   });
 
   const selectedJenis = watch('jenis');
+  const selectedBarangId = watch('barang_id');
 
   const fetchData = async () => {
     try {
@@ -41,7 +45,22 @@ export default function TransaksiList() {
     fetchData();
   }, []);
 
+  // Automation: Update Detail when Barang Selected
+  useEffect(() => {
+      if (selectedBarangId) {
+          const item = barangList.find(b => b._id === selectedBarangId);
+          setSelectedBarangDetail(item);
+      } else {
+          setSelectedBarangDetail(null);
+      }
+  }, [selectedBarangId, barangList]);
+
   const onSubmit = async (data) => {
+    // Validation
+    if (data.jenis === 'KELUAR' && selectedBarangDetail && parseInt(data.jumlah) > selectedBarangDetail.stok) {
+        return toast.error("Stok tidak mencukupi!");
+    }
+
     try {
       await api.post('/api/transaksi', {
         ...data,
@@ -104,14 +123,27 @@ export default function TransaksiList() {
                   <option value="">-- Pilih Barang --</option>
                   {barangList.map(b => (
                     <option key={b._id} value={b._id}>
-                        {b.nama_barang} | NUP: {b.nup} | Stok: {b.stok}
+                        {b.nama_barang} (Stok: {b.stok})
                     </option>
                   ))}
                 </select>
+                {/* Automation Info Display */}
+                {selectedBarangDetail && (
+                    <div className="text-xs p-2 bg-slate-50 rounded border border-slate-100 text-slate-600 space-y-1">
+                        <div><strong>NUP:</strong> {selectedBarangDetail.nup}</div>
+                        <div><strong>Merk/Tipe:</strong> {selectedBarangDetail.merk} {selectedBarangDetail.tipe}</div>
+                        <div><strong>Lokasi:</strong> {selectedBarangDetail.lokasi_fisik}</div>
+                        <div className={selectedBarangDetail.stok === 0 ? 'text-red-600 font-bold' : 'text-green-600 font-bold'}>
+                            Sisa Stok: {selectedBarangDetail.stok}
+                        </div>
+                    </div>
+                )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Jumlah</label>
+                <label className="text-sm font-medium">
+                    {selectedJenis === 'OPNAME' ? 'Jumlah Fisik (Aktual)' : 'Jumlah'}
+                </label>
                 <Input type="number" {...register('jumlah', { required: true, min: 1 })} placeholder="Contoh: 1" />
               </div>
 
@@ -129,8 +161,13 @@ export default function TransaksiList() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Keterangan / No. Dokumen</label>
-                <Input {...register('keterangan')} placeholder="No. BA Serah Terima..." />
+                <label className="text-sm font-medium">Bukti / No. Dokumen</label>
+                <Input {...register('bukti_dokumen')} placeholder="No. BA Serah Terima / Nota" />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Keterangan Tambahan</label>
+                <Input {...register('keterangan')} placeholder="Opsional..." />
               </div>
 
               <Button type="submit" className="w-full bg-slate-900 mt-4">Simpan Transaksi</Button>
@@ -151,7 +188,7 @@ export default function TransaksiList() {
                   <TableRow>
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Jenis</TableHead>
-                    <TableHead>Barang</TableHead>
+                    <TableHead>Detail Barang</TableHead>
                     <TableHead>Jumlah</TableHead>
                     <TableHead>Pihak Terkait</TableHead>
                   </TableRow>
@@ -166,6 +203,7 @@ export default function TransaksiList() {
                       <TableRow key={tx._id} className="hover:bg-slate-50">
                         <TableCell className="text-xs text-slate-500">
                           {new Date(tx.timestamp).toLocaleDateString('id-ID')}
+                          <div className="text-[10px] text-slate-400">{tx.bukti_dokumen || '-'}</div>
                         </TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs font-bold ${
@@ -181,7 +219,10 @@ export default function TransaksiList() {
                             {tx.nup && <span className="text-xs text-slate-400 block">NUP: {tx.nup}</span>}
                         </TableCell>
                         <TableCell className="font-bold">{tx.jumlah}</TableCell>
-                        <TableCell className="text-sm text-slate-600">{tx.nama_pegawai || '-'}</TableCell>
+                        <TableCell className="text-sm text-slate-600">
+                            <div>{tx.nama_pegawai || '-'}</div>
+                            {tx.unit_penerima && <div className="text-[10px] text-slate-400">{tx.unit_penerima}</div>}
+                        </TableCell>
                       </TableRow>
                     ))
                   )}

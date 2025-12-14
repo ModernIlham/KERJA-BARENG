@@ -41,9 +41,7 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
             raise HTTPException(status_code=400, detail="Stok tidak mencukupi")
         new_stok -= tx_in.jumlah
     elif tx_in.jenis == "OPNAME":
-        # For Opname, 'jumlah' is treated as the ACTUAL PHYSICAL COUNT
-        # We update the stock to match this count
-        new_stok = tx_in.jumlah
+        new_stok = tx_in.jumlah # Actual count
     else:
         raise HTTPException(status_code=400, detail="Invalid Transaction Type")
         
@@ -53,17 +51,18 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
         {"$set": {"stok": new_stok, "updated_at": datetime.now(timezone.utc)}}
     )
     
-    # Get Pegawai Name
+    # Get Pegawai & Unit Info
     nama_pegawai = None
+    unit_penerima = None
+    
     if tx_in.pegawai_id and ObjectId.is_valid(tx_in.pegawai_id):
         pegawai = await db.pegawai.find_one({"_id": ObjectId(tx_in.pegawai_id)})
         if pegawai:
             nama_pegawai = pegawai['nama_lengkap']
+            # Logic: Unit penerima is usually the lowest relevant unit of the employee
+            unit_penerima = pegawai.get('eselon3') or pegawai.get('eselon2') or pegawai.get('eselon1') or "Non-Unit"
             
-    # Create Transaction Record
-    # For Opname, we might want to record the Diff in description? 
-    # Or just record the result. Let's record result for now.
-    
+    # For Opname, add diff to keterangan
     keterangan = tx_in.keterangan
     if tx_in.jenis == "OPNAME":
         diff = new_stok - current_stok
@@ -75,10 +74,12 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
         kode_barang=barang.get('kode_barang', ''),
         nup=barang.get('nup', ''),
         nama_barang=barang['nama_barang'],
-        jumlah=tx_in.jumlah, # For Opname, this is the physical count
+        jumlah=tx_in.jumlah, 
         pegawai_id=tx_in.pegawai_id,
         nama_pegawai=nama_pegawai,
-        keterangan=keterangan
+        unit_penerima=unit_penerima,
+        keterangan=keterangan,
+        bukti_dokumen=tx_in.bukti_dokumen
     )
     
     result = await db.transaksi.insert_one(new_tx.model_dump(by_alias=True, exclude=["id"]))

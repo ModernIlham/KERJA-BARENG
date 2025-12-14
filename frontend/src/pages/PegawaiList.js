@@ -1,13 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
-import { Card, CardContent, CardHeader } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Plus, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+
+const JABATAN_MELEKAT_OPTIONS = [
+    'Pengguna Anggaran (PA)', 'Kuasa Pengguna Anggaran (KPA)', 'Pejabat Pembuat Komitmen (PPK)',
+    'Pejabat Pelaksana Teknis Kegiatan (PPTK)', 'Bendahara Pengeluaran / Penerimaan', 'Kuasa Pengguna Barang (KPB)',
+    'Pengurus Barang', 'Pejabat Penilai Barang', 'Pejabat Penatausahaan Barang',
+    'Pejabat Penandatangan SPM', 'Pejabat Pengadaan Barang/Jasa', 'PPID'
+];
 
 export default function PegawaiList() {
   const [pegawai, setPegawai] = useState([]);
@@ -58,7 +65,7 @@ export default function PegawaiList() {
               <Plus className="mr-2 h-4 w-4" /> Tambah Pegawai
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Tambah Pegawai Baru</DialogTitle>
             </DialogHeader>
@@ -75,27 +82,47 @@ export default function PegawaiList() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Jabatan</label>
+                <label className="text-sm font-medium">Jabatan Utama</label>
                 <Input {...register("jabatan", { required: true })} placeholder="Pengelola BMN" />
               </div>
               
               <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 space-y-3">
                   <h3 className="text-sm font-bold text-slate-700 mb-2">Unit Kerja (Struktur Organisasi)</h3>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-500">Eselon I</label>
-                    <Input {...register("eselon1")} placeholder="Sekretariat Jenderal" className="h-8 text-sm"/>
+                  <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-slate-500">Eselon I</label>
+                        <Input {...register("eselon1")} placeholder="Sekretariat Jenderal" className="h-8 text-sm"/>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-slate-500">Eselon II</label>
+                        <Input {...register("eselon2")} placeholder="Biro Umum" className="h-8 text-sm"/>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-slate-500">Eselon III</label>
+                        <Input {...register("eselon3")} placeholder="Bagian Perlengkapan" className="h-8 text-sm"/>
+                      </div>
+                       <div className="space-y-2">
+                        <label className="text-xs font-medium text-slate-500">Eselon IV</label>
+                        <Input {...register("eselon4")} placeholder="Subbagian Gudang" className="h-8 text-sm"/>
+                      </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-500">Eselon II</label>
-                    <Input {...register("eselon2")} placeholder="Biro Umum" className="h-8 text-sm"/>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-500">Eselon III</label>
-                    <Input {...register("eselon3")} placeholder="Bagian Perlengkapan" className="h-8 text-sm"/>
-                  </div>
-                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-500">Eselon IV</label>
-                    <Input {...register("eselon4")} placeholder="Subbagian Gudang" className="h-8 text-sm"/>
+              </div>
+              
+              <div className="p-4 bg-amber-50 rounded-lg border border-amber-100 space-y-3">
+                  <h3 className="text-sm font-bold text-amber-800 mb-2">Jabatan Melekat (Centang yang sesuai)</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {JABATAN_MELEKAT_OPTIONS.map((role) => (
+                          <div key={role} className="flex items-start space-x-2">
+                              <input 
+                                  type="checkbox" 
+                                  id={`role-${role}`} 
+                                  value={role}
+                                  {...register("jabatan_melekat")}
+                                  className="mt-1 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                              />
+                              <label htmlFor={`role-${role}`} className="text-xs text-slate-700 cursor-pointer">{role}</label>
+                          </div>
+                      ))}
                   </div>
               </div>
 
@@ -125,7 +152,7 @@ export default function PegawaiList() {
                   <TableHead>NIP / Nama</TableHead>
                   <TableHead>Jabatan</TableHead>
                   <TableHead>Unit Kerja (Eselon)</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Jabatan Melekat</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -153,12 +180,16 @@ export default function PegawaiList() {
                           {item.eselon1 && <div className="font-semibold">{item.eselon1}</div>}
                           {item.eselon2 && <div>&rdsh; {item.eselon2}</div>}
                           {item.eselon3 && <div className="pl-2">&rdsh; {item.eselon3}</div>}
-                          {item.eselon4 && <div className="pl-4 text-slate-500">{item.eselon4}</div>}
                       </TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${item.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                          {item.status}
-                        </span>
+                          <div className="flex flex-wrap gap-1">
+                              {item.jabatan_melekat?.map((role, idx) => (
+                                  <span key={idx} className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] border border-amber-200">
+                                      {role}
+                                  </span>
+                              ))}
+                              {!item.jabatan_melekat?.length && <span className="text-slate-400 text-xs">-</span>}
+                          </div>
                       </TableCell>
                     </TableRow>
                   ))
