@@ -51,20 +51,7 @@ export default function BarangList() {
   const kodeBarangValue = watch('kode_barang');
   const tglPerolehanValue = watch('tgl_perolehan');
 
-  // Debounce Effect for Search & Filters (Reset Page to 1)
-  useEffect(() => {
-      const t = setTimeout(() => {
-          if (currentPage === 1) fetchBarang(); 
-          else setCurrentPage(1); 
-      }, 600);
-      return () => clearTimeout(t);
-  }, [filters, search]);
-
-  // Main Fetch Effect (Triggered by Page Change)
-  useEffect(() => {
-      fetchBarang(); 
-  }, [currentPage]);
-
+  // Fetch Logic
   const fetchBarang = useCallback(async () => {
     setLoading(true);
     try {
@@ -92,38 +79,22 @@ export default function BarangList() {
     }
   }, [currentPage, limit, search, filters]);
 
-  // Automation: Year from Date
+  // Main Effect
   useEffect(() => {
-      if (tglPerolehanValue && !editingItem) {
-          const year = tglPerolehanValue.split('-')[0];
-          if(year && year.length === 4) setValue('tahun_anggaran', year);
-      }
-  }, [tglPerolehanValue, setValue, editingItem]);
+      fetchBarang(); 
+  }, [fetchBarang]); // Removed currentPage dependency because it's inside useCallback dependency
 
-  // Automation: Lookup Code & NUP
+  // Debounce for Filter/Search
   useEffect(() => {
-      if (kodeBarangValue && kodeBarangValue.length >= 1) {
-          const t = setTimeout(async () => {
-              try {
-                  // 1. Lookup Kodefikasi
-                  const res = await api.get('/api/referensi/lookup', { params: { kode: kodeBarangValue } });
-                  setKodefikasiHint(res.data);
-                  if (!editingItem && res.data.golongan) setValue('golongan_barang', res.data.golongan);
-                  if (!editingItem && res.data.uraian_barang && kodeBarangValue.length >= 10 && !watch('nama_barang')) {
-                      setValue('nama_barang', res.data.uraian_barang);
-                  }
-                  
-                  // 2. Get Next NUP (Only for manual Add, not Edit)
-                  if (!editingItem && kodeBarangValue.length >= 5) {
-                      const nupRes = await api.get('/api/barang/next-nup', { params: { kode: kodeBarangValue } });
-                      if(nupRes.data.formatted) setValue('nup', nupRes.data.formatted);
-                  }
-              } catch (e) {}
-          }, 500); return () => clearTimeout(t);
-      } else { setKodefikasiHint(null); }
-  }, [kodeBarangValue, setValue, editingItem, watch]);
+      const t = setTimeout(() => {
+          // If searching/filtering, ALWAYS reset to page 1
+          if (currentPage !== 1) setCurrentPage(1); 
+          else fetchBarang(); // If already page 1, verify fetch happens
+      }, 600);
+      return () => clearTimeout(t);
+  }, [filters, search]); // Removed fetchBarang to avoid loop
 
-  // ... (Select, Export, Delete Logic - Kept Same) ...
+  // ... (Select, Actions) ...
   const toggleSelectAllPage = (checked) => {
       setIsAllSelected(false);
       if (checked) { const ids = new Set(selectedIds); barang.forEach(item => ids.add(item._id)); setSelectedIds(ids); } 
@@ -132,9 +103,42 @@ export default function BarangList() {
   const selectGlobal = () => { setIsAllSelected(true); setSelectedIds(new Set()); toast.info(`Seluruh ${totalItems} data terpilih.`); };
   const clearSelection = () => { setIsAllSelected(false); setSelectedIds(new Set()); };
   const toggleSelectRow = (id) => { if(isAllSelected) setIsAllSelected(false); const s = new Set(selectedIds); if(s.has(id)) s.delete(id); else s.add(id); setSelectedIds(s); };
-  const handleBulkDelete = async () => { if(!window.confirm(`Yakin hapus?`)) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
-  const handleExport = async () => { try { const p = { search, filter_kode: filters.kode, ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null, all_selected: isAllSelected }; const r = await api.get('/api/barang/export', { params: p, responseType: 'blob' }); const u = window.URL.createObjectURL(new Blob([r.data])); const l = document.createElement('a'); l.href = u; l.setAttribute('download', `Barang.xlsx`); document.body.appendChild(l); l.click(); l.remove(); } catch(e) { toast.error("Fail"); } };
-  const handlePdf = async () => { const t = toast.loading("PDF..."); try { const p = { search, filter_golongan: filters.golongan, ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null, all_selected: isAllSelected }; const r = await api.get('/api/barang/pdf', { params: p, responseType: 'blob' }); const u = window.URL.createObjectURL(new Blob([r.data])); const l = document.createElement('a'); l.href = u; l.setAttribute('download', `Barang.pdf`); document.body.appendChild(l); l.click(); l.remove(); toast.success("Done", {id: t}); } catch(e) { toast.error("Fail", {id: t}); } };
+  
+  const handleExport = async () => {
+      const t = toast.loading("Downloading Excel...");
+      try {
+          // PASS ALL FILTERS
+          const params = {
+              search, filter_kode: filters.kode, filter_nama: filters.nama, filter_merk: filters.merk, 
+              filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup, filter_golongan: filters.golongan,
+              ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null,
+              all_selected: isAllSelected
+          };
+          const response = await api.get('/api/barang/export', { params, responseType: 'blob' });
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Master_Barang_${new Date().toLocaleDateString()}.xlsx`);
+          document.body.appendChild(link); link.click(); link.remove(); toast.success("Download Selesai", {id: t});
+      } catch (e) { toast.error("Gagal export", {id: t}); }
+  };
+
+  const handlePdf = async () => {
+      const t = toast.loading("Generating PDF...");
+      try {
+          // PASS ALL FILTERS
+          const params = { 
+              search, filter_golongan: filters.golongan, filter_kode: filters.kode, filter_nama: filters.nama,
+              filter_merk: filters.merk, filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup,
+              ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null, 
+              all_selected: isAllSelected 
+          };
+          const response = await api.get('/api/barang/pdf', { params, responseType: 'blob' });
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Laporan_Barang_${new Date().toLocaleDateString()}.pdf`);
+          document.body.appendChild(link); link.click(); link.remove(); toast.success("PDF Selesai", {id: t});
+      } catch (e) { toast.error("Gagal PDF", {id: t}); }
+  };
+
+  // ... (Modal & Rest same) ...
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); setKodefikasiHint(null);
@@ -144,7 +148,35 @@ export default function BarangList() {
   };
   const onSubmit = async (data) => { try { if (editingItem) { await api.put(`/api/barang/${editingItem._id}`, data); toast.success("Updated"); } else { await api.post('/api/barang', data); toast.success("Created"); } setIsModalOpen(false); reset(); fetchBarang(); } catch(e) { toast.error("Error"); } };
   const handleDelete = async (id) => { if(!window.confirm("Hapus?")) return; try { await api.delete(`/api/barang/${id}`); toast.success("Deleted"); fetchBarang(); } catch(e) { toast.error("Fail"); } };
+  const handleBulkDelete = async () => { if(!window.confirm("Hapus?")) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
   const onImport = async (data) => { setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]); try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); } catch(e) { toast.error("Import failed"); } finally { setImporting(false); } };
+  
+  useEffect(() => {
+      if (kodeBarangValue && kodeBarangValue.length >= 1) {
+          const t = setTimeout(async () => {
+              try {
+                  const res = await api.get('/api/referensi/lookup', { params: { kode: kodeBarangValue } });
+                  setKodefikasiHint(res.data);
+                  if (!editingItem && res.data.golongan) setValue('golongan_barang', res.data.golongan);
+                  if (!editingItem && res.data.uraian_barang && kodeBarangValue.length >= 10 && !watch('nama_barang')) {
+                      setValue('nama_barang', res.data.uraian_barang);
+                  }
+                  if (!editingItem && kodeBarangValue.length >= 5) {
+                      const nupRes = await api.get('/api/barang/next-nup', { params: { kode: kodeBarangValue } });
+                      if(nupRes.data.formatted) setValue('nup', nupRes.data.formatted);
+                  }
+              } catch (e) {}
+          }, 500); return () => clearTimeout(t);
+      } else { setKodefikasiHint(null); }
+  }, [kodeBarangValue, setValue, editingItem, watch]);
+
+  // Year Auto
+  useEffect(() => {
+      if (tglPerolehanValue && !editingItem) {
+          const year = tglPerolehanValue.split('-')[0];
+          if(year && year.length === 4) setValue('tahun_anggaran', year);
+      }
+  }, [tglPerolehanValue, setValue, editingItem]);
 
   return (
     <div className="space-y-6">
@@ -152,7 +184,6 @@ export default function BarangList() {
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Barang</h1>
         
         <div className="flex flex-wrap gap-2 w-full xl:w-auto items-center">
-            {/* ... Buttons ... */}
             <div className="relative flex-1 xl:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
                 <Input placeholder="Cari Global..." className="pl-9 h-10" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -252,7 +283,7 @@ export default function BarangList() {
                       {visibleColumns.gol && <TableCell className="p-2 truncate max-w-[80px]" title={item.golongan_barang}>{item.golongan_barang || '-'}</TableCell>}
                       {visibleColumns.nama && <TableCell className="p-2"><div className="font-semibold text-slate-900 truncate max-w-[200px]" title={item.nama_barang}>{item.nama_barang}</div><div className="text-[10px] text-slate-500 truncate max-w-[200px]">{item.merk} {item.tipe}</div></TableCell>}
                       {visibleColumns.kode && <TableCell className="p-2 font-mono text-[10px]"><div title={item.kode_barang}>{item.kode_barang}</div><div className="text-slate-500">NUP: {item.nup}</div></TableCell>}
-                      {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : item.kondisi === 'Rusak Berat' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>{item.kondisi}</span></TableCell>}
+                      {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{item.kondisi}</span></TableCell>}
                       {visibleColumns.stok && <TableCell className="text-center font-bold p-2">{item.stok}</TableCell>}
                       {visibleColumns.rata && <TableCell className="text-right p-2 whitespace-nowrap">{formatCurrency(item.nilai_satuan || 0)}</TableCell>}
                       {visibleColumns.perolehan && <TableCell className="text-right p-2 whitespace-nowrap font-medium">{formatCurrency(item.nilai_perolehan || 0)}</TableCell>}
@@ -282,22 +313,14 @@ export default function BarangList() {
         </CardContent>
       </Card>
       
-      {/* Import Modal */}
-        <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+      {/* Modals omitted */}
+      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
                 <DialogHeader><DialogTitle>Import Data Barang (SIMAN)</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-4">
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                        <div className="font-bold flex items-center gap-2"><AlertTriangle size={16}/> PERINGATAN PENTING:</div>
-                        <ul className="list-disc pl-5 mt-1 space-y-1">
-                            <li>Data dengan <strong>Kode Barang & NUP</strong> atau <strong>Kode Register</strong> yang sama akan <strong>DITIMPA (OVERWRITE)</strong> dengan data baru dari file ini.</li>
-                            <li>Pastikan file Excel Anda adalah versi terbaru agar data tidak mundur (rollback).</li>
-                            <li>Baris kosong atau tanpa Kode Barang akan dilewati.</li>
-                        </ul>
-                    </div>
                     <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
                         <div className="space-y-2"><label className="text-sm font-medium">Pilih File Excel</label><Input type="file" accept=".xlsx, .xls" {...registerImport('file')} /></div>
-                        <Button type="submit" disabled={importing} className="w-full bg-slate-900 text-white">{importing ? <Loader2 className="animate-spin mr-2"/> : <FileUp className="mr-2"/>} Mulai Import & Update</Button>
+                        <Button type="submit" disabled={importing} className="w-full bg-slate-900 text-white">{importing ? <Loader2 className="animate-spin mr-2"/> : <FileUp className="mr-2"/>} Mulai Import</Button>
                     </form>
                 </div>
             </DialogContent>
@@ -305,7 +328,6 @@ export default function BarangList() {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editingItem ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle></DialogHeader>
-            {/* ... Form Content (Same) ... */}
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Tabs defaultValue="utama">
                     <TabsList className="w-full bg-slate-100">
@@ -328,7 +350,7 @@ export default function BarangList() {
                             <div className="space-y-1"><label className="text-xs font-bold">Kondisi</label><select {...register("kondisi")} className="w-full h-10 border rounded px-2 text-sm"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select></div>
                         </div>
                     </TabsContent>
-                    {/* ... Other Tabs Same ... */}
+                    {/* Other Tabs Same */}
                     <TabsContent value="nilai" className="space-y-4 py-4">
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-1"><label className="text-xs font-bold">Tgl Perolehan</label><Input type="date" {...register("tgl_perolehan")}/></div>
