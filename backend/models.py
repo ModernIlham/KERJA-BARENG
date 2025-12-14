@@ -64,7 +64,7 @@ class KodefikasiCreate(BaseModel):
 class StokBatch(MongoBaseModel):
     barang_id: str
     kode_barang: str
-    nup: str
+    nup: str = "1"
     tgl_masuk: datetime
     jumlah_awal: int
     jumlah_sisa: int
@@ -75,7 +75,7 @@ class StokBatch(MongoBaseModel):
 class Barang(MongoBaseModel):
     # Identifiers
     kode_barang: str
-    nup: str
+    nup: str = "1"
     kode_satker: Optional[str] = None
     nama_satker: Optional[str] = None
     kode_register: Optional[str] = None
@@ -129,7 +129,7 @@ class Barang(MongoBaseModel):
 
 class BarangCreate(BaseModel):
     kode_barang: str
-    nup: str
+    nup: str = "1"
     nama_barang: str
     merk: Optional[str] = None
     tipe: Optional[str] = None
