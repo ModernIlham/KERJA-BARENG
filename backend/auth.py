@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-please-change-in-prod")
+SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60  # 30 days for MVP
 
