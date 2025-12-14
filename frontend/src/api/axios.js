@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://state-asset-app.preview.emergentagent.com',
+  baseURL: process.env.REACT_APP_BACKEND_URL || 'https://state-asset-app.preview.emergentagent.com',
 });
 
 api.interceptors.request.use(
