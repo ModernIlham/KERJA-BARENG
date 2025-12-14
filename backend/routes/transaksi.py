@@ -17,7 +17,7 @@ async def process_fifo_out(barang_id: str, quantity: int, session=None):
     cursor = db.stok_batches.find(
         {"barang_id": barang_id, "jumlah_sisa": {"$gt": 0}}
     ).sort("tgl_masuk", 1)
-    batches = await cursor.to_list(None)
+    batches = await cursor.to_list(1000)
     
     remaining = quantity
     total_val = 0.0
