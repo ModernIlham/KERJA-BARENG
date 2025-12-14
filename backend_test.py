@@ -121,7 +121,7 @@ class SIMANGAPITester:
             return False
 
         # Test GET barang list (should have 1 item now)
-        success, response = self.make_request('GET', 'barang')
+        success, response = self.make_request('GET', 'barang/')
         if success and len(response) >= 1:
             self.log_test("Get Barang List After Create", True)
         else:
