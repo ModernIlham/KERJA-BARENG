@@ -293,6 +293,31 @@ async def import_persediaan(file: UploadFile = File(...), current_user: str = De
                 if not kode_barang:
                     continue
                 
+                # Handle kode_barang validation (must be 16 digits)
+                # If only 10 digits provided, auto-generate last 6 digits
+                if len(kode_barang) == 10:
+                    # Find max kode with same prefix
+                    prefix = kode_barang
+                    pattern = f"^{prefix}"
+                    max_item = await db.persediaan.find_one(
+                        {"kode_barang": {"$regex": pattern}},
+                        sort=[("kode_barang", -1)]
+                    )
+                    
+                    if max_item and len(max_item.get('kode_barang', '')) == 16:
+                        last_six = max_item['kode_barang'][-6:]
+                        try:
+                            next_num = int(last_six) + 1
+                            kode_barang = f"{prefix}{str(next_num).zfill(6)}"
+                        except:
+                            kode_barang = f"{prefix}000001"
+                    else:
+                        kode_barang = f"{prefix}000001"
+                elif len(kode_barang) != 16:
+                    # Skip invalid kode barang
+                    print(f"Skipping invalid kode_barang: {kode_barang} (length: {len(kode_barang)})")
+                    continue
+                
                 # Prepare data
                 item_data = {
                     'kode_barang': kode_barang,
