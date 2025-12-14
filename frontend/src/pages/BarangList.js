@@ -787,8 +787,8 @@ export default function BarangList() {
                         <label className="font-semibold text-sm">Kondisi</label>
                         <select {...register('kondisi')} className="w-full border rounded px-3 py-2">
                           <option value="Baik">Baik</option>
-                          <option value="Rusak Ringan">Rusak Ringan</option>
-                          <option value="Rusak Berat">Rusak Berat</option>
+                          <option value="Barang Usang">Barang Usang</option>
+                          <option value="Barang Rusak">Barang Rusak</option>
                         </select>
                       </div>
                       <div>
