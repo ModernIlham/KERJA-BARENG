@@ -43,10 +43,12 @@ export default function BarangList() {
 
   // Persediaan State
   const [persediaanFilters, setPersediaanFilters] = useState({
-  const [kartuStokItem, setKartuStokItem] = useState(null);
-  const [transactionItem, setTransactionItem] = useState(null);
       kode: '', nama: '', merk: '', kondisi: '', lokasi: '', golongan: ''
   });
+  
+  const [transactionItem, setTransactionItem] = useState(null);
+  const [kartuStokItem, setKartuStokItem] = useState(null);
+
   const [persediaanColumns, setPersediaanColumns] = useState({
       gol: true, nama: true, merk: true, expired: true, kondisi: true,
       stok: true, kritis: true, rata: true, total: true, mutasi: true,
