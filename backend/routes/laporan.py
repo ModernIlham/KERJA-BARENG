@@ -59,7 +59,7 @@ async def get_laporan_mutasi(
                 "keluar": {"$sum": {"$cond": [{"$eq": ["$jenis", "KELUAR"]}, "$jumlah", 0]}}
             }}
         ]
-        res_mutasi = await db.transaksi.aggregate(pipeline_mutasi).to_list(1)
+        res_mutasi = await db.transaksi.aggregate(pipeline_mutasi).to_list(1000)
         mutasi_masuk = res_mutasi[0]['masuk'] if res_mutasi else 0
         mutasi_keluar = res_mutasi[0]['keluar'] if res_mutasi else 0
         
