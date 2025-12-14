@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from models import Barang, BarangCreate
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -23,7 +23,6 @@ def clean_currency(value):
             return 0.0
         return float(value)
     if isinstance(value, str):
-        # Remove Rp, dots, spaces
         clean = value.replace('Rp', '').replace('.', '').replace(',', '').strip()
         if not clean:
             return 0.0
@@ -33,14 +32,14 @@ def clean_currency(value):
             return 0.0
     return 0.0
 
-@router.get("", response_model=List[Barang])
+@router.get("", response_model=Dict[str, Any])
 async def get_barang_list(
-    skip: int = 0, 
-    limit: int = 50, 
+    page: int = 1,
+    limit: int = 20,
     search: Optional[str] = None,
-    kategori: Optional[str] = None,
     current_user: str = Depends(get_current_user)
 ):
+    skip = (page - 1) * limit
     query = {}
     if search:
         query["$or"] = [
@@ -49,13 +48,20 @@ async def get_barang_list(
             {"nup": {"$regex": search, "$options": "i"}}
         ]
         
+    total = await db.barang.count_documents(query)
     cursor = db.barang.find(query).skip(skip).limit(limit).sort("nama_barang", 1)
-    barang_list = await cursor.to_list(length=limit)
-    return barang_list
+    items = await cursor.to_list(length=limit)
+    
+    return {
+        "data": items,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": math.ceil(total / limit)
+    }
 
 @router.post("", response_model=Barang)
 async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
-    # Check duplicate code + NUP (Composite Key)
     existing = await db.barang.find_one({
         "kode_barang": barang_in.kode_barang,
         "nup": barang_in.nup
@@ -98,17 +104,13 @@ async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
 
 @router.post("/import")
 async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
-    """
-    Import Master Barang from Excel (SIMAN format).
-    Updates existing items based on Kode Barang + NUP.
-    """
     if not file.filename.endswith(('.xls', '.xlsx')):
         raise HTTPException(status_code=400, detail="Format file harus Excel (.xls, .xlsx)")
 
     try:
         contents = await file.read()
         df = pd.read_excel(io.BytesIO(contents))
-        df = df.where(pd.notnull(df), None) # Replace NaN with None
+        df = df.where(pd.notnull(df), None)
         
         count_processed = 0
         count_inserted = 0
@@ -116,14 +118,12 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
         
         for index, row in df.iterrows():
             try:
-                # 1. Map Columns
                 kode = str(row.get('Kode Barang', '')).strip()
                 nup = str(row.get('NUP', '')).strip()
                 
                 if not kode or not nup:
                     continue
                     
-                # Mapping from Excel Headers to DB Model
                 item_data = {
                     "kode_barang": kode,
                     "nup": nup,
@@ -131,36 +131,25 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "merk": row.get('Merk'),
                     "tipe": row.get('Tipe'),
                     "kondisi": row.get('Kondisi'),
-                    
-                    # Financials (Clean Currency)
                     "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
                     "nilai_buku": clean_currency(row.get('Nilai Buku')),
                     "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
                     "nilai_satuan": clean_currency(row.get('Nilai Perolehan')), 
-                    
-                    # Dates (Try to parse)
                     "tgl_perolehan": str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None,
                     "tahun_anggaran": str(row.get('Tahun Anggaran', '')),
-                    
-                    # Location
                     "lokasi_fisik": row.get('Lokasi') or row.get('Alamat'),
                     "ruang": row.get('Ruang'),
                     "alamat": row.get('Alamat'),
                     "kab_kota": row.get('Kab/Kota'),
                     "provinsi": row.get('Provinsi'),
-                    
-                    # Classification
                     "kode_satker": str(row.get('Kode Satker', '')),
                     "nama_satker": row.get('Nama Satker'),
                     "intra_ekstra": row.get('Aset Intra / Extra'),
-                    "status_aset": "Aktif", # Default
-                    
-                    # Inventory
-                    "stok": 1, # SIMAN is itemized
+                    "status_aset": "Aktif",
+                    "stok": 1,
                     "updated_at": datetime.now(timezone.utc)
                 }
                 
-                # 2. Upsert to DB
                 result = await db.barang.update_one(
                     {"kode_barang": kode, "nup": nup},
                     {"$set": item_data},
@@ -175,7 +164,6 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 count_processed += 1
                 
             except Exception as e:
-                print(f"Error processing row {index}: {e}")
                 continue
                 
         return {

@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List
+from typing import List, Dict, Any
 from models import Transaksi, TransaksiCreate, StokBatch
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from bson import ObjectId
 from datetime import datetime, timezone
+import math
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -39,18 +40,27 @@ async def process_fifo_out(barang_id: str, quantity: int, session=None):
         )
     return total_val
 
-@router.get("", response_model=List[Transaksi])
+@router.get("", response_model=Dict[str, Any])
 async def get_transaksi_list(
-    limit: int = 50, 
+    page: int = 1,
+    limit: int = 20,
     current_user: str = Depends(get_current_user)
 ):
-    cursor = db.transaksi.find().sort("timestamp", -1).limit(limit)
-    return await cursor.to_list(length=limit)
+    skip = (page - 1) * limit
+    total = await db.transaksi.count_documents({})
+    cursor = db.transaksi.find().sort("timestamp", -1).skip(skip).limit(limit)
+    items = await cursor.to_list(length=limit)
+    
+    return {
+        "data": items,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": math.ceil(total / limit)
+    }
 
 @router.post("", response_model=Transaksi)
 async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(get_current_user)):
-    # ... (Same logic as before, just route path fix) ...
-    # Simplified copy for bulk write context
     if not ObjectId.is_valid(tx_in.barang_id):
         raise HTTPException(status_code=400, detail="Invalid Barang ID")
         
@@ -89,7 +99,6 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
     elif tx_in.jenis == "OPNAME":
         diff = tx_in.jumlah - current_stok
         new_stok = tx_in.jumlah
-        # Simplified batch logic for Opname omitted for brevity in this fix
         
     await db.barang.update_one(
         {"_id": ObjectId(tx_in.barang_id)},

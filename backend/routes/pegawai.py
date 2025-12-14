@@ -1,23 +1,24 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Depends, Query
+from typing import List, Optional, Dict, Any
 from models import Pegawai, PegawaiCreate
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
-from bson import ObjectId
+import math
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-@router.get("", response_model=List[Pegawai])
+@router.get("", response_model=Dict[str, Any])
 async def get_pegawai_list(
-    skip: int = 0, 
-    limit: int = 50, 
+    page: int = 1,
+    limit: int = 20,
     search: Optional[str] = None,
     current_user: str = Depends(get_current_user)
 ):
+    skip = (page - 1) * limit
     query = {}
     if search:
         query["$or"] = [
@@ -25,8 +26,17 @@ async def get_pegawai_list(
             {"nip": {"$regex": search, "$options": "i"}}
         ]
         
+    total = await db.pegawai.count_documents(query)
     cursor = db.pegawai.find(query).skip(skip).limit(limit).sort("nama_lengkap", 1)
-    return await cursor.to_list(length=limit)
+    items = await cursor.to_list(length=limit)
+    
+    return {
+        "data": items,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": math.ceil(total / limit)
+    }
 
 @router.post("", response_model=Pegawai)
 async def create_pegawai(pegawai_in: PegawaiCreate, current_user: str = Depends(get_current_user)):
