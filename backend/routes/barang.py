@@ -22,9 +22,11 @@ async def get_barang_list(
 ):
     query = {}
     if search:
-        query["nama_barang"] = {"$regex": search, "$options": "i"}
-    if kategori:
-        query["kategori"] = kategori
+        query["$or"] = [
+            {"nama_barang": {"$regex": search, "$options": "i"}},
+            {"kode_barang": {"$regex": search, "$options": "i"}},
+            {"nup": {"$regex": search, "$options": "i"}}
+        ]
         
     cursor = db.barang.find(query).skip(skip).limit(limit).sort("nama_barang", 1)
     barang_list = await cursor.to_list(length=limit)
@@ -32,10 +34,13 @@ async def get_barang_list(
 
 @router.post("/", response_model=Barang)
 async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
-    # Check duplicate code
-    existing = await db.barang.find_one({"kode_barang": barang_in.kode_barang})
+    # Check duplicate code + NUP (Composite Key)
+    existing = await db.barang.find_one({
+        "kode_barang": barang_in.kode_barang,
+        "nup": barang_in.nup
+    })
     if existing:
-        raise HTTPException(status_code=400, detail="Kode barang already exists")
+        raise HTTPException(status_code=400, detail="Barang dengan Kode dan NUP tersebut sudah ada")
         
     new_barang = Barang(**barang_in.dict())
     result = await db.barang.insert_one(new_barang.model_dump(by_alias=True, exclude=["id"]))
@@ -76,11 +81,27 @@ async def get_barang_stats(current_user: str = Depends(get_current_user)):
         {"$group": {
             "_id": None,
             "total_items": {"$sum": 1},
-            "total_value": {"$sum": {"$multiply": ["$stok", "$nilai_per_unit"]}},
-            "critical_stock": {"$sum": {"$cond": [{"$lte": ["$stok", 5]}, 1, 0]}}
+            "total_value": {"$sum": {"$multiply": ["$stok", "$nilai_per_unit"]}}, # Note: logic might change if per-item value differs
+            "critical_stock": {"$sum": {"$cond": [{"$lte": ["$stok", 1]}, 1, 0]}} # NUP based = stock 1 usually
         }}
     ]
-    result = await db.barang.aggregate(pipeline).to_list(1)
+    # Adjust total value calc if using 'nilai_perolehan' from new model
+    # If 'stok' is always 1 for unique NUP items, then sum(nilai_perolehan) is correct.
+    # If using inventory count, then multiply.
+    # Hybrid approach: Assume 'nilai_perolehan' is unit price if 'stok' > 1
+    
+    # Let's use a simpler pipeline for now compatible with both models
+    # We will sum 'nilai_perolehan' directly as typical SIMAN data is 1 row = 1 asset with value.
+    pipeline_v2 = [
+         {"$group": {
+            "_id": None,
+            "total_items": {"$sum": 1},
+            "total_value": {"$sum": "$nilai_perolehan"}, 
+            "critical_stock": {"$sum": {"$cond": [{"$lte": ["$stok", 0]}, 1, 0]}}
+        }}
+    ]
+    
+    result = await db.barang.aggregate(pipeline_v2).to_list(1)
     if not result:
         return {"total_items": 0, "total_value": 0, "critical_stock": 0}
     return result[0]
