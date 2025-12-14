@@ -55,7 +55,7 @@ async def compare_data(file: UploadFile = File(...), current_user: str = Depends
         # Fetch all active items from DB into a Dictionary Keyed by (Kode, NUP)
         
         cursor = db.barang.find({}, {"_id": 0, "kode_barang": 1, "nup": 1, "nama_barang": 1, "nilai_perolehan": 1, "kondisi": 1})
-        db_items = await cursor.to_list(1000) # Limit for safety
+        db_items = await cursor.to_list(10000) # Limit for safety
         
         db_map = {f"{item.get('kode_barang')}-{item.get('nup')}": item for item in db_items}
         
