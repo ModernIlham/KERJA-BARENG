@@ -28,13 +28,36 @@ def clean_currency(value):
         except ValueError: return 0.0
     return 0.0
 
+async def get_golongan_uraian(kode: str):
+    """
+    Derive Golongan (Level 1) from Code
+    """
+    if not kode: return None
+    k = kode[:1]
+    
+    # Try DB
+    ref = await db.kodefikasi.find_one({"kode": k})
+    if ref: return f"{k} - {ref['uraian']}"
+    
+    # Fallback Hardcoded
+    golongan_map = {
+        "1": "Persediaan",
+        "2": "Tanah",
+        "3": "Peralatan dan Mesin",
+        "4": "Gedung dan Bangunan",
+        "5": "Jalan, Irigasi dan Jaringan",
+        "6": "Aset Tetap Lainnya",
+        "7": "Konstruksi dalam Pengerjaan",
+        "8": "Aset Tak Berwujud"
+    }
+    desc = golongan_map.get(k, "Unknown")
+    return f"{k} - {desc}"
+
 @router.get("", response_model=Dict[str, Any])
 async def get_barang_list(
     page: int = 1,
     limit: int = 20,
     search: Optional[str] = None,
-    
-    # Specific Filters
     filter_kode: Optional[str] = None,
     filter_nama: Optional[str] = None,
     filter_merk: Optional[str] = None,
@@ -42,13 +65,11 @@ async def get_barang_list(
     filter_lokasi: Optional[str] = None,
     filter_nup: Optional[str] = None,
     filter_golongan: Optional[str] = None,
-    
     current_user: str = Depends(get_current_user)
 ):
     skip = (page - 1) * limit
     query = {}
     
-    # Global Search
     if search:
         query["$or"] = [
             {"nama_barang": {"$regex": search, "$options": "i"}},
@@ -56,11 +77,10 @@ async def get_barang_list(
             {"nup": {"$regex": search, "$options": "i"}}
         ]
         
-    # Specific Column Filters
     if filter_kode: query["kode_barang"] = {"$regex": filter_kode, "$options": "i"}
     if filter_nama: query["nama_barang"] = {"$regex": filter_nama, "$options": "i"}
     if filter_merk: query["merk"] = {"$regex": filter_merk, "$options": "i"}
-    if filter_kondisi: query["kondisi"] = filter_kondisi # Exact match for dropdown usually
+    if filter_kondisi: query["kondisi"] = filter_kondisi 
     if filter_lokasi: query["lokasi_fisik"] = {"$regex": filter_lokasi, "$options": "i"}
     if filter_nup: query["nup"] = {"$regex": filter_nup, "$options": "i"}
     if filter_golongan: query["golongan_barang"] = {"$regex": filter_golongan, "$options": "i"}
@@ -91,9 +111,6 @@ async def export_barang_excel(
     filter_nup: Optional[str] = None,
     current_user: str = Depends(get_current_user)
 ):
-    """
-    Export filtered data to Excel
-    """
     query = {}
     if search:
         query["$or"] = [
@@ -107,17 +124,15 @@ async def export_barang_excel(
     if filter_lokasi: query["lokasi_fisik"] = {"$regex": filter_lokasi, "$options": "i"}
     if filter_nup: query["nup"] = {"$regex": filter_nup, "$options": "i"}
     
-    # Fetch All (Limit to reasonable size e.g. 50k to prevent OOM)
     cursor = db.barang.find(query).limit(50000)
     items = await cursor.to_list(None)
     
-    if not items:
-        raise HTTPException(status_code=404, detail="Tidak ada data untuk diexport")
+    if not items: raise HTTPException(status_code=404, detail="No data")
         
-    # Convert to DataFrame
     data_list = []
     for item in items:
         data_list.append({
+            "Golongan": item.get('golongan_barang'),
             "Kode Barang": item.get('kode_barang'),
             "NUP": item.get('nup'),
             "Nama Barang": item.get('nama_barang'),
@@ -132,7 +147,6 @@ async def export_barang_excel(
         })
         
     df = pd.DataFrame(data_list)
-    
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='MasterBarang')
@@ -150,8 +164,11 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
         "kode_barang": barang_in.kode_barang,
         "nup": barang_in.nup
     })
-    if existing:
-        raise HTTPException(status_code=400, detail="Barang dengan Kode dan NUP tersebut sudah ada")
+    if existing: raise HTTPException(status_code=400, detail="Barang exists")
+    
+    # Auto-fill Golongan if missing
+    if not barang_in.golongan_barang:
+        barang_in.golongan_barang = await get_golongan_uraian(barang_in.kode_barang)
         
     new_barang = Barang(**barang_in.dict())
     result = await db.barang.insert_one(new_barang.model_dump(by_alias=True, exclude=["id"]))
@@ -160,7 +177,12 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
 
 @router.put("/{id}", response_model=Barang)
 async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
-    if not ObjectId.is_valid(id): raise HTTPException(status_code=400, detail="Invalid ID")
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    # Auto-fill Golongan if updated code and missing golongan
+    if barang_update.kode_barang and not barang_update.golongan_barang:
+        barang_update.golongan_barang = await get_golongan_uraian(barang_update.kode_barang)
+        
     update_data = barang_update.dict(exclude_unset=True)
     update_data['updated_at'] = datetime.now(timezone.utc)
     result = await db.barang.find_one_and_update(
@@ -168,20 +190,19 @@ async def update_barang(id: str, barang_update: BarangCreate, current_user: str 
         {"$set": update_data},
         return_document=True
     )
-    if not result: raise HTTPException(status_code=404, detail="Barang not found")
+    if not result: raise HTTPException(status_code=404)
     return result
 
 @router.delete("/{id}")
 async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
-    if not ObjectId.is_valid(id): raise HTTPException(status_code=400, detail="Invalid ID")
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
     result = await db.barang.delete_one({"_id": ObjectId(id)})
-    if result.deleted_count == 0: raise HTTPException(status_code=404, detail="Barang not found")
-    return {"message": "Barang deleted successfully"}
+    if result.deleted_count == 0: raise HTTPException(status_code=404)
+    return {"message": "Deleted"}
 
 @router.post("/import")
 async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
-    if not file.filename.endswith(('.xls', '.xlsx')):
-        raise HTTPException(status_code=400, detail="Format file harus Excel (.xls, .xlsx)")
+    if not file.filename.endswith(('.xls', '.xlsx')): raise HTTPException(status_code=400, detail="Excel only")
 
     try:
         contents = await file.read()
@@ -197,10 +218,14 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 kode = str(row.get('Kode Barang', '')).strip()
                 nup = str(row.get('NUP', '')).strip()
                 if not kode or not nup: continue
+                
+                # Auto-calculate Golongan
+                golongan_text = await get_golongan_uraian(kode)
                     
                 item_data = {
                     "kode_barang": kode,
                     "nup": nup,
+                    "golongan_barang": golongan_text, # Add this
                     "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
                     "merk": row.get('Merk'),
                     "tipe": row.get('Tipe'),
@@ -243,8 +268,7 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
             "updated": count_updated
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gagal membaca file: {str(e)}")
+    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/summary/stats")
 async def get_barang_stats(current_user: str = Depends(get_current_user)):
@@ -257,6 +281,5 @@ async def get_barang_stats(current_user: str = Depends(get_current_user)):
         }}
     ]
     result = await db.barang.aggregate(pipeline).to_list(1)
-    if not result:
-        return {"total_items": 0, "total_value": 0, "critical_stock": 0}
+    if not result: return {"total_items": 0, "total_value": 0, "critical_stock": 0}
     return result[0]
