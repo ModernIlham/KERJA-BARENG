@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Trash, Edit, RefreshCw } from 'lucide-react';
+import { Plus, Search, Loader2, Trash, Edit, RefreshCw, FileUp, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
 
@@ -15,9 +15,12 @@ export default function BarangList() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false); // New State
   const [editingItem, setEditingItem] = useState(null);
+  const [importing, setImporting] = useState(false);
   
   const { register, handleSubmit, reset, setValue } = useForm();
+  const { register: registerImport, handleSubmit: handleImportSubmit } = useForm();
 
   const fetchBarang = async () => {
     setLoading(true);
@@ -55,11 +58,11 @@ export default function BarangList() {
       setValue("kondisi", item.kondisi);
       setValue("tgl_perolehan", item.tgl_perolehan);
       setValue("nilai_perolehan", item.nilai_perolehan);
-      setValue("nilai_satuan", item.nilai_satuan); // Added
+      setValue("nilai_satuan", item.nilai_satuan);
       setValue("lokasi_fisik", item.lokasi_fisik);
       setValue("stok", item.stok);
-      setValue("golongan_barang", item.golongan_barang); // Added
-      setValue("batas_stok_kritis", item.batas_stok_kritis); // Added
+      setValue("golongan_barang", item.golongan_barang);
+      setValue("batas_stok_kritis", item.batas_stok_kritis);
       setIsModalOpen(true);
   };
 
@@ -81,6 +84,27 @@ export default function BarangList() {
     }
   };
 
+  const onImport = async (data) => {
+      if(!data.file[0]) return toast.error("Pilih file excel!");
+      
+      setImporting(true);
+      const formData = new FormData();
+      formData.append('file', data.file[0]);
+      
+      try {
+          const res = await api.post('/api/barang/import', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          toast.success(`Import Selesai! Diproses: ${res.data.processed}, Baru: ${res.data.inserted}`);
+          setIsImportOpen(false);
+          fetchBarang();
+      } catch (error) {
+          toast.error("Gagal import file");
+      } finally {
+          setImporting(false);
+      }
+  };
+
   const handleDelete = async (id) => {
     if(!window.confirm("Yakin ingin menghapus barang ini?")) return;
     try {
@@ -96,16 +120,54 @@ export default function BarangList() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Barang</h1>
-        <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={openAddModal}>
-            <Plus className="mr-2 h-4 w-4" /> Tambah Aset
-        </Button>
         
+        <div className="flex gap-2">
+            <Button variant="outline" className="border-slate-300" onClick={() => setIsImportOpen(true)}>
+                <FileUp className="mr-2 h-4 w-4" /> Import Excel
+            </Button>
+            <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={openAddModal}>
+                <Plus className="mr-2 h-4 w-4" /> Tambah Aset
+            </Button>
+        </div>
+        
+        {/* Import Modal */}
+        <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Import Data Barang (SIMAN)</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                    <div className="p-4 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
+                        <p className="font-semibold mb-1">Panduan Import:</p>
+                        <ul className="list-disc pl-4 space-y-1">
+                            <li>Gunakan format Excel standar SIMAN (.xlsx)</li>
+                            <li>Kolom Wajib: <strong>Kode Barang, NUP, Nama Barang</strong></li>
+                            <li>Data dengan Kode & NUP sama akan <strong>diupdate</strong> (ditimpa).</li>
+                        </ul>
+                    </div>
+                    
+                    <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Pilih File Excel</label>
+                            <Input type="file" accept=".xlsx, .xls" {...registerImport('file')} />
+                        </div>
+                        <Button type="submit" disabled={importing} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                            {importing ? <Loader2 className="animate-spin mr-2"/> : <FileUp className="mr-2"/>}
+                            Mulai Import
+                        </Button>
+                    </form>
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        {/* Add/Edit Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingItem ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
+              {/* Form fields same as before... */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Golongan</label>

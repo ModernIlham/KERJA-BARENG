@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File
 from typing import List, Optional
 from models import Barang, BarangCreate
 from auth import get_current_user
@@ -6,6 +6,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from bson import ObjectId
 from datetime import datetime, timezone
+import pandas as pd
+import io
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -75,24 +77,101 @@ async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Barang not found")
     return {"message": "Barang deleted successfully"}
 
+@router.post("/import")
+async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+    """
+    Import Master Barang from Excel (SIMAN format).
+    Updates existing items based on Kode Barang + NUP.
+    """
+    if not file.filename.endswith(('.xls', '.xlsx')):
+        raise HTTPException(status_code=400, detail="Format file harus Excel (.xls, .xlsx)")
+
+    try:
+        contents = await file.read()
+        df = pd.read_excel(io.BytesIO(contents))
+        df = df.where(pd.notnull(df), None) # Replace NaN with None
+        
+        count_processed = 0
+        count_inserted = 0
+        count_updated = 0
+        
+        for index, row in df.iterrows():
+            try:
+                # 1. Map Columns
+                kode = str(row.get('Kode Barang', '')).strip()
+                nup = str(row.get('NUP', '')).strip()
+                
+                if not kode or not nup:
+                    continue
+                    
+                # Mapping from Excel Headers to DB Model
+                item_data = {
+                    "kode_barang": kode,
+                    "nup": nup,
+                    "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
+                    "merk": row.get('Merk'),
+                    "tipe": row.get('Tipe'),
+                    "kondisi": row.get('Kondisi'),
+                    
+                    # Financials
+                    "nilai_perolehan": float(row.get('Nilai Perolehan', 0) or 0),
+                    "nilai_buku": float(row.get('Nilai Buku', 0) or 0),
+                    "nilai_penyusutan": float(row.get('Nilai Penyusutan', 0) or 0),
+                    "nilai_satuan": float(row.get('Nilai Perolehan', 0) or 0), # Default to acquisition value
+                    
+                    # Dates (Try to parse)
+                    "tgl_perolehan": str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None,
+                    "tahun_anggaran": str(row.get('Tahun Anggaran', '')),
+                    
+                    # Location
+                    "lokasi_fisik": row.get('Lokasi') or row.get('Alamat'),
+                    "ruang": row.get('Ruang'),
+                    "alamat": row.get('Alamat'),
+                    "kab_kota": row.get('Kab/Kota'),
+                    "provinsi": row.get('Provinsi'),
+                    
+                    # Classification
+                    "kode_satker": str(row.get('Kode Satker', '')),
+                    "nama_satker": row.get('Nama Satker'),
+                    "intra_ekstra": row.get('Aset Intra / Extra'),
+                    "status_aset": "Aktif", # Default
+                    
+                    # Inventory
+                    "stok": 1, # SIMAN is itemized, so 1 per row usually
+                    "updated_at": datetime.now(timezone.utc)
+                }
+                
+                # 2. Upsert to DB
+                result = await db.barang.update_one(
+                    {"kode_barang": kode, "nup": nup},
+                    {"$set": item_data},
+                    upsert=True
+                )
+                
+                if result.upserted_id:
+                    count_inserted += 1
+                elif result.modified_count > 0:
+                    count_updated += 1
+                
+                count_processed += 1
+                
+            except Exception as e:
+                print(f"Error processing row {index}: {e}")
+                continue
+                
+        return {
+            "message": "Import selesai",
+            "processed": count_processed,
+            "inserted": count_inserted,
+            "updated": count_updated
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gagal membaca file: {str(e)}")
+
 @router.get("/summary/stats")
 async def get_barang_stats(current_user: str = Depends(get_current_user)):
     pipeline = [
-        {"$group": {
-            "_id": None,
-            "total_items": {"$sum": 1},
-            "total_value": {"$sum": {"$multiply": ["$stok", "$nilai_per_unit"]}}, # Note: logic might change if per-item value differs
-            "critical_stock": {"$sum": {"$cond": [{"$lte": ["$stok", 1]}, 1, 0]}} # NUP based = stock 1 usually
-        }}
-    ]
-    # Adjust total value calc if using 'nilai_perolehan' from new model
-    # If 'stok' is always 1 for unique NUP items, then sum(nilai_perolehan) is correct.
-    # If using inventory count, then multiply.
-    # Hybrid approach: Assume 'nilai_perolehan' is unit price if 'stok' > 1
-    
-    # Let's use a simpler pipeline for now compatible with both models
-    # We will sum 'nilai_perolehan' directly as typical SIMAN data is 1 row = 1 asset with value.
-    pipeline_v2 = [
          {"$group": {
             "_id": None,
             "total_items": {"$sum": 1},
@@ -101,7 +180,7 @@ async def get_barang_stats(current_user: str = Depends(get_current_user)):
         }}
     ]
     
-    result = await db.barang.aggregate(pipeline_v2).to_list(1)
+    result = await db.barang.aggregate(pipeline).to_list(1)
     if not result:
         return {"total_items": 0, "total_value": 0, "critical_stock": 0}
     return result[0]
