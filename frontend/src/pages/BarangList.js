@@ -172,6 +172,7 @@ export default function BarangList() {
       } catch (e) { toast.error("Gagal PDF", {id: t}); }
   };
 
+  // ... (Other handlers same) ...
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); setKodefikasiHint(null);
@@ -184,7 +185,6 @@ export default function BarangList() {
   const handleBulkDelete = async () => { if(!window.confirm("Hapus Massal?")) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
   const onImport = async (data) => { setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]); try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); } catch(e) { toast.error("Import failed"); } finally { setImporting(false); } };
 
-  // Logic: ReadOnly IF NOT contains "(Sementara)" AND editing existing item
   const isReadonly = editingItem && !String(editingItem.nup || "").includes("(Sementara)");
 
   return (
@@ -243,8 +243,6 @@ export default function BarangList() {
                   <TableHead className="w-[40px] text-center p-2">
                       <input type="checkbox" onChange={(e) => toggleSelectAllPage(e.target.checked)} checked={isPageSelected || isAllSelected} className="rounded border-slate-300"/>
                   </TableHead>
-                  
-                  {/* Conditional Headers */}
                   {visibleColumns.gol && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Gol</TableHead>}
                   {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang / Spesifikasi</TableHead>}
                   {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode / NUP</TableHead>}
@@ -259,7 +257,6 @@ export default function BarangList() {
                   {visibleColumns.register && <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Register</TableHead>}
                   {visibleColumns.tahun && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Tahun</TableHead>}
                   {visibleColumns.status && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
-                  
                   <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
                 </TableRow>
                 
@@ -288,10 +285,18 @@ export default function BarangList() {
                 {loading ? ( <TableSkeleton columns={14} rows={15} /> ) : barang.length === 0 ? (
                   <TableRow><TableCell colSpan={14} className="text-center py-8 text-slate-500">Tidak ada data.</TableCell></TableRow>
                 ) : (
-                  barang.map((item) => (
-                    <TableRow key={item._id} className={`text-xs ${selectedIds.has(item._id) || isAllSelected ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-slate-50"}`}>
+                  barang.map((item) => {
+                    const isTemp = String(item.nup || "").includes("(Sementara)");
+                    const isSelected = selectedIds.has(item._id) || isAllSelected;
+                    let rowClass = "text-xs ";
+                    if (isSelected) rowClass += "bg-blue-50 hover:bg-blue-100";
+                    else if (isTemp) rowClass += "bg-yellow-50 hover:bg-yellow-100";
+                    else rowClass += "hover:bg-slate-50";
+
+                    return (
+                    <TableRow key={item._id} className={rowClass}>
                       <TableCell className="text-center p-2">
-                          <input type="checkbox" checked={isAllSelected || selectedIds.has(item._id)} onChange={() => toggleSelectRow(item._id)} className="rounded border-slate-300"/>
+                          <input type="checkbox" checked={isSelected} onChange={() => toggleSelectRow(item._id)} className="rounded border-slate-300"/>
                       </TableCell>
                       {visibleColumns.gol && <TableCell className="p-2 truncate max-w-[80px]" title={item.golongan_barang}>{item.golongan_barang || '-'}</TableCell>}
                       {visibleColumns.nama && <TableCell className="p-2"><div className="font-semibold text-slate-900 truncate max-w-[200px]" title={item.nama_barang}>{item.nama_barang}</div><div className="text-[10px] text-slate-500 truncate max-w-[200px]">{item.merk} {item.tipe}</div></TableCell>}
@@ -317,7 +322,7 @@ export default function BarangList() {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))
+                  )})
                 )}
               </TableBody>
             </Table>
@@ -350,7 +355,7 @@ export default function BarangList() {
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editingItem ? (isReadonly ? 'Detail Aset (Imported - Read Only)' : 'Edit Aset (Manual)') : 'Tambah Aset Baru'}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-                {isReadonly && <div className="bg-orange-50 text-orange-800 p-2 text-xs border border-orange-200 mb-2 rounded">Data ini hasil import (Read Only) kecuali NUP Sementara.</div>}
+                {isReadonly && <div className="bg-orange-50 text-orange-800 p-2 text-xs border border-orange-200 mb-2 rounded">Data ini hasil import dari SIMAN. Edit terbatas / Read Only.</div>}
                 
                 <Tabs defaultValue="utama">
                     <TabsList className="w-full bg-slate-100 flex-wrap h-auto">
