@@ -40,7 +40,7 @@ def verify():
         print(f"Create failed: {res.text}")
         return
     
-    item_id = res.json()['data']['_id']
+    item_id = res.json()['_id']
     print(f"Item created: {item_id}")
     
     # 2. Generate Nota Dinas
