@@ -1,85 +1,22 @@
 {
   "summary": {
-    "tests_run": 12,
-    "tests_passed": 12,
-    "success_rate": 100.0
+    "tests_run": 2,
+    "tests_passed": 1,
+    "success_rate": 50.0
   },
   "results": [
     {
       "test": "API Health Check",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T01:01:34.408190"
+      "timestamp": "2025-12-14T04:37:47.623403"
     },
     {
       "test": "Admin Login",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:34.830503"
-    },
-    {
-      "test": "Get Barang List",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:34.904616"
-    },
-    {
-      "test": "Create Barang",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:34.977135"
-    },
-    {
-      "test": "Get Barang List After Create",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:35.047349"
-    },
-    {
-      "test": "Get Barang Stats",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:35.121568"
-    },
-    {
-      "test": "Get Pegawai List",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:35.192482"
-    },
-    {
-      "test": "Create Pegawai",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:35.262493"
-    },
-    {
-      "test": "Get Transaksi List",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:35.347565"
-    },
-    {
-      "test": "Create Transaksi MASUK",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:35.448533"
-    },
-    {
-      "test": "Create Transaksi KELUAR",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:35.529993"
-    },
-    {
-      "test": "Get Dashboard Summary",
-      "success": true,
-      "details": "",
-      "timestamp": "2025-12-14T01:01:35.603184"
+      "success": false,
+      "details": "Response: {'detail': 'Incorrect email or password'}",
+      "timestamp": "2025-12-14T04:37:47.813347"
     }
   ],
-  "created_items": {
-    "barang_id": "693e0c6ecf4fa9ed326a8884",
-    "pegawai_id": "693e0c6fcf4fa9ed326a8885"
-  }
+  "created_items": {}
 }
