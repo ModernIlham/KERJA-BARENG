@@ -92,6 +92,40 @@ export default function ReferensiKode() {
       }
   };
 
+  const exportExcel = async () => {
+      const t = toast.loading("Mengunduh Excel...");
+      try {
+          const response = await api.get('/api/referensi/export/excel', { responseType: 'blob' });
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'Referensi_Kode_Barang.xlsx');
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          toast.success("Excel berhasil diunduh", {id: t});
+      } catch (error) {
+          toast.error("Gagal mengunduh Excel", {id: t});
+      }
+  };
+
+  const exportPDF = async () => {
+      const t = toast.loading("Mengunduh PDF...");
+      try {
+          const response = await api.get('/api/referensi/export/pdf', { responseType: 'blob' });
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'Referensi_Kode_Barang.pdf');
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          toast.success("PDF berhasil diunduh", {id: t});
+      } catch (error) {
+          toast.error("Gagal mengunduh PDF", {id: t});
+      }
+  };
+
   const confirmDelete = (id) => {
       setDeleteId(id);
       setIsDeleteOpen(true);
