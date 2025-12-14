@@ -584,17 +584,21 @@ export default function BarangList() {
                           <TableCell className="text-center p-2">
                             <input type="checkbox" checked={isSelected} onChange={() => toggleSelectRow(item._id)} className="rounded border-slate-300"/>
                           </TableCell>
+                          {visibleColumns.gol && (
+                            <TableCell className="p-2 text-[10px]" title={item.golongan_barang}>
+                              <div className="truncate max-w-[120px]">{item.golongan_barang || '-'}</div>
+                            </TableCell>
+                          )}
                           {visibleColumns.nama && (
                             <TableCell className="p-2">
-                              <div className="font-semibold text-slate-900 text-xs truncate max-w-[220px]" title={item.nama_barang}>{item.nama_barang}</div>
+                              <div className="font-semibold text-slate-900 text-xs truncate max-w-[200px]" title={item.nama_barang}>{item.nama_barang}</div>
                               <div className="text-[10px] text-slate-500 font-mono">{item.kode_barang}</div>
                             </TableCell>
                           )}
-                          {visibleColumns.gol && <TableCell className="p-2 text-[10px] truncate max-w-[80px]" title={item.golongan_barang}>{item.golongan_barang || '-'}</TableCell>}
                           <TableCell className="p-2 text-[10px]">
-                            <div className="truncate max-w-[100px]" title={`${item.merk || ''} ${item.tipe || ''}`}>
-                              {item.merk && <span className="font-medium">{item.merk}</span>}
-                              {item.tipe && <span className="text-slate-500"> {item.tipe}</span>}
+                            <div className="max-w-[140px]" title={`${item.merk || ''} ${item.tipe || ''}`}>
+                              {item.merk && <div className="font-medium truncate">{item.merk}</div>}
+                              {item.tipe && <div className="text-slate-500 truncate">{item.tipe}</div>}
                               {!item.merk && !item.tipe && '-'}
                             </div>
                           </TableCell>
