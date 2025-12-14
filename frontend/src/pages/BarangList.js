@@ -21,20 +21,32 @@ export default function BarangList() {
   const [barang, setBarang] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Selection & Filters
+  // Selection
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isAllSelected, setIsAllSelected] = useState(false);
-  
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
+
+  // --- SEPARATE STATE FOR FILTERS & COLUMNS ---
+  
+  // Aset Tetap State
+  const [asetFilters, setAsetFilters] = useState({
       kode: '', nama: '', merk: '', kondisi: '', lokasi: '', nup: '', golongan: ''
   });
-  
-  const [visibleColumns, setVisibleColumns] = useState({
+  const [asetColumns, setAsetColumns] = useState({
       gol: true, kode: true, nup: true, nama: true, kondisi: true, 
       stok: true, rata: true, perolehan: true, penyusutan: true, 
-      buku: true, lokasi: true, status: true, kritis: true, sync: true, mutasi: true,
+      buku: true, lokasi: true, status: true, 
       satker: false, register: false, tahun: false
+  });
+
+  // Persediaan State
+  const [persediaanFilters, setPersediaanFilters] = useState({
+      kode: '', nama: '', merk: '', kondisi: '', lokasi: '', golongan: ''
+  });
+  const [persediaanColumns, setPersediaanColumns] = useState({
+      gol: true, nama: true, merk: true, expired: true, kondisi: true,
+      stok: true, kritis: true, rata: true, total: true, mutasi: true,
+      lokasi: true, status: true
   });
 
   const [search, setSearch] = useState('');
@@ -57,23 +69,29 @@ export default function BarangList() {
   const kodeBarangValue = watch('kode_barang');
   const tglPerolehanValue = watch('tgl_perolehan');
 
+  // Helpers to get current active state
+  const getCurrentFilters = () => activeTab === 'persediaan' ? persediaanFilters : asetFilters;
+  const getCurrentColumns = () => activeTab === 'persediaan' ? persediaanColumns : asetColumns;
+  const setCurrentColumns = activeTab === 'persediaan' ? setPersediaanColumns : setAsetColumns;
+
   const fetchBarang = useCallback(async () => {
     setLoading(true);
     try {
+      const currentFilters = activeTab === 'persediaan' ? persediaanFilters : asetFilters;
+      
       const params = {
           page: currentPage,
           limit,
           search,
-          filter_kode: filters.kode,
-          filter_nama: filters.nama,
-          filter_merk: filters.merk,
-          filter_kondisi: filters.kondisi,
-          filter_lokasi: filters.lokasi,
-          filter_nup: filters.nup,
-          filter_golongan: filters.golongan
+          filter_kode: currentFilters.kode,
+          filter_nama: currentFilters.nama,
+          filter_merk: currentFilters.merk,
+          filter_kondisi: currentFilters.kondisi,
+          filter_lokasi: currentFilters.lokasi,
+          filter_nup: currentFilters.nup,
+          filter_golongan: currentFilters.golongan
       };
       
-      // Determine endpoint based on active tab
       const endpoint = activeTab === 'persediaan' ? '/api/persediaan/' : '/api/barang';
       const res = await api.get(endpoint, { params });
       setBarang(res.data.data || []);
@@ -85,7 +103,7 @@ export default function BarangList() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, limit, search, filters, activeTab]);
+  }, [currentPage, limit, search, asetFilters, persediaanFilters, activeTab]);
 
   // Debounce Effect
   useEffect(() => {
@@ -94,12 +112,7 @@ export default function BarangList() {
           else setCurrentPage(1); 
       }, 600);
       return () => clearTimeout(t);
-  }, [filters, search, currentPage, fetchBarang]);
-
-  // Main Fetch Effect
-  useEffect(() => {
-      fetchBarang(); 
-  }, [currentPage, fetchBarang]);
+  }, [asetFilters, persediaanFilters, search, currentPage, fetchBarang]);
 
   // Reset when tab changes
   useEffect(() => {
@@ -107,6 +120,8 @@ export default function BarangList() {
       setSelectedIds(new Set());
       setIsAllSelected(false);
       clearSelection();
+      // Note: We don't reset filters here to persist them when switching tabs if desired, 
+      // or we can reset them. For now, let's keep them persistent per session.
   }, [activeTab]);
 
   // Automation Hooks
@@ -159,15 +174,41 @@ export default function BarangList() {
   const handleExport = async () => {
       const t = toast.loading("Downloading Excel...");
       try {
+          const currentFilters = getCurrentFilters();
           const params = {
-              search, filter_kode: filters.kode, filter_nama: filters.nama, filter_merk: filters.merk, 
-              filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup, filter_golongan: filters.golongan,
+              search, 
+              filter_kode: currentFilters.kode, 
+              filter_nama: currentFilters.nama, 
+              filter_merk: currentFilters.merk, 
+              filter_kondisi: currentFilters.kondisi, 
+              filter_lokasi: currentFilters.lokasi, 
+              filter_nup: currentFilters.nup, 
+              filter_golongan: currentFilters.golongan,
               ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null,
               all_selected: isAllSelected
           };
-          const response = await api.get('/api/barang/export', { params, responseType: 'blob' });
+          const endpoint = activeTab === 'persediaan' ? '/api/persediaan/export-excel' : '/api/barang/export';
+          
+          // Persediaan uses POST for export-excel, Barang uses GET (legacy)
+          // Adjusting to use consistent POST if possible, or adapt.
+          // Based on backend: 
+          // Barang: GET /api/barang/export
+          // Persediaan: POST /api/persediaan/export-excel
+          
+          let response;
+          if (activeTab === 'persediaan') {
+             response = await api.post(endpoint, {
+                ids: Array.from(selectedIds),
+                select_all_mode: isAllSelected
+             }, { responseType: 'blob' });
+          } else {
+             response = await api.get(endpoint, { params, responseType: 'blob' });
+          }
+
           const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Master_Barang_${new Date().toLocaleDateString()}.xlsx`);
+          const link = document.createElement('a'); 
+          link.href = url; 
+          link.setAttribute('download', `${activeTab === 'persediaan' ? 'Persediaan' : 'Aset_Tetap'}_${new Date().toLocaleDateString()}.xlsx`);
           document.body.appendChild(link); link.click(); link.remove(); toast.success("Download Selesai", {id: t});
       } catch (e) { toast.error("Gagal export", {id: t}); }
   };
@@ -175,15 +216,36 @@ export default function BarangList() {
   const handlePdf = async () => {
       const t = toast.loading("Generating PDF...");
       try {
+          const currentFilters = getCurrentFilters();
           const params = { 
-              search, filter_golongan: filters.golongan, filter_kode: filters.kode, filter_nama: filters.nama,
-              filter_merk: filters.merk, filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup,
+              search, 
+              filter_golongan: currentFilters.golongan, 
+              filter_kode: currentFilters.kode, 
+              filter_nama: currentFilters.nama,
+              filter_merk: currentFilters.merk, 
+              filter_kondisi: currentFilters.kondisi, 
+              filter_lokasi: currentFilters.lokasi, 
+              filter_nup: currentFilters.nup,
               ids: selectedIds.size > 0 ? Array.from(selectedIds).join(",") : null, 
               all_selected: isAllSelected 
           };
-          const response = await api.get('/api/barang/pdf', { params, responseType: 'blob' });
+          
+          const endpoint = activeTab === 'persediaan' ? '/api/persediaan/export-pdf' : '/api/barang/pdf';
+          
+          let response;
+          if (activeTab === 'persediaan') {
+             response = await api.post(endpoint, {
+                ids: Array.from(selectedIds),
+                select_all_mode: isAllSelected
+             }, { responseType: 'blob' });
+          } else {
+             response = await api.get(endpoint, { params, responseType: 'blob' });
+          }
+
           const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Laporan_Barang_${new Date().toLocaleDateString()}.pdf`);
+          const link = document.createElement('a'); 
+          link.href = url; 
+          link.setAttribute('download', `${activeTab === 'persediaan' ? 'Laporan_Persediaan' : 'Laporan_Aset'}_${new Date().toLocaleDateString()}.pdf`);
           document.body.appendChild(link); link.click(); link.remove(); toast.success("PDF Selesai", {id: t});
       } catch (e) { toast.error("Gagal PDF", {id: t}); }
   };
@@ -302,54 +364,11 @@ export default function BarangList() {
     }
   };
 
-  const handleDownloadExcel = async () => {
-    const t = toast.loading("Downloading Excel...");
-    try {
-      const endpoint = activeTab === 'persediaan' ? '/api/persediaan/export-excel' : '/api/barang/export-excel';
-      const res = await api.post(endpoint, {
-        ids: Array.from(selectedIds),
-        select_all_mode: isAllSelected
-      }, { responseType: 'blob' });
-      
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Export_${activeTab}_${new Date().toISOString().split('T')[0]}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      toast.success("Excel downloaded", {id: t});
-    } catch (err) {
-      toast.error("Failed to download Excel", {id: t});
-    }
-  };
-
-  const handleDownloadPDF = async () => {
-    const t = toast.loading("Generating PDF...");
-    try {
-      const endpoint = activeTab === 'persediaan' ? '/api/persediaan/export-pdf' : '/api/barang/export-pdf';
-      const res = await api.post(endpoint, {
-        ids: Array.from(selectedIds),
-        select_all_mode: isAllSelected
-      }, { responseType: 'blob' });
-      
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Export_${activeTab}_${new Date().toISOString().split('T')[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      toast.success("PDF downloaded", {id: t});
-    } catch (err) {
-      toast.error("Failed to download PDF", {id: t});
-    }
-  };
   const handleBulkDelete = async () => { 
     if(!window.confirm("Hapus Massal?")) return; 
     try { 
       const endpoint = activeTab === 'persediaan' ? '/api/persediaan/bulk-delete' : '/api/barang/bulk-delete';
-      await api.post(endpoint, { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); 
+      await api.post(endpoint, { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters: getCurrentFilters() }); 
       toast.success("Deleted"); 
       clearSelection(); 
       fetchBarang(); 
@@ -395,10 +414,14 @@ export default function BarangList() {
             <DropdownMenu>
                 <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><Layout size={16}/></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>Tampilan Kolom</DropdownMenuLabel>
+                    <DropdownMenuLabel>Tampilan Kolom ({activeTab === 'persediaan' ? 'Persediaan' : 'Aset Tetap'})</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {Object.keys(visibleColumns).map((key) => (
-                        <DropdownMenuCheckboxItem key={key} checked={visibleColumns[key]} onCheckedChange={(checked) => setVisibleColumns({...visibleColumns, [key]: checked})}>
+                    {Object.keys(getCurrentColumns()).map((key) => (
+                        <DropdownMenuCheckboxItem 
+                            key={key} 
+                            checked={getCurrentColumns()[key]} 
+                            onCheckedChange={(checked) => setCurrentColumns({...getCurrentColumns(), [key]: checked})}
+                        >
                             {key.toUpperCase()}
                         </DropdownMenuCheckboxItem>
                     ))}
@@ -474,10 +497,10 @@ export default function BarangList() {
                     isPageSelected={isPageSelected}
                     toggleSelectAllPage={toggleSelectAllPage}
                     toggleSelectRow={toggleSelectRow}
-                    visibleColumns={visibleColumns}
+                    visibleColumns={asetColumns}
                     showFilters={showFilters}
-                    filters={filters}
-                    setFilters={setFilters}
+                    filters={asetFilters}
+                    setFilters={setAsetFilters}
                     editingStatusId={editingStatusId}
                     setEditingStatusId={setEditingStatusId}
                     handleStatusChange={handleStatusChange}
@@ -500,7 +523,10 @@ export default function BarangList() {
                     isPageSelected={isPageSelected}
                     toggleSelectAllPage={toggleSelectAllPage}
                     toggleSelectRow={toggleSelectRow}
-                    visibleColumns={visibleColumns}
+                    visibleColumns={persediaanColumns}
+                    showFilters={showFilters}
+                    filters={persediaanFilters}
+                    setFilters={setPersediaanFilters}
                     editingStatusId={editingStatusId}
                     setEditingStatusId={setEditingStatusId}
                     handleStatusChange={handleStatusChange}
@@ -627,13 +653,21 @@ export default function BarangList() {
                           maxLength={16}
                         />
                         {kodefikasiHint && (
-                          <div className="text-xs mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                            <div className="font-semibold text-blue-800 mb-1">Jenjang Kodefikasi:</div>
-                            {kodefikasiHint.golongan && <div className="text-blue-700">• Golongan: {kodefikasiHint.golongan}</div>}
-                            {kodefikasiHint.bidang && <div className="text-blue-700">• Bidang: {kodefikasiHint.bidang}</div>}
-                            {kodefikasiHint.kelompok && <div className="text-blue-700">• Kelompok: {kodefikasiHint.kelompok}</div>}
-                            {kodefikasiHint.sub_kelompok && <div className="text-blue-700">• Sub Kelompok: {kodefikasiHint.sub_kelompok}</div>}
-                            {kodefikasiHint.sub_sub_kelompok && <div className="text-blue-700">• Sub-Sub Kelompok: {kodefikasiHint.sub_sub_kelompok}</div>}
+                          <div className="text-xs mt-2 p-2 bg-blue-50 border border-blue-200 rounded flex flex-wrap gap-1 items-center">
+                            <span className="font-semibold text-blue-800 mr-1">Kodefikasi:</span>
+                            {/* Horizontal, compact format */}
+                            {[
+                                kodefikasiHint.golongan,
+                                kodefikasiHint.bidang,
+                                kodefikasiHint.kelompok,
+                                kodefikasiHint.sub_kelompok,
+                                kodefikasiHint.sub_sub_kelompok
+                            ].filter(Boolean).map((text, idx, arr) => (
+                                <span key={idx} className="text-blue-700 flex items-center">
+                                    {text}
+                                    {idx < arr.length - 1 && <span className="mx-1 text-blue-400">›</span>}
+                                </span>
+                            ))}
                           </div>
                         )}
                       </div>
