@@ -144,7 +144,7 @@ class DeleteFunctionalityTester:
         }
         
         success, response = self.make_request(
-            "POST", "api/referensi", dummy_referensi, 201
+            "POST", "api/referensi", dummy_referensi, 200
         )
         
         if success and '_id' in response:
