@@ -139,10 +139,12 @@ class Barang(MongoBaseModel):
     stok: int = 0
     batas_stok_kritis: int = 1
     
+    # IMPORT DATA LAINNYA (Dynamic)
+    detail_lainnya: Dict[str, Any] = {}
+    
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class BarangCreate(BaseModel):
-    # Support ALL fields for creation/update
     kode_barang: str
     nup: str = "1"
     nama_barang: str
@@ -157,7 +159,6 @@ class BarangCreate(BaseModel):
     golongan_barang: Optional[str] = None
     batas_stok_kritis: Optional[int] = 1
     
-    # Extra Fields
     kode_satker: Optional[str] = None
     nama_satker: Optional[str] = None
     kode_register: Optional[str] = None
@@ -165,7 +166,6 @@ class BarangCreate(BaseModel):
     intra_ekstra: Optional[str] = None
     status_penggunaan: Optional[str] = None
     
-    # Address
     alamat: Optional[str] = None
     rt_rw: Optional[str] = None
     kelurahan: Optional[str] = None
@@ -175,16 +175,16 @@ class BarangCreate(BaseModel):
     kode_pos: Optional[str] = None
     ruang: Optional[str] = None
     
-    # Legal
     no_sertifikat: Optional[str] = None
     status_sertifikasi: Optional[str] = None
     tgl_sertifikat: Optional[str] = None
     no_psp: Optional[str] = None
     tgl_psp: Optional[str] = None
     
-    # Specs
     luas_tanah: Optional[float] = 0
     luas_bangunan: Optional[float] = 0
+    
+    detail_lainnya: Optional[Dict[str, Any]] = {}
 
 # --- Pegawai (Employee) Models ---
 class Pegawai(MongoBaseModel):
