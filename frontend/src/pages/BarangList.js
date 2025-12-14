@@ -14,6 +14,8 @@ import { TableSkeleton } from '../components/ui/skeleton-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 
+import AsetTetapTable from '../components/barang/AsetTetapTable';
+import PersediaanTable from '../components/barang/PersediaanTable';
 export default function BarangList() {
   // Tab State
   const [activeTab, setActiveTab] = useState('aset-tetap');
