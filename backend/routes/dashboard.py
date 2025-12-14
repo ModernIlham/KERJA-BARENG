@@ -22,8 +22,16 @@ async def get_dashboard_summary(current_user: str = Depends(get_current_user)):
     stats = await db.barang.aggregate(stats_pipeline).to_list(1)
     stats_res = stats[0] if stats else {"total_items": 0, "total_value": 0, "critical_stock": 0}
     
-    # 2. Recent Transactions
-    recent_tx = await db.transaksi.find().sort("timestamp", -1).limit(5).to_list(5)
+    # Remove _id from stats if present
+    if "_id" in stats_res:
+        del stats_res["_id"]
+    
+    # 2. Recent Transactions - Convert ObjectId to string
+    recent_tx_cursor = db.transaksi.find().sort("timestamp", -1).limit(5)
+    recent_tx = []
+    async for tx in recent_tx_cursor:
+        tx["_id"] = str(tx["_id"])
+        recent_tx.append(tx)
     
     # 3. Monthly Expenditure (Barang Keluar)
     expenditure_pipeline = [
