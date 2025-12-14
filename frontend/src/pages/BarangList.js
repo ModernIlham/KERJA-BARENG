@@ -719,6 +719,7 @@ export default function BarangList() {
                           <TableCell className="text-right p-2 text-[10px] font-semibold whitespace-nowrap">
                             {formatCurrency((item.stok || 0) * (item.nilai_satuan || 0))}
                           </TableCell>
+                          {visibleColumns.mutasi && <TableCell className="text-right p-2 text-[10px] whitespace-nowrap">{formatCurrency(item.nilai_mutasi || 0)}</TableCell>}
                           {visibleColumns.lokasi && <TableCell className="p-2 truncate max-w-[120px]" title={item.lokasi_fisik}>{item.lokasi_fisik || '-'}</TableCell>}
                           {visibleColumns.status && (
                             <TableCell className="text-center p-2">
