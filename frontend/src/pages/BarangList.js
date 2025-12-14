@@ -538,16 +538,17 @@ export default function BarangList() {
                     <TableHead className="w-[40px] text-center p-2">
                       <input type="checkbox" onChange={(e) => toggleSelectAllPage(e.target.checked)} checked={isPageSelected || isAllSelected} className="rounded border-slate-300"/>
                     </TableHead>
+                    {visibleColumns.nama && <TableHead className="min-w-[220px] p-2 text-xs font-bold uppercase">Nama Barang & Kode</TableHead>}
                     {visibleColumns.gol && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Gol</TableHead>}
-                    {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang</TableHead>}
-                    {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode Barang</TableHead>}
-                    <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Expired</TableHead>
-                    {visibleColumns.kondisi && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Kondisi</TableHead>}
-                    {visibleColumns.stok && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Stok</TableHead>}
-                    <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Batas Kritis</TableHead>
-                    {visibleColumns.rata && <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Harga</TableHead>}
-                    {visibleColumns.lokasi && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Lokasi</TableHead>}
-                    {visibleColumns.status && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
+                    <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Merk/Tipe</TableHead>
+                    <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Expired</TableHead>
+                    {visibleColumns.kondisi && <TableHead className="w-[70px] p-2 text-xs font-bold uppercase text-center">Kondisi</TableHead>}
+                    {visibleColumns.stok && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Stok</TableHead>}
+                    <TableHead className="w-[90px] p-2 text-xs font-bold uppercase text-center">Batas Kritis</TableHead>
+                    <TableHead className="text-right w-[90px] p-2 text-xs font-bold uppercase">Harga Satuan</TableHead>
+                    <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Total Harga</TableHead>
+                    {visibleColumns.lokasi && <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Lokasi</TableHead>}
+                    {visibleColumns.status && <TableHead className="w-[70px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
                     <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
                   </TableRow>
                 </TableHeader>
