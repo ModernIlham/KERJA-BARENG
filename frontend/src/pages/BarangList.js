@@ -729,7 +729,16 @@ export default function BarangList() {
                           placeholder="1010301001000001 atau 1010301001"
                           maxLength={16}
                         />
-                        {kodefikasiHint && <div className="text-xs text-blue-600 mt-1">{kodefikasiHint.golongan || ''}</div>}
+                        {kodefikasiHint && (
+                          <div className="text-xs mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                            <div className="font-semibold text-blue-800 mb-1">Jenjang Kodefikasi:</div>
+                            {kodefikasiHint.golongan && <div className="text-blue-700">• Golongan: {kodefikasiHint.golongan}</div>}
+                            {kodefikasiHint.bidang && <div className="text-blue-700">• Bidang: {kodefikasiHint.bidang}</div>}
+                            {kodefikasiHint.kelompok && <div className="text-blue-700">• Kelompok: {kodefikasiHint.kelompok}</div>}
+                            {kodefikasiHint.sub_kelompok && <div className="text-blue-700">• Sub Kelompok: {kodefikasiHint.sub_kelompok}</div>}
+                            {kodefikasiHint.sub_sub_kelompok && <div className="text-blue-700">• Sub-Sub Kelompok: {kodefikasiHint.sub_sub_kelompok}</div>}
+                          </div>
+                        )}
                       </div>
                       <div>
                         <label className="font-semibold text-sm">Nama Barang *</label>
