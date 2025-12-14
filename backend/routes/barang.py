@@ -10,6 +10,11 @@ from datetime import datetime, timezone
 import pandas as pd
 import io
 import math
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -29,26 +34,14 @@ def clean_currency(value):
     return 0.0
 
 async def get_golongan_uraian(kode: str):
-    """
-    Derive Golongan (Level 1) from Code
-    """
     if not kode: return None
     k = kode[:1]
-    
-    # Try DB
     ref = await db.kodefikasi.find_one({"kode": k})
     if ref: return f"{k} - {ref['uraian']}"
-    
-    # Fallback Hardcoded
     golongan_map = {
-        "1": "Persediaan",
-        "2": "Tanah",
-        "3": "Peralatan dan Mesin",
-        "4": "Gedung dan Bangunan",
-        "5": "Jalan, Irigasi dan Jaringan",
-        "6": "Aset Tetap Lainnya",
-        "7": "Konstruksi dalam Pengerjaan",
-        "8": "Aset Tak Berwujud"
+        "1": "Persediaan", "2": "Tanah", "3": "Peralatan dan Mesin",
+        "4": "Gedung dan Bangunan", "5": "Jalan, Irigasi dan Jaringan",
+        "6": "Aset Tetap Lainnya", "7": "Konstruksi dalam Pengerjaan", "8": "Aset Tak Berwujud"
     }
     desc = golongan_map.get(k, "Unknown")
     return f"{k} - {desc}"
@@ -86,7 +79,12 @@ async def get_barang_list(
     if filter_golongan: query["golongan_barang"] = {"$regex": filter_golongan, "$options": "i"}
         
     total = await db.barang.count_documents(query)
-    cursor = db.barang.find(query).skip(skip).limit(limit).sort("nama_barang", 1)
+    
+    # Sort: Kode Barang ASC, NUP ASC (Numeric)
+    # Using collation for numeric sort of strings
+    collation = {'locale': 'en_US', 'numericOrdering': True}
+    
+    cursor = db.barang.find(query).collation(collation).sort([("kode_barang", 1), ("nup", 1)]).skip(skip).limit(limit)
     items = await cursor.to_list(length=limit)
     
     for item in items:
@@ -99,6 +97,114 @@ async def get_barang_list(
         "limit": limit,
         "total_pages": math.ceil(total / limit)
     }
+
+@router.get("/pdf")
+async def download_barang_pdf(
+    search: Optional[str] = None,
+    filter_golongan: Optional[str] = None,
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Download PDF Laporan Master Barang grouped by Golongan
+    """
+    query = {}
+    if search:
+        query["$or"] = [
+            {"nama_barang": {"$regex": search, "$options": "i"}},
+            {"kode_barang": {"$regex": search, "$options": "i"}}
+        ]
+    if filter_golongan: query["golongan_barang"] = {"$regex": filter_golongan, "$options": "i"}
+    
+    # Sort by Golongan -> Kode -> NUP
+    collation = {'locale': 'en_US', 'numericOrdering': True}
+    cursor = db.barang.find(query).collation(collation).sort([("golongan_barang", 1), ("kode_barang", 1), ("nup", 1)]).limit(5000)
+    items = await cursor.to_list(None)
+    
+    if not items: raise HTTPException(status_code=404, detail="No data")
+    
+    # Prepare PDF
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title
+    elements.append(Paragraph("DAFTAR MASTER BARANG (BMN)", styles['Title']))
+    elements.append(Paragraph(f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y')}", styles['Normal']))
+    elements.append(Spacer(1, 12))
+    
+    # Grouping Logic
+    current_gol = None
+    table_data = []
+    
+    # Header Row
+    headers = ["No", "Kode Barang", "NUP", "Nama Barang", "Merk/Tipe", "Kondisi", "Perolehan (Rp)", "Nilai Buku (Rp)"]
+    
+    col_widths = [1*cm, 3*cm, 1.5*cm, 8*cm, 4*cm, 2*cm, 3.5*cm, 3.5*cm]
+    
+    for idx, item in enumerate(items):
+        gol = item.get('golongan_barang', 'Tanpa Golongan')
+        
+        # New Group?
+        if gol != current_gol:
+            if table_data:
+                # Flush previous table
+                t = Table(table_data, colWidths=col_widths, repeatRows=1)
+                t.setStyle(TableStyle([
+                    ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+                    ('TEXTCOLOR', (0,0), (-1,0), colors.black),
+                    ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                    ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0,0), (-1,0), 9),
+                    ('BOTTOMPADDING', (0,0), (-1,0), 6),
+                    ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+                    ('ALIGN', (6,0), (7,-1), 'RIGHT'), # Align numbers right
+                ]))
+                elements.append(t)
+                elements.append(Spacer(1, 12))
+                table_data = []
+            
+            # Print Group Header
+            elements.append(Paragraph(f"<b>GOLONGAN: {gol}</b>", styles['Heading3']))
+            table_data.append(headers)
+            current_gol = gol
+            
+        # Add Row
+        row = [
+            str(idx + 1),
+            item.get('kode_barang', ''),
+            item.get('nup', ''),
+            Paragraph(item.get('nama_barang', ''), styles['Normal']),
+            f"{item.get('merk', '')} {item.get('tipe', '')}",
+            item.get('kondisi', ''),
+            f"{item.get('nilai_perolehan', 0):,.0f}",
+            f"{item.get('nilai_buku', 0):,.0f}"
+        ]
+        table_data.append(row)
+        
+    # Flush last table
+    if table_data:
+        t = Table(table_data, colWidths=col_widths, repeatRows=1)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.black),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 9),
+            ('BOTTOMPADDING', (0,0), (-1,0), 6),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ('ALIGN', (6,0), (7,-1), 'RIGHT'),
+        ]))
+        elements.append(t)
+        
+    doc.build(elements)
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        buffer,
+        headers={'Content-Disposition': f'attachment; filename="Laporan_Barang_{datetime.now().strftime("%Y%m%d")}.pdf"'},
+        media_type='application/pdf'
+    )
 
 @router.get("/export")
 async def export_barang_excel(
@@ -124,7 +230,9 @@ async def export_barang_excel(
     if filter_lokasi: query["lokasi_fisik"] = {"$regex": filter_lokasi, "$options": "i"}
     if filter_nup: query["nup"] = {"$regex": filter_nup, "$options": "i"}
     
-    cursor = db.barang.find(query).limit(50000)
+    # Sort for Excel too
+    collation = {'locale': 'en_US', 'numericOrdering': True}
+    cursor = db.barang.find(query).collation(collation).sort([("kode_barang", 1), ("nup", 1)]).limit(50000)
     items = await cursor.to_list(None)
     
     if not items: raise HTTPException(status_code=404, detail="No data")
@@ -166,7 +274,6 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
     })
     if existing: raise HTTPException(status_code=400, detail="Barang exists")
     
-    # Auto-fill Golongan if missing
     if not barang_in.golongan_barang:
         barang_in.golongan_barang = await get_golongan_uraian(barang_in.kode_barang)
         
@@ -179,7 +286,6 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
 async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
     
-    # Auto-fill Golongan if updated code and missing golongan
     if barang_update.kode_barang and not barang_update.golongan_barang:
         barang_update.golongan_barang = await get_golongan_uraian(barang_update.kode_barang)
         
@@ -219,13 +325,12 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 nup = str(row.get('NUP', '')).strip()
                 if not kode or not nup: continue
                 
-                # Auto-calculate Golongan
                 golongan_text = await get_golongan_uraian(kode)
                     
                 item_data = {
                     "kode_barang": kode,
                     "nup": nup,
-                    "golongan_barang": golongan_text, # Add this
+                    "golongan_barang": golongan_text, 
                     "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
                     "merk": row.get('Merk'),
                     "tipe": row.get('Tipe'),
