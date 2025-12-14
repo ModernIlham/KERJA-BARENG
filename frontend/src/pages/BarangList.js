@@ -88,12 +88,12 @@ export default function BarangList() {
       return () => clearTimeout(t);
   }, [filters, search]);
 
-  // Main Fetch
+  // Main Fetch Effect
   useEffect(() => {
       fetchBarang(); 
   }, [currentPage, fetchBarang]);
 
-  // Automation
+  // Automation Hooks
   useEffect(() => {
       if (tglPerolehanValue && !editingItem) {
           const year = tglPerolehanValue.split('-')[0];
@@ -120,10 +120,9 @@ export default function BarangList() {
       } else { setKodefikasiHint(null); }
   }, [kodeBarangValue, setValue, editingItem, watch]);
 
-  // --- FIX: Define isPageSelected before render ---
+  // --- SAFE SELECT LOGIC ---
   const isPageSelected = barang.length > 0 && barang.every(item => selectedIds.has(item._id));
 
-  // --- Select Logic ---
   const toggleSelectAllPage = (checked) => {
       setIsAllSelected(false);
       try {
@@ -134,15 +133,19 @@ export default function BarangList() {
               barang.forEach(item => { if(item && item._id) newSet.delete(item._id); });
           }
           setSelectedIds(newSet);
-      } catch(e) { console.error("Select error", e); }
+      } catch(e) {
+          console.error("Select error", e);
+      }
   };
+  
   const selectGlobal = () => { setIsAllSelected(true); setSelectedIds(new Set()); toast.info(`Seluruh ${totalItems} data terpilih.`); };
   const clearSelection = () => { setIsAllSelected(false); setSelectedIds(new Set()); };
   const toggleSelectRow = (id) => { if(isAllSelected) setIsAllSelected(false); const s = new Set(selectedIds); if(s.has(id)) s.delete(id); else s.add(id); setSelectedIds(s); };
-  
+
   const handleExport = async () => {
       const t = toast.loading("Downloading Excel...");
       try {
+          // PASS ALL FILTERS
           const params = {
               search, filter_kode: filters.kode, filter_nama: filters.nama, filter_merk: filters.merk, 
               filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup, filter_golongan: filters.golongan,
@@ -159,6 +162,7 @@ export default function BarangList() {
   const handlePdf = async () => {
       const t = toast.loading("Generating PDF...");
       try {
+          // PASS ALL FILTERS
           const params = { 
               search, filter_golongan: filters.golongan, filter_kode: filters.kode, filter_nama: filters.nama,
               filter_merk: filters.merk, filter_kondisi: filters.kondisi, filter_lokasi: filters.lokasi, filter_nup: filters.nup,
@@ -172,6 +176,7 @@ export default function BarangList() {
       } catch (e) { toast.error("Gagal PDF", {id: t}); }
   };
 
+  // ... (Other handlers) ...
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); setKodefikasiHint(null);
@@ -179,19 +184,37 @@ export default function BarangList() {
       if(item.tgl_perolehan) setValue("tgl_perolehan", item.tgl_perolehan.split("T")[0]);
       setIsModalOpen(true); 
   };
-  const onSubmit = async (data) => { try { if (editingItem) { await api.put(`/api/barang/${editingItem._id}`, data); toast.success("Updated"); } else { await api.post('/api/barang', data); toast.success("Created"); } setIsModalOpen(false); reset(); fetchBarang(); } catch(e) { toast.error("Error"); } };
+  const onSubmit = async (data) => { try { if (editingItem) { await api.put(`/api/barang/${editingItem._id}`, data); toast.success("Updated"); } else { await api.post('/api/barang', data); toast.success("Created"); } setIsModalOpen(false); reset(); fetchBarang(); } catch(e) { toast.error("Error saving"); } };
   const handleDelete = async (id) => { if(!window.confirm("Hapus?")) return; try { await api.delete(`/api/barang/${id}`); toast.success("Deleted"); fetchBarang(); } catch(e) { toast.error("Fail"); } };
-  const handleBulkDelete = async () => { if(!window.confirm("Hapus Massal?")) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
+  
+  // FIX: handleBulkDelete sends Pydantic Model structure
+  const handleBulkDelete = async () => { 
+      if(!window.confirm(`Yakin hapus ${isAllSelected ? totalItems : selectedIds.size} data?`)) return; 
+      try { 
+          // Payload must match BulkDeleteRequest
+          const payload = {
+              ids: Array.from(selectedIds),
+              select_all_mode: isAllSelected,
+              search: search || null,
+              filters: filters
+          };
+          await api.post('/api/barang/bulk-delete', payload); 
+          toast.success("Deleted"); clearSelection(); fetchBarang(); 
+      } catch(e) { toast.error("Fail"); } 
+  };
+  
   const onImport = async (data) => { setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]); try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); } catch(e) { toast.error("Import failed"); } finally { setImporting(false); } };
 
   const isReadonly = editingItem?.source === 'import';
 
   return (
     <div className="space-y-6">
+      {/* ... Header ... */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Barang</h1>
         
         <div className="flex flex-wrap gap-2 w-full xl:w-auto items-center">
+            {/* ... Buttons ... */}
             <div className="relative flex-1 xl:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
                 <Input placeholder="Cari Global..." className="pl-9 h-10" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -241,6 +264,8 @@ export default function BarangList() {
                   <TableHead className="w-[40px] text-center p-2">
                       <input type="checkbox" onChange={(e) => toggleSelectAllPage(e.target.checked)} checked={isPageSelected || isAllSelected} className="rounded border-slate-300"/>
                   </TableHead>
+                  
+                  {/* Conditional Headers */}
                   {visibleColumns.gol && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Gol</TableHead>}
                   {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang</TableHead>}
                   {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode / NUP</TableHead>}
@@ -255,6 +280,7 @@ export default function BarangList() {
                   {visibleColumns.register && <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Register</TableHead>}
                   {visibleColumns.tahun && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Tahun</TableHead>}
                   {visibleColumns.status && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
+                  
                   <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
                 </TableRow>
                 
@@ -306,7 +332,7 @@ export default function BarangList() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild><Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit / Detail</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleDelete(item._id)} className="text-xs text-red-600"><Trash size={12} className="mr-2"/> Hapus</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -321,7 +347,7 @@ export default function BarangList() {
         </CardContent>
       </Card>
       
-      {/* Import & Edit Modals (Same as before) */}
+      {/* Import & Add Modals (Kept same) */}
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
                 <DialogHeader><DialogTitle>Import Data Barang (SIMAN)</DialogTitle></DialogHeader>
@@ -345,8 +371,6 @@ export default function BarangList() {
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editingItem ? (isReadonly ? 'Detail Aset (Imported - Read Only)' : 'Edit Aset (Manual)') : 'Tambah Aset Baru'}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-                {isReadonly && <div className="bg-orange-50 text-orange-800 p-2 text-xs border border-orange-200 mb-2 rounded">Data ini hasil import dari SIMAN. Edit terbatas / Read Only.</div>}
-                
                 <Tabs defaultValue="utama">
                     <TabsList className="w-full bg-slate-100 flex-wrap h-auto">
                         <TabsTrigger value="utama">Data Utama</TabsTrigger>
