@@ -48,17 +48,17 @@ class UserCreate(BaseModel):
     password: str
     role: str = "user"
 
-# --- Referensi Kodefikasi (NEW) ---
+# --- Referensi Kodefikasi ---
 class Kodefikasi(MongoBaseModel):
-    kode: str # e.g., "3", "3.01", "3.01.01" etc. or just pure digits "30101"
-    uraian: str # "Peralatan dan Mesin"
-    level: int # 1=Gol, 2=Bidang, 3=Kelompok, 4=Sub, 5=Sub-Sub
+    kode: str 
+    uraian: str 
+    level: int 
     parent_kode: Optional[str] = None
+
 class KodefikasiCreate(BaseModel):
     kode: str
     uraian: str
     level: Optional[int] = None
-
 
 # --- Stok FIFO Batch Model ---
 class StokBatch(MongoBaseModel):
@@ -71,7 +71,7 @@ class StokBatch(MongoBaseModel):
     nilai_satuan: float
     dokumen_ref: Optional[str] = None 
 
-# --- Barang (Asset) Models ---
+# --- Barang (Asset) Models - EXTENDED ---
 class Barang(MongoBaseModel):
     # Identifiers
     kode_barang: str
@@ -120,6 +120,20 @@ class Barang(MongoBaseModel):
     kecamatan: Optional[str] = None
     kab_kota: Optional[str] = None
     provinsi: Optional[str] = None
+    kode_pos: Optional[str] = None
+    rt_rw: Optional[str] = None
+    
+    # Land/Building Specs
+    luas_tanah: float = 0
+    luas_bangunan: float = 0
+    
+    # Certificates & Documents
+    no_sertifikat: Optional[str] = None
+    status_sertifikasi: Optional[str] = None
+    tgl_sertifikat: Optional[str] = None
+    jenis_sertifikat: Optional[str] = None
+    no_psp: Optional[str] = None
+    tgl_psp: Optional[str] = None
     
     # Inventory
     stok: int = 0
@@ -128,21 +142,49 @@ class Barang(MongoBaseModel):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class BarangCreate(BaseModel):
+    # Support ALL fields for creation/update
     kode_barang: str
     nup: str = "1"
     nama_barang: str
     merk: Optional[str] = None
     tipe: Optional[str] = None
-    kategori: Optional[str] = None
     kondisi: Optional[str] = None
     tgl_perolehan: Optional[str] = None
     nilai_perolehan: Optional[float] = 0
     nilai_satuan: Optional[float] = 0
     lokasi_fisik: Optional[str] = None
-    satuan: Optional[str] = None
     stok: int = 0
     golongan_barang: Optional[str] = None
     batas_stok_kritis: Optional[int] = 1
+    
+    # Extra Fields
+    kode_satker: Optional[str] = None
+    nama_satker: Optional[str] = None
+    kode_register: Optional[str] = None
+    tahun_anggaran: Optional[str] = None
+    intra_ekstra: Optional[str] = None
+    status_penggunaan: Optional[str] = None
+    
+    # Address
+    alamat: Optional[str] = None
+    rt_rw: Optional[str] = None
+    kelurahan: Optional[str] = None
+    kecamatan: Optional[str] = None
+    kab_kota: Optional[str] = None
+    provinsi: Optional[str] = None
+    kode_pos: Optional[str] = None
+    ruang: Optional[str] = None
+    
+    # Legal
+    no_sertifikat: Optional[str] = None
+    status_sertifikasi: Optional[str] = None
+    tgl_sertifikat: Optional[str] = None
+    no_psp: Optional[str] = None
+    tgl_psp: Optional[str] = None
+    
+    # Specs
+    luas_tanah: Optional[float] = 0
+    luas_bangunan: Optional[float] = 0
 
 # --- Pegawai (Employee) Models ---
 class Pegawai(MongoBaseModel):
