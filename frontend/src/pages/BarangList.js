@@ -318,7 +318,7 @@ export default function BarangList() {
                     if (isSelected) {
                       rowClass += "bg-blue-50 hover:bg-blue-100";
                     } else if (status === 'Non Aktif') {
-                      rowClass += "grayscale opacity-60 hover:opacity-70";
+                      rowClass += "bg-slate-200 text-slate-500 opacity-70 hover:opacity-80";
                     } else if (status === 'Dipinjamkan') {
                       rowClass += "bg-blue-100 hover:bg-blue-200";
                     } else if (isTemp) {
