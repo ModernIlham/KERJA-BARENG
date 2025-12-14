@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
+import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import { Loader2, Printer, Download, ArrowLeft } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { formatCurrency } from '../../lib/utils';
 
 export default function LaporanBMN({ onBack }) {
