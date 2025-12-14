@@ -625,15 +625,19 @@ export default function BarangList() {
                                 />
                               </div>
                             ) : (
-                              <span
+                              <div
                                 onClick={() => { setEditingBatasKritisId(item._id); setBatasKritisValue(item.batas_kritis || 0); }}
                                 className="cursor-pointer hover:bg-slate-100 px-2 py-1 rounded"
                               >
-                                {item.batas_kritis || 0}
-                              </span>
+                                <div className="font-semibold">{item.batas_kritis || 0}</div>
+                                {item.satuan && <div className="text-[9px] text-slate-500">{item.satuan}</div>}
+                              </div>
                             )}
                           </TableCell>
-                          {visibleColumns.rata && <TableCell className="text-right p-2 whitespace-nowrap">{formatCurrency(item.nilai_satuan || 0)}</TableCell>}
+                          <TableCell className="text-right p-2 text-[10px] whitespace-nowrap">{formatCurrency(item.nilai_satuan || 0)}</TableCell>
+                          <TableCell className="text-right p-2 text-[10px] font-semibold whitespace-nowrap">
+                            {formatCurrency((item.stok || 0) * (item.nilai_satuan || 0))}
+                          </TableCell>
                           {visibleColumns.lokasi && <TableCell className="p-2 truncate max-w-[120px]" title={item.lokasi_fisik}>{item.lokasi_fisik || '-'}</TableCell>}
                           {visibleColumns.status && (
                             <TableCell className="text-center p-2">
