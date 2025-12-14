@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import AsetTetapTable from '../components/barang/AsetTetapTable';
 import PersediaanTable from '../components/barang/PersediaanTable';
 import PersediaanTransactionModal from '../components/barang/PersediaanTransactionModal';
+import KartuStokModal from '../components/barang/KartuStokModal';
 
 export default function BarangList() {
   // Tab State
@@ -42,6 +43,7 @@ export default function BarangList() {
 
   // Persediaan State
   const [persediaanFilters, setPersediaanFilters] = useState({
+  const [kartuStokItem, setKartuStokItem] = useState(null);
   const [transactionItem, setTransactionItem] = useState(null);
       kode: '', nama: '', merk: '', kondisi: '', lokasi: '', golongan: ''
   });
@@ -514,6 +516,7 @@ export default function BarangList() {
                     handleDelete={handleDelete}
                 />
                 <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} limit={limit} onPageChange={setCurrentPage}/>
+                    openKartuStok={(item) => setKartuStokItem(item)}
                     openTransactionModal={(item) => setTransactionItem(item)}
             </CardContent>
           </Card>
@@ -821,6 +824,11 @@ export default function BarangList() {
             item={transactionItem}
             onSuccess={() => {
                 fetchBarang();
+        <KartuStokModal 
+            isOpen={!!kartuStokItem} 
+            onClose={() => setKartuStokItem(null)} 
+            item={kartuStokItem}
+        />
                 setTransactionItem(null);
             }}
         />

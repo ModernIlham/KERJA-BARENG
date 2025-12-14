@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Edit, Trash, MoreHorizontal } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { TableSkeleton } from '../ui/skeleton-table';
 
@@ -29,7 +30,8 @@ export default function PersediaanTable({
     handleBatasKritisChange,
     openEditModal, 
     handleDelete,
-    openTransactionModal
+    openTransactionModal,
+    openKartuStok
 }) {
   return (
     <div className="rounded-md border border-slate-200 overflow-x-auto">
@@ -200,6 +202,7 @@ export default function PersediaanTable({
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openTransactionModal(item)} className="text-xs text-blue-600"><div className="flex items-center"><span className="mr-2 text-[10px]">⇄</span> Transaksi Stok</div></DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openKartuStok(item)} className="text-xs"><FileText size={12} className="mr-2"/> Kartu Stok</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDelete(item._id)} className="text-xs text-red-600"><Trash size={12} className="mr-2"/> Hapus</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
