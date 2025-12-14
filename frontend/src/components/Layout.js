@@ -91,6 +91,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   {openSubmenus.laporan ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                  <NavLink to="/laporan/bmn" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                      Laporan Inti (BMN)
+                  </NavLink>
                   <NavLink to="/laporan/posisi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
                       Posisi Stok
                   </NavLink>

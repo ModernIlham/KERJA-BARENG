@@ -46,7 +46,7 @@ export default function App() {
             
             <Route path="opname" element={<StockOpname />} />
             
-            <Route path="laporan" element={<Navigate to="/laporan/posisi" replace />} />
+            <Route path="laporan" element={<Navigate to="/laporan/bmn" replace />} />
             <Route path="laporan/:type" element={<Laporan />} />
             
             <Route path="banding" element={<BandingData />} />
