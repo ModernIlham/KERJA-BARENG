@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 
 import AsetTetapTable from '../components/barang/AsetTetapTable';
 import PersediaanTable from '../components/barang/PersediaanTable';
+import PersediaanTransactionModal from '../components/barang/PersediaanTransactionModal';
 
 export default function BarangList() {
   // Tab State
@@ -41,6 +42,7 @@ export default function BarangList() {
 
   // Persediaan State
   const [persediaanFilters, setPersediaanFilters] = useState({
+  const [transactionItem, setTransactionItem] = useState(null);
       kode: '', nama: '', merk: '', kondisi: '', lokasi: '', golongan: ''
   });
   const [persediaanColumns, setPersediaanColumns] = useState({
@@ -512,6 +514,7 @@ export default function BarangList() {
                     handleDelete={handleDelete}
                 />
                 <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} limit={limit} onPageChange={setCurrentPage}/>
+                    openTransactionModal={(item) => setTransactionItem(item)}
             </CardContent>
           </Card>
         </TabsContent>
@@ -812,6 +815,15 @@ export default function BarangList() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1"><label className="text-xs font-bold">Kode Register</label><Input {...register("kode_register")}/></div>
+        <PersediaanTransactionModal 
+            isOpen={!!transactionItem} 
+            onClose={() => setTransactionItem(null)} 
+            item={transactionItem}
+            onSuccess={() => {
+                fetchBarang();
+                setTransactionItem(null);
+            }}
+        />
                             <div className="space-y-1"><label className="text-xs font-bold">Status Penggunaan</label><Input {...register("status_penggunaan")}/></div>
                         </div>
                         <div className="border-t pt-2 mt-2 space-y-2">

@@ -28,7 +28,8 @@ export default function PersediaanTable({
     setBatasKritisValue, 
     handleBatasKritisChange,
     openEditModal, 
-    handleDelete
+    handleDelete,
+    openTransactionModal
 }) {
   return (
     <div className="rounded-md border border-slate-200 overflow-x-auto">
@@ -198,6 +199,7 @@ export default function PersediaanTable({
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openTransactionModal(item)} className="text-xs text-blue-600"><div className="flex items-center"><span className="mr-2 text-[10px]">⇄</span> Transaksi Stok</div></DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDelete(item._id)} className="text-xs text-red-600"><Trash size={12} className="mr-2"/> Hapus</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
