@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Trash, Edit, RefreshCw, FileUp, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
+import { Plus, Search, Loader2, Trash, Edit, RefreshCw, FileUp, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
 import { Pagination } from '../components/ui/pagination';
@@ -20,6 +20,11 @@ export default function BarangList() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [kodefikasiHint, setKodefikasiHint] = useState(null);
+  
+  // Delete Dialog State
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,8 +32,11 @@ export default function BarangList() {
   const [totalItems, setTotalItems] = useState(0);
   const limit = 20;
 
-  const { register, handleSubmit, reset, setValue } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
   const { register: registerImport, handleSubmit: handleImportSubmit } = useForm();
+
+  // Watch kode_barang for automation
+  const kodeBarangValue = watch('kode_barang');
 
   const fetchBarang = async () => {
     setLoading(true);
@@ -52,21 +60,43 @@ export default function BarangList() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      // Reset page when search changes
       if(search && currentPage !== 1) setCurrentPage(1);
       else fetchBarang();
     }, 500);
     return () => clearTimeout(timeout);
   }, [search, currentPage]);
 
+  // ... (Lookup Logic same as before) ...
+  useEffect(() => {
+      if (kodeBarangValue && kodeBarangValue.length >= 1) {
+          const lookup = async () => {
+              try {
+                  const res = await api.get('/api/referensi/lookup', { params: { kode: kodeBarangValue } });
+                  setKodefikasiHint(res.data);
+                  if (!editingItem && res.data.golongan) setValue('golongan_barang', res.data.golongan);
+                  if (!editingItem && res.data.uraian_barang && kodeBarangValue.length >= 10) {
+                      const currentName = watch('nama_barang');
+                      if(!currentName) setValue('nama_barang', res.data.uraian_barang);
+                  }
+              } catch (e) {}
+          };
+          const t = setTimeout(lookup, 500);
+          return () => clearTimeout(t);
+      } else {
+          setKodefikasiHint(null);
+      }
+  }, [kodeBarangValue, setValue, editingItem, watch]);
+
   const openAddModal = () => {
       setEditingItem(null);
+      setKodefikasiHint(null);
       reset({});
       setIsModalOpen(true);
   };
 
   const openEditModal = (item) => {
       setEditingItem(item);
+      setKodefikasiHint(null);
       setValue("kode_barang", item.kode_barang);
       setValue("nup", item.nup);
       setValue("nama_barang", item.nama_barang);
@@ -95,6 +125,7 @@ export default function BarangList() {
       setIsModalOpen(false);
       reset();
       setEditingItem(null);
+      setKodefikasiHint(null);
       fetchBarang();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Gagal menyimpan barang");
@@ -103,11 +134,9 @@ export default function BarangList() {
 
   const onImport = async (data) => {
       if(!data.file[0]) return toast.error("Pilih file excel!");
-      
       setImporting(true);
       const formData = new FormData();
       formData.append('file', data.file[0]);
-      
       try {
           const res = await api.post('/api/barang/import', formData, {
               headers: { 'Content-Type': 'multipart/form-data' }
@@ -122,14 +151,22 @@ export default function BarangList() {
       }
   };
 
-  const handleDelete = async (id) => {
-    if(!window.confirm("Yakin ingin menghapus barang ini?")) return;
+  // Modern Delete UX
+  const confirmDelete = (id) => {
+      setDeleteId(id);
+      setIsDeleteOpen(true);
+  };
+
+  const handleDelete = async () => {
     try {
-      await api.delete(`/api/barang/${id}`);
+      await api.delete(`/api/barang/${deleteId}`);
       toast.success("Barang dihapus");
       fetchBarang();
     } catch (error) {
       toast.error("Gagal menghapus barang");
+    } finally {
+        setIsDeleteOpen(false);
+        setDeleteId(null);
     }
   };
 
@@ -147,12 +184,11 @@ export default function BarangList() {
             </Button>
         </div>
         
-        {/* Import Modal Omitted for brevity, logic exists */}
+        {/* Import Modal */}
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Import Data Barang (SIMAN)</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle>Import Data Barang</DialogTitle></DialogHeader>
+                {/* ... Content ... */}
                 <div className="space-y-4 pt-4">
                     <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
                         <div className="space-y-2">
@@ -168,13 +204,23 @@ export default function BarangList() {
             </DialogContent>
         </Dialog>
 
-        {/* Add/Edit Modal */}
+        {/* Add/Edit Modal (Existing Code) */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingItem ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle>
             </DialogHeader>
+            {/* Kodefikasi Hint */}
+            {kodefikasiHint && (
+                <div className="bg-blue-50 p-3 rounded-md text-xs text-blue-800 border border-blue-100 grid grid-cols-2 gap-2">
+                    <div><strong>Golongan:</strong> {kodefikasiHint.golongan || '-'}</div>
+                    <div><strong>Bidang:</strong> {kodefikasiHint.bidang || '-'}</div>
+                    <div><strong>Kelompok:</strong> {kodefikasiHint.kelompok || '-'}</div>
+                    <div><strong>Sub-Sub:</strong> {kodefikasiHint.sub_sub_kelompok || '-'}</div>
+                </div>
+            )}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
+              {/* Form fields... */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Golongan</label>
@@ -249,6 +295,24 @@ export default function BarangList() {
               </Button>
             </form>
           </DialogContent>
+        </Dialog>
+
+        {/* Delete Dialog */}
+        <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-red-600">
+                        <AlertTriangle/> Konfirmasi Hapus
+                    </DialogTitle>
+                    <DialogDescription>
+                        Apakah Anda yakin ingin menghapus barang ini? Tindakan ini tidak dapat dibatalkan.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Batal</Button>
+                    <Button variant="destructive" onClick={handleDelete}>Ya, Hapus</Button>
+                </DialogFooter>
+            </DialogContent>
         </Dialog>
       </div>
 
@@ -337,10 +401,10 @@ export default function BarangList() {
                       
                       <TableCell className="text-center sticky right-0 bg-white shadow-sm">
                         <div className="flex items-center justify-center gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => openEditModal(item)} className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 h-8 w-8 p-0">
+                            <Button variant="ghost" size="sm" onClick={() => openEditModal(item)} className="text-blue-500 h-8 w-8 p-0">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(item._id)} className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0">
+                            <Button variant="ghost" size="sm" onClick={() => confirmDelete(item._id)} className="text-red-500 h-8 w-8 p-0">
                               <Trash className="h-4 w-4" />
                             </Button>
                         </div>
@@ -352,7 +416,6 @@ export default function BarangList() {
             </Table>
           </div>
           
-          {/* Pagination Component */}
           <Pagination 
             currentPage={currentPage}
             totalPages={totalPages}

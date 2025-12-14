@@ -3,6 +3,8 @@ from typing import List, Optional, Dict, Any
 from models import Pegawai, PegawaiCreate
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
+from bson import ObjectId
+from datetime import datetime, timezone
 import os
 import math
 
@@ -30,6 +32,10 @@ async def get_pegawai_list(
     cursor = db.pegawai.find(query).skip(skip).limit(limit).sort("nama_lengkap", 1)
     items = await cursor.to_list(length=limit)
     
+    # ObjectId to String
+    for item in items:
+        if "_id" in item: item["_id"] = str(item["_id"])
+    
     return {
         "data": items,
         "total": total,
@@ -47,3 +53,29 @@ async def create_pegawai(pegawai_in: PegawaiCreate, current_user: str = Depends(
     new_pegawai = Pegawai(**pegawai_in.dict())
     result = await db.pegawai.insert_one(new_pegawai.model_dump(by_alias=True, exclude=["id"]))
     return await db.pegawai.find_one({"_id": result.inserted_id})
+
+@router.put("/{id}", response_model=Pegawai)
+async def update_pegawai(id: str, pegawai_in: PegawaiCreate, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    # Check NIP conflict if changed
+    existing = await db.pegawai.find_one({"nip": pegawai_in.nip, "_id": {"$ne": ObjectId(id)}})
+    if existing: raise HTTPException(status_code=400, detail="NIP already used by another employee")
+    
+    update_data = pegawai_in.dict(exclude_unset=True)
+    # Don't update created_at, update updated_at if schema had it
+    
+    res = await db.pegawai.find_one_and_update(
+        {"_id": ObjectId(id)},
+        {"$set": update_data},
+        return_document=True
+    )
+    if not res: raise HTTPException(status_code=404)
+    return res
+
+@router.delete("/{id}")
+async def delete_pegawai(id: str, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    res = await db.pegawai.delete_one({"_id": ObjectId(id)})
+    if res.deleted_count == 0: raise HTTPException(status_code=404)
+    return {"message": "Pegawai deleted"}
