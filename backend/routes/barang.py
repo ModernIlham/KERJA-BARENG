@@ -368,6 +368,29 @@ async def update_barang(id: str, barang_update: BarangCreate, current_user: str 
     if not res: raise HTTPException(status_code=404)
     return res
 
+@router.patch("/{id}/status")
+async def update_barang_status(id: str, status_data: dict = Body(...), current_user: str = Depends(get_current_user)):
+    """Update only the status_aset field of a barang item"""
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400, detail="Invalid ID")
+    
+    new_status = status_data.get("status_aset")
+    if new_status not in ["Aktif", "Non Aktif", "Dipinjamkan"]:
+        raise HTTPException(status_code=400, detail="Invalid status value")
+    
+    update_data = {
+        "status_aset": new_status,
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    res = await db.barang.find_one_and_update(
+        {"_id": ObjectId(id)}, 
+        {"$set": update_data}, 
+        return_document=True
+    )
+    
+    if not res: raise HTTPException(status_code=404, detail="Barang not found")
+    return {"message": "Status updated", "status_aset": new_status}
+
 @router.delete("/{id}")
 async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
