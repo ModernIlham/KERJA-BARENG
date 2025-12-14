@@ -42,6 +42,12 @@ class User(MongoBaseModel):
     hashed_password: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    full_name: str
+    password: str
+    role: str = "user"
+
 # --- Stok FIFO Batch Model (Critical for Valuation) ---
 class StokBatch(MongoBaseModel):
     barang_id: str
