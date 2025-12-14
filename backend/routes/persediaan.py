@@ -55,8 +55,10 @@ def sanitize_json(data):
 async def get_golongan_uraian(kode_barang: str):
     if not kode_barang or len(kode_barang) < 1: return None
     prefix = kode_barang[0]
-    ref = await db.referensi_kode.find_one({"kode": prefix, "level": 1}, {"_id": 0})
-    return ref['uraian'] if ref else None
+    ref = await db.kodefikasi.find_one({"kode": prefix, "level": 1}, {"_id": 0})
+    if ref and 'uraian' in ref:
+        return f"{prefix} - {ref['uraian']}"
+    return None
 
 # GET - List Persediaan with pagination, filters
 @router.get("/", response_model=Dict)
