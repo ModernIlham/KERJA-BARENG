@@ -214,10 +214,10 @@ async def backup_database(current_user: str = Depends(get_current_user)):
     Download JSON dump of main collections
     """
     data = {}
-    data['barang'] = await db.barang.find().to_list(None)
-    data['transaksi'] = await db.transaksi.find().to_list(None)
-    data['pegawai'] = await db.pegawai.find().to_list(None)
-    data['referensi'] = await db.kodefikasi.find().to_list(None)
+    data['barang'] = await db.barang.find().to_list(50000)
+    data['transaksi'] = await db.transaksi.find().to_list(50000)
+    data['pegawai'] = await db.pegawai.find().to_list(50000)
+    data['referensi'] = await db.kodefikasi.find().to_list(50000)
     
     # Convert ObjectIds and Datetimes
     json_str = json_util.dumps(data)
