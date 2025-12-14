@@ -611,22 +611,57 @@ export default function BarangList() {
       </TabsContent>
       </Tabs>
       
-      {/* Import & Add Modals (Kept same) */}
+      {/* Import & Add Modals */}
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
-                <DialogHeader><DialogTitle>Import Data Barang (SIMAN)</DialogTitle></DialogHeader>
+                <DialogHeader>
+                  <DialogTitle>
+                    {activeTab === 'persediaan' ? 'Import Data Persediaan' : 'Import Data Barang (SIMAN)'}
+                  </DialogTitle>
+                </DialogHeader>
                 <div className="space-y-4 pt-4">
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                    {activeTab === 'persediaan' ? (
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                        <div className="font-bold mb-2">Format Import Persediaan:</div>
+                        <ul className="list-disc pl-5 space-y-1 text-xs">
+                          <li><strong>KodeBarang</strong> (wajib) - Kode 10 digit persediaan (awalan 1)</li>
+                          <li><strong>NamaBarang</strong> (wajib) - Nama item</li>
+                          <li><strong>Merk, Tipe, Satuan</strong></li>
+                          <li><strong>StokSaatIni</strong> - Jumlah stok</li>
+                          <li><strong>NilaiSatuan</strong> - Harga per unit</li>
+                          <li><strong>TglPerolehan</strong> - Format: DD/MM/YYYY</li>
+                          <li><strong>Kondisi</strong> - Baik/Rusak</li>
+                          <li><strong>LokasiRuang</strong> - Lokasi penyimpanan</li>
+                        </ul>
+                        <div className="mt-2 text-xs text-blue-600">
+                          💡 Data dengan <strong>KodeBarang</strong> yang sama akan diupdate
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
                         <div className="font-bold flex items-center gap-2"><AlertTriangle size={16}/> PERINGATAN PENTING:</div>
                         <ul className="list-disc pl-5 mt-1 space-y-1">
-                            <li>Data dengan <strong>Kode Barang & NUP</strong> yang sama akan <strong>DITIMPA (OVERWRITE)</strong>.</li>
-                            <li>Pastikan menggunakan file Excel terbaru (SIMAN) agar data tidak hilang/mundur.</li>
-                            <li>Data yang diimport akan ditandai sebagai <strong>Read Only</strong> pada form edit.</li>
+                          <li>Data dengan <strong>Kode Barang & NUP</strong> yang sama akan <strong>DITIMPA (OVERWRITE)</strong>.</li>
+                          <li>Pastikan menggunakan file Excel terbaru (SIMAN) agar data tidak hilang/mundur.</li>
+                          <li>Data yang diimport akan ditandai sebagai <strong>Read Only</strong> pada form edit.</li>
                         </ul>
-                    </div>
+                      </div>
+                    )}
                     <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
-                        <div className="space-y-2"><label className="text-sm font-medium">Pilih File Excel</label><Input type="file" accept=".xlsx, .xls" {...registerImport('file')} /></div>
-                        <Button type="submit" disabled={importing} className="w-full bg-slate-900 text-white">{importing ? <Loader2 className="animate-spin mr-2"/> : <FileUp className="mr-2"/>} Mulai Import & Update</Button>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Pilih File {activeTab === 'persediaan' ? 'Excel/CSV' : 'Excel'}
+                          </label>
+                          <Input 
+                            type="file" 
+                            accept={activeTab === 'persediaan' ? '.xlsx, .xls, .csv' : '.xlsx, .xls'} 
+                            {...registerImport('file')} 
+                          />
+                        </div>
+                        <Button type="submit" disabled={importing} className="w-full bg-slate-900 text-white">
+                          {importing ? <Loader2 className="animate-spin mr-2"/> : <FileUp className="mr-2"/>} 
+                          Mulai Import & Update
+                        </Button>
                     </form>
                 </div>
             </DialogContent>
