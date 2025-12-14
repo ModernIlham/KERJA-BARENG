@@ -1,11 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import StreamingResponse
 from typing import List, Optional, Dict
 from pydantic import BaseModel
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
-from bson import ObjectId
+from bson import ObjectId, json_util
 import math
+import json
+import io
 from datetime import datetime, timezone
 
 router = APIRouter()
@@ -32,8 +35,19 @@ def clean_number(val):
     if isinstance(val, (int, float)): return val
     if isinstance(val, str):
         try:
-            # Remove common currency chars
-            clean = val.replace("Rp", "").replace(".", "").replace(",", "").strip()
+            # Indo Format: 10.000,00 -> 10000.00
+            clean = val.replace("Rp", "").strip()
+            
+            # Check for comma as decimal separator
+            if "," in clean:
+                # Remove thousands separator (.)
+                clean = clean.replace(".", "")
+                # Replace decimal separator (,) with (.)
+                clean = clean.replace(",", ".")
+            else:
+                # Assuming standard format or no decimals
+                clean = clean.replace(".", "").replace(",", "")
+                
             return float(clean) if clean else 0
         except: return 0
     return 0
@@ -91,13 +105,14 @@ async def normalize_data(current_user: str = Depends(get_current_user)):
                 updates[field] = clean_number(val)
                 
         # 2. Ensure Stok is Int
-        if isinstance(item.get('stok'), str):
-            try: updates['stok'] = int(clean_number(item.get('stok')))
+        stok_val = item.get('stok')
+        if isinstance(stok_val, str) or isinstance(stok_val, float):
+            try: updates['stok'] = int(clean_number(stok_val))
             except: updates['stok'] = 0
             
         # 3. Clean Kode (Remove dots if stored)
         kode = item.get('kode_barang')
-        if kode and ("." in kode or " " in kode):
+        if kode and isinstance(kode, str) and ("." in kode or " " in kode):
             updates['kode_barang'] = kode.replace(".", "").replace(" ", "").strip()
             
         if updates:
@@ -110,22 +125,15 @@ async def normalize_data(current_user: str = Depends(get_current_user)):
 async def recalculate_stock(current_user: str = Depends(get_current_user)):
     """
     Hitung ulang stok Master Barang berdasarkan Riwayat Transaksi.
-    (Audit Stok)
     """
-    # 1. Reset all stock to 0 (or initial import state?)
-    # Ideally, we calculate: Saldo Awal (from Import/Setup) + Masuk - Keluar
-    # If no initial balance record exists, assume 0 + transactions.
-    
-    # Let's aggregate transactions per barang
+    # Pipeline: Group Transaction Impacts by BarangID
     pipeline = [
         {"$group": {
             "_id": "$barang_id",
             "total_masuk": {"$sum": {"$cond": [{"$in": ["$jenis", ["MASUK", "SALDO_AWAL"]]}, "$jumlah", 0]}},
             "total_keluar": {"$sum": {"$cond": [{"$eq": ["$jenis", "KELUAR"]}, "$jumlah", 0]}},
-            "last_opname": {"$max": {"$cond": [{"$eq": ["$jenis", "OPNAME"]}, "$timestamp", None]}},
-            # If opname exists, we should rely on that + transactions AFTER opname
-            # This complex logic is simplified here: Just Sum(In) - Sum(Out) for MVP.
-            # Ideally: Find latest 'PENYESUAIAN' (Opname) -> Start balance from there -> Add subsequent tx.
+            # We need to know if there's any OPNAME to potentially override logic, 
+            # but usually recalculation implies trusting the transaction log flow.
         }}
     ]
     
@@ -133,18 +141,18 @@ async def recalculate_stock(current_user: str = Depends(get_current_user)):
     
     count = 0
     for agg in tx_aggs:
-        bid = agg['_id']
-        if not bid or not ObjectId.is_valid(bid): continue
+        bid_str = agg['_id']
+        if not bid_str: continue
         
-        # Simple Logic: Calculated Stock
-        calc_stok = agg['total_masuk'] - agg['total_keluar']
+        try:
+            bid = ObjectId(bid_str)
+        except:
+            continue
+            
+        # Detailed Chronological Calculation (Safe Method)
+        # Fetch all transactions for this item sorted by time
+        txs = await db.transaksi.find({"barang_id": bid_str}).sort("timestamp", 1).to_list(None)
         
-        # Check Opname logic override? 
-        # If we have OPNAME/PENYESUAIAN transaction type, 'jumlah' IS the physical stock at that time.
-        # So we need to process chronologically for accuracy.
-        # Fallback to chronological processing for items with transactions
-        
-        txs = await db.transaksi.find({"barang_id": bid}).sort("timestamp", 1).to_list(None)
         running_stok = 0
         for tx in txs:
             if tx['jenis'] in ['MASUK', 'SALDO_AWAL']:
@@ -152,32 +160,38 @@ async def recalculate_stock(current_user: str = Depends(get_current_user)):
             elif tx['jenis'] == 'KELUAR':
                 running_stok -= tx['jumlah']
             elif tx['jenis'] in ['OPNAME', 'PENYESUAIAN']:
-                # If transaction record stores the ACTUAL stock in 'jumlah', reset running stock
-                # Note: In previous `transaksi.py`, for PENYESUAIAN we stored actual count in `jumlah`.
+                # Assume 'jumlah' in PENYESUAIAN record is the ACTUAL STOCK resulting from opname
+                # This aligns with how we store Opname in previous steps
                 running_stok = tx['jumlah']
         
+        # Ensure non-negative? Maybe warn?
         # Update Master
         await db.barang.update_one(
-            {"_id": ObjectId(bid)},
+            {"_id": bid},
             {"$set": {"stok": running_stok}}
         )
         count += 1
         
-    return {"message": f"Stok berhasil dihitung ulang untuk {count} barang berdasarkan riwayat transaksi."}
+    return {"message": f"Stok berhasil dihitung ulang untuk {count} barang aktif."}
 
 @router.post("/database/reset")
 async def reset_database(
-    target: str, # 'transaksi', 'barang', 'all'
+    target: str, # 'transaksi', 'barang', 'referensi', 'all'
     current_user: str = Depends(get_current_user)
 ):
     if target == 'transaksi':
         await db.transaksi.delete_many({})
-        await db.stok_batches.delete_many({}) # Clear batches too
+        await db.stok_batches.delete_many({})
         await db.opname.delete_many({})
+        # Optionally reset stock to 0? Or keep as is?
+        # Usually if you delete transactions, stock history is gone, so stock should be reset or kept as "Initial".
+        # Let's keep Master Barang intact.
         return {"message": "Data Transaksi & Opname berhasil dihapus total."}
         
     elif target == 'barang':
         await db.barang.delete_many({})
+        # If barang gone, transactions should be gone too to prevent orphans?
+        # Or at least warn.
         return {"message": "Data Master Barang berhasil dihapus total."}
         
     elif target == 'referensi':
@@ -190,7 +204,26 @@ async def reset_database(
         await db.opname.delete_many({})
         await db.barang.delete_many({})
         await db.pegawai.delete_many({})
-        # Keep Users & Settings?
         return {"message": "SEMUA DATA (Barang, Transaksi, Pegawai) berhasil di-reset ke awal."}
         
     raise HTTPException(status_code=400, detail="Target reset tidak valid")
+
+@router.get("/database/backup")
+async def backup_database(current_user: str = Depends(get_current_user)):
+    """
+    Download JSON dump of main collections
+    """
+    data = {}
+    data['barang'] = await db.barang.find().to_list(None)
+    data['transaksi'] = await db.transaksi.find().to_list(None)
+    data['pegawai'] = await db.pegawai.find().to_list(None)
+    data['referensi'] = await db.kodefikasi.find().to_list(None)
+    
+    # Convert ObjectIds and Datetimes
+    json_str = json_util.dumps(data)
+    
+    return StreamingResponse(
+        io.BytesIO(json_str.encode()),
+        media_type="application/json",
+        headers={"Content-Disposition": f"attachment; filename=backup_siman_{datetime.now().strftime('%Y%m%d')}.json"}
+    )

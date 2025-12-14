@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser } from 'lucide-react';
+import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Pengaturan() {
@@ -109,6 +109,25 @@ export default function Pengaturan() {
       }
   };
 
+  const downloadBackup = async () => {
+      setMaintenanceLoading(true);
+      try {
+          const response = await api.get('/api/settings/database/backup', { responseType: 'blob' });
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `backup_siman_${new Date().toISOString().slice(0,10)}.json`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          toast.success("Backup berhasil diunduh");
+      } catch (e) {
+          toast.error("Gagal download backup");
+      } finally {
+          setMaintenanceLoading(false);
+      }
+  };
+
   if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
@@ -153,6 +172,19 @@ export default function Pengaturan() {
                                 <div>
                                     <div className="text-sm font-semibold text-slate-700">Hitung Ulang Stok</div>
                                     <div className="text-xs text-slate-500">Sinkronisasi stok Master Barang vs Riwayat Transaksi</div>
+                                </div>
+                            </Button>
+
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start bg-white hover:bg-blue-100 border-blue-200"
+                                onClick={downloadBackup}
+                                disabled={maintenanceLoading}
+                            >
+                                <Download size={16} className="mr-2 text-blue-600"/> 
+                                <div>
+                                    <div className="text-sm font-semibold text-slate-700">Backup Data (JSON)</div>
+                                    <div className="text-xs text-slate-500">Download seluruh data database</div>
                                 </div>
                             </Button>
                         </CardContent>
