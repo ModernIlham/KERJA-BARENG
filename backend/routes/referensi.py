@@ -37,6 +37,11 @@ async def get_referensi_list(
     cursor = db.kodefikasi.find(query).skip(skip).limit(limit).sort("kode", 1)
     items = await cursor.to_list(length=limit)
     
+    # Convert ObjectId to string for JSON serialization
+    for item in items:
+        if "_id" in item:
+            item["_id"] = str(item["_id"])
+    
     return {
         "data": items,
         "total": total,
