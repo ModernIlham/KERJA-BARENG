@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -21,22 +21,25 @@ export default function ReferensiKode() {
   const { register, handleSubmit, reset, setValue } = useForm();
   const { register: registerImport, handleSubmit: handleImportSubmit } = useForm();
 
-  const fetchData = async () => {
+  // FIX: Wrapped in useCallback to prevent infinite loop
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/api/referensi', { params: { search, limit: 100 } });
       setData(res.data);
     } catch (error) {
-      toast.error("Gagal memuat referensi");
+      // Use silent log or a ref to prevent toast spam if needed
+      console.error("Gagal memuat referensi");
     } finally {
       setLoading(false);
     }
-  };
+  }, [search]);
 
   useEffect(() => {
+    // Debounce Logic
     const t = setTimeout(fetchData, 500);
     return () => clearTimeout(t);
-  }, [search, fetchData]);
+  }, [fetchData]); // Dependency is now stable
 
   const openAdd = () => {
       setEditingItem(null);
@@ -80,10 +83,16 @@ export default function ReferensiKode() {
 
   const onImport = async (form) => {
       if(!form.file[0]) return toast.error("Pilih file");
-      const formData = new FormData();
-      formData.append('file', form.file[0]);
       
-      const t = toast.loading("Mengimpor... (Bisa memakan waktu)");
+      const file = form.file[0];
+      
+      // Strict Validation Pre-check (Client Side) can be added here if needed
+      // But we rely on backend for strict checking.
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const t = toast.loading("Memvalidasi & Mengimpor...");
       try {
           const res = await api.post('/api/referensi/import', formData, {
               headers: {'Content-Type': 'multipart/form-data'}
@@ -98,12 +107,12 @@ export default function ReferensiKode() {
 
   const downloadTemplate = () => {
       const ws = XLSX.utils.json_to_sheet([
-          { "Kode": "3010101001", "Uraian": "Sepeda Motor" },
-          { "Kode": "3010101002", "Uraian": "Mobil Sedan" },
+          { "kd_brg": "3.01.01.01.001", "ur_sskel": "Sepeda Motor" },
+          { "kd_brg": "3.01.01.01.002", "ur_sskel": "Mobil Sedan" },
       ]);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "KodefikasiBarang");
-      XLSX.writeFile(wb, "Template_Kodefikasi_Barang.xlsx");
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      XLSX.writeFile(wb, "Template_Master_Kode_Barang.xlsx");
   };
 
   return (
@@ -190,36 +199,27 @@ export default function ReferensiKode() {
         {/* Import Modal */}
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent className="max-w-2xl">
-                <DialogHeader><DialogTitle>Import Kodefikasi Massal</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Import Master Kode</DialogTitle></DialogHeader>
                 <div className="space-y-6">
-                    <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200 text-sm space-y-2">
-                        <div className="flex items-center gap-2 font-bold text-yellow-800">
-                            <AlertTriangle size={16}/> Peringatan & Ketentuan Import
+                    <div className="bg-blue-50 p-4 rounded-md border border-blue-200 text-sm space-y-2">
+                        <div className="flex items-center gap-2 font-bold text-blue-800">
+                            <AlertTriangle size={16}/> Ketentuan Wajib (Strict Validation)
                         </div>
-                        <ul className="list-disc pl-5 text-yellow-700 space-y-1">
-                            <li>Format File: <strong>.xlsx</strong> (Excel) atau <strong>.csv</strong>.</li>
-                            <li>Wajib ada Header (Judul Kolom) di baris pertama.</li>
-                            <li>Kolom Wajib: <strong>Kode</strong> dan <strong>Uraian</strong>.</li>
-                            <li>Pastikan Kode berupa angka/teks bersih (contoh: <code>3010101001</code>). Titik (.) akan otomatis dihapus.</li>
-                            <li>File besar (&gt;10MB) mungkin memakan waktu lama. Jangan tutup halaman.</li>
+                        <ul className="list-disc pl-5 text-blue-700 space-y-1">
+                            <li>Format Wajib: <strong>.xlsx</strong> (Excel).</li>
+                            <li><strong>Nama Kolom Harus Tepat:</strong>
+                                <ul className="pl-4 mt-1 font-mono text-xs">
+                                    <li>- kd_brg (Kode Barang)</li>
+                                    <li>- ur_sskel (Uraian / Nama Barang)</li>
+                                </ul>
+                            </li>
+                            <li>Jika header kolom tidak sesuai, sistem akan <strong>MENOLAK</strong> file.</li>
                         </ul>
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <p className="text-sm font-medium">Contoh Format Data:</p>
-                        <div className="border rounded-md overflow-hidden text-xs">
-                            <Table>
-                                <TableHeader className="bg-slate-100">
-                                    <TableRow><TableHead>Kode</TableHead><TableHead>Uraian</TableHead></TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow><TableCell>3010101001</TableCell><TableCell>Sepeda Motor</TableCell></TableRow>
-                                    <TableRow><TableCell>3010101002</TableCell><TableCell>Mobil Sedan</TableCell></TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={downloadTemplate} className="w-fit mt-2">
-                            <Download className="mr-2 h-3 w-3"/> Download Template Excel
+                        <Button variant="outline" size="sm" onClick={downloadTemplate} className="w-fit">
+                            <Download className="mr-2 h-3 w-3"/> Download Template Sesuai Format
                         </Button>
                     </div>
 
@@ -227,9 +227,9 @@ export default function ReferensiKode() {
                         <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Upload File</label>
-                                <Input type="file" accept=".xlsx,.csv" {...registerImport('file', {required:true})} />
+                                <Input type="file" accept=".xlsx" {...registerImport('file', {required:true})} />
                             </div>
-                            <Button className="w-full bg-green-600 hover:bg-green-700">Mulai Proses Import</Button>
+                            <Button className="w-full bg-green-600 hover:bg-green-700">Validasi & Import</Button>
                         </form>
                     </div>
                 </div>
