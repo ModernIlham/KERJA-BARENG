@@ -6,13 +6,15 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Loader2, Plus, Trash, User, Building } from 'lucide-react';
+import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Pengaturan() {
   const [users, setUsers] = useState([]);
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false);
+  
   const { register: registerUnit, handleSubmit: handleUnitSubmit, reset: resetUnit } = useForm();
   
   useEffect(() => {
@@ -56,19 +58,143 @@ export default function Pengaturan() {
       }
   };
 
+  // --- Database Maintenance Functions ---
+  
+  const runNormalize = async () => {
+      if(!window.confirm("Proses ini akan memperbaiki format data (angka, kode) di database. Lanjutkan?")) return;
+      setMaintenanceLoading(true);
+      try {
+          const res = await api.post('/api/settings/database/normalize');
+          toast.success(res.data.message);
+      } catch (e) {
+          toast.error("Gagal normalisasi data");
+      } finally {
+          setMaintenanceLoading(false);
+      }
+  };
+
+  const runRecalculate = async () => {
+      if(!window.confirm("Stok Barang akan dihitung ulang berdasarkan riwayat transaksi. Stok saat ini mungkin berubah. Lanjutkan?")) return;
+      setMaintenanceLoading(true);
+      try {
+          const res = await api.post('/api/settings/database/recalculate-stock');
+          toast.success(res.data.message);
+      } catch (e) {
+          toast.error("Gagal hitung ulang stok");
+      } finally {
+          setMaintenanceLoading(false);
+      }
+  };
+
+  const runReset = async (target) => {
+      const confirmMsg = target === 'all' 
+        ? "PERINGATAN KERAS: SEMUA DATA (Barang, Transaksi, Pegawai) akan DIHAPUS PERMANEN. Ketik 'SETUJU' untuk melanjutkan."
+        : `Yakin ingin menghapus semua data ${target.toUpperCase()}? Data tidak bisa dikembalikan.`;
+        
+      if (target === 'all') {
+          const check = window.prompt(confirmMsg);
+          if (check !== 'SETUJU') return;
+      } else {
+          if(!window.confirm(confirmMsg)) return;
+      }
+
+      setMaintenanceLoading(true);
+      try {
+          const res = await api.post('/api/settings/database/reset', null, { params: { target }});
+          toast.success(res.data.message);
+      } catch (e) {
+          toast.error("Gagal reset data");
+      } finally {
+          setMaintenanceLoading(false);
+      }
+  };
+
   if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
     <div className="space-y-6">
         <h1 className="text-2xl font-bold text-slate-900">Pengaturan Sistem</h1>
         
-        <Tabs defaultValue="users">
+        <Tabs defaultValue="db">
             <TabsList className="bg-slate-100">
-                <TabsTrigger value="users">Manajemen User</TabsTrigger>
-                <TabsTrigger value="unit">Unit Kerja & Struktur</TabsTrigger>
-                <TabsTrigger value="referensi">Referensi Lain</TabsTrigger>
+                <TabsTrigger value="db"><Database size={14} className="mr-2"/> Database & Data</TabsTrigger>
+                <TabsTrigger value="users"><User size={14} className="mr-2"/> Manajemen User</TabsTrigger>
+                <TabsTrigger value="unit"><Building size={14} className="mr-2"/> Unit Kerja</TabsTrigger>
             </TabsList>
             
+            <TabsContent value="db" className="mt-4 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="border-blue-200 bg-blue-50">
+                        <CardHeader>
+                            <CardTitle className="text-blue-800 flex items-center"><RefreshCw size={18} className="mr-2"/> Pemeliharaan Data</CardTitle>
+                            <CardDescription className="text-blue-600">Alat bantu untuk memperbaiki inkonsistensi data.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start bg-white hover:bg-blue-100 border-blue-200"
+                                onClick={runNormalize}
+                                disabled={maintenanceLoading}
+                            >
+                                <RefreshCw size={16} className="mr-2 text-blue-600"/> 
+                                <div>
+                                    <div className="text-sm font-semibold text-slate-700">Normalisasi Format Data</div>
+                                    <div className="text-xs text-slate-500">Perbaiki format angka (Rp) & kode barang di database</div>
+                                </div>
+                            </Button>
+                            
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start bg-white hover:bg-blue-100 border-blue-200"
+                                onClick={runRecalculate}
+                                disabled={maintenanceLoading}
+                            >
+                                <Database size={16} className="mr-2 text-blue-600"/> 
+                                <div>
+                                    <div className="text-sm font-semibold text-slate-700">Hitung Ulang Stok</div>
+                                    <div className="text-xs text-slate-500">Sinkronisasi stok Master Barang vs Riwayat Transaksi</div>
+                                </div>
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-red-200 bg-red-50">
+                        <CardHeader>
+                            <CardTitle className="text-red-800 flex items-center"><AlertTriangle size={18} className="mr-2"/> Zona Bahaya (Reset Data)</CardTitle>
+                            <CardDescription className="text-red-600">Menghapus data secara permanen. Berhati-hatilah.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start bg-white hover:bg-red-100 border-red-200 text-red-700"
+                                onClick={() => runReset('transaksi')}
+                                disabled={maintenanceLoading}
+                            >
+                                <Eraser size={16} className="mr-2"/> 
+                                Hapus Riwayat Transaksi Saja
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start bg-white hover:bg-red-100 border-red-200 text-red-700"
+                                onClick={() => runReset('referensi')}
+                                disabled={maintenanceLoading}
+                            >
+                                <Eraser size={16} className="mr-2"/> 
+                                Hapus Referensi Kode
+                            </Button>
+                            <Button 
+                                className="w-full bg-red-600 hover:bg-red-700 text-white mt-4"
+                                onClick={() => runReset('all')}
+                                disabled={maintenanceLoading}
+                            >
+                                <Trash size={16} className="mr-2"/> 
+                                RESET TOTAL (Hapus Semua Data)
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            </TabsContent>
+
             <TabsContent value="users" className="mt-4">
                 <Card>
                     <CardHeader>
@@ -144,7 +270,7 @@ export default function Pengaturan() {
                                         {units.map((unit) => (
                                             <TableRow key={unit.id}>
                                                 <TableCell>{unit.nama_unit}</TableCell>
-                                                <TableCell>{unit.eselon}</TableCell>
+                                                <TableCell>Eselon {unit.eselon}</TableCell>
                                                 <TableCell className="text-right">
                                                     <Button size="sm" variant="ghost" onClick={() => onDeleteUnit(unit.id)} className="text-red-500">
                                                         <Trash size={14}/>
@@ -158,12 +284,6 @@ export default function Pengaturan() {
                         </CardContent>
                     </Card>
                 </div>
-            </TabsContent>
-
-            <TabsContent value="referensi" className="mt-4">
-                 <div className="p-8 text-center text-slate-500 border-2 border-dashed rounded-lg">
-                     Fitur Referensi Tambahan (Klasifikasi, Rumpun Jabatan) dapat ditambahkan di sini.
-                 </div>
             </TabsContent>
         </Tabs>
     </div>
