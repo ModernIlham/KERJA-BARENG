@@ -12,9 +12,10 @@ import io
 import math
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -51,6 +52,26 @@ async def get_golongan_uraian(kode: str):
     }
     desc = golongan_map.get(k, "Unknown")
     return f"{k} - {desc}"
+
+@router.get("/next-nup")
+async def get_next_nup(kode: str, current_user: str = Depends(get_current_user)):
+    """
+    Get Next NUP for Manual Input
+    """
+    kode = clean_code_str(kode)
+    # Find max NUP for this Kode
+    # Note: NUP is string, numeric sort needed
+    collation = {'locale': 'en_US', 'numericOrdering': True}
+    last_item = await db.barang.find({"kode_barang": kode}).collation(collation).sort("nup", -1).limit(1).to_list(1)
+    
+    next_nup = 1
+    if last_item:
+        try:
+            next_nup = int(last_item[0]['nup']) + 1
+        except:
+            pass # Keep 1 if parsing fails
+            
+    return {"nup": str(next_nup), "formatted": f"{next_nup} (Sementara)"}
 
 @router.get("", response_model=Dict[str, Any])
 async def get_barang_list(
@@ -100,87 +121,19 @@ async def get_barang_list(
         "total_pages": math.ceil(total / limit)
     }
 
-@router.post("/bulk-delete")
-async def bulk_delete_barang(
-    ids: Optional[List[str]] = Body(default=None),
-    select_all_mode: bool = Body(default=False),
-    search: Optional[str] = Body(default=None),
-    filters: Optional[Dict[str, Any]] = Body(default=None),
-    current_user: str = Depends(get_current_user)
-):
-    query = {}
-    if select_all_mode:
-        if search:
-            query["$or"] = [{"nama_barang": {"$regex": search, "$options": "i"}}, {"kode_barang": {"$regex": search, "$options": "i"}}, {"nup": {"$regex": search, "$options": "i"}}]
-        if filters:
-            if filters.get('kode'): query["kode_barang"] = {"$regex": filters['kode'], "$options": "i"}
-            if filters.get('nama'): query["nama_barang"] = {"$regex": filters['nama'], "$options": "i"}
-            if filters.get('merk'): query["merk"] = {"$regex": filters['merk'], "$options": "i"}
-            if filters.get('kondisi'): query["kondisi"] = filters['kondisi']
-            if filters.get('lokasi'): query["lokasi_fisik"] = {"$regex": filters['lokasi'], "$options": "i"}
-            if filters.get('nup'): query["nup"] = {"$regex": filters['nup'], "$options": "i"}
-            if filters.get('golongan'): query["golongan_barang"] = {"$regex": filters['golongan'], "$options": "i"}
-        result = await db.barang.delete_many(query)
-        return {"message": f"Berhasil menghapus {result.deleted_count} data terpilih (Global)."}
-    else:
-        if not ids: raise HTTPException(status_code=400, detail="No IDs provided")
-        obj_ids = [ObjectId(i) for i in ids if ObjectId.is_valid(i)]
-        result = await db.barang.delete_many({"_id": {"$in": obj_ids}})
-        return {"message": f"Berhasil menghapus {result.deleted_count} data."}
-
-@router.post("", response_model=Barang)
-async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
-    barang_in.kode_barang = clean_code_str(barang_in.kode_barang)
-    barang_in.nup = clean_code_str(barang_in.nup)
-    
-    # Auto Year
-    if barang_in.tgl_perolehan and not barang_in.tahun_anggaran:
-        barang_in.tahun_anggaran = barang_in.tgl_perolehan[:4]
-    
-    existing = await db.barang.find_one({"kode_barang": barang_in.kode_barang, "nup": barang_in.nup})
-    if existing: raise HTTPException(status_code=400, detail="Barang exists")
-    
-    if not barang_in.golongan_barang:
-        barang_in.golongan_barang = await get_golongan_uraian(barang_in.kode_barang)
-        
-    new_barang = Barang(**barang_in.dict())
-    result = await db.barang.insert_one(new_barang.model_dump(by_alias=True, exclude=["id"]))
-    return await db.barang.find_one({"_id": result.inserted_id})
-
-@router.put("/{id}", response_model=Barang)
-async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
-    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
-    
-    if barang_update.kode_barang: barang_update.kode_barang = clean_code_str(barang_update.kode_barang)
-    if barang_update.nup: barang_update.nup = clean_code_str(barang_update.nup)
-    if barang_update.kode_barang and not barang_update.golongan_barang:
-        barang_update.golongan_barang = await get_golongan_uraian(barang_update.kode_barang)
-        
-    # Auto Year on Update
-    if barang_update.tgl_perolehan:
-        barang_update.tahun_anggaran = barang_update.tgl_perolehan[:4]
-        
-    update_data = barang_update.dict(exclude_unset=True)
-    update_data['updated_at'] = datetime.now(timezone.utc)
-    res = await db.barang.find_one_and_update({"_id": ObjectId(id)}, {"$set": update_data}, return_document=True)
-    if not res: raise HTTPException(status_code=404)
-    return res
-
-@router.delete("/{id}")
-async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
-    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
-    res = await db.barang.delete_one({"_id": ObjectId(id)})
-    if res.deleted_count == 0: raise HTTPException(status_code=404)
-    return {"message": "Deleted"}
-
 @router.post("/import")
 async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
     if not file.filename.endswith(('.xls', '.xlsx')): raise HTTPException(status_code=400, detail="Excel only")
+
     try:
         contents = await file.read()
         df = pd.read_excel(io.BytesIO(contents))
         df = df.where(pd.notnull(df), None)
-        count_p, count_i, count_s = 0, 0, 0
+        
+        count_processed = 0
+        count_updated = 0
+        count_inserted = 0
+        
         for index, row in df.iterrows():
             try:
                 kode = clean_code_str(row.get('Kode Barang', ''))
@@ -188,17 +141,9 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 reg = clean_code_str(row.get('Kode Register', ''))
                 if not kode or not nup: continue
                 
-                dup_query = { "$or": [{"kode_barang": kode, "nup": nup}] }
-                if reg: dup_query["$or"].append({"kode_register": reg})
-                if await db.barang.find_one(dup_query): count_s += 1; continue
-                
                 gol = await get_golongan_uraian(kode)
                 
-                # Date Logic
-                tgl = str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None
-                thn = str(row.get('Tahun Anggaran', '')).strip()
-                if tgl and not thn: thn = tgl[:4]
-                
+                # Full Data Mapping
                 item_data = {
                     "kode_barang": kode, "nup": nup, "golongan_barang": gol,
                     "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
@@ -206,12 +151,16 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
                     "nilai_buku": clean_currency(row.get('Nilai Buku')),
                     "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
-                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')),
-                    "tgl_perolehan": tgl, "tahun_anggaran": thn,
+                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')), 
+                    "tgl_perolehan": str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None,
+                    "tahun_anggaran": str(row.get('Tahun Anggaran', '')),
+                    
+                    # Extended Fields
                     "lokasi_fisik": row.get('Lokasi'), "ruang": row.get('Ruang'),
                     "alamat": row.get('Alamat'), "kab_kota": row.get('Kab/Kota'), "provinsi": row.get('Provinsi'),
                     "kecamatan": row.get('Kecamatan'), "kelurahan": row.get('Kelurahan/Desa'), "rt_rw": row.get('RT/RW'),
                     "kode_pos": str(row.get('Kode Pos', '')),
+                    
                     "kode_satker": str(row.get('Kode Satker', '')), "nama_satker": row.get('Nama Satker'),
                     "intra_ekstra": row.get('Aset Intra / Extra'), "kode_register": reg,
                     "status_penggunaan": row.get('Status Penggunaan'),
@@ -224,11 +173,32 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "tgl_psp": str(row.get('Tanggal PSP'))[:10] if row.get('Tanggal PSP') else None,
                     "status_aset": "Aktif", "stok": 1, "updated_at": datetime.now(timezone.utc)
                 }
-                result = await db.barang.insert_one(item_data)
-                if result.inserted_id: count_i += 1
-                count_p += 1
-            except: continue
-        return {"message": "Import selesai", "processed": count_p, "inserted": count_i, "skipped_duplicates": count_s}
+                
+                # Logic: OVERWRITE/UPSERT
+                # Key: Kode+NUP. If Reg exists, use that too?
+                # Usually SIMAN uses Kode+NUP as unique.
+                query = {"kode_barang": kode, "nup": nup}
+                
+                result = await db.barang.update_one(
+                    query,
+                    {"$set": item_data},
+                    upsert=True
+                )
+                
+                if result.upserted_id: count_inserted += 1
+                else: count_updated += 1
+                count_processed += 1
+                
+            except Exception as e: continue
+                
+        return {
+            "message": "Import selesai",
+            "processed": count_processed,
+            "inserted": count_inserted,
+            "updated": count_updated,
+            "note": "Data dengan Kode & NUP sama telah DITIMPA (Updated)."
+        }
+
     except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/pdf")
@@ -250,47 +220,196 @@ async def download_barang_pdf(
     collation = {'locale': 'en_US', 'numericOrdering': True}
     cursor = db.barang.find(query).collation(collation).sort([("golongan_barang", 1), ("kode_barang", 1), ("nup", 1)]).limit(5000)
     items = await cursor.to_list(None)
+    
     if not items: raise HTTPException(status_code=404, detail="No data")
     
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=30, bottomMargin=30)
     elements = []
+    
+    # Styles
     styles = getSampleStyleSheet()
-    style_normal = styles['Normal']; style_normal.fontSize = 8
-    style_header = styles['Heading3']; style_header.fontSize = 10
+    title_style = ParagraphStyle('ReportTitle', parent=styles['Title'], fontSize=16, leading=20, spaceAfter=10, textColor=colors.darkblue)
+    subtitle_style = ParagraphStyle('ReportSubtitle', parent=styles['Normal'], fontSize=10, textColor=colors.grey)
+    header_style = ParagraphStyle('TableHeader', parent=styles['Normal'], fontSize=9, textColor=colors.white, alignment=TA_CENTER)
+    cell_style = ParagraphStyle('TableCell', parent=styles['Normal'], fontSize=8, leading=10)
+    group_style = ParagraphStyle('GroupHeader', parent=styles['Heading3'], fontSize=11, textColor=colors.darkblue, spaceBefore=10, spaceAfter=5)
     
-    elements.append(Paragraph("DAFTAR MASTER BARANG (BMN)", styles['Title']))
-    filter_text = "Data Terpilih" if ids and not all_selected else f"Filter: {search or 'Semua'}"
-    elements.append(Paragraph(f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y')} | {filter_text}", style_normal))
-    elements.append(Spacer(1, 12))
+    # Header Section
+    elements.append(Paragraph("LAPORAN DAFTAR ASET (BMN)", title_style))
+    elements.append(Paragraph(f"Kementerian/Lembaga: SIMAN-G System", subtitle_style))
+    elements.append(Paragraph(f"Tanggal Cetak: {datetime.now().strftime('%d %B %Y')}", subtitle_style))
+    elements.append(Spacer(1, 15))
     
-    current_gol = None; table_data = []
-    headers = ["No", "Kode Barang", "NUP", "Nama Barang", "Merk/Tipe", "Kondisi", "Perolehan (Rp)", "Nilai Buku (Rp)"]
+    # Table Config
     col_widths = [0.8*cm, 3*cm, 1.2*cm, 8*cm, 4.5*cm, 1.5*cm, 3*cm, 3*cm]
+    headers = [
+        Paragraph("No", header_style),
+        Paragraph("Kode Barang", header_style),
+        Paragraph("NUP", header_style),
+        Paragraph("Nama Barang", header_style),
+        Paragraph("Merk/Tipe", header_style),
+        Paragraph("Kond", header_style),
+        Paragraph("Perolehan", header_style),
+        Paragraph("Nilai Buku", header_style)
+    ]
+    
+    current_gol = None
+    table_data = []
+    
+    # Totals
+    total_asset_value = 0
+    total_items = len(items)
     
     idx = 1
     for item in items:
         gol = item.get('golongan_barang', 'Tanpa Golongan')
+        
+        # New Group Logic
         if gol != current_gol:
             if table_data:
+                # Render Previous Group Table
                 t = Table(table_data, colWidths=col_widths, repeatRows=1)
-                t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.lightgrey), ('GRID',(0,0),(-1,-1),0.5,colors.grey), ('ALIGN',(6,0),(7,-1),'RIGHT'), ('VALIGN',(0,0),(-1,-1),'TOP')]))
-                elements.append(t); elements.append(Spacer(1, 12)); table_data = []
-            elements.append(Paragraph(f"<b>GOLONGAN: {gol}</b>", style_header)); table_data.append(headers); current_gol = gol
+                t.setStyle(TableStyle([
+                    ('BACKGROUND', (0,0), (-1,0), colors.Color(0.1, 0.2, 0.4)), # Dark Blue Header
+                    ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+                    ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                    ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
+                    ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.Color(0.95, 0.95, 0.95)]), # Zebra
+                    ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                    ('ALIGN', (6,0), (7,-1), 'RIGHT'),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+                    ('TOPPADDING', (0,0), (-1,-1), 6),
+                ]))
+                elements.append(t)
+                elements.append(Spacer(1, 10))
+                table_data = []
+            
+            # Add Group Title
+            elements.append(Paragraph(f"{gol}", group_style))
+            table_data.append(headers)
+            current_gol = gol
             
         merk_tipe_str = f"{item.get('merk', '')} {item.get('tipe', '')}".strip()
+        val_perolehan = item.get('nilai_perolehan', 0)
+        val_buku = item.get('nilai_buku', 0)
+        total_asset_value += val_buku
+        
         row = [
-            str(idx), item.get('kode_barang',''), item.get('nup',''),
-            Paragraph(item.get('nama_barang',''), style_normal), Paragraph(merk_tipe_str, style_normal),
-            item.get('kondisi',''), f"{item.get('nilai_perolehan',0):,.0f}", f"{item.get('nilai_buku',0):,.0f}"
+            Paragraph(str(idx), cell_style),
+            Paragraph(item.get('kode_barang',''), cell_style),
+            Paragraph(item.get('nup',''), cell_style),
+            Paragraph(item.get('nama_barang',''), cell_style),
+            Paragraph(merk_tipe_str, cell_style),
+            Paragraph(item.get('kondisi',''), cell_style),
+            Paragraph(f"{val_perolehan:,.0f}", ParagraphStyle('RightNum', parent=cell_style, alignment=TA_RIGHT)),
+            Paragraph(f"{val_buku:,.0f}", ParagraphStyle('RightNumBold', parent=cell_style, alignment=TA_RIGHT, fontName='Helvetica-Bold'))
         ]
-        table_data.append(row); idx+=1
+        table_data.append(row)
+        idx += 1
+        
+    # Flush Last Table
     if table_data:
         t = Table(table_data, colWidths=col_widths, repeatRows=1)
-        t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.lightgrey), ('GRID',(0,0),(-1,-1),0.5,colors.grey), ('ALIGN',(6,0),(7,-1),'RIGHT'), ('VALIGN',(0,0),(-1,-1),'TOP')]))
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.Color(0.1, 0.2, 0.4)),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.Color(0.95, 0.95, 0.95)]),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('ALIGN', (6,0), (7,-1), 'RIGHT'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+            ('TOPPADDING', (0,0), (-1,-1), 6),
+        ]))
         elements.append(t)
-    doc.build(elements); buffer.seek(0)
-    return StreamingResponse(buffer, headers={'Content-Disposition': f'attachment; filename="Laporan_Barang_{datetime.now().strftime("%Y%m%d")}.pdf"'}, media_type='application/pdf')
+        
+    # Summary Section
+    elements.append(Spacer(1, 20))
+    summary_data = [
+        ["Total Item", f"{total_items} Unit"],
+        ["Total Nilai Buku", f"Rp {total_asset_value:,.0f}"]
+    ]
+    st = Table(summary_data, colWidths=[4*cm, 6*cm], hAlign='RIGHT')
+    st.setStyle(TableStyle([
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 10),
+        ('ALIGN', (0,0), (0,-1), 'RIGHT'),
+        ('ALIGN', (1,0), (1,-1), 'LEFT'),
+        ('TEXTCOLOR', (0,0), (-1,-1), colors.darkblue),
+        ('LINEBELOW', (0,0), (-1,-1), 1, colors.darkblue),
+    ]))
+    elements.append(st)
+        
+    doc.build(elements)
+    buffer.seek(0)
+    return StreamingResponse(buffer, headers={'Content-Disposition': f'attachment; filename="Laporan_Aset_{datetime.now().strftime("%Y%m%d")}.pdf"'}, media_type='application/pdf')
+
+# ... (Include other endpoints like bulk-delete, export excel as they were) ...
+@router.post("/bulk-delete")
+async def bulk_delete_barang(
+    ids: Optional[List[str]] = Body(default=None),
+    select_all_mode: bool = Body(default=False),
+    search: Optional[str] = Body(default=None),
+    filters: Optional[Dict[str, Any]] = Body(default=None),
+    current_user: str = Depends(get_current_user)
+):
+    query = {}
+    if select_all_mode:
+        if search: query["$or"] = [{"nama_barang": {"$regex": search, "$options": "i"}}, {"kode_barang": {"$regex": search, "$options": "i"}}, {"nup": {"$regex": search, "$options": "i"}}]
+        if filters:
+            if filters.get('kode'): query["kode_barang"] = {"$regex": filters['kode'], "$options": "i"}
+            if filters.get('nama'): query["nama_barang"] = {"$regex": filters['nama'], "$options": "i"}
+            if filters.get('merk'): query["merk"] = {"$regex": filters['merk'], "$options": "i"}
+            if filters.get('kondisi'): query["kondisi"] = filters['kondisi']
+            if filters.get('lokasi'): query["lokasi_fisik"] = {"$regex": filters['lokasi'], "$options": "i"}
+            if filters.get('nup'): query["nup"] = {"$regex": filters['nup'], "$options": "i"}
+            if filters.get('golongan'): query["golongan_barang"] = {"$regex": filters['golongan'], "$options": "i"}
+        result = await db.barang.delete_many(query)
+    else:
+        if not ids: raise HTTPException(status_code=400, detail="No IDs provided")
+        obj_ids = [ObjectId(i) for i in ids if ObjectId.is_valid(i)]
+        result = await db.barang.delete_many({"_id": {"$in": obj_ids}})
+    return {"message": f"Berhasil menghapus {result.deleted_count} data."}
+
+@router.post("", response_model=Barang)
+async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
+    barang_in.kode_barang = clean_code_str(barang_in.kode_barang)
+    # Check if NUP is auto-temp? User logic happens in frontend calling next-nup?
+    # Or enforce here?
+    # Let's trust frontend to pass the NUP.
+    # But clean it.
+    barang_in.nup = clean_code_str(barang_in.nup)
+    
+    existing = await db.barang.find_one({"kode_barang": barang_in.kode_barang, "nup": barang_in.nup})
+    if existing: raise HTTPException(status_code=400, detail="Barang exists")
+    
+    if not barang_in.golongan_barang: barang_in.golongan_barang = await get_golongan_uraian(barang_in.kode_barang)
+    if barang_in.tgl_perolehan and not barang_in.tahun_anggaran: barang_in.tahun_anggaran = barang_in.tgl_perolehan[:4]
+    
+    new_barang = Barang(**barang_in.dict())
+    result = await db.barang.insert_one(new_barang.model_dump(by_alias=True, exclude=["id"]))
+    return await db.barang.find_one({"_id": result.inserted_id})
+
+@router.put("/{id}", response_model=Barang)
+async def update_barang(id: str, barang_update: BarangCreate, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    if barang_update.kode_barang: barang_update.kode_barang = clean_code_str(barang_update.kode_barang)
+    if barang_update.nup: barang_update.nup = clean_code_str(barang_update.nup)
+    if barang_update.kode_barang and not barang_update.golongan_barang:
+        barang_update.golongan_barang = await get_golongan_uraian(barang_update.kode_barang)
+    update_data = barang_update.dict(exclude_unset=True)
+    update_data['updated_at'] = datetime.now(timezone.utc)
+    res = await db.barang.find_one_and_update({"_id": ObjectId(id)}, {"$set": update_data}, return_document=True)
+    if not res: raise HTTPException(status_code=404)
+    return res
+
+@router.delete("/{id}")
+async def delete_barang(id: str, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    res = await db.barang.delete_one({"_id": ObjectId(id)})
+    if res.deleted_count == 0: raise HTTPException(status_code=404)
+    return {"message": "Deleted"}
 
 @router.get("/export")
 async def export_barang_excel(
@@ -319,3 +438,17 @@ async def export_barang_excel(
     with pd.ExcelWriter(output, engine='openpyxl') as writer: df.to_excel(writer, index=False)
     output.seek(0)
     return StreamingResponse(output, headers={'Content-Disposition': 'attachment; filename="Export.xlsx"'}, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+@router.get("/summary/stats")
+async def get_barang_stats(current_user: str = Depends(get_current_user)):
+    pipeline = [
+         {"$group": {
+            "_id": None,
+            "total_items": {"$sum": 1},
+            "total_value": {"$sum": "$nilai_perolehan"}, 
+            "critical_stock": {"$sum": {"$cond": [{"$lte": ["$stok", 0]}, 1, 0]}}
+        }}
+    ]
+    result = await db.barang.aggregate(pipeline).to_list(1)
+    if not result: return {"total_items": 0, "total_value": 0, "critical_stock": 0}
+    return result[0]
