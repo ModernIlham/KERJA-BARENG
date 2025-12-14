@@ -109,6 +109,14 @@ async def get_persediaan(
         "total_pages": math.ceil(total / limit) if total > 0 else 0
     }
 
+# GET - Single Persediaan (placed after specific routes to avoid conflicts)
+@router.get("/detail/{id}")
+async def get_persediaan_by_id(id: str, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400, detail="Invalid ID")
+    item = await db.persediaan.find_one({"_id": ObjectId(id)})
+    if not item: raise HTTPException(status_code=404, detail="Not found")
+    return sanitize_json(item)
+
 # POST - Create Persediaan
 @router.post("/", response_model=Persediaan)
 async def create_persediaan(persediaan_in: PersediaanCreate, current_user: str = Depends(get_current_user)):
