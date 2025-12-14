@@ -196,11 +196,29 @@ export default function BarangList() {
       if(item.tgl_perolehan) setValue("tgl_perolehan", item.tgl_perolehan.split("T")[0]);
       setIsModalOpen(true); 
   };
-  const onSubmit = async (data) => { try { if (editingItem) { await api.put(`/api/barang/${editingItem._id}`, data); toast.success("Updated"); } else { await api.post('/api/barang', data); toast.success("Created"); } setIsModalOpen(false); reset(); fetchBarang(); } catch(e) { toast.error("Error saving"); } };
+  const onSubmit = async (data) => { 
+    try { 
+      const baseEndpoint = activeTab === 'persediaan' ? '/api/persediaan' : '/api/barang';
+      if (editingItem) { 
+        await api.put(`${baseEndpoint}/${editingItem._id}`, data); 
+        toast.success("Updated"); 
+      } else { 
+        await api.post(baseEndpoint, data); 
+        toast.success("Created"); 
+      } 
+      setIsModalOpen(false); 
+      reset(); 
+      fetchBarang(); 
+    } catch(e) { 
+      toast.error(e.response?.data?.detail || "Error saving"); 
+    } 
+  };
+  
   const handleDelete = async (id) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus barang ini?')) return;
     try {
-      await api.delete(`/api/barang/${id}`);
+      const endpoint = activeTab === 'persediaan' ? `/api/persediaan/${id}` : `/api/barang/${id}`;
+      await api.delete(endpoint);
       toast.success('Barang berhasil dihapus');
       fetchBarang();
     } catch (err) {
