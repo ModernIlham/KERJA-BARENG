@@ -9,37 +9,37 @@
       "test": "Admin Login",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T05:02:40.259681"
+      "timestamp": "2025-12-14T05:10:15.672711"
     },
     {
       "test": "Create Barang API",
       "success": true,
-      "details": "Created with ID: 693e44f07be77af313cf26a8",
-      "timestamp": "2025-12-14T05:02:40.348028"
+      "details": "Created with ID: 693e46b77be77af313cf26a9",
+      "timestamp": "2025-12-14T05:10:15.803911"
     },
     {
       "test": "Verify Barang in DB",
       "success": true,
       "details": "Found in barang list",
-      "timestamp": "2025-12-14T05:02:40.433820"
+      "timestamp": "2025-12-14T05:10:15.963208"
     },
     {
       "test": "Import Excel API",
       "success": true,
-      "details": "Processed: 3, Inserted: 3, Updated: 0",
-      "timestamp": "2025-12-14T05:02:40.704188"
+      "details": "Processed: 3, Inserted: 0, Updated: 3",
+      "timestamp": "2025-12-14T05:10:16.390316"
     },
     {
       "test": "Verify Excel Import in DB",
       "success": true,
       "details": "Found 3 imported items",
-      "timestamp": "2025-12-14T05:02:40.810343"
+      "timestamp": "2025-12-14T05:10:16.539029"
     },
     {
       "test": "Get Barang List",
       "success": true,
-      "details": "Retrieved 43 items successfully",
-      "timestamp": "2025-12-14T05:02:40.964155"
+      "details": "Retrieved 44 items successfully",
+      "timestamp": "2025-12-14T05:10:16.679800"
     }
   ]
 }
