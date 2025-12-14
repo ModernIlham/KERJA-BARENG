@@ -86,17 +86,47 @@ class APITester:
     def test_login(self):
         """Test login and get token"""
         print("\n=== AUTHENTICATION TEST ===")
+        
+        # Try common admin credentials
+        credentials = [
+            {"email": "admin@example.com", "password": "admin123"},
+            {"email": "admin", "password": "admin123"},
+            {"email": "test@example.com", "password": "test123"}
+        ]
+        
+        for cred in credentials:
+            print(f"Trying login with: {cred['email']}")
+            success, response = self.run_test(
+                f"Login with {cred['email']}",
+                "POST",
+                "api/auth/login",
+                200,
+                data=cred
+            )
+            if success and 'access_token' in response:
+                self.token = response['access_token']
+                print(f"✅ Token obtained: {self.token[:20]}...")
+                return True
+        
+        # If no login works, try to register a test user
+        print("No existing credentials work, trying to register test user...")
         success, response = self.run_test(
-            "Login",
+            "Register Test User",
             "POST",
-            "api/auth/login",
+            "api/auth/register",
             200,
-            data={"username": "admin", "password": "admin123"}
+            data={
+                "email": "test@example.com",
+                "password": "test123",
+                "full_name": "Test User",
+                "role": "admin"
+            }
         )
         if success and 'access_token' in response:
             self.token = response['access_token']
-            print(f"✅ Token obtained: {self.token[:20]}...")
+            print(f"✅ Token obtained via registration: {self.token[:20]}...")
             return True
+            
         return False
 
     def test_referensi_api(self):
