@@ -134,4 +134,47 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
+const Layout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+      
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+          onClick={toggleSidebar}
+        />
+      )}
+      
+      {/* Main content */}
+      <div className="md:ml-64">
+        {/* Top bar */}
+        <header className="bg-white border-b border-slate-200 px-6 py-4">
+          <div className="flex items-center">
+            <button 
+              className="md:hidden mr-4"
+              onClick={toggleSidebar}
+            >
+              <Menu size={20} />
+            </button>
+            <h2 className="text-lg font-semibold text-slate-900">SIMAN-G Dashboard</h2>
+          </div>
+        </header>
+        
+        {/* Page content */}
+        <main className="p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
 export default Layout;
