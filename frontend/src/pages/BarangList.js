@@ -198,9 +198,9 @@ export default function BarangList() {
   };
   const onSubmit = async (data) => { 
     try { 
-      const baseEndpoint = activeTab === 'persediaan' ? '/api/persediaan' : '/api/barang';
+      const baseEndpoint = activeTab === 'persediaan' ? '/api/persediaan/' : '/api/barang';
       if (editingItem) { 
-        await api.put(`${baseEndpoint}/${editingItem._id}`, data); 
+        await api.put(`${baseEndpoint}${editingItem._id}`, data); 
         toast.success("Updated"); 
       } else { 
         await api.post(baseEndpoint, data); 
@@ -210,6 +210,7 @@ export default function BarangList() {
       reset(); 
       fetchBarang(); 
     } catch(e) { 
+      console.error('Save error:', e);
       toast.error(e.response?.data?.detail || "Error saving"); 
     } 
   };
