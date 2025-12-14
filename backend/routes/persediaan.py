@@ -115,7 +115,32 @@ async def get_persediaan_by_id(id: str, current_user: str = Depends(get_current_
 @router.post("/", response_model=Persediaan)
 async def create_persediaan(persediaan_in: PersediaanCreate, current_user: str = Depends(get_current_user)):
     persediaan_in.kode_barang = clean_code_str(persediaan_in.kode_barang)
-    persediaan_in.nup = clean_code_str(persediaan_in.nup)
+    
+    # Validate kode_barang length (should be 16 digits for persediaan)
+    if len(persediaan_in.kode_barang) < 16:
+        # If only 10 digits provided, auto-generate the last 6 digits
+        if len(persediaan_in.kode_barang) == 10:
+            # Find max kode_barang with same 10-digit prefix
+            prefix = persediaan_in.kode_barang
+            pattern = f"^{prefix}"
+            max_item = await db.persediaan.find_one(
+                {"kode_barang": {"$regex": pattern}},
+                sort=[("kode_barang", -1)]
+            )
+            
+            if max_item and len(max_item.get('kode_barang', '')) == 16:
+                # Extract last 6 digits and increment
+                last_six = max_item['kode_barang'][-6:]
+                try:
+                    next_num = int(last_six) + 1
+                    persediaan_in.kode_barang = f"{prefix}{str(next_num).zfill(6)}"
+                except:
+                    persediaan_in.kode_barang = f"{prefix}000001"
+            else:
+                # First item with this prefix
+                persediaan_in.kode_barang = f"{prefix}000001"
+    
+    persediaan_in.nup = clean_code_str(persediaan_in.nup) if persediaan_in.nup else "1"
     
     # Auto-generate NUP for manual entry
     if not persediaan_in.nup or persediaan_in.nup == "1":
