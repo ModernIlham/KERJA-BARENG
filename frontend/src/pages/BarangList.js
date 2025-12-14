@@ -705,7 +705,7 @@ export default function BarangList() {
                       <div>
                         <label className="font-semibold text-sm">Kode Barang *</label>
                         <Input {...register('kode_barang', {required: true})} disabled={isReadonly} placeholder="1010301001" />
-                        {kodefikasiHint && <div className="text-xs text-blue-600 mt-1">{kodefikasiHint}</div>}
+                        {kodefikasiHint && <div className="text-xs text-blue-600 mt-1">{kodefikasiHint.golongan || ''}</div>}
                       </div>
                       <div>
                         <label className="font-semibold text-sm">Nama Barang *</label>
