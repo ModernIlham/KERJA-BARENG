@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File, Body
 from fastapi.responses import StreamingResponse
 from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 from models import Persediaan, PersediaanCreate, TransaksiPersediaan, TransaksiPersediaanCreate
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
