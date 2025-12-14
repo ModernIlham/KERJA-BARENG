@@ -182,7 +182,28 @@ export default function BarangList() {
       setIsModalOpen(true); 
   };
   const onSubmit = async (data) => { try { if (editingItem) { await api.put(`/api/barang/${editingItem._id}`, data); toast.success("Updated"); } else { await api.post('/api/barang', data); toast.success("Created"); } setIsModalOpen(false); reset(); fetchBarang(); } catch(e) { toast.error("Error saving"); } };
-  const handleDelete = async (id) => { if(!window.confirm("Hapus?")) return; try { await api.delete(`/api/barang/${id}`); toast.success("Deleted"); fetchBarang(); } catch(e) { toast.error("Fail"); } };
+  const handleDelete = async (id) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus barang ini?')) return;
+    try {
+      await api.delete(`/api/barang/${id}`);
+      toast.success('Barang berhasil dihapus');
+      fetchBarang();
+    } catch (err) {
+      toast.error('Gagal menghapus barang');
+    }
+  };
+
+  const handleStatusChange = async (itemId, newStatus) => {
+    try {
+      await api.patch(`/api/barang/${itemId}/status`, { status_aset: newStatus });
+      toast.success('Status berhasil diubah');
+      setEditingStatusId(null);
+      fetchBarang();
+    } catch (err) {
+      toast.error('Gagal mengubah status');
+      console.error(err);
+    }
+  };
   const handleBulkDelete = async () => { if(!window.confirm("Hapus Massal?")) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
   const onImport = async (data) => { setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]); try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); } catch(e) { toast.error("Import failed"); } finally { setImporting(false); } };
 
