@@ -98,7 +98,7 @@ class SIMANGAPITester:
         print("\n🔍 Testing Barang Operations...")
         
         # Test GET barang list (empty initially)
-        success, response = self.make_request('GET', 'barang')
+        success, response = self.make_request('GET', 'barang/')
         self.log_test("Get Barang List", success, 
                      "" if success else f"Response: {response}")
 
@@ -112,7 +112,7 @@ class SIMANGAPITester:
             "lokasi": "Gudang A"
         }
         
-        success, response = self.make_request('POST', 'barang', barang_data, 200)
+        success, response = self.make_request('POST', 'barang/', barang_data, 200)
         if success and '_id' in response:
             self.created_items['barang_id'] = response['_id']
             self.log_test("Create Barang", True)
