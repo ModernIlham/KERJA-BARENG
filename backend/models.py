@@ -252,6 +252,7 @@ class TransaksiCreate(BaseModel):
 class StockOpname(MongoBaseModel):
     tanggal: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     barang_id: str
+    asset_type: str = "barang" # "barang" or "persediaan"
     nama_barang: str
     stok_sistem: int
     stok_fisik: int

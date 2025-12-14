@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from typing import List, Optional
 from datetime import datetime, timezone
-from models import StockOpname, Barang
+from models import StockOpname, Barang, Persediaan, TransaksiPersediaan
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -12,35 +12,45 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Reuse Transaction Logic
-from routes.transaksi import create_transaksi, TransaksiCreate
-
-@router.get("/", response_model=List[StockOpname])
-async def get_opname_history(limit: int = 50, current_user: str = Depends(get_current_user)):
-    cursor = db.opname.find().sort("tanggal", -1).limit(limit)
+@router.get("/", response_model=List[dict])
+async def get_opname_history(
+    limit: int = 50, 
+    asset_type: str = Query("persediaan", description="barang or persediaan"),
+    current_user: str = Depends(get_current_user)
+):
+    query = {"asset_type": asset_type}
+    cursor = db.opname.find(query).sort("tanggal", -1).limit(limit)
     return await cursor.to_list(length=limit)
 
 @router.post("/", response_model=StockOpname)
 async def submit_opname(
-    barang_id: str,
-    stok_fisik: int,
-    keterangan: Optional[str] = None,
+    barang_id: str = Body(...),
+    stok_fisik: int = Body(...),
+    asset_type: str = Body("persediaan"), # Default to persediaan for this phase
+    keterangan: Optional[str] = Body(None),
     current_user: str = Depends(get_current_user)
 ):
     if not ObjectId.is_valid(barang_id):
-        raise HTTPException(status_code=400, detail="Invalid Barang ID")
+        raise HTTPException(status_code=400, detail="Invalid ID")
         
-    barang = await db.barang.find_one({"_id": ObjectId(barang_id)})
-    if not barang:
-        raise HTTPException(status_code=404, detail="Barang not found")
+    # 1. Fetch Item based on Type
+    if asset_type == 'persediaan':
+        collection = db.persediaan
+    else:
+        collection = db.barang
         
-    stok_sistem = barang.get('stok', 0)
+    item = await collection.find_one({"_id": ObjectId(barang_id)})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+        
+    stok_sistem = item.get('stok', 0)
     selisih = stok_fisik - stok_sistem
     
-    # 1. Record Opname Event
+    # 2. Record Opname
     opname_rec = StockOpname(
         barang_id=barang_id,
-        nama_barang=barang['nama_barang'],
+        asset_type=asset_type,
+        nama_barang=item.get('nama_barang', 'Unknown'),
         stok_sistem=stok_sistem,
         stok_fisik=stok_fisik,
         selisih=selisih,
@@ -50,47 +60,37 @@ async def submit_opname(
     
     res = await db.opname.insert_one(opname_rec.model_dump(by_alias=True, exclude=["id"]))
     
-    # 2. Auto Adjust Stock if there is difference
-    if selisih != 0:
-        # Call Transaction Logic to handle FIFO adjustments properly
-        # We reuse the logic in routes/transaksi.py via internal call or duplicating logic?
-        # Reuse via function call is cleaner if possible, or just re-implement adjustment logic here.
-        # Since 'create_transaksi' is an endpoint fn, calling it directly is tricky with Depends.
-        # We will assume logic is shared. For MVP, let's call the core logic.
-        
-        # We'll use the 'create_transaksi' logic but we need to mock the input
-        # Actually, simpler to just trigger the 'OPNAME' transaction type we built
-        
-        tx_in = TransaksiCreate(
-            jenis="OPNAME",
-            barang_id=barang_id,
-            jumlah=stok_fisik, # Send ACTUAL count
-            keterangan=f"Auto Adjustment from Opname: {keterangan or ''}",
-            dokumen_ref=f"OPN-{res.inserted_id}"
+    # 3. Auto Adjust if Persediaan
+    if asset_type == 'persediaan' and selisih != 0:
+        # Update Master Stock
+        await db.persediaan.update_one(
+            {"_id": ObjectId(barang_id)},
+            {"$set": {"stok": stok_fisik, "updated_at": datetime.now(timezone.utc)}}
         )
         
-        # We need to manually invoke the logic or duplicate it. 
-        # Duplicating the core update logic (minus HTTP overhead) is safer here.
-        
-        # ... (Duplicate simplified update logic from Transaksi route for Opname)
-        new_stok = stok_fisik
+        # Record Transaction (Adjustment)
+        tx_record = TransaksiPersediaan(
+            jenis="opname", # Special type for opname adjustment
+            persediaan_id=barang_id,
+            kode_barang=item.get('kode_barang'),
+            nup=item.get('nup'),
+            nama_barang=item.get('nama_barang'),
+            jumlah=abs(selisih), # Magnitude of change
+            nilai_satuan=item.get('nilai_satuan', 0),
+            total_nilai=abs(selisih) * item.get('nilai_satuan', 0),
+            stok_sebelum=stok_sistem,
+            stok_sesudah=stok_fisik,
+            keterangan=f"Opname Adjustment: {keterangan or ''} (Selisih: {selisih})",
+            petugas=current_user,
+            timestamp=datetime.now(timezone.utc)
+        )
+        await db.transaksi_persediaan.insert_one(tx_record.model_dump(by_alias=True, exclude=["id"]))
+
+    # Handle Aset Tetap adjustment if needed (Simplified for now)
+    elif asset_type == 'barang' and selisih != 0:
         await db.barang.update_one(
             {"_id": ObjectId(barang_id)},
-            {"$set": {"stok": new_stok, "updated_at": datetime.now(timezone.utc)}}
+            {"$set": {"stok": stok_fisik, "updated_at": datetime.now(timezone.utc)}}
         )
-        
-        # Record Transaction
-        from models import Transaksi
-        new_tx = Transaksi(
-            jenis="PENYESUAIAN",
-            barang_id=barang_id,
-            kode_barang=barang.get('kode_barang'),
-            nup=barang.get('nup'),
-            nama_barang=barang['nama_barang'],
-            jumlah=stok_fisik, # Or diff? Usually Opname records actual.
-            keterangan=f"Selisih: {selisih}. {keterangan}",
-            petugas=current_user
-        )
-        await db.transaksi.insert_one(new_tx.model_dump(by_alias=True, exclude=["id"]))
 
     return await db.opname.find_one({"_id": res.inserted_id})
