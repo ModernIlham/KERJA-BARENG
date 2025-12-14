@@ -310,10 +310,22 @@ export default function BarangList() {
                   barang.map((item) => {
                     const isTemp = String(item.nup || "").includes("(Sementara)");
                     const isSelected = selectedIds.has(item._id) || isAllSelected;
+                    const status = item.status_aset || 'Aktif';
+                    
                     let rowClass = "text-xs ";
-                    if (isSelected) rowClass += "bg-blue-50 hover:bg-blue-100";
-                    else if (isTemp) rowClass += "bg-yellow-50 hover:bg-yellow-100";
-                    else rowClass += "hover:bg-slate-50";
+                    
+                    // Priority: Selected > Status-based styling > Temp
+                    if (isSelected) {
+                      rowClass += "bg-blue-50 hover:bg-blue-100";
+                    } else if (status === 'Non Aktif') {
+                      rowClass += "grayscale opacity-60 hover:opacity-70";
+                    } else if (status === 'Dipinjamkan') {
+                      rowClass += "bg-blue-100 hover:bg-blue-200";
+                    } else if (isTemp) {
+                      rowClass += "bg-yellow-50 hover:bg-yellow-100";
+                    } else {
+                      rowClass += "hover:bg-slate-50";
+                    }
 
                     return (
                     <TableRow key={item._id} className={rowClass}>
