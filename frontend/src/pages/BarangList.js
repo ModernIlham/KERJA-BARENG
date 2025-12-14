@@ -199,7 +199,9 @@ export default function BarangList() {
           if (activeTab === 'persediaan') {
              response = await api.post(endpoint, {
                 ids: Array.from(selectedIds),
-                select_all_mode: isAllSelected
+                select_all_mode: isAllSelected,
+                search,
+                filters: currentFilters
              }, { responseType: 'blob' });
           } else {
              response = await api.get(endpoint, { params, responseType: 'blob' });
@@ -236,7 +238,9 @@ export default function BarangList() {
           if (activeTab === 'persediaan') {
              response = await api.post(endpoint, {
                 ids: Array.from(selectedIds),
-                select_all_mode: isAllSelected
+                select_all_mode: isAllSelected,
+                search,
+                filters: currentFilters
              }, { responseType: 'blob' });
           } else {
              response = await api.get(endpoint, { params, responseType: 'blob' });
