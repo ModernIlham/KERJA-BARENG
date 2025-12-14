@@ -9,64 +9,64 @@
       "test": "API Health Check",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T05:35:19.313504"
+      "timestamp": "2025-12-14T05:39:25.768604"
     },
     {
       "test": "Admin Login",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T05:35:19.980729"
+      "timestamp": "2025-12-14T05:39:26.212390"
     },
     {
       "test": "Get Referensi List",
       "success": true,
       "details": "Found 0 items",
-      "timestamp": "2025-12-14T05:35:20.075973"
+      "timestamp": "2025-12-14T05:39:26.289382"
     },
     {
       "test": "Create Referensi",
       "success": true,
-      "details": "Created with ID: 693e4c9806049a1504d8a8db",
-      "timestamp": "2025-12-14T05:35:20.233891"
+      "details": "Created with ID: 693e4d8e06049a1504d8a8dc",
+      "timestamp": "2025-12-14T05:39:26.387222"
     },
     {
       "test": "Referensi Lookup Structure",
       "success": true,
       "details": "All expected keys present",
-      "timestamp": "2025-12-14T05:35:20.325427"
+      "timestamp": "2025-12-14T05:39:26.466842"
     },
     {
       "test": "Referensi Lookup Golongan",
       "success": true,
       "details": "Golongan: 3 - Peralatan dan Mesin",
-      "timestamp": "2025-12-14T05:35:20.325458"
+      "timestamp": "2025-12-14T05:39:26.466869"
     },
     {
       "test": "Referensi Search",
       "success": true,
       "details": "Search returned 1 results",
-      "timestamp": "2025-12-14T05:35:20.414657"
+      "timestamp": "2025-12-14T05:39:26.562004"
     },
     {
       "test": "Referensi Level Filter",
       "success": true,
       "details": "Level 1 filter returned 0 results",
-      "timestamp": "2025-12-14T05:35:20.543849"
+      "timestamp": "2025-12-14T05:39:26.650612"
     },
     {
       "test": "Referensi Import Endpoint Exists",
       "success": true,
       "details": "Endpoint accessible (validation error expected)",
-      "timestamp": "2025-12-14T05:35:20.620307"
+      "timestamp": "2025-12-14T05:39:26.814123"
     },
     {
       "test": "Cleanup Referensi",
       "success": true,
       "details": "",
-      "timestamp": "2025-12-14T05:35:20.790985"
+      "timestamp": "2025-12-14T05:39:26.912458"
     }
   ],
   "created_items": {
-    "referensi_id": "693e4c9806049a1504d8a8db"
+    "referensi_id": "693e4d8e06049a1504d8a8dc"
   }
 }
