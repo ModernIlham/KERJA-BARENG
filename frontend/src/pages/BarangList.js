@@ -884,6 +884,7 @@ export default function BarangList() {
                     {!isReadonly && <Button type="submit" className="bg-slate-900 text-white min-w-[150px]">Simpan Perubahan</Button>}
                     {isReadonly && <Button type="button" onClick={() => setIsModalOpen(false)} className="bg-slate-500 text-white">Tutup (Read Only)</Button>}
                 </div>
+                  </>
                 )}
             </form>
           </DialogContent>
