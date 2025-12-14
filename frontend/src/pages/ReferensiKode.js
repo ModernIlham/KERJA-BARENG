@@ -6,8 +6,9 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Trash, Edit, FileUp } from 'lucide-react';
+import { Plus, Search, Loader2, Trash, Edit, FileUp, Download, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 export default function ReferensiKode() {
   const [data, setData] = useState([]);
@@ -82,7 +83,7 @@ export default function ReferensiKode() {
       const formData = new FormData();
       formData.append('file', form.file[0]);
       
-      const t = toast.loading("Mengimpor...");
+      const t = toast.loading("Mengimpor... (Bisa memakan waktu)");
       try {
           const res = await api.post('/api/referensi/import', formData, {
               headers: {'Content-Type': 'multipart/form-data'}
@@ -91,8 +92,18 @@ export default function ReferensiKode() {
           setIsImportOpen(false);
           fetchData();
       } catch(e) {
-          toast.error("Import gagal", {id: t});
+          toast.error(e.response?.data?.detail || "Import gagal", {id: t});
       }
+  };
+
+  const downloadTemplate = () => {
+      const ws = XLSX.utils.json_to_sheet([
+          { "Kode": "3010101001", "Uraian": "Sepeda Motor" },
+          { "Kode": "3010101002", "Uraian": "Mobil Sedan" },
+      ]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "KodefikasiBarang");
+      XLSX.writeFile(wb, "Template_Kodefikasi_Barang.xlsx");
   };
 
   return (
@@ -101,7 +112,7 @@ export default function ReferensiKode() {
             <h1 className="text-2xl font-bold text-slate-900">Referensi Kodefikasi Barang</h1>
             <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setIsImportOpen(true)}>
-                    <FileUp className="mr-2 h-4 w-4"/> Import Excel
+                    <FileUp className="mr-2 h-4 w-4"/> Import
                 </Button>
                 <Button className="bg-slate-900" onClick={openAdd}>
                     <Plus className="mr-2 h-4 w-4"/> Tambah Kode
@@ -178,14 +189,49 @@ export default function ReferensiKode() {
 
         {/* Import Modal */}
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-            <DialogContent>
-                <DialogHeader><DialogTitle>Import Kodefikasi</DialogTitle></DialogHeader>
-                <div className="space-y-4">
-                    <p className="text-sm text-slate-500">Upload file Excel dengan sheet <strong>&quot;KodefikasiBarang&quot;</strong>. Kolom: <strong>Kode, Uraian</strong>.</p>
-                    <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
-                        <Input type="file" accept=".xlsx" {...registerImport('file', {required:true})} />
-                        <Button className="w-full bg-green-600 hover:bg-green-700">Mulai Import</Button>
-                    </form>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader><DialogTitle>Import Kodefikasi Massal</DialogTitle></DialogHeader>
+                <div className="space-y-6">
+                    <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200 text-sm space-y-2">
+                        <div className="flex items-center gap-2 font-bold text-yellow-800">
+                            <AlertTriangle size={16}/> Peringatan & Ketentuan Import
+                        </div>
+                        <ul className="list-disc pl-5 text-yellow-700 space-y-1">
+                            <li>Format File: <strong>.xlsx</strong> (Excel) atau <strong>.csv</strong>.</li>
+                            <li>Wajib ada Header (Judul Kolom) di baris pertama.</li>
+                            <li>Kolom Wajib: <strong>Kode</strong> dan <strong>Uraian</strong>.</li>
+                            <li>Pastikan Kode berupa angka/teks bersih (contoh: <code>3010101001</code>). Titik (.) akan otomatis dihapus.</li>
+                            <li>File besar (&gt;10MB) mungkin memakan waktu lama. Jangan tutup halaman.</li>
+                        </ul>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <p className="text-sm font-medium">Contoh Format Data:</p>
+                        <div className="border rounded-md overflow-hidden text-xs">
+                            <Table>
+                                <TableHeader className="bg-slate-100">
+                                    <TableRow><TableHead>Kode</TableHead><TableHead>Uraian</TableHead></TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow><TableCell>3010101001</TableCell><TableCell>Sepeda Motor</TableCell></TableRow>
+                                    <TableRow><TableCell>3010101002</TableCell><TableCell>Mobil Sedan</TableCell></TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={downloadTemplate} className="w-fit mt-2">
+                            <Download className="mr-2 h-3 w-3"/> Download Template Excel
+                        </Button>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                        <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Upload File</label>
+                                <Input type="file" accept=".xlsx,.csv" {...registerImport('file', {required:true})} />
+                            </div>
+                            <Button className="w-full bg-green-600 hover:bg-green-700">Mulai Proses Import</Button>
+                        </form>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

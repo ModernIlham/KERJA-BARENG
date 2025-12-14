@@ -7,6 +7,7 @@ import os
 from bson import ObjectId
 import pandas as pd
 import io
+import csv
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -18,7 +19,7 @@ from pydantic import BaseModel
 class KodefikasiCreate(BaseModel):
     kode: str
     uraian: str
-    level: Optional[int] = None # Optional, auto-calc if missing
+    level: Optional[int] = None
 
 # --- Endpoints ---
 
@@ -44,10 +45,8 @@ async def get_referensi_list(
 
 @router.post("", response_model=Kodefikasi)
 async def create_referensi(item: KodefikasiCreate, current_user: str = Depends(get_current_user)):
-    # Clean Kode
     clean_kode = item.kode.replace(".", "").strip()
     
-    # Auto Level
     level = item.level
     if not level:
         if len(clean_kode) == 1: level = 1
@@ -55,9 +54,8 @@ async def create_referensi(item: KodefikasiCreate, current_user: str = Depends(g
         elif len(clean_kode) == 5: level = 3
         elif len(clean_kode) == 7: level = 4
         elif len(clean_kode) >= 10: level = 5
-        else: level = 5 # Default
+        else: level = 5
         
-    # Check duplicate
     existing = await db.kodefikasi.find_one({"kode": clean_kode})
     if existing:
         raise HTTPException(status_code=400, detail="Kode sudah ada")
@@ -86,9 +84,6 @@ async def delete_referensi(id: str, current_user: str = Depends(get_current_user
 
 @router.get("/lookup")
 async def lookup_kode(kode: str, current_user: str = Depends(get_current_user)):
-    """
-    Parses a 10+ digit code and returns hierarchy.
-    """
     clean_kode = kode.replace(".", "").strip()
     result = {
         "golongan": None,
@@ -110,7 +105,6 @@ async def lookup_kode(kode: str, current_user: str = Depends(get_current_user)):
     refs = await cursor.to_list(None)
     ref_map = {r['kode']: r['uraian'] for r in refs}
     
-    # Defaults
     golongan_map = {
         "1": "Persediaan",
         "2": "Tanah",
@@ -145,33 +139,71 @@ async def lookup_kode(kode: str, current_user: str = Depends(get_current_user)):
 @router.post("/import")
 async def import_referensi(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
     """
-    Import Table 'KodefikasiBarang' from Excel
-    Expected Cols: 'Kode', 'Uraian'
+    Import Table 'KodefikasiBarang' from Excel or CSV
+    Smart column detection.
     """
-    if not file.filename.endswith(('.xls', '.xlsx')):
-        raise HTTPException(status_code=400, detail="Excel only")
+    if not file.filename.endswith(('.xls', '.xlsx', '.csv')):
+        raise HTTPException(status_code=400, detail="File harus Excel (.xlsx) atau CSV (.csv)")
         
     try:
         contents = await file.read()
-        try:
-            df = pd.read_excel(io.BytesIO(contents), sheet_name='KodefikasiBarang')
-        except:
-            df = pd.read_excel(io.BytesIO(contents)) 
+        
+        # Read file based on extension
+        if file.filename.endswith('.csv'):
+            # Try sniffing delimiters commonly used
+            try:
+                # Assuming utf-8 encoding first
+                df = pd.read_csv(io.BytesIO(contents))
+            except:
+                # Try latin-1 if utf-8 fails
+                df = pd.read_csv(io.BytesIO(contents), encoding='latin-1')
+        else:
+            try:
+                df = pd.read_excel(io.BytesIO(contents), sheet_name='KodefikasiBarang')
+            except:
+                df = pd.read_excel(io.BytesIO(contents)) 
             
         df = df.where(pd.notnull(df), None)
         
+        # Normalize columns to lowercase for matching
+        df.columns = [c.strip().lower() for c in df.columns]
+        
+        # Identify columns
+        col_kode = None
+        col_uraian = None
+        
+        # Priority map for Code
+        for candidate in ['kode', 'kd_brg', 'kd_sskel', 'kd_aset', 'kode barang']:
+            if candidate in df.columns:
+                col_kode = candidate
+                break
+                
+        # Priority map for Uraian
+        for candidate in ['uraian', 'ur_sskel', 'ur_brg', 'nama barang', 'nama_barang']:
+            if candidate in df.columns:
+                col_uraian = candidate
+                break
+        
+        if not col_kode or not col_uraian:
+            raise HTTPException(status_code=400, detail=f"Kolom tidak ditemukan. Wajib ada: Kode, Uraian. Ditemukan: {list(df.columns)}")
+        
         count = 0
         for index, row in df.iterrows():
-            kode = str(row.get('Kode', '')).replace(".", "").strip()
-            uraian = str(row.get('Uraian', '')).strip()
+            raw_kode = str(row.get(col_kode, ''))
             
-            if not kode or not uraian: continue
+            # Clean weird chars
+            kode = raw_kode.replace(".", "").replace("'", "").replace('"', "").strip()
+            uraian = str(row.get(col_uraian, '')).strip()
             
+            if not kode or not uraian or kode.lower() == 'nan': continue
+            
+            # Determine Level
             level = 5
             if len(kode) == 1: level = 1
             elif len(kode) == 3: level = 2
             elif len(kode) == 5: level = 3
             elif len(kode) == 7: level = 4
+            elif len(kode) >= 10: level = 5
             
             await db.kodefikasi.update_one(
                 {"kode": kode},
@@ -180,7 +212,9 @@ async def import_referensi(file: UploadFile = File(...), current_user: str = Dep
             )
             count += 1
             
-        return {"message": f"Import Referensi Selesai. {count} data diproses."}
+        return {"message": f"Import Selesai. {count} kodefikasi berhasil diproses."}
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Gagal memproses file: {str(e)}")
