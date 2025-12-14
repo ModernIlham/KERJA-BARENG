@@ -642,7 +642,10 @@ export default function BarangList() {
                       <div className="p-4 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
                         <div className="font-bold mb-2">Format Import Persediaan:</div>
                         <ul className="list-disc pl-5 space-y-1 text-xs">
-                          <li><strong>KodeBarang</strong> (wajib) - Kode 10 digit persediaan (awalan 1)</li>
+                          <li><strong>KodeBarang</strong> (wajib) - <strong>16 digit</strong> atau 10 digit (sistem akan auto-generate 6 digit terakhir)</li>
+                          <li className="ml-4 text-[10px]">
+                            <code className="bg-blue-100 px-1 rounded">Format: 1010301001000001</code> atau <code className="bg-blue-100 px-1 rounded">1010301001</code>
+                          </li>
                           <li><strong>NamaBarang</strong> (wajib) - Nama item</li>
                           <li><strong>Merk, Tipe, Satuan</strong></li>
                           <li><strong>StokSaatIni</strong> - Jumlah stok</li>
