@@ -9,6 +9,7 @@ import { Search, Printer, FileText } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'sonner';
 
+import LaporanBMN from './LaporanBMN';
 export default function Laporan() {
   const [barangList, setBarangList] = useState([]);
   const [selectedBarang, setSelectedBarang] = useState('');
@@ -57,16 +58,24 @@ export default function Laporan() {
 
   return (
     <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-slate-900">Laporan & Arsip</h1>
+        {/* Render LaporanBMN directly if activeTab is 'bmn' or default */}
+        {/* Actually, let's keep the tabs structure but make BMN the first/default tab */}
         
-        <Tabs defaultValue="posisi" onValueChange={(val) => {
+        <h1 className="text-2xl font-bold text-slate-900 no-print">Laporan & Arsip</h1>
+        
+        <Tabs defaultValue="bmn" className="no-print-tabs" onValueChange={(val) => {
             if(val === 'posisi' && !posisiReport) generatePosisi();
         }}>
-            <TabsList className="bg-slate-100">
+            <TabsList className="bg-slate-100 no-print">
+                <TabsTrigger value="bmn">Laporan Inti (BMN)</TabsTrigger>
                 <TabsTrigger value="posisi">Posisi Persediaan</TabsTrigger>
                 <TabsTrigger value="mutasi">Laporan Mutasi</TabsTrigger>
                 <TabsTrigger value="kartu">Kartu Gudang</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="bmn" className="mt-4">
+                <LaporanBMN />
+            </TabsContent>
 
             <TabsContent value="posisi" className="mt-4">
                  <Card>
