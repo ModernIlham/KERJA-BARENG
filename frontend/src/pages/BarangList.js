@@ -79,6 +79,7 @@ export default function BarangList() {
     }
   }, [currentPage, limit, search, filters]);
 
+  // Debounce Effect
   useEffect(() => {
       const t = setTimeout(() => {
           if (currentPage === 1) fetchBarang(); 
@@ -87,11 +88,42 @@ export default function BarangList() {
       return () => clearTimeout(t);
   }, [filters, search]);
 
+  // Main Fetch
   useEffect(() => {
       fetchBarang(); 
   }, [currentPage, fetchBarang]);
 
-  // ... (Select Logic, Actions, etc. same as before) ...
+  // Automation
+  useEffect(() => {
+      if (tglPerolehanValue && !editingItem) {
+          const year = tglPerolehanValue.split('-')[0];
+          if(year && year.length === 4) setValue('tahun_anggaran', year);
+      }
+  }, [tglPerolehanValue, setValue, editingItem]);
+
+  useEffect(() => {
+      if (kodeBarangValue && kodeBarangValue.length >= 1) {
+          const t = setTimeout(async () => {
+              try {
+                  const res = await api.get('/api/referensi/lookup', { params: { kode: kodeBarangValue } });
+                  setKodefikasiHint(res.data);
+                  if (!editingItem && res.data.golongan) setValue('golongan_barang', res.data.golongan);
+                  if (!editingItem && res.data.uraian_barang && kodeBarangValue.length >= 10 && !watch('nama_barang')) {
+                      setValue('nama_barang', res.data.uraian_barang);
+                  }
+                  if (!editingItem && kodeBarangValue.length >= 5) {
+                      const nupRes = await api.get('/api/barang/next-nup', { params: { kode: kodeBarangValue } });
+                      if(nupRes.data.formatted) setValue('nup', nupRes.data.formatted);
+                  }
+              } catch (e) {}
+          }, 500); return () => clearTimeout(t);
+      } else { setKodefikasiHint(null); }
+  }, [kodeBarangValue, setValue, editingItem, watch]);
+
+  // --- FIX: Define isPageSelected before render ---
+  const isPageSelected = barang.length > 0 && barang.every(item => selectedIds.has(item._id));
+
+  // --- Select Logic ---
   const toggleSelectAllPage = (checked) => {
       setIsAllSelected(false);
       try {
@@ -140,7 +172,6 @@ export default function BarangList() {
       } catch (e) { toast.error("Gagal PDF", {id: t}); }
   };
 
-  // ... (Other handlers same) ...
   const openAddModal = () => { setEditingItem(null); setKodefikasiHint(null); reset({}); setIsModalOpen(true); };
   const openEditModal = (item) => { 
       setEditingItem(item); setKodefikasiHint(null);
@@ -152,33 +183,6 @@ export default function BarangList() {
   const handleDelete = async (id) => { if(!window.confirm("Hapus?")) return; try { await api.delete(`/api/barang/${id}`); toast.success("Deleted"); fetchBarang(); } catch(e) { toast.error("Fail"); } };
   const handleBulkDelete = async () => { if(!window.confirm("Hapus Massal?")) return; try { await api.post('/api/barang/bulk-delete', { select_all_mode: isAllSelected, ids: Array.from(selectedIds), search, filters }); toast.success("Deleted"); clearSelection(); fetchBarang(); } catch(e) { toast.error("Fail"); } };
   const onImport = async (data) => { setImporting(true); const fd = new FormData(); fd.append('file', data.file[0]); try { await api.post('/api/barang/import', fd, { headers: {'Content-Type':'multipart/form-data'}}); toast.success("Imported"); setIsImportOpen(false); fetchBarang(); } catch(e) { toast.error("Import failed"); } finally { setImporting(false); } };
-  
-  useEffect(() => {
-      if (kodeBarangValue && kodeBarangValue.length >= 1) {
-          const t = setTimeout(async () => {
-              try {
-                  const res = await api.get('/api/referensi/lookup', { params: { kode: kodeBarangValue } });
-                  setKodefikasiHint(res.data);
-                  if (!editingItem && res.data.golongan) setValue('golongan_barang', res.data.golongan);
-                  if (!editingItem && res.data.uraian_barang && kodeBarangValue.length >= 10 && !watch('nama_barang')) {
-                      setValue('nama_barang', res.data.uraian_barang);
-                  }
-                  if (!editingItem && kodeBarangValue.length >= 5) {
-                      const nupRes = await api.get('/api/barang/next-nup', { params: { kode: kodeBarangValue } });
-                      if(nupRes.data.formatted) setValue('nup', nupRes.data.formatted);
-                  }
-              } catch (e) {}
-          }, 500); return () => clearTimeout(t);
-      } else { setKodefikasiHint(null); }
-  }, [kodeBarangValue, setValue, editingItem, watch]);
-
-  // Year Auto
-  useEffect(() => {
-      if (tglPerolehanValue && !editingItem) {
-          const year = tglPerolehanValue.split('-')[0];
-          if(year && year.length === 4) setValue('tahun_anggaran', year);
-      }
-  }, [tglPerolehanValue, setValue, editingItem]);
 
   const isReadonly = editingItem?.source === 'import';
 
@@ -188,7 +192,6 @@ export default function BarangList() {
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Barang</h1>
         
         <div className="flex flex-wrap gap-2 w-full xl:w-auto items-center">
-            {/* ... Buttons ... */}
             <div className="relative flex-1 xl:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
                 <Input placeholder="Cari Global..." className="pl-9 h-10" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -238,9 +241,8 @@ export default function BarangList() {
                   <TableHead className="w-[40px] text-center p-2">
                       <input type="checkbox" onChange={(e) => toggleSelectAllPage(e.target.checked)} checked={isPageSelected || isAllSelected} className="rounded border-slate-300"/>
                   </TableHead>
-                  
                   {visibleColumns.gol && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Gol</TableHead>}
-                  {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang / Spesifikasi</TableHead>}
+                  {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang</TableHead>}
                   {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode / NUP</TableHead>}
                   {visibleColumns.kondisi && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Kondisi</TableHead>}
                   {visibleColumns.stok && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Stok</TableHead>}
@@ -253,7 +255,6 @@ export default function BarangList() {
                   {visibleColumns.register && <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Register</TableHead>}
                   {visibleColumns.tahun && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Tahun</TableHead>}
                   {visibleColumns.status && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
-                  
                   <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
                 </TableRow>
                 
@@ -290,7 +291,7 @@ export default function BarangList() {
                       {visibleColumns.gol && <TableCell className="p-2 truncate max-w-[80px]" title={item.golongan_barang}>{item.golongan_barang || '-'}</TableCell>}
                       {visibleColumns.nama && <TableCell className="p-2"><div className="font-semibold text-slate-900 truncate max-w-[200px]" title={item.nama_barang}>{item.nama_barang}</div><div className="text-[10px] text-slate-500 truncate max-w-[200px]">{item.merk} {item.tipe}</div></TableCell>}
                       {visibleColumns.kode && <TableCell className="p-2 font-mono text-[10px]"><div title={item.kode_barang}>{item.kode_barang}</div><div className="text-slate-500">NUP: {item.nup}</div></TableCell>}
-                      {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{item.kondisi}</span></TableCell>}
+                      {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : item.kondisi === 'Rusak Berat' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>{item.kondisi}</span></TableCell>}
                       {visibleColumns.stok && <TableCell className="text-center font-bold p-2">{item.stok}</TableCell>}
                       {visibleColumns.rata && <TableCell className="text-right p-2 whitespace-nowrap">{formatCurrency(item.nilai_satuan || 0)}</TableCell>}
                       {visibleColumns.perolehan && <TableCell className="text-right p-2 whitespace-nowrap font-medium">{formatCurrency(item.nilai_perolehan || 0)}</TableCell>}
@@ -305,7 +306,7 @@ export default function BarangList() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild><Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit / Detail</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleDelete(item._id)} className="text-xs text-red-600"><Trash size={12} className="mr-2"/> Hapus</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -320,8 +321,8 @@ export default function BarangList() {
         </CardContent>
       </Card>
       
-      {/* Modals same as before... */}
-      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+      {/* Import & Edit Modals (Same as before) */}
+        <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
                 <DialogHeader><DialogTitle>Import Data Barang (SIMAN)</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-4">
