@@ -48,10 +48,10 @@ async def get_referensi_list(
 @router.get("/template")
 async def get_import_template():
     try:
+        # Standard SIMAN Template
         data = [
-            {"kd_brg": "3", "ur_sskel": "Peralatan dan Mesin"},
-            {"kd_brg": "301", "ur_sskel": "Alat Besar"},
-            {"kd_brg": "30101", "ur_sskel": "Alat Besar Darat"}
+            {"kd_brg": "3010101001", "ur_sskel": "Sepeda Motor"},
+            {"kd_brg": "3010101002", "ur_sskel": "Mobil Sedan"}
         ]
         df = pd.DataFrame(data)
         output = io.BytesIO()
@@ -69,71 +69,134 @@ async def get_import_template():
 @router.post("/import")
 async def import_referensi(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
     """
-    Smart Import for Referensi Kode.
-    Accepts standard SIMAN headers ('kd_brg', 'ur_sskel') OR common aliases.
+    Smart Import accepting:
+    1. Standard Template ('kd_brg', 'ur_sskel')
+    2. 'Coba 2' Format ('Kode Barang', 'Golongan Barang', 'Bidang Barang'...) -> Auto-generates hierarchy
     """
     if not file.filename.endswith(('.xls', '.xlsx')):
         raise HTTPException(status_code=400, detail="File harus format Excel (.xlsx)")
         
     try:
         contents = await file.read()
+        
+        # 1. Read Excel & Find Header
         try:
-            df = pd.read_excel(io.BytesIO(contents))
+            df_raw = pd.read_excel(io.BytesIO(contents), header=None)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"File rusak: {str(e)}")
             
+        # Scan first 20 rows for header candidates
+        header_idx = -1
+        found_mode = None # 'STANDARD' or 'HIERARCHY'
+        
+        for i, row in df_raw.head(20).iterrows():
+            row_str = row.astype(str).str.lower().tolist()
+            
+            # Check for Standard ('kd_brg')
+            if any('kd_brg' in s or 'kode barang' in s for s in row_str):
+                header_idx = i
+                # Determine mode
+                if any('golongan barang' in s for s in row_str):
+                    found_mode = 'HIERARCHY'
+                elif any('ur_sskel' in s or 'uraian' in s for s in row_str):
+                    found_mode = 'STANDARD'
+                break
+        
+        if header_idx == -1:
+            raise HTTPException(status_code=400, detail="Header tidak ditemukan. Pastikan ada kolom 'Kode Barang' atau 'kd_brg'.")
+            
+        # Re-read with correct header
+        df = pd.read_excel(io.BytesIO(contents), header=header_idx)
         df = df.where(pd.notnull(df), None)
-        # Normalize headers: lowercase, strip
         df.columns = [str(c).strip().lower() for c in df.columns]
         
-        # Column Mapping Strategy
-        col_map = {
-            'kode': ['kd_brg', 'kode', 'kode barang', 'kode_barang', 'kd_aset'],
-            'uraian': ['ur_sskel', 'uraian', 'nama barang', 'nama_barang', 'ur_brg']
-        }
-        
-        found_kode = next((c for c in col_map['kode'] if c in df.columns), None)
-        found_uraian = next((c for c in col_map['uraian'] if c in df.columns), None)
-        
-        if not found_kode or not found_uraian:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Header tidak dikenali. Pastikan ada kolom Kode ('kd_brg'/'Kode') dan Uraian ('ur_sskel'/'Nama Barang'). Ditemukan: {', '.join(df.columns)}"
-            )
-        
         count = 0
-        batch_ops = [] # For bulk write if needed, using simple loop for now
         
-        for index, row in df.iterrows():
-            raw_kode = str(row.get(found_kode, ''))
-            # Clean: remove dots, quotes, spaces
-            kode = ''.join(filter(str.isdigit, raw_kode))
-            uraian = str(row.get(found_uraian, '')).strip()
+        # 2. Process based on Mode
+        if found_mode == 'HIERARCHY':
+            # Mapping columns
+            col_kode = next((c for c in df.columns if 'kode' in c or 'kd_brg' in c), None)
+            col_gol = next((c for c in df.columns if 'golongan' in c), None)
+            col_bid = next((c for c in df.columns if 'bidang' in c), None)
+            col_kel = next((c for c in df.columns if 'kelompok' in c and 'sub' not in c), None)
+            col_sub = next((c for c in df.columns if 'sub kelompok' in c and 'sub - sub' not in c), None)
+            col_subsub = next((c for c in df.columns if 'sub - sub' in c or 'ur_sskel' in c), None)
             
-            if not kode or not uraian: continue
+            for index, row in df.iterrows():
+                raw_kode = str(row.get(col_kode, ''))
+                full_kode = ''.join(filter(str.isdigit, raw_kode))
+                
+                if not full_kode: continue
+                
+                # Hierarchical Upsert (Level 1 to 5)
+                # Level 1: Golongan (1 Digit)
+                if len(full_kode) >= 1 and col_gol:
+                    k = full_kode[:1]
+                    u = str(row.get(col_gol, '')).strip()
+                    if u: await upsert_kode(k, u, 1)
+                        
+                # Level 2: Bidang (3 Digit)
+                if len(full_kode) >= 3 and col_bid:
+                    k = full_kode[:3]
+                    u = str(row.get(col_bid, '')).strip()
+                    if u: await upsert_kode(k, u, 2)
+                        
+                # Level 3: Kelompok (5 Digit)
+                if len(full_kode) >= 5 and col_kel:
+                    k = full_kode[:5]
+                    u = str(row.get(col_kel, '')).strip()
+                    if u: await upsert_kode(k, u, 3)
+                        
+                # Level 4: Sub Kelompok (7 Digit)
+                if len(full_kode) >= 7 and col_sub:
+                    k = full_kode[:7]
+                    u = str(row.get(col_sub, '')).strip()
+                    if u: await upsert_kode(k, u, 4)
+                        
+                # Level 5: Sub Sub Kelompok (10 Digit)
+                if len(full_kode) >= 10 and col_subsub:
+                    k = full_kode[:10]
+                    u = str(row.get(col_subsub, '')).strip()
+                    if u: await upsert_kode(k, u, 5)
+                
+                count += 1
+
+        else: # STANDARD MODE
+            col_kode = next((c for c in df.columns if 'kode' in c or 'kd_brg' in c), None)
+            col_uraian = next((c for c in df.columns if 'uraian' in c or 'ur_sskel' in c or 'nama' in c), None)
             
-            # Level Logic
-            level = 5 
-            length = len(kode)
-            if length == 1: level = 1
-            elif length == 3: level = 2
-            elif length == 5: level = 3
-            elif length == 7: level = 4
-            elif length >= 10: level = 5
+            for index, row in df.iterrows():
+                raw_kode = str(row.get(col_kode, ''))
+                kode = ''.join(filter(str.isdigit, raw_kode))
+                uraian = str(row.get(col_uraian, '')).strip()
+                
+                if not kode or not uraian: continue
+                
+                # Auto-detect level
+                level = 5
+                l = len(kode)
+                if l == 1: level = 1
+                elif l == 3: level = 2
+                elif l == 5: level = 3
+                elif l == 7: level = 4
+                
+                await upsert_kode(kode, uraian, level)
+                count += 1
             
-            # Upsert
-            await db.kodefikasi.update_one(
-                {"kode": kode},
-                {"$set": {"uraian": uraian, "level": level}},
-                upsert=True
-            )
-            count += 1
-            
-        return {"message": f"Import Berhasil! {count} kode referensi tersimpan."}
+        return {"message": f"Import Berhasil! {count} baris data diproses."}
         
     except HTTPException as he: raise he
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"System Error: {str(e)}")
+
+async def upsert_kode(kode, uraian, level):
+    await db.kodefikasi.update_one(
+        {"kode": kode},
+        {"$set": {"uraian": uraian, "level": level}},
+        upsert=True
+    )
 
 # ... (Existing CRUD Endpoints: create, update, delete, lookup) ...
 @router.post("", response_model=Kodefikasi)
