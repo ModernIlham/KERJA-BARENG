@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -10,7 +11,12 @@ import { formatCurrency } from '../lib/utils';
 import { toast } from 'sonner';
 
 import LaporanBMN from './LaporanBMN';
+
 export default function Laporan() {
+  const { type } = useParams();
+  const navigate = useNavigate();
+  const activeTab = type || 'bmn';
+
   const [barangList, setBarangList] = useState([]);
   const [selectedBarang, setSelectedBarang] = useState('');
   const [reportData, setReportData] = useState(null);
@@ -22,6 +28,13 @@ export default function Laporan() {
   useEffect(() => {
     api.get('/api/barang').then(res => setBarangList(res.data));
   }, []);
+
+  // Fetch data when tab changes
+  useEffect(() => {
+      if (activeTab === 'posisi' && !posisiReport) {
+          generatePosisi();
+      }
+  }, [activeTab]);
 
   const generateKartu = async () => {
     if (!selectedBarang) return toast.error("Pilih barang!");
@@ -58,14 +71,9 @@ export default function Laporan() {
 
   return (
     <div className="space-y-6">
-        {/* Render LaporanBMN directly if activeTab is 'bmn' or default */}
-        {/* Actually, let's keep the tabs structure but make BMN the first/default tab */}
-        
         <h1 className="text-2xl font-bold text-slate-900 no-print">Laporan & Arsip</h1>
         
-        <Tabs defaultValue="bmn" className="no-print-tabs" onValueChange={(val) => {
-            if(val === 'posisi' && !posisiReport) generatePosisi();
-        }}>
+        <Tabs value={activeTab} className="no-print-tabs" onValueChange={(val) => navigate(`/laporan/${val}`)}>
             <TabsList className="bg-slate-100 no-print">
                 <TabsTrigger value="bmn">Laporan Inti (BMN)</TabsTrigger>
                 <TabsTrigger value="posisi">Posisi Persediaan</TabsTrigger>
