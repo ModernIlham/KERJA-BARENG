@@ -234,3 +234,144 @@ async def lookup_kode(kode: str, current_user: str = Depends(get_current_user)):
         result["sub_sub_kelompok"] = f"{clean_kode[:10]} - {ref_map.get(clean_kode[:10], '')}"
         result["uraian_barang"] = ref_map.get(clean_kode[:10], '')
     return result
+
+# Export Excel - All Referensi Kode
+@router.get("/export/excel")
+async def export_referensi_excel(current_user: str = Depends(get_current_user)):
+    try:
+        # Fetch all kodefikasi sorted by level and kode
+        cursor = db.kodefikasi.find({}).sort([("level", 1), ("kode", 1)])
+        items = await cursor.to_list(None)
+        
+        if not items:
+            raise HTTPException(status_code=404, detail="Tidak ada data referensi kode")
+        
+        # Prepare data for Excel
+        data_list = []
+        for item in items:
+            level_name = {
+                1: "Golongan",
+                2: "Bidang", 
+                3: "Kelompok",
+                4: "Sub Kelompok",
+                5: "Sub-Sub Kelompok"
+            }.get(item.get('level', 5), "Level 5")
+            
+            data_list.append({
+                "Kode": item.get('kode', ''),
+                "Uraian": item.get('uraian', ''),
+                "Level": level_name
+            })
+        
+        df = pd.DataFrame(data_list)
+        
+        # Create Excel file
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Referensi Kode', index=False)
+            
+            # Auto-adjust column width
+            worksheet = writer.sheets['Referensi Kode']
+            for idx, col in enumerate(df.columns):
+                max_length = max(df[col].astype(str).apply(len).max(), len(col)) + 2
+                worksheet.column_dimensions[chr(65 + idx)].width = min(max_length, 50)
+        
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': 'attachment; filename="Referensi_Kode_Barang.xlsx"'}
+        )
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating Excel: {str(e)}")
+
+# Export PDF - All Referensi Kode
+@router.get("/export/pdf")
+async def export_referensi_pdf(current_user: str = Depends(get_current_user)):
+    try:
+        # Fetch all kodefikasi sorted
+        cursor = db.kodefikasi.find({}).sort([("level", 1), ("kode", 1)])
+        items = await cursor.to_list(None)
+        
+        if not items:
+            raise HTTPException(status_code=404, detail="Tidak ada data referensi kode")
+        
+        # Create PDF
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), 
+                               leftMargin=1*cm, rightMargin=1*cm,
+                               topMargin=2*cm, bottomMargin=2*cm)
+        
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Title
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=20,
+            alignment=TA_CENTER
+        )
+        elements.append(Paragraph("REFERENSI KODE BARANG", title_style))
+        elements.append(Spacer(1, 0.5*cm))
+        
+        # Prepare table data
+        table_data = [['No', 'Kode', 'Uraian', 'Level']]
+        
+        for idx, item in enumerate(items, 1):
+            level_name = {
+                1: "Golongan",
+                2: "Bidang",
+                3: "Kelompok",
+                4: "Sub Kelompok",
+                5: "Sub-Sub Kelompok"
+            }.get(item.get('level', 5), "Level 5")
+            
+            table_data.append([
+                str(idx),
+                item.get('kode', ''),
+                item.get('uraian', '')[:60],  # Limit text length
+                level_name
+            ])
+        
+        # Create table
+        col_widths = [1.5*cm, 3*cm, 16*cm, 4*cm]
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        
+        # Table style
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),  # No column center
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        
+        elements.append(table)
+        
+        # Build PDF
+        doc.build(elements)
+        buffer.seek(0)
+        
+        return StreamingResponse(
+            buffer,
+            media_type='application/pdf',
+            headers={'Content-Disposition': 'attachment; filename="Referensi_Kode_Barang.pdf"'}
+        )
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
