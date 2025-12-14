@@ -328,6 +328,15 @@ export default function BarangList() {
             )}
 
             <Button variant={showFilters ? "secondary" : "outline"} onClick={() => setShowFilters(!showFilters)}><Filter className="mr-2 h-4 w-4" /></Button>
+            
+            {activeTab === 'persediaan' && (
+              <>
+                <Button variant="outline" onClick={downloadNotaDinas} size="sm" className="text-xs">
+                  <FileText className="mr-1 h-3 w-3" /> Nota Dinas Stok Kritis
+                </Button>
+              </>
+            )}
+            
             <Button variant="outline" onClick={() => setIsImportOpen(true)}><FileUp className="mr-2 h-4 w-4" /> Import</Button>
             <Button className="bg-slate-900 text-white" onClick={openAddModal}><Plus className="mr-2 h-4 w-4" /> Tambah</Button>
         </div>
