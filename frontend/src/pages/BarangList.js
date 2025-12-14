@@ -94,7 +94,7 @@ export default function BarangList() {
           else setCurrentPage(1); 
       }, 600);
       return () => clearTimeout(t);
-  }, [filters, search]);
+  }, [filters, search, currentPage, fetchBarang]);
 
   // Main Fetch Effect
   useEffect(() => {
@@ -131,7 +131,7 @@ export default function BarangList() {
                       const nupRes = await api.get('/api/barang/next-nup', { params: { kode: kodeBarangValue } });
                       if(nupRes.data.formatted) setValue('nup', nupRes.data.formatted);
                   }
-              } catch (e) {}
+              } catch (e) { console.error("Lookup error", e); }
           }, 500); return () => clearTimeout(t);
       } else { setKodefikasiHint(null); }
   }, [kodeBarangValue, setValue, editingItem, watch]);
