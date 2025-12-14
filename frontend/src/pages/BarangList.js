@@ -33,7 +33,7 @@ export default function BarangList() {
   const [visibleColumns, setVisibleColumns] = useState({
       gol: true, kode: true, nup: true, nama: true, kondisi: true, 
       stok: true, rata: true, perolehan: true, penyusutan: true, 
-      buku: true, lokasi: true, status: true, kritis: true, sync: true, 
+      buku: true, lokasi: true, status: true, kritis: true, sync: true, mutasi: true,
       satker: false, register: false, tahun: false
   });
 
@@ -621,8 +621,9 @@ export default function BarangList() {
                     {visibleColumns.kondisi && <TableHead className="w-[70px] p-2 text-xs font-bold uppercase text-center">Kondisi</TableHead>}
                     {visibleColumns.stok && <TableHead className="w-[85px] p-2 text-xs font-bold uppercase text-center">Stok</TableHead>}
                     <TableHead className="w-[95px] p-2 text-xs font-bold uppercase text-center">Batas Kritis</TableHead>
-                    <TableHead className="text-right w-[95px] p-2 text-xs font-bold uppercase">Harga Satuan</TableHead>
+                    <TableHead className="text-right w-[95px] p-2 text-xs font-bold uppercase">Harga Rata-Rata</TableHead>
                     <TableHead className="text-right w-[105px] p-2 text-xs font-bold uppercase">Total Harga</TableHead>
+                    {visibleColumns.mutasi && <TableHead className="text-right w-[105px] p-2 text-xs font-bold uppercase">Nilai Mutasi</TableHead>}
                     {visibleColumns.lokasi && <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Lokasi</TableHead>}
                     {visibleColumns.status && <TableHead className="w-[70px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
                     <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>

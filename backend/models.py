@@ -299,6 +299,9 @@ class Persediaan(MongoBaseModel):
     stok: int = 0
     batas_kritis: int = 0
     
+    # Financials (Calculated/History)
+    nilai_mutasi: float = 0
+    
     # Import data
     detail_lainnya: Dict[str, Any] = {}
     source: Optional[str] = "manual"
@@ -326,6 +329,7 @@ class PersediaanCreate(BaseModel):
     ruang: Optional[str] = None
     stok: int = 0
     batas_kritis: int = 0
+    nilai_mutasi: Optional[float] = 0
     golongan_barang: Optional[str] = None
     status_aset: str = "Aktif"
     kode_satker: Optional[str] = None
