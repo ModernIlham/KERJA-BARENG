@@ -258,4 +258,111 @@ class StockOpname(MongoBaseModel):
     selisih: int
     keterangan: Optional[str] = None
     petugas: str
-    status: str = "Completed" 
+    status: str = "Completed"
+
+# --- Persediaan (Inventory) Models ---
+class Persediaan(MongoBaseModel):
+    # Identifiers
+    kode_barang: str
+    nup: str = "1"
+    kode_satker: Optional[str] = None
+    nama_satker: Optional[str] = None
+    kode_register: Optional[str] = None
+    
+    # Details
+    nama_barang: str
+    merk: Optional[str] = None
+    tipe: Optional[str] = None
+    kategori: Optional[str] = None
+    satuan: Optional[str] = None
+    kondisi: Optional[str] = None
+    
+    # Dates
+    tgl_perolehan: Optional[str] = None
+    tahun_anggaran: Optional[str] = None
+    expired_date: Optional[str] = None
+    batch_number: Optional[str] = None
+    
+    # Financials
+    nilai_satuan: float = 0
+    nilai_perolehan: float = 0
+    
+    # Classification
+    status_aset: str = "Aktif"
+    golongan_barang: Optional[str] = None
+    
+    # Location
+    lokasi_fisik: Optional[str] = None
+    ruang: Optional[str] = None
+    
+    # Inventory - FIFO
+    stok: int = 0
+    batas_kritis: int = 0
+    
+    # Import data
+    detail_lainnya: Dict[str, Any] = {}
+    source: Optional[str] = "manual"
+    
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    class Config:
+        extra = "allow"
+
+class PersediaanCreate(BaseModel):
+    kode_barang: str
+    nup: str = "1"
+    nama_barang: str
+    merk: Optional[str] = None
+    tipe: Optional[str] = None
+    kondisi: Optional[str] = None
+    satuan: Optional[str] = None
+    tgl_perolehan: Optional[str] = None
+    expired_date: Optional[str] = None
+    batch_number: Optional[str] = None
+    nilai_perolehan: Optional[float] = 0
+    nilai_satuan: Optional[float] = 0
+    lokasi_fisik: Optional[str] = None
+    ruang: Optional[str] = None
+    stok: int = 0
+    batas_kritis: int = 0
+    golongan_barang: Optional[str] = None
+    status_aset: str = "Aktif"
+    kode_satker: Optional[str] = None
+    nama_satker: Optional[str] = None
+    tahun_anggaran: Optional[str] = None
+    detail_lainnya: Optional[Dict[str, Any]] = {}
+
+# --- Transaksi Persediaan (Stock In/Out) Models ---
+class TransaksiPersediaan(MongoBaseModel):
+    jenis: str  # "in" atau "out"
+    persediaan_id: str
+    kode_barang: str
+    nup: Optional[str] = None
+    nama_barang: str
+    batch_number: Optional[str] = None
+    expired_date: Optional[str] = None
+    jumlah: int
+    nilai_satuan: float = 0
+    total_nilai: float = 0
+    stok_sebelum: int = 0
+    stok_sesudah: int = 0
+    pegawai_id: Optional[str] = None
+    nama_pegawai: Optional[str] = None
+    unit_penerima: Optional[str] = None
+    keterangan: Optional[str] = None
+    dokumen_ref: Optional[str] = None
+    petugas: Optional[str] = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TransaksiPersediaanCreate(BaseModel):
+    jenis: str
+    persediaan_id: str
+    jumlah: int
+    batch_number: Optional[str] = None
+    expired_date: Optional[str] = None
+    nilai_satuan: Optional[float] = 0
+    pegawai_id: Optional[str] = None
+    unit_penerima: Optional[str] = None
+    keterangan: Optional[str] = None
+    dokumen_ref: Optional[str] = None 
