@@ -542,6 +542,9 @@ async def import_persediaan(file: UploadFile = File(...), current_user: str = De
                     print(f"Skipping invalid kode_barang: {kode_barang} (length: {len(kode_barang)})")
                     continue
                 
+                # Auto-populate golongan barang from kode
+                golongan = await get_golongan_uraian(kode_barang[:10] if len(kode_barang) >= 10 else kode_barang)
+                
                 # Prepare data
                 item_data = {
                     'kode_barang': kode_barang,
@@ -553,6 +556,7 @@ async def import_persediaan(file: UploadFile = File(...), current_user: str = De
                     'nilai_satuan': clean_currency(row.get(nilai_col, 0)) if nilai_col else 0,
                     'kondisi': str(row.get(kondisi_col, 'Baik')) if kondisi_col else 'Baik',
                     'lokasi_fisik': str(row.get(lokasi_col, '')) if lokasi_col else None,
+                    'golongan_barang': golongan,  # Auto-populate golongan
                     'source': 'import',
                     'nup': '1',  # Default NUP untuk persediaan
                     'updated_at': datetime.now(timezone.utc)
