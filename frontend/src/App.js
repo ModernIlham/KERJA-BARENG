@@ -9,6 +9,8 @@ import BarangList from './pages/BarangList';
 import PegawaiList from './pages/PegawaiList';
 import TransaksiList from './pages/TransaksiForm';
 import BandingData from './pages/BandingData';
+import StockOpname from './pages/StockOpname';
+import Laporan from './pages/Laporan';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -36,6 +38,8 @@ export default function App() {
             <Route path="barang" element={<BarangList />} />
             <Route path="pegawai" element={<PegawaiList />} />
             <Route path="transaksi" element={<TransaksiList />} />
+            <Route path="opname" element={<StockOpname />} />
+            <Route path="laporan" element={<Laporan />} />
             <Route path="banding" element={<BandingData />} />
           </Route>
         </Routes>

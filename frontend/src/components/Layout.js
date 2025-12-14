@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
@@ -9,7 +9,9 @@ import {
   Menu,
   ArrowRightLeft,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ClipboardCheck,
+  FileText
 } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -20,8 +22,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/barang', icon: Package, label: 'Master Barang' },
     { to: '/pegawai', icon: Users, label: 'Data Pegawai' },
-    { to: '/transaksi', icon: ArrowRightLeft, label: 'Riwayat Transaksi' },
-    { to: '/banding', icon: FileSpreadsheet, label: 'Banding Data SIMAN' },
+    { to: '/transaksi', icon: ArrowRightLeft, label: 'Transaksi Gudang' },
+    { to: '/opname', icon: ClipboardCheck, label: 'Stock Opname' },
+    { to: '/laporan', icon: FileText, label: 'Laporan' },
+    { to: '/banding', icon: FileSpreadsheet, label: 'Banding Data' },
   ];
 
   return (
@@ -34,7 +38,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </button>
         </div>
         
-        <nav className="flex-1 px-4 py-6 space-y-2">
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}

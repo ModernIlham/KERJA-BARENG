@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 
 # Import Routers
-from routes import auth, barang, pegawai, transaksi, dashboard, banding
+from routes import auth, barang, pegawai, transaksi, dashboard, banding, opname, laporan
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -24,7 +24,7 @@ app = FastAPI(title="SIMAN-G API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["*"], # In prod, restrict this
+    allow_origins=["*"], 
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -38,7 +38,9 @@ api_router.include_router(barang.router, prefix="/barang", tags=["Barang"])
 api_router.include_router(pegawai.router, prefix="/pegawai", tags=["Pegawai"])
 api_router.include_router(transaksi.router, prefix="/transaksi", tags=["Transaksi"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
-api_router.include_router(banding.router, prefix="/banding", tags=["Banding"]) # NEW
+api_router.include_router(banding.router, prefix="/banding", tags=["Banding"])
+api_router.include_router(opname.router, prefix="/opname", tags=["Opname"])
+api_router.include_router(laporan.router, prefix="/laporan", tags=["Laporan"])
 
 @api_router.get("/")
 async def root():
