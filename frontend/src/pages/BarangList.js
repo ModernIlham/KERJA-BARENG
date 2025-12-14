@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
-import { Card, CardContent, CardHeader } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
@@ -15,12 +15,16 @@ export default function BarangList() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isImportOpen, setIsImportOpen] = useState(false); // New State
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [kodefikasiHint, setKodefikasiHint] = useState(null); // New State
   
-  const { register, handleSubmit, reset, setValue } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
   const { register: registerImport, handleSubmit: handleImportSubmit } = useForm();
+
+  // Watch kode_barang for automation
+  const kodeBarangValue = watch('kode_barang');
 
   const fetchBarang = async () => {
     setLoading(true);
@@ -41,15 +45,47 @@ export default function BarangList() {
     return () => clearTimeout(timeout);
   }, [search]);
 
+  // Automation: Lookup Kode Barang
+  useEffect(() => {
+      if (kodeBarangValue && kodeBarangValue.length >= 1) {
+          const lookup = async () => {
+              try {
+                  const res = await api.get('/api/referensi/lookup', { params: { kode: kodeBarangValue } });
+                  setKodefikasiHint(res.data);
+                  
+                  // Auto-fill logic (Only if creating new or field is empty)
+                  if (!editingItem && res.data.golongan) {
+                      setValue('golongan_barang', res.data.golongan);
+                  }
+                  if (!editingItem && res.data.uraian_barang && kodeBarangValue.length >= 10) {
+                      // Suggest name if 10 digits
+                      // Don't overwrite if user already typed something? 
+                      // Let's just hint it, or auto-fill if empty
+                      const currentName = watch('nama_barang');
+                      if(!currentName) setValue('nama_barang', res.data.uraian_barang);
+                  }
+              } catch (e) {
+                  // silent fail
+              }
+          };
+          // Debounce lookup
+          const t = setTimeout(lookup, 500);
+          return () => clearTimeout(t);
+      } else {
+          setKodefikasiHint(null);
+      }
+  }, [kodeBarangValue, setValue, editingItem, watch]);
+
   const openAddModal = () => {
       setEditingItem(null);
+      setKodefikasiHint(null);
       reset({});
       setIsModalOpen(true);
   };
 
   const openEditModal = (item) => {
       setEditingItem(item);
-      // Populate Form
+      setKodefikasiHint(null);
       setValue("kode_barang", item.kode_barang);
       setValue("nup", item.nup);
       setValue("nama_barang", item.nama_barang);
@@ -78,6 +114,7 @@ export default function BarangList() {
       setIsModalOpen(false);
       reset();
       setEditingItem(null);
+      setKodefikasiHint(null);
       fetchBarang();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Gagal menyimpan barang");
@@ -92,16 +129,33 @@ export default function BarangList() {
       formData.append('file', data.file[0]);
       
       try {
+          // Determine import type based on user choice or just check content
+          // Assuming Barang Import for now as default in this page
           const res = await api.post('/api/barang/import', formData, {
               headers: { 'Content-Type': 'multipart/form-data' }
           });
-          toast.success(`Import Selesai! Diproses: ${res.data.processed}, Baru: ${res.data.inserted}`);
+          toast.success(`Import Barang Selesai!`);
           setIsImportOpen(false);
           fetchBarang();
       } catch (error) {
           toast.error("Gagal import file");
       } finally {
           setImporting(false);
+      }
+  };
+  
+  const onImportReferensi = async (file) => {
+      if(!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+      const toastId = toast.loading("Mengimpor Referensi...");
+      try {
+          const res = await api.post('/api/referensi/import', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          toast.success(res.data.message, { id: toastId });
+      } catch (e) {
+          toast.error("Gagal import referensi", { id: toastId });
       }
   };
 
@@ -134,28 +188,41 @@ export default function BarangList() {
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Import Data Barang (SIMAN)</DialogTitle>
+                    <DialogTitle>Import Data</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4 pt-4">
+                <div className="space-y-6 pt-4">
                     <div className="p-4 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
-                        <p className="font-semibold mb-1">Panduan Import:</p>
-                        <ul className="list-disc pl-4 space-y-1">
-                            <li>Gunakan format Excel standar SIMAN (.xlsx)</li>
-                            <li>Kolom Wajib: <strong>Kode Barang, NUP, Nama Barang</strong></li>
-                            <li>Data dengan Kode & NUP sama akan <strong>diupdate</strong> (ditimpa).</li>
-                        </ul>
+                        <p className="font-bold">Opsi Import:</p>
+                        <p>1. <strong>Master Barang:</strong> Import daftar aset (Kode, NUP, Nama, Nilai).</p>
+                        <p>2. <strong>Referensi Kodefikasi:</strong> Import sheet "KodefikasiBarang" agar fitur deteksi kode otomatis berjalan.</p>
                     </div>
                     
-                    <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Pilih File Excel</label>
-                            <Input type="file" accept=".xlsx, .xls" {...registerImport('file')} />
-                        </div>
-                        <Button type="submit" disabled={importing} className="w-full bg-green-600 hover:bg-green-700 text-white">
-                            {importing ? <Loader2 className="animate-spin mr-2"/> : <FileUp className="mr-2"/>}
-                            Mulai Import
-                        </Button>
-                    </form>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Card className="border-slate-200">
+                            <CardHeader className="p-4 pb-2"><CardTitle className="text-sm">Data Barang</CardTitle></CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <form onSubmit={handleImportSubmit(onImport)} className="space-y-2">
+                                    <Input type="file" accept=".xlsx" {...registerImport('file')} className="h-8 text-xs" />
+                                    <Button type="submit" disabled={importing} size="sm" className="w-full bg-slate-900">
+                                        Import Barang
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card className="border-slate-200">
+                            <CardHeader className="p-4 pb-2"><CardTitle className="text-sm">Referensi Kode</CardTitle></CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <Input 
+                                    type="file" 
+                                    accept=".xlsx" 
+                                    className="h-8 text-xs mb-2" 
+                                    onChange={(e) => onImportReferensi(e.target.files[0])}
+                                />
+                                <div className="text-[10px] text-slate-500">Upload file Excel yang berisi sheet "KodefikasiBarang"</div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>
@@ -166,20 +233,30 @@ export default function BarangList() {
             <DialogHeader>
               <DialogTitle>{editingItem ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle>
             </DialogHeader>
+            
+            {/* Kodefikasi Helper Info */}
+            {kodefikasiHint && (
+                <div className="bg-blue-50 p-3 rounded-md text-xs text-blue-800 border border-blue-100 grid grid-cols-2 gap-2">
+                    <div><strong>Golongan:</strong> {kodefikasiHint.golongan || '-'}</div>
+                    <div><strong>Bidang:</strong> {kodefikasiHint.bidang || '-'}</div>
+                    <div><strong>Kelompok:</strong> {kodefikasiHint.kelompok || '-'}</div>
+                    <div><strong>Sub-Sub:</strong> {kodefikasiHint.sub_sub_kelompok || '-'}</div>
+                </div>
+            )}
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-              {/* Form fields same as before... */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Golongan</label>
-                  <Input {...register("golongan_barang")} placeholder="Contoh: 3. Peralatan..." />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Kode Barang</label>
+                  <label className="text-sm font-medium">Kode Barang (10 Digit)</label>
                   <Input {...register("kode_barang", { required: true })} placeholder="305010..." />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">NUP</label>
                   <Input {...register("nup", { required: true })} placeholder="1" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Golongan (Auto)</label>
+                  <Input {...register("golongan_barang")} readOnly className="bg-slate-100" />
                 </div>
               </div>
 
