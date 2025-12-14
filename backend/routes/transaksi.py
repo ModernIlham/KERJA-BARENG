@@ -7,13 +7,14 @@ import os
 from bson import ObjectId
 from datetime import datetime, timezone
 import math
+from pymongo import UpdateOne
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Reuse FIFO logic...
+# Reuse FIFO logic (Optimized)
 async def process_fifo_out(barang_id: str, quantity: int, session=None):
     cursor = db.stok_batches.find(
         {"barang_id": barang_id, "jumlah_sisa": {"$gt": 0}}
@@ -32,12 +33,16 @@ async def process_fifo_out(barang_id: str, quantity: int, session=None):
         updated_batches.append(batch)
         remaining -= deduct
     
-    for batch in updated_batches:
-        await db.stok_batches.update_one(
-            {"_id": batch["_id"]},
-            {"$set": {"jumlah_sisa": batch["jumlah_sisa"]}},
-            session=session
-        )
+    # Bulk Write Optimization
+    if updated_batches:
+        ops = []
+        for batch in updated_batches:
+            ops.append(UpdateOne(
+                {"_id": batch["_id"]}, 
+                {"$set": {"jumlah_sisa": batch["jumlah_sisa"]}}
+            ))
+        await db.stok_batches.bulk_write(ops, session=session)
+        
     return total_val
 
 @router.get("", response_model=Dict[str, Any])
@@ -50,6 +55,10 @@ async def get_transaksi_list(
     total = await db.transaksi.count_documents({})
     cursor = db.transaksi.find().sort("timestamp", -1).skip(skip).limit(limit)
     items = await cursor.to_list(length=limit)
+    
+    # Convert IDs
+    for item in items:
+        if "_id" in item: item["_id"] = str(item["_id"])
     
     return {
         "data": items,
