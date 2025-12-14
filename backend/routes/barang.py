@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File
+from fastapi.responses import StreamingResponse
 from typing import List, Optional, Dict, Any
 from models import Barang, BarangCreate
 from auth import get_current_user
@@ -32,10 +33,22 @@ async def get_barang_list(
     page: int = 1,
     limit: int = 20,
     search: Optional[str] = None,
+    
+    # Specific Filters
+    filter_kode: Optional[str] = None,
+    filter_nama: Optional[str] = None,
+    filter_merk: Optional[str] = None,
+    filter_kondisi: Optional[str] = None,
+    filter_lokasi: Optional[str] = None,
+    filter_nup: Optional[str] = None,
+    filter_golongan: Optional[str] = None,
+    
     current_user: str = Depends(get_current_user)
 ):
     skip = (page - 1) * limit
     query = {}
+    
+    # Global Search
     if search:
         query["$or"] = [
             {"nama_barang": {"$regex": search, "$options": "i"}},
@@ -43,11 +56,19 @@ async def get_barang_list(
             {"nup": {"$regex": search, "$options": "i"}}
         ]
         
+    # Specific Column Filters
+    if filter_kode: query["kode_barang"] = {"$regex": filter_kode, "$options": "i"}
+    if filter_nama: query["nama_barang"] = {"$regex": filter_nama, "$options": "i"}
+    if filter_merk: query["merk"] = {"$regex": filter_merk, "$options": "i"}
+    if filter_kondisi: query["kondisi"] = filter_kondisi # Exact match for dropdown usually
+    if filter_lokasi: query["lokasi_fisik"] = {"$regex": filter_lokasi, "$options": "i"}
+    if filter_nup: query["nup"] = {"$regex": filter_nup, "$options": "i"}
+    if filter_golongan: query["golongan_barang"] = {"$regex": filter_golongan, "$options": "i"}
+        
     total = await db.barang.count_documents(query)
     cursor = db.barang.find(query).skip(skip).limit(limit).sort("nama_barang", 1)
     items = await cursor.to_list(length=limit)
     
-    # Ensure ObjectId is string
     for item in items:
         if "_id" in item: item["_id"] = str(item["_id"])
     
@@ -58,6 +79,70 @@ async def get_barang_list(
         "limit": limit,
         "total_pages": math.ceil(total / limit)
     }
+
+@router.get("/export")
+async def export_barang_excel(
+    search: Optional[str] = None,
+    filter_kode: Optional[str] = None,
+    filter_nama: Optional[str] = None,
+    filter_merk: Optional[str] = None,
+    filter_kondisi: Optional[str] = None,
+    filter_lokasi: Optional[str] = None,
+    filter_nup: Optional[str] = None,
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Export filtered data to Excel
+    """
+    query = {}
+    if search:
+        query["$or"] = [
+            {"nama_barang": {"$regex": search, "$options": "i"}},
+            {"kode_barang": {"$regex": search, "$options": "i"}}
+        ]
+    if filter_kode: query["kode_barang"] = {"$regex": filter_kode, "$options": "i"}
+    if filter_nama: query["nama_barang"] = {"$regex": filter_nama, "$options": "i"}
+    if filter_merk: query["merk"] = {"$regex": filter_merk, "$options": "i"}
+    if filter_kondisi: query["kondisi"] = filter_kondisi
+    if filter_lokasi: query["lokasi_fisik"] = {"$regex": filter_lokasi, "$options": "i"}
+    if filter_nup: query["nup"] = {"$regex": filter_nup, "$options": "i"}
+    
+    # Fetch All (Limit to reasonable size e.g. 50k to prevent OOM)
+    cursor = db.barang.find(query).limit(50000)
+    items = await cursor.to_list(None)
+    
+    if not items:
+        raise HTTPException(status_code=404, detail="Tidak ada data untuk diexport")
+        
+    # Convert to DataFrame
+    data_list = []
+    for item in items:
+        data_list.append({
+            "Kode Barang": item.get('kode_barang'),
+            "NUP": item.get('nup'),
+            "Nama Barang": item.get('nama_barang'),
+            "Merk": item.get('merk'),
+            "Tipe": item.get('tipe'),
+            "Kondisi": item.get('kondisi'),
+            "Stok": item.get('stok'),
+            "Nilai Perolehan": item.get('nilai_perolehan'),
+            "Nilai Buku": item.get('nilai_buku'),
+            "Lokasi": item.get('lokasi_fisik'),
+            "Tahun Anggaran": item.get('tahun_anggaran')
+        })
+        
+    df = pd.DataFrame(data_list)
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='MasterBarang')
+    output.seek(0)
+    
+    return StreamingResponse(
+        output,
+        headers={'Content-Disposition': f'attachment; filename="Export_Barang_{datetime.now().strftime("%Y%m%d")}.xlsx"'},
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 
 @router.post("", response_model=Barang)
 async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get_current_user)):
