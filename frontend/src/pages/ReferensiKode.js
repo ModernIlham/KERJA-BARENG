@@ -148,8 +148,14 @@ export default function ReferensiKode() {
     <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h1 className="text-2xl font-bold text-slate-900">Referensi Kodefikasi BMN</h1>
-            <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+            <div className="flex gap-2 flex-wrap">
+                <Button variant="outline" onClick={exportExcel} size="sm">
+                    <Download className="mr-2 h-4 w-4"/> Export Excel
+                </Button>
+                <Button variant="outline" onClick={exportPDF} size="sm">
+                    <Download className="mr-2 h-4 w-4"/> Export PDF
+                </Button>
+                <Button variant="outline" onClick={() => setIsImportOpen(true)} size="sm">
                     <FileUp className="mr-2 h-4 w-4"/> Import Excel
                 </Button>
             </div>
