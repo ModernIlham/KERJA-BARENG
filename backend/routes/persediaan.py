@@ -387,14 +387,19 @@ async def generate_nota_dinas_kritis(current_user: str = Depends(get_current_use
         table_data = [['No', 'Kode Barang', 'Nama Barang', 'Stok Saat Ini', 'Batas Kritis', 'Satuan', 'Lokasi']]
         
         for idx, item in enumerate(items, 1):
+            kode = str(item.get('kode_barang', ''))[:16] if item.get('kode_barang') else '-'
+            nama = str(item.get('nama_barang', ''))[:40] if item.get('nama_barang') else '-'
+            satuan = str(item.get('satuan', '-'))[:10] if item.get('satuan') else '-'
+            lokasi = str(item.get('lokasi_fisik', '-'))[:15] if item.get('lokasi_fisik') else '-'
+            
             table_data.append([
                 str(idx),
-                item.get('kode_barang', '')[:16],
-                item.get('nama_barang', '')[:40],
+                kode,
+                nama,
                 str(item.get('stok', 0)),
                 str(item.get('batas_kritis', 0)),
-                item.get('satuan', '-')[:10],
-                item.get('lokasi_fisik', '-')[:15]
+                satuan,
+                lokasi
             ])
         
         table = Table(table_data, colWidths=[1*cm, 3.5*cm, 5*cm, 2*cm, 2*cm, 1.5*cm, 2.5*cm])
