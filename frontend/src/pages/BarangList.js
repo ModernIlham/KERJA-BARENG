@@ -668,11 +668,103 @@ export default function BarangList() {
         </Dialog>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{editingItem ? (isReadonly ? 'Detail Aset (Imported - Read Only)' : 'Edit Aset (Manual)') : 'Tambah Aset Baru'}</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>
+                {activeTab === 'persediaan' ? (
+                  editingItem ? 'Edit Persediaan' : 'Tambah Persediaan Baru'
+                ) : (
+                  editingItem ? (isReadonly ? 'Detail Aset (Imported - Read Only)' : 'Edit Aset (Manual)') : 'Tambah Aset Baru'
+                )}
+              </DialogTitle>
+            </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
-                {isReadonly && <div className="bg-orange-50 text-orange-800 p-2 text-xs border border-orange-200 mb-2 rounded">Data ini hasil import dari SIMAN. Edit terbatas / Read Only.</div>}
+                {isReadonly && activeTab !== 'persediaan' && <div className="bg-orange-50 text-orange-800 p-2 text-xs border border-orange-200 mb-2 rounded">Data ini hasil import dari SIMAN. Edit terbatas / Read Only.</div>}
                 
-                <Tabs defaultValue="utama">
+                {activeTab === 'persediaan' ? (
+                  /* Form Persediaan - Simplified */
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="font-semibold text-sm">Kode Barang *</label>
+                        <Input {...register('kode_barang', {required: true})} disabled={isReadonly} placeholder="1010301001" />
+                        {kodefikasiHint && <div className="text-xs text-blue-600 mt-1">{kodefikasiHint}</div>}
+                      </div>
+                      <div>
+                        <label className="font-semibold text-sm">Nama Barang *</label>
+                        <Input {...register('nama_barang', {required: true})} disabled={isReadonly} />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="font-semibold text-sm">Merk</label>
+                        <Input {...register('merk')} />
+                      </div>
+                      <div>
+                        <label className="font-semibold text-sm">Tipe</label>
+                        <Input {...register('tipe')} />
+                      </div>
+                      <div>
+                        <label className="font-semibold text-sm">Satuan</label>
+                        <Input {...register('satuan')} placeholder="Rim, Kg, Unit" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="font-semibold text-sm">Stok Saat Ini</label>
+                        <Input type="number" {...register('stok')} defaultValue={0} />
+                      </div>
+                      <div>
+                        <label className="font-semibold text-sm">Batas Kritis</label>
+                        <Input type="number" {...register('batas_kritis')} defaultValue={0} />
+                      </div>
+                      <div>
+                        <label className="font-semibold text-sm">Nilai Satuan (Rp)</label>
+                        <Input type="number" {...register('nilai_satuan')} defaultValue={0} />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="font-semibold text-sm">Batch Number</label>
+                        <Input {...register('batch_number')} placeholder="BATCH-001" />
+                      </div>
+                      <div>
+                        <label className="font-semibold text-sm">Expired Date</label>
+                        <Input type="date" {...register('expired_date')} />
+                      </div>
+                      <div>
+                        <label className="font-semibold text-sm">Tanggal Perolehan</label>
+                        <Input type="date" {...register('tgl_perolehan')} />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="font-semibold text-sm">Kondisi</label>
+                        <select {...register('kondisi')} className="w-full border rounded px-3 py-2">
+                          <option value="Baik">Baik</option>
+                          <option value="Rusak Ringan">Rusak Ringan</option>
+                          <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-semibold text-sm">Lokasi / Ruang</label>
+                        <Input {...register('lokasi_fisik')} placeholder="Gudang ATK" />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 mt-6">
+                      <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Batal</Button>
+                      <Button type="submit" className="bg-blue-600 text-white">
+                        {editingItem ? 'Update Persediaan' : 'Simpan Persediaan'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Form Aset Tetap - Original Complex Form */
+                  <Tabs defaultValue="utama">
                     <TabsList className="w-full bg-slate-100 flex-wrap h-auto">
                         <TabsTrigger value="utama">Data Utama</TabsTrigger>
                         <TabsTrigger value="nilai">Nilai & Akuntansi</TabsTrigger>
