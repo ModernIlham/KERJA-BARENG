@@ -225,6 +225,113 @@ async def delete_persediaan(id: str, current_user: str = Depends(get_current_use
     if res.deleted_count == 0: raise HTTPException(status_code=404)
     return {"message": "Deleted"}
 
+# POST - Import Excel
+@router.post("/import")
+async def import_persediaan(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+    if not file.filename.endswith(('.xls', '.xlsx', '.csv')):
+        raise HTTPException(status_code=400, detail="File harus format Excel atau CSV")
+    
+    try:
+        contents = await file.read()
+        
+        # Read file
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(io.BytesIO(contents))
+        else:
+            df = pd.read_excel(io.BytesIO(contents))
+        
+        df = df.where(pd.notnull(df), None)
+        df.columns = [str(c).strip() for c in df.columns]
+        
+        count_processed = 0
+        count_inserted = 0
+        count_updated = 0
+        
+        for index, row in df.iterrows():
+            try:
+                # Map columns - flexible mapping
+                kode_col = next((c for c in df.columns if 'kode' in c.lower() and 'barang' in c.lower()), None)
+                nama_col = next((c for c in df.columns if 'nama' in c.lower() and 'barang' in c.lower()), None)
+                merk_col = next((c for c in df.columns if 'merk' in c.lower()), None)
+                tipe_col = next((c for c in df.columns if 'tipe' in c.lower()), None)
+                satuan_col = next((c for c in df.columns if 'satuan' in c.lower()), None)
+                stok_col = next((c for c in df.columns if 'stok' in c.lower()), None)
+                nilai_col = next((c for c in df.columns if 'nilai' in c.lower() and 'satuan' in c.lower()), None)
+                tgl_col = next((c for c in df.columns if 'tgl' in c.lower() or 'tanggal' in c.lower()), None)
+                kondisi_col = next((c for c in df.columns if 'kondisi' in c.lower()), None)
+                lokasi_col = next((c for c in df.columns if 'lokasi' in c.lower() or 'ruang' in c.lower()), None)
+                
+                if not kode_col or not nama_col:
+                    continue
+                
+                kode_barang = clean_code_str(row.get(kode_col))
+                if not kode_barang:
+                    continue
+                
+                # Prepare data
+                item_data = {
+                    'kode_barang': kode_barang,
+                    'nama_barang': str(row.get(nama_col, '')),
+                    'merk': str(row.get(merk_col, '')) if merk_col else None,
+                    'tipe': str(row.get(tipe_col, '')) if tipe_col else None,
+                    'satuan': str(row.get(satuan_col, '')) if satuan_col else None,
+                    'stok': int(row.get(stok_col, 0)) if stok_col else 0,
+                    'nilai_satuan': clean_currency(row.get(nilai_col, 0)) if nilai_col else 0,
+                    'kondisi': str(row.get(kondisi_col, 'Baik')) if kondisi_col else 'Baik',
+                    'lokasi_fisik': str(row.get(lokasi_col, '')) if lokasi_col else None,
+                    'source': 'import',
+                    'nup': '1',  # Default NUP untuk persediaan
+                    'updated_at': datetime.now(timezone.utc)
+                }
+                
+                # Parse tanggal
+                if tgl_col and row.get(tgl_col):
+                    try:
+                        tgl_str = str(row.get(tgl_col))
+                        if '/' in tgl_str:  # DD/MM/YYYY
+                            parts = tgl_str.split('/')
+                            if len(parts) == 3:
+                                item_data['tgl_perolehan'] = f"{parts[2]}-{parts[1].zfill(2)}-{parts[0].zfill(2)}"
+                                item_data['tahun_anggaran'] = parts[2]
+                        else:
+                            item_data['tgl_perolehan'] = tgl_str[:10]
+                    except:
+                        pass
+                
+                # Auto golongan
+                if kode_barang:
+                    golongan = await get_golongan_uraian(kode_barang)
+                    if golongan:
+                        item_data['golongan_barang'] = golongan
+                
+                # Upsert: Update jika kode_barang sudah ada, insert jika baru
+                dup_query = {"kode_barang": kode_barang}
+                result = await db.persediaan.update_one(
+                    dup_query,
+                    {"$set": item_data},
+                    upsert=True
+                )
+                
+                if result.upserted_id:
+                    count_inserted += 1
+                else:
+                    count_updated += 1
+                count_processed += 1
+                
+            except Exception as e:
+                print(f"Error processing row {index}: {str(e)}")
+                continue
+        
+        return {
+            "message": "Import selesai",
+            "processed": count_processed,
+            "inserted": count_inserted,
+            "updated": count_updated
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Import error: {str(e)}")
+
 # POST - Bulk Delete
 class BulkDeleteRequest(BaseModel):
     ids: Optional[List[str]] = []
