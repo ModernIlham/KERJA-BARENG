@@ -170,7 +170,7 @@ class SIMANGAPITester:
             return False
 
         # Test GET transaksi list
-        success, response = self.make_request('GET', 'transaksi')
+        success, response = self.make_request('GET', 'transaksi/')
         self.log_test("Get Transaksi List", success, 
                      "" if success else f"Response: {response}")
 
@@ -182,7 +182,7 @@ class SIMANGAPITester:
             "keterangan": "Pembelian awal"
         }
         
-        success, response = self.make_request('POST', 'transaksi', transaksi_masuk, 200)
+        success, response = self.make_request('POST', 'transaksi/', transaksi_masuk, 200)
         if success:
             self.log_test("Create Transaksi MASUK", True)
         else:
@@ -197,7 +197,7 @@ class SIMANGAPITester:
             "keterangan": "Penggunaan operasional"
         }
         
-        success, response = self.make_request('POST', 'transaksi', transaksi_keluar, 200)
+        success, response = self.make_request('POST', 'transaksi/', transaksi_keluar, 200)
         if success:
             self.log_test("Create Transaksi KELUAR", True)
         else:
