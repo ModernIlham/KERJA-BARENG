@@ -701,10 +701,30 @@ export default function BarangList() {
                 {activeTab === 'persediaan' ? (
                   /* Form Persediaan - Simplified */
                   <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-md mb-4">
+                      <div className="text-sm text-blue-800">
+                        <strong>Format Kode Barang Persediaan:</strong>
+                        <div className="mt-1">
+                          • <strong>16 digit</strong> = 10 digit referensi + 6 digit unik
+                        </div>
+                        <div className="mt-1 text-xs">
+                          Contoh: <code className="bg-blue-100 px-1 rounded">1010301001000001</code>
+                        </div>
+                        <div className="mt-1 text-xs text-blue-600">
+                          💡 Anda bisa input hanya 10 digit, sistem akan auto-generate 6 digit terakhir
+                        </div>
+                      </div>
+                    </div>
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="font-semibold text-sm">Kode Barang *</label>
-                        <Input {...register('kode_barang', {required: true})} disabled={isReadonly} placeholder="1010301001" />
+                        <label className="font-semibold text-sm">Kode Barang * (16 digit)</label>
+                        <Input 
+                          {...register('kode_barang', {required: true})} 
+                          disabled={isReadonly} 
+                          placeholder="1010301001000001 atau 1010301001"
+                          maxLength={16}
+                        />
                         {kodefikasiHint && <div className="text-xs text-blue-600 mt-1">{kodefikasiHint.golongan || ''}</div>}
                       </div>
                       <div>
