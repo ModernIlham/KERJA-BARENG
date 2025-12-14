@@ -256,6 +256,203 @@ async def delete_persediaan(id: str, current_user: str = Depends(get_current_use
     if res.deleted_count == 0: raise HTTPException(status_code=404)
     return {"message": "Deleted"}
 
+# GET - Download Template Import
+@router.get("/template")
+async def download_template(current_user: str = Depends(get_current_user)):
+    try:
+        # Create template with example data
+        template_data = {
+            'KodeBarang': ['1010301001', '1010301002'],
+            'NamaBarang': ['Kertas HVS A4 70gr', 'Pulpen Hitam'],
+            'Merk': ['Sinar Dunia', 'Standard'],
+            'Tipe': ['', 'Ballpoint'],
+            'Satuan': ['Rim', 'Pcs'],
+            'StokSaatIni': [10, 25],
+            'NilaiSatuan': [50000, 2500],
+            'TglPerolehan (DD/MM/YYYY)': ['15/01/2024', '20/01/2024'],
+            'Kondisi': ['Baik', 'Baik'],
+            'LokasiRuang': ['Gudang ATK', 'Gudang ATK']
+        }
+        
+        df = pd.DataFrame(template_data)
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Template Persediaan', index=False)
+            
+            worksheet = writer.sheets['Template Persediaan']
+            for idx, col in enumerate(df.columns):
+                max_length = max(df[col].astype(str).apply(len).max(), len(col)) + 2
+                worksheet.column_dimensions[chr(65 + idx)].width = min(max_length, 30)
+        
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': 'attachment; filename="Template_Import_Persediaan.xlsx"'}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating template: {str(e)}")
+
+# GET - Generate Nota Dinas Stok Kritis
+@router.get("/nota-dinas-kritis")
+async def generate_nota_dinas_kritis(current_user: str = Depends(get_current_user)):
+    try:
+        # Find items where stok <= batas_kritis
+        query = {"$expr": {"$lte": ["$stok", "$batas_kritis"]}, "batas_kritis": {"$gt": 0}}
+        cursor = db.persediaan.find(query).sort("kode_barang", 1)
+        items = await cursor.to_list(None)
+        
+        if not items:
+            raise HTTPException(status_code=404, detail="Tidak ada persediaan dengan stok kritis")
+        
+        # Create PDF
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, 
+                               leftMargin=2*cm, rightMargin=2*cm,
+                               topMargin=2*cm, bottomMargin=2*cm)
+        
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Header - Kop Surat
+        header_style = ParagraphStyle(
+            'HeaderCenter',
+            parent=styles['Heading1'],
+            fontSize=14,
+            alignment=TA_CENTER,
+            spaceAfter=5
+        )
+        
+        elements.append(Paragraph("KEMENTERIAN/LEMBAGA", header_style))
+        elements.append(Paragraph("UNIT KERJA", header_style))
+        elements.append(Spacer(1, 0.3*cm))
+        
+        # Garis pembatas
+        elements.append(Spacer(1, 0.2*cm))
+        
+        # Judul Nota Dinas
+        title_style = ParagraphStyle(
+            'TitleCenter',
+            parent=styles['Heading2'],
+            fontSize=12,
+            alignment=TA_CENTER,
+            spaceAfter=20,
+            fontName='Helvetica-Bold'
+        )
+        elements.append(Paragraph("<u>NOTA DINAS</u>", title_style))
+        
+        # Info Nota
+        info_style = ParagraphStyle(
+            'InfoStyle',
+            parent=styles['Normal'],
+            fontSize=10,
+            spaceAfter=5
+        )
+        
+        today = datetime.now(timezone.utc).strftime("%d %B %Y")
+        
+        elements.append(Paragraph(f"Nomor: ___/ND/____/{datetime.now().year}", info_style))
+        elements.append(Paragraph(f"Tanggal: {today}", info_style))
+        elements.append(Spacer(1, 0.3*cm))
+        
+        elements.append(Paragraph("Kepada Yth.", info_style))
+        elements.append(Paragraph("Kepala Bagian Umum/Pengadaan", info_style))
+        elements.append(Paragraph("Di Tempat", info_style))
+        elements.append(Spacer(1, 0.3*cm))
+        
+        elements.append(Paragraph("Hal: <b>Permohonan Pengadaan Barang (Stok Kritis)</b>", info_style))
+        elements.append(Spacer(1, 0.5*cm))
+        
+        # Isi Surat
+        body_style = ParagraphStyle(
+            'BodyStyle',
+            parent=styles['Normal'],
+            fontSize=10,
+            alignment=TA_JUSTIFY,
+            spaceAfter=10,
+            leading=14
+        )
+        
+        elements.append(Paragraph(
+            "Yang bertanda tangan di bawah ini menyampaikan bahwa terdapat beberapa barang persediaan "
+            "yang telah mencapai atau berada di bawah batas kritis. Untuk itu, kami mohon agar dapat "
+            "dilakukan pengadaan barang dengan rincian sebagai berikut:",
+            body_style
+        ))
+        elements.append(Spacer(1, 0.3*cm))
+        
+        # Tabel Barang Kritis
+        table_data = [['No', 'Kode Barang', 'Nama Barang', 'Stok Saat Ini', 'Batas Kritis', 'Satuan', 'Lokasi']]
+        
+        for idx, item in enumerate(items, 1):
+            table_data.append([
+                str(idx),
+                item.get('kode_barang', '')[:16],
+                item.get('nama_barang', '')[:40],
+                str(item.get('stok', 0)),
+                str(item.get('batas_kritis', 0)),
+                item.get('satuan', '-')[:10],
+                item.get('lokasi_fisik', '-')[:15]
+            ])
+        
+        table = Table(table_data, colWidths=[1*cm, 3.5*cm, 5*cm, 2*cm, 2*cm, 1.5*cm, 2.5*cm])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (2, 1), (2, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 0.5*cm))
+        
+        # Penutup
+        elements.append(Paragraph(
+            "Demikian nota dinas ini kami sampaikan untuk dapat ditindaklanjuti. "
+            "Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.",
+            body_style
+        ))
+        elements.append(Spacer(1, 1*cm))
+        
+        # TTD
+        ttd_style = ParagraphStyle(
+            'TTDStyle',
+            parent=styles['Normal'],
+            fontSize=10,
+            alignment=TA_CENTER
+        )
+        
+        elements.append(Paragraph("Hormat kami,", ttd_style))
+        elements.append(Spacer(1, 1.5*cm))
+        elements.append(Paragraph("<u>(_____________________)</u>", ttd_style))
+        elements.append(Paragraph("Kepala Bagian Umum", ttd_style))
+        
+        # Build PDF
+        doc.build(elements)
+        buffer.seek(0)
+        
+        filename = f"Nota_Dinas_Stok_Kritis_{datetime.now().strftime('%Y%m%d')}.pdf"
+        
+        return StreamingResponse(
+            buffer,
+            media_type='application/pdf',
+            headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+        )
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating nota dinas: {str(e)}")
+
 # POST - Import Excel
 @router.post("/import")
 async def import_persediaan(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
