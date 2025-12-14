@@ -197,8 +197,9 @@ async def update_referensi(id: str, item: KodefikasiCreate, current_user: str = 
 
 @router.delete("/{id}")
 async def delete_referensi(id: str, current_user: str = Depends(get_current_user)):
-    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
-    await db.kodefikasi.delete_one({"_id": ObjectId(id)})
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400, detail="Invalid ID")
+    result = await db.kodefikasi.delete_one({"_id": ObjectId(id)})
+    if result.deleted_count == 0: raise HTTPException(status_code=404, detail="Referensi not found")
     return {"message": "Deleted"}
 
 @router.get("/lookup")
