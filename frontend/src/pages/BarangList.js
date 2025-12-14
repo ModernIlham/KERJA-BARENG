@@ -345,7 +345,35 @@ export default function BarangList() {
                       {visibleColumns.satker && <TableCell className="p-2 truncate max-w-[120px]" title={item.nama_satker}>{item.nama_satker || '-'}</TableCell>}
                       {visibleColumns.register && <TableCell className="p-2 text-center">{item.kode_register || '-'}</TableCell>}
                       {visibleColumns.tahun && <TableCell className="p-2 text-center">{item.tahun_anggaran || '-'}</TableCell>}
-                      {visibleColumns.status && <TableCell className="text-center p-2"><span className={`px-1 py-0.5 rounded text-[10px] ${item.status_aset === 'Aktif' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>{item.status_aset || 'Aktif'}</span></TableCell>}
+                      {visibleColumns.status && (
+                        <TableCell className="text-center p-2">
+                          {editingStatusId === item._id ? (
+                            <select
+                              autoFocus
+                              defaultValue={item.status_aset || 'Aktif'}
+                              onChange={(e) => handleStatusChange(item._id, e.target.value)}
+                              onBlur={() => setEditingStatusId(null)}
+                              className="text-[10px] px-1 py-0.5 rounded border border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            >
+                              <option value="Aktif">Aktif</option>
+                              <option value="Non Aktif">Non Aktif</option>
+                              <option value="Dipinjamkan">Dipinjamkan</option>
+                            </select>
+                          ) : (
+                            <span
+                              onClick={() => setEditingStatusId(item._id)}
+                              className={`px-1.5 py-0.5 rounded text-[10px] cursor-pointer hover:ring-1 hover:ring-blue-300 transition-all ${
+                                item.status_aset === 'Aktif' ? 'bg-green-50 text-green-700 border border-green-200' :
+                                item.status_aset === 'Non Aktif' ? 'bg-gray-100 text-gray-600 border border-gray-300' :
+                                item.status_aset === 'Dipinjamkan' ? 'bg-blue-100 text-blue-700 border border-blue-300' :
+                                'bg-green-50 text-green-700 border border-green-200'
+                              }`}
+                            >
+                              {item.status_aset || 'Aktif'}
+                            </span>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell className="text-center sticky right-0 bg-white/90 backdrop-blur shadow-sm p-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild><Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button></DropdownMenuTrigger>
