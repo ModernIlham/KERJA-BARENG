@@ -16,6 +16,9 @@ export default function PersediaanTable({
     toggleSelectAllPage, 
     toggleSelectRow,
     visibleColumns, 
+    showFilters,
+    filters,
+    setFilters,
     editingStatusId, 
     setEditingStatusId, 
     handleStatusChange,
@@ -49,6 +52,25 @@ export default function PersediaanTable({
             {visibleColumns.status && <TableHead className="w-[70px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
             <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
           </TableRow>
+
+          {showFilters && (
+            <TableRow className="bg-slate-50">
+                <TableHead className="p-1"></TableHead>
+                {visibleColumns.gol && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Gol..." value={filters.golongan} onChange={e=>setFilters({...filters, golongan: e.target.value})} /></TableHead>}
+                {visibleColumns.nama && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Nama/Kode..." value={filters.nama} onChange={e=>setFilters({...filters, nama: e.target.value})} /></TableHead>}
+                <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Merk/Tipe..." value={filters.merk} onChange={e=>setFilters({...filters, merk: e.target.value})} /></TableHead>
+                <TableHead className="p-1"></TableHead>
+                {visibleColumns.kondisi && <TableHead className="p-1"><select className="h-7 text-[10px] w-full border rounded px-1" value={filters.kondisi} onChange={e=>setFilters({...filters, kondisi: e.target.value})}><option value="">All</option><option value="Baik">Baik</option><option value="Barang Usang">Usang</option><option value="Barang Rusak">Rusak</option></select></TableHead>}
+                {visibleColumns.stok && <TableHead className="p-1"></TableHead>}
+                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1"></TableHead>
+                <TableHead className="p-1"></TableHead>
+                {visibleColumns.mutasi && <TableHead className="p-1"></TableHead>}
+                {visibleColumns.lokasi && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Lokasi..." value={filters.lokasi} onChange={e=>setFilters({...filters, lokasi: e.target.value})} /></TableHead>}
+                {visibleColumns.status && <TableHead className="p-1"></TableHead>}
+                <TableHead className="sticky right-0 bg-slate-50 p-1"></TableHead>
+            </TableRow>
+          )}
         </TableHeader>
         <TableBody>
           {loading ? (
