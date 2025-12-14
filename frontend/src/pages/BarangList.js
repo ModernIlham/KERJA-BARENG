@@ -497,8 +497,7 @@ export default function BarangList() {
                     </TableHead>
                     {visibleColumns.gol && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase">Gol</TableHead>}
                     {visibleColumns.nama && <TableHead className="min-w-[200px] p-2 text-xs font-bold uppercase">Nama Barang</TableHead>}
-                    {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode / NUP</TableHead>}
-                    <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Batch</TableHead>
+                    {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode Barang</TableHead>}
                     <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Expired</TableHead>
                     {visibleColumns.kondisi && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Kondisi</TableHead>}
                     {visibleColumns.stok && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Stok</TableHead>}
