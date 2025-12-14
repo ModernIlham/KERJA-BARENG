@@ -96,7 +96,7 @@ async def get_posisi_stok(current_user: str = Depends(get_current_user)):
         }},
         {"$sort": {"nama_barang": 1}}
     ]
-    return await db.barang.aggregate(pipeline).to_list(None)
+    return await db.barang.aggregate(pipeline).to_list(1000)
 
 @router.get("/kartu-gudang")
 async def get_kartu_gudang(
