@@ -331,6 +331,16 @@ async def generate_nota_dinas_expired(
     """Generate nota dinas untuk barang expired"""
     try:
         today = datetime.now(timezone.utc)
+        # Auto-update status for strictly expired items
+        await db.persediaan.update_many(
+            {
+                "expired_date": {"$exists": True, "$ne": None, "$lt": today.strftime("%Y-%m-%d")},
+                "kondisi": {"$ne": "Barang Rusak"}
+            },
+            {
+                "$set": {"kondisi": "Barang Rusak", "updated_at": today}
+            }
+        )
         
         # Build query based on filter
         if filter_type == "expired":

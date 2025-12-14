@@ -56,13 +56,13 @@ def verify():
     res = requests.get(f"{BASE_URL}/persediaan/detail/{item_id}", headers=headers)
     item = res.json()
     print(f"Item JSON: {item}")
-    status = item.get('status_aset', 'Unknown')
-    print(f"Current Status: {status}")
+    status = item.get('kondisi', 'Unknown')
+    print(f"Current Kondisi: {status}")
     
     if status == "Barang Rusak":
-        print("SUCCESS: Status updated to 'Barang Rusak'")
+        print("SUCCESS: Kondisi updated to 'Barang Rusak'")
     else:
-        print(f"FAILURE: Status is {status}, expected 'Barang Rusak'")
+        print(f"FAILURE: Kondisi is {status}, expected 'Barang Rusak'")
         
     # 4. Export Excel
     print("Testing Export Excel...")
