@@ -190,17 +190,29 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
                 </DialogContent>
             </Dialog>
 
-            {/* Zoom Modal */}
+            {/* Zoom Modal - Updated for Better Closing */}
             {zoomImage && (
-                <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4" onClick={() => setZoomImage(null)}>
-                    <button className="absolute top-4 right-4 text-white hover:text-slate-300 p-2">
+                <div 
+                    className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 cursor-zoom-out" 
+                    onClick={() => setZoomImage(null)}
+                >
+                    {/* Explicit Close Button with High Z-Index */}
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setZoomImage(null);
+                        }}
+                        className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-[110]"
+                        aria-label="Close fullscreen"
+                    >
                         <X size={32} />
                     </button>
+                    
                     <img 
                         src={zoomImage} 
                         alt="Zoomed" 
-                        className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
-                        onClick={(e) => e.stopPropagation()} 
+                        className="max-w-full max-h-full object-contain rounded shadow-2xl cursor-default"
+                        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
                     />
                 </div>
             )}
