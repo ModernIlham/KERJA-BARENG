@@ -70,43 +70,56 @@ async def stock_in(txn: TransaksiPersediaanCreate, current_user: str = Depends(g
     current_stok = item.get('stok', 0)
     current_nilai = item.get('nilai_satuan', 0)
     
-    # 2. Calculate Weighted Average Price
-    # Formula: ((Old_Qty * Old_Price) + (New_Qty * New_Price)) / (Old_Qty + New_Qty)
+    # Use provided price or fallback to current average
+    input_price = txn.nilai_satuan if (txn.nilai_satuan is not None and txn.nilai_satuan > 0) else current_nilai
+    
+    # 2. Calculate Weighted Average Price (for reference/display)
     new_stok = current_stok + txn.jumlah
     new_nilai = 0
     if new_stok > 0:
         total_value_old = current_stok * current_nilai
-        total_value_new = txn.jumlah * (txn.nilai_satuan or current_nilai) # Use existing price if not provided
+        total_value_new = txn.jumlah * input_price
         new_nilai = (total_value_old + total_value_new) / new_stok
     
-    # 3. Update Persediaan
+    # 3. Create New Batch (FIFO)
+    new_batch = PersediaanBatch(
+        qty=txn.jumlah,
+        price=input_price,
+        nota_dinas=txn.dokumen_ref,
+        expiry=txn.expired_date if txn.expired_date else item.get('expired_date'),
+        date=datetime.now(timezone.utc)
+    )
+    
+    # 4. Update Persediaan
     update_data = {
         "stok": new_stok,
         "nilai_satuan": new_nilai,
         "updated_at": datetime.now(timezone.utc)
     }
     
-    # Update expired date if provided (assuming latest batch dictates expiry or just updating info)
     if txn.expired_date:
         update_data["expired_date"] = txn.expired_date
         
     await db.persediaan.update_one(
         {"_id": ObjectId(txn.persediaan_id)},
-        {"$set": update_data}
+        {
+            "$set": update_data,
+            "$push": {"batches": new_batch.dict()}
+        }
     )
     
-    # 4. Create Transaction Record
+    # 5. Create Transaction Record
     record = TransaksiPersediaan(
         jenis="in",
         persediaan_id=txn.persediaan_id,
         kode_barang=item.get('kode_barang'),
         nup=item.get('nup'),
         nama_barang=item.get('nama_barang'),
-        batch_number=txn.batch_number,
+        batch_number=new_batch.batch_id, 
         expired_date=txn.expired_date,
         jumlah=txn.jumlah,
-        nilai_satuan=txn.nilai_satuan or current_nilai,
-        total_nilai=txn.jumlah * (txn.nilai_satuan or current_nilai),
+        nilai_satuan=input_price,
+        total_nilai=txn.jumlah * input_price,
         stok_sebelum=current_stok,
         stok_sesudah=new_stok,
         pegawai_id=txn.pegawai_id,
@@ -116,7 +129,7 @@ async def stock_in(txn: TransaksiPersediaanCreate, current_user: str = Depends(g
         timestamp=datetime.now(timezone.utc)
     )
     
-    res = await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
+    await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
     
     return {"message": "Stock In successful", "new_stok": new_stok, "new_nilai": new_nilai}
 
