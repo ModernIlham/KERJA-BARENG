@@ -1037,10 +1037,6 @@ async def upload_fotos(
     if config.get("current_month_count", 0) + len(files) > config.get("monthly_upload_limit", 500):
         remaining = config.get("monthly_upload_limit", 500) - config.get("current_month_count", 0)
         raise HTTPException(status_code=400, detail=f"Batas upload bulanan terlampaui. Sisa kuota: {remaining} foto.")
-
-    keterangan: Optional[str] = Body(""),
-    current_user: str = Depends(get_current_user)
-):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
     
     upload_dir = "/app/uploads/persediaan"
