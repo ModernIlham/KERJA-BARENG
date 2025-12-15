@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File, 
 from fastapi.responses import StreamingResponse
 from typing import List, Optional, Dict, Any
 from models import Barang, BarangCreate
+from lib.image_processor import compress_image
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
