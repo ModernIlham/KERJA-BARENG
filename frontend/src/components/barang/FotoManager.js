@@ -48,7 +48,7 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess, type = '
     const handleDelete = async (url) => {
         if (!window.confirm("Hapus foto ini?")) return;
         try {
-            await api.delete(`/api/barang/${item._id}/foto`, { data: { url } });
+            await api.delete(`/api/${type}/${item._id}/foto`, { data: { url } });
             toast.success("Foto dihapus");
             onSuccess();
         } catch (err) {
