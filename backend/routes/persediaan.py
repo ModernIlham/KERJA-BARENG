@@ -1042,7 +1042,7 @@ async def upload_fotos(
     upload_dir = "/app/uploads/persediaan"
     os.makedirs(upload_dir, exist_ok=True)
     
-    uploaded_files = []
+    new_fotos = []
     
     for file in files:
         if not file.content_type.startswith("image/"):
@@ -1050,8 +1050,8 @@ async def upload_fotos(
         
         # 1. Save file
         timestamp = int(time.time())
-        filename = f"{id}_{timestamp}_{file.filename}"
-        file_path = os.path.join(upload_dir, filename)
+        safe_name = f"{id}_{timestamp}_{file.filename.replace(' ', '_')}"
+        file_path = os.path.join(upload_dir, safe_name)
         
         with open(file_path, "wb") as f:
             content = await file.read()
@@ -1070,26 +1070,18 @@ async def upload_fotos(
                 f.write(compressed_data)
         except Exception as e:
             print(f"Compression failed: {e}")
-
+            
+        new_fotos.append({
+            "url": f"/api/uploads/persediaan/{safe_name}",
+            "is_thumbnail": False,
+            "uploaded_at": datetime.now(timezone.utc)
+        })
     
-    new_fotos = []
-    for file in files:
-        safe_name = f"{id}_{int(datetime.now().timestamp())}_{file.filename.replace(' ', '_')}"
-        file_path = os.path.join(upload_dir, safe_name)
     # 3. Update Counter
     await db.system_settings.update_one(
         {"key": "general"},
         {"$inc": {"current_month_count": len(files)}}
     )
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-            
-        new_fotos.append({
-            "url": f"/api/uploads/persediaan/{safe_name}",
-            "is_thumbnail": False,
-            "keterangan": keterangan,
-            "uploaded_at": datetime.now(timezone.utc)
-        })
     
     # If no photos existed before, make first one thumbnail
     item = await db.persediaan.find_one({"_id": ObjectId(id)})
