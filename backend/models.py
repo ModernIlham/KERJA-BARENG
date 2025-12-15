@@ -265,6 +265,14 @@ class StockOpname(MongoBaseModel):
     status: str = "Completed"
 
 # --- Persediaan (Inventory) Models ---
+class PersediaanBatch(BaseModel):
+    batch_id: str = Field(default_factory=lambda: str(ObjectId()))
+    date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    qty: int
+    price: float
+    nota_dinas: Optional[str] = None
+    expiry: Optional[datetime] = None
+
 class Persediaan(MongoBaseModel):
     # Identifiers
     kode_barang: str
