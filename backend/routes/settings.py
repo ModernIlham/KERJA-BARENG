@@ -227,18 +227,6 @@ async def backup_database(current_user: str = Depends(get_current_user)):
         media_type="application/json",
         headers={"Content-Disposition": f"attachment; filename=backup_siman_{datetime.now().strftime('%Y%m%d')}.json"}
     )
-from fastapi import APIRouter, HTTPException, Depends, Body
-from models import SystemSettings
-from auth import get_current_user
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
-from datetime import datetime, timezone
-
-router = APIRouter()
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
 # --- Config Endpoints ---
 
 @router.get("/config")
