@@ -495,6 +495,11 @@ async def upload_fotos(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
+    # 3. Update Counter
+    await db.system_settings.update_one(
+        {"key": "general"},
+        {"$inc": {"current_month_count": len(files)}}
+    )
         new_fotos.append({
             "url": f"/api/uploads/barang/{safe_name}",
             "is_thumbnail": False,
