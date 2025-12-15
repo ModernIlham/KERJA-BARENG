@@ -13,14 +13,17 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
 
     const getImageUrl = (url) => {
         if (!url) return '';
-        // If url already has http/https, use it
         if (url.startsWith('http')) return url;
         
-        // Otherwise assume relative path and use REACT_APP_BACKEND_URL
-        const baseUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-        // Remove duplicate slashes if any
-        const cleanPath = url.startsWith('/') ? url : `/${url}`;
-        return `${baseUrl}${cleanPath}`;
+        // If REACT_APP_BACKEND_URL is set (e.g. separate domain), use it
+        if (process.env.REACT_APP_BACKEND_URL) {
+             const baseUrl = process.env.REACT_APP_BACKEND_URL;
+             const cleanPath = url.startsWith('/') ? url : `/${url}`;
+             return `${baseUrl}${cleanPath}`;
+        }
+        
+        // Otherwise assume relative path (same domain/proxy)
+        return url.startsWith('/') ? url : `/${url}`;
     };
 
     const handleUpload = async (e) => {
