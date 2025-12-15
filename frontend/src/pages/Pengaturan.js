@@ -30,6 +30,7 @@ export default function Pengaturan() {
             api.get('/api/settings/unit-kerja')
         ]);
             api.get('/api/settings/config')
+        setConfig(configRes.data);
         setUsers(uRes.data);
         setUnits(unitRes.data);
     } catch (e) {
