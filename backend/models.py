@@ -27,6 +27,12 @@ class MongoBaseModel(BaseModel):
         json_encoders = {ObjectId: str}
 
 # --- Auth Models ---
+class SystemSettings(BaseModel):
+    key: str = "general"
+    monthly_upload_limit: int = 500
+    current_month: str = Field(default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m"))
+    current_month_count: int = 0
+
 class UserLogin(BaseModel):
     email: str
     password: str
