@@ -500,12 +500,13 @@ async def upload_fotos(
         {"key": "general"},
         {"$inc": {"current_month_count": len(files)}}
     )
-        new_fotos.append({
-            "url": f"/api/uploads/barang/{safe_name}",
-            "is_thumbnail": False,
-            "keterangan": keterangan,
-            "uploaded_at": datetime.now(timezone.utc)
-        })
+    
+    new_fotos.append({
+        "url": f"/api/uploads/barang/{safe_name}",
+        "is_thumbnail": False,
+        "keterangan": keterangan,
+        "uploaded_at": datetime.now(timezone.utc)
+    })
     
     # If no photos existed before, make first one thumbnail
     item = await db.barang.find_one({"_id": ObjectId(id)})
