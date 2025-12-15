@@ -476,6 +476,20 @@ async def upload_fotos(
     
     new_fotos = []
     for file in files:
+        # 2. Compress
+        try:
+            # Read back contents to compress
+            with open(file_path, "rb") as f:
+                raw_data = f.read()
+            
+            compressed_data = compress_image(raw_data)
+            
+            # Overwrite with compressed data
+            with open(file_path, "wb") as f:
+                f.write(compressed_data)
+        except Exception as e:
+            print(f"Compression failed: {e}")
+
         safe_name = f"{id}_{int(datetime.now().timestamp())}_{file.filename.replace(' ', '_')}"
         file_path = os.path.join(upload_dir, safe_name)
         with open(file_path, "wb") as buffer:
