@@ -311,6 +311,9 @@ class Persediaan(MongoBaseModel):
     stok: int = 0
     batas_kritis: int = 0
     batches: List[PersediaanBatch] = []
+    # Photos
+    fotos: List[Dict[str, Any]] = []
+
     
     # Financials (Calculated/History)
     nilai_mutasi: float = 0
