@@ -195,6 +195,30 @@ frontend:
         agent: "testing"
         comment: "✅ TESTED: Filter toggle button works. Kondisi filter dropdown functions correctly. Filter values persist when applied. Clear filter functionality works. With current dataset (40 items, 20 per page), pagination behavior is appropriate. Filter state management working as expected."
 
+  - task: "Foto Column in Persediaan Table"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/barang/PersediaanTable.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New feature testing - need to verify FOTO column exists in Aset Lancar (Persediaan) table and +Foto button functionality"
+
+  - task: "Foto Manager Modal"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/barang/FotoManager.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New feature testing - need to verify Manajemen Foto modal opens when clicking +Foto button and test photo upload functionality"
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
