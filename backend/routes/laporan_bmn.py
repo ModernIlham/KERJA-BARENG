@@ -4,6 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from datetime import datetime, timezone
 from bson import ObjectId
+import math
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -11,6 +12,9 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 def sanitize_json(data):
+    if isinstance(data, float):
+        if math.isnan(data) or math.isinf(data):
+            return 0.0
     if isinstance(data, list):
         return [sanitize_json(item) for item in data]
     elif isinstance(data, dict):
@@ -67,7 +71,7 @@ async def get_laporan_bmn_summary(current_user: str = Depends(get_current_user))
         }},
         {"$group": {
             "_id": "$jenis", # MASUK, KELUAR, PENYESUAIAN
-            "count": {"$sum": 1}, # Unit count (approximated by transaction count for now, ideally sum of quantities)
+            "count": {"$sum": 1}, # Unit count
             "qty": {"$sum": "$jumlah"},
             "total_nilai": {"$sum": "$total_nilai"}
         }}
@@ -87,7 +91,7 @@ async def get_laporan_bmn_summary(current_user: str = Depends(get_current_user))
         },
         "penyusutan": {
             "total": sum(x["nilai_penyusutan"] for x in nilai_stats),
-            "tahun_berjalan": 0 # Placeholder if not tracked separately
+            "tahun_berjalan": 0 
         },
         "nilai_buku": {
             "total": sum(x["nilai_buku"] for x in nilai_stats)
