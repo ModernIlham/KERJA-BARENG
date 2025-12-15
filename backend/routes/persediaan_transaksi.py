@@ -1,11 +1,12 @@
-from fastapi import APIRouter, HTTPException, Depends, Body
-from typing import List, Dict
+from fastapi import APIRouter, HTTPException, Depends, Body, Query
+from typing import List, Dict, Optional
 from models import TransaksiPersediaan, TransaksiPersediaanCreate, Persediaan
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from bson import ObjectId
 from datetime import datetime, timezone
+import math
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -20,7 +21,41 @@ def sanitize_json(data):
         return {k: sanitize_json(v) for k, v in data.items()}
     elif isinstance(data, ObjectId):
         return str(data)
+    elif isinstance(data, float) and (math.isnan(data) or math.isinf(data)):
+        return 0.0
     return data
+
+@router.get("/", response_model=Dict)
+async def get_all_history(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    search: Optional[str] = None,
+    current_user: str = Depends(get_current_user)
+):
+    query = {}
+    if search:
+        query["$or"] = [
+            {"nama_barang": {"$regex": search, "$options": "i"}},
+            {"kode_barang": {"$regex": search, "$options": "i"}},
+            {"dokumen_ref": {"$regex": search, "$options": "i"}},
+            {"keterangan": {"$regex": search, "$options": "i"}}
+        ]
+        
+    total = await db.transaksi_persediaan.count_documents(query)
+    skip = (page - 1) * limit
+    
+    cursor = db.transaksi_persediaan.find(query).sort("timestamp", -1).skip(skip).limit(limit)
+    items = await cursor.to_list(length=limit)
+    
+    return {
+        "data": sanitize_json(items),
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": math.ceil(total / limit) if total > 0 else 0
+    }
+
+# ... (Existing endpoints: /in, /out, /history/{id} remain below) ...
 
 @router.post("/in")
 async def stock_in(txn: TransaksiPersediaanCreate, current_user: str = Depends(get_current_user)):
@@ -109,11 +144,6 @@ async def stock_out(txn: TransaksiPersediaanCreate, current_user: str = Depends(
         "stok": new_stok,
         "updated_at": datetime.now(timezone.utc)
     }
-    
-    # Calculate Mutation Value (Nilai Mutasi)
-    # This might be cumulative? Or just for this transaction? 
-    # Usually "Nilai Mutasi" on the table refers to total mutation value over a period, or just value of this txn.
-    # For now, let's just update the stock. Phase 4 might aggregate these.
     
     await db.persediaan.update_one(
         {"_id": ObjectId(txn.persediaan_id)},
