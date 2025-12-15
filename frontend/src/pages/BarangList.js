@@ -15,8 +15,8 @@ import AsetTetapTable from '../components/barang/AsetTetapTable';
 import PersediaanTable from '../components/barang/PersediaanTable';
 import PersediaanTransactionModal from '../components/barang/PersediaanTransactionModal';
 import KartuStokModal from '../components/barang/KartuStokModal';
-
 import FotoManager from '../components/barang/FotoManager';
+
 export default function BarangList() {
   // Tab State
   const [activeTab, setActiveTab] = useState('aset-tetap');
@@ -128,8 +128,6 @@ export default function BarangList() {
       setSelectedIds(new Set());
       setIsAllSelected(false);
       clearSelection();
-      // Note: We don't reset filters here to persist them when switching tabs if desired, 
-      // or we can reset them. For now, let's keep them persistent per session.
   }, [activeTab]);
 
   // Automation Hooks
@@ -196,12 +194,6 @@ export default function BarangList() {
               all_selected: isAllSelected
           };
           const endpoint = activeTab === 'persediaan' ? '/api/persediaan/export-excel' : '/api/barang/export';
-          
-          // Persediaan uses POST for export-excel, Barang uses GET (legacy)
-          // Adjusting to use consistent POST if possible, or adapt.
-          // Based on backend: 
-          // Barang: GET /api/barang/export
-          // Persediaan: POST /api/persediaan/export-excel
           
           let response;
           if (activeTab === 'persediaan') {
@@ -550,6 +542,8 @@ export default function BarangList() {
                     handleBatasKritisChange={handleBatasKritisChange}
                     openEditModal={openEditModal}
                     handleDelete={handleDelete}
+                    openTransactionModal={(item) => setTransactionItem(item)}
+                    openKartuStok={(item) => setKartuStokItem(item)}
                 />
                 <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} limit={limit} onPageChange={setCurrentPage}/>
             </CardContent>
@@ -821,20 +815,6 @@ export default function BarangList() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1"><label className="text-xs font-bold">Kode Register</label><Input {...register("kode_register")}/></div>
-        <PersediaanTransactionModal 
-            isOpen={!!transactionItem} 
-            onClose={() => setTransactionItem(null)} 
-            item={transactionItem}
-            onSuccess={() => {
-                fetchBarang();
-        <KartuStokModal 
-            isOpen={!!kartuStokItem} 
-            onClose={() => setKartuStokItem(null)} 
-            item={kartuStokItem}
-        />
-                setTransactionItem(null);
-            }}
-        />
                             <div className="space-y-1"><label className="text-xs font-bold">Status Penggunaan</label><Input {...register("status_penggunaan")}/></div>
                         </div>
                         <div className="border-t pt-2 mt-2 space-y-2">
@@ -842,15 +822,6 @@ export default function BarangList() {
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="space-y-1"><label className="text-xs font-bold">No. Sertifikat</label><Input {...register("no_sertifikat")}/></div>
                                 <div className="space-y-1"><label className="text-xs font-bold">Tgl Sertifikat</label><Input type="date" {...register("tgl_sertifikat")}/></div>
-        <FotoManager 
-            isOpen={!!fotoManagerItem}
-            onClose={() => setFotoManagerItem(null)}
-            item={fotoManagerItem}
-            onSuccess={() => {
-                fetchBarang();
-                setFotoManagerItem(null);
-            }}
-        />
                                 <div className="space-y-1"><label className="text-xs font-bold">Status Sertifikasi</label><Input {...register("status_sertifikasi")}/></div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -885,6 +856,38 @@ export default function BarangList() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Global Modals placed at the top level */}
+        <PersediaanTransactionModal 
+            isOpen={!!transactionItem} 
+            onClose={() => setTransactionItem(null)} 
+            item={transactionItem}
+            onSuccess={() => {
+                fetchBarang();
+                setTransactionItem(null);
+            }}
+        />
+
+        <KartuStokModal 
+            isOpen={!!kartuStokItem} 
+            onClose={() => setKartuStokItem(null)} 
+            item={kartuStokItem}
+        />
+
+        <FotoManager 
+            isOpen={!!fotoManagerItem}
+            onClose={() => setFotoManagerItem(null)}
+            item={fotoManagerItem}
+            onSuccess={() => {
+                fetchBarang();
+                // Keep the item open or refresh it? 
+                // Since fetchBarang updates the list, the 'item' prop passed might become stale.
+                // But FotoManager fetches photos from the server if we wanted to be robust.
+                // For now, closing or keeping open is fine.
+                // Let's NOT close it automatically so user can see the uploaded photo.
+                // setFotoManagerItem(null); 
+            }}
+        />
     </div>
   );
 }
