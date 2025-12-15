@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test critical features in Master Barang page including bulk delete, select all functionality, export features, and filtering with pagination state"
+user_problem_statement: "Verify the new 'Foto' column in 'Aset Lancar (Persediaan)' table with photo management functionality"
 
 frontend:
   - task: "Pagination on Master Barang Page"
