@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Body
 from fastapi.responses import StreamingResponse
 from typing import List, Optional, Dict
 from pydantic import BaseModel
+from models import SystemSettings
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
