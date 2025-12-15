@@ -51,10 +51,12 @@ export default function BarangList() {
   const [fotoManagerItem, setFotoManagerItem] = useState(null);
   const [kartuStokItem, setKartuStokItem] = useState(null);
 
+  const [fotoManagerType, setFotoManagerType] = useState('barang');
+
   const [persediaanColumns, setPersediaanColumns] = useState({
       gol: true, nama: true, merk: true, expired: true, kondisi: true,
       stok: true, kritis: true, rata: true, total: true, mutasi: true,
-      lokasi: true, status: true
+      lokasi: true, status: true, foto: true
   });
 
   const [search, setSearch] = useState('');
