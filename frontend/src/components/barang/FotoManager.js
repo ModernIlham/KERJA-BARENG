@@ -69,7 +69,7 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess, type = '
     const handleUpdateDescription = async () => {
         if (!editingDesc) return;
         try {
-            await api.put(`/api/barang/${item._id}/foto-metadata`, { 
+            await api.put(`/api/${type}/${item._id}/foto-metadata`, { 
                 url: editingDesc.url, 
                 keterangan: editingDesc.text 
             });
