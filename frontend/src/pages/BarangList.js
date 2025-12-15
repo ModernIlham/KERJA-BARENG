@@ -888,6 +888,7 @@ export default function BarangList() {
             isOpen={!!fotoManagerItem}
             onClose={() => setFotoManagerItem(null)}
             item={fotoManagerItem}
+            type={fotoManagerType}
             onSuccess={() => {
                 fetchBarang();
                 // Keep the item open or refresh it? 
