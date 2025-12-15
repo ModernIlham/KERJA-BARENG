@@ -518,10 +518,9 @@ export default function BarangList() {
                     handleStatusChange={handleStatusChange}
                     openEditModal={openEditModal}
                     handleDelete={handleDelete}
+                    openFotoManager={(item) => setFotoManagerItem(item)}
                 />
                 <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} limit={limit} onPageChange={setCurrentPage}/>
-                    openKartuStok={(item) => setKartuStokItem(item)}
-                    openTransactionModal={(item) => setTransactionItem(item)}
             </CardContent>
           </Card>
         </TabsContent>
