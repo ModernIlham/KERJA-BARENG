@@ -79,6 +79,7 @@ export default function PersediaanTable({
                 {visibleColumns.mutasi && <TableHead className="p-1"></TableHead>}
                 {visibleColumns.lokasi && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Lokasi..." value={filters.lokasi} onChange={e=>setFilters({...filters, lokasi: e.target.value})} /></TableHead>}
                 {visibleColumns.status && <TableHead className="p-1"></TableHead>}
+                {visibleColumns.foto && <TableHead className="p-1"></TableHead>}
                 <TableHead className="sticky right-0 bg-slate-50 p-1"></TableHead>
             </TableRow>
           )}
