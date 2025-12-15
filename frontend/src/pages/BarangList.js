@@ -553,6 +553,7 @@ export default function BarangList() {
                     handleDelete={handleDelete}
                     openTransactionModal={(item) => setTransactionItem(item)}
                     openKartuStok={(item) => setKartuStokItem(item)}
+                    openFotoManager={(item) => { setFotoManagerItem(item); setFotoManagerType('persediaan'); }}
                 />
                 <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} limit={limit} onPageChange={setCurrentPage}/>
             </CardContent>
