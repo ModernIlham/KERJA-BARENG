@@ -1043,6 +1043,20 @@ async def upload_fotos(
     
     upload_dir = "/app/uploads/persediaan"
     os.makedirs(upload_dir, exist_ok=True)
+        # 2. Compress
+        try:
+            # Read back contents to compress
+            with open(file_path, "rb") as f:
+                raw_data = f.read()
+            
+            compressed_data = compress_image(raw_data)
+            
+            # Overwrite with compressed data
+            with open(file_path, "wb") as f:
+                f.write(compressed_data)
+        except Exception as e:
+            print(f"Compression failed: {e}")
+
     
     new_fotos = []
     for file in files:
