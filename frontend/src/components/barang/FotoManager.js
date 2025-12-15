@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Loader2, X, Star, Upload, Trash, Maximize2, Save, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
+export default function FotoManager({ isOpen, onClose, item, onSuccess, type = 'barang' }) {
     const [uploading, setUploading] = useState(false);
     const [editingDesc, setEditingDesc] = useState(null); // { url, text }
 
