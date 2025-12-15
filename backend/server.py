@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 
 # Import Routers
-from routes import auth, barang, pegawai, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn
+from routes import auth, barang, pegawai, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn, surat
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -47,6 +47,7 @@ api_router.include_router(referensi.router, prefix="/referensi", tags=["Referens
 api_router.include_router(persediaan_transaksi.router, prefix="/persediaan-transaksi", tags=["Persediaan Transaksi"])
 
 api_router.include_router(laporan_bmn.router, prefix="/laporan-bmn", tags=["Laporan BMN"])
+api_router.include_router(surat.router, prefix="/surat", tags=["Manajemen Persuratan"])
 @api_router.get("/")
 async def root():
     return {"message": "SIMAN-G API Ready"}
