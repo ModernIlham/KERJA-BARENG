@@ -1062,6 +1062,11 @@ async def upload_fotos(
     for file in files:
         safe_name = f"{id}_{int(datetime.now().timestamp())}_{file.filename.replace(' ', '_')}"
         file_path = os.path.join(upload_dir, safe_name)
+    # 3. Update Counter
+    await db.system_settings.update_one(
+        {"key": "general"},
+        {"$inc": {"current_month_count": len(files)}}
+    )
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
