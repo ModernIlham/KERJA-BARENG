@@ -47,18 +47,14 @@ export default function ReferensiKode() {
   }, [search, currentPage]);
 
   useEffect(() => {
-    const t = setTimeout(() => {
-        if(search && currentPage !== 1) setCurrentPage(1);
-        else fetchData();
-    }, 500);
-    return () => clearTimeout(t);
-  }, [search, currentPage]); 
+    fetchData();
+  }, [fetchData]); 
 
   // ... (Import Logic)
-  const onImport = async (form) => {
-      if(!form.file[0]) return toast.error("Pilih file");
+  const onImport = async (data) => {
+      if(!data.file[0]) return toast.error("Pilih file");
       const formData = new FormData();
-      formData.append('file', form.file[0]);
+      formData.append('file', data.file[0]);
       
       const t = toast.loading("Sedang Mengimpor Data...");
       try {
@@ -223,9 +219,41 @@ export default function ReferensiKode() {
             </CardContent>
         </Card>
 
-        {/* Import Modal Omitted */}
-        {/* ... */}
-        {/* Delete Confirmation Dialog */}
+        <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Import Referensi Kode</DialogTitle>
+                    <DialogDescription>
+                        Unggah file Excel berisi data referensi kode barang.
+                        <div className="mt-2 p-2 bg-blue-50 text-blue-700 text-xs rounded">
+                            Format kolom: <strong>Kode Barang</strong> (kd_brg) dan <strong>Uraian</strong> (ur_sskel / nama_barang).
+                        </div>
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
+                    <div className="space-y-2">
+                        <Input 
+                            type="file" 
+                            accept=".xlsx, .xls" 
+                            {...registerImport('file')} 
+                        />
+                        <Button 
+                            type="button" 
+                            variant="link" 
+                            className="text-xs p-0 h-auto"
+                            onClick={downloadTemplate}
+                        >
+                            {downloading ? "Mengunduh..." : "Download Template Excel"}
+                        </Button>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setIsImportOpen(false)}>Batal</Button>
+                        <Button type="submit" className="bg-slate-900">Import</Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
         <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
             <DialogContent>
                 <DialogHeader>
