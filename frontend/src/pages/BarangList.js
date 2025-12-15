@@ -41,7 +41,6 @@ export default function BarangList() {
       buku: true, lokasi: true, status: true, foto: true,
       satker: false, register: false, tahun: false
   });
-      buku: true, lokasi: true, status: true, foto: true,
 
   // Persediaan State
   const [persediaanFilters, setPersediaanFilters] = useState({
