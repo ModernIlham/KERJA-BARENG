@@ -451,6 +451,24 @@ async def upload_fotos(
     keterangan: Optional[str] = Body(""),
     current_user: str = Depends(get_current_user)
 ):
+    # 1. Check Rate Limit
+    config = await db.system_settings.find_one({"key": "general"})
+    if not config:
+        config = {"monthly_upload_limit": 500, "current_month": datetime.now(timezone.utc).strftime("%Y-%m"), "current_month_count": 0}
+        await db.system_settings.insert_one(config)
+    
+    current_month_str = datetime.now(timezone.utc).strftime("%Y-%m")
+    
+    # Auto-reset if month changed
+    if config.get("current_month") != current_month_str:
+        config["current_month"] = current_month_str
+        config["current_month_count"] = 0
+        await db.system_settings.update_one({"key": "general"}, {"$set": {"current_month": current_month_str, "current_month_count": 0}})
+    
+    if config.get("current_month_count", 0) + len(files) > config.get("monthly_upload_limit", 500):
+        remaining = config.get("monthly_upload_limit", 500) - config.get("current_month_count", 0)
+        raise HTTPException(status_code=400, detail=f"Batas upload bulanan terlampaui. Sisa kuota: {remaining} foto.")
+
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
     
     upload_dir = "/app/uploads/barang"
