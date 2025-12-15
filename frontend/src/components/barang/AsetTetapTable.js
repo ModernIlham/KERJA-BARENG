@@ -29,12 +29,7 @@ export default function AsetTetapTable({
   const getImageUrl = (url) => {
       if (!url) return '';
       if (url.startsWith('http')) return url;
-      
-      if (process.env.REACT_APP_BACKEND_URL) {
-           const baseUrl = process.env.REACT_APP_BACKEND_URL;
-           const cleanPath = url.startsWith('/') ? url : `/${url}`;
-           return `${baseUrl}${cleanPath}`;
-      }
+      // Force relative path to leverage proxy
       return url.startsWith('/') ? url : `/${url}`;
   };
 
