@@ -24,6 +24,7 @@ export default function Pengaturan() {
 
   const fetchData = async () => {
     try {
+        const [uRes, unitRes, configRes] = await Promise.all([
         const [uRes, unitRes] = await Promise.all([
             api.get('/api/settings/users'),
             api.get('/api/settings/unit-kerja')
