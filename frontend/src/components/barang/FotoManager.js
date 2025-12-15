@@ -1,11 +1,77 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Loader2, X, Star, Upload, Trash, Maximize2, Save, Edit2 } from 'lucide-react';
+import { Loader2, X, Star, Upload, Trash, Maximize2, Save, Edit2, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Fullscreen Zoom Component using Portal
+const FullscreenViewer = ({ src, onClose }) => {
+    const [scale, setScale] = useState(1);
+
+    const handleZoomIn = (e) => {
+        e.stopPropagation();
+        setScale(s => Math.min(s + 0.5, 4));
+    };
+
+    const handleZoomOut = (e) => {
+        e.stopPropagation();
+        setScale(s => Math.max(s - 0.5, 0.5));
+    };
+
+    const handleReset = (e) => {
+        e.stopPropagation();
+        setScale(1);
+    };
+
+    // Portal to body to avoid z-index/stacking context issues with parent Dialog
+    return createPortal(
+        <div 
+            className="fixed inset-0 z-[9999] bg-black/95 flex flex-col items-center justify-center overflow-hidden"
+            onClick={onClose}
+        >
+            {/* Toolbar */}
+            <div className="absolute top-4 right-4 flex gap-2 z-[10000]">
+                <button 
+                    onClick={onClose}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                >
+                    <X size={24} />
+                </button>
+            </div>
+
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 bg-black/50 p-2 rounded-full backdrop-blur-sm z-[10000]" onClick={e => e.stopPropagation()}>
+                <button onClick={handleZoomOut} className="p-2 rounded-full hover:bg-white/20 text-white" title="Zoom Out">
+                    <ZoomOut size={20} />
+                </button>
+                <button onClick={handleReset} className="p-2 rounded-full hover:bg-white/20 text-white font-mono text-xs flex items-center w-12 justify-center" title="Reset">
+                    {Math.round(scale * 100)}%
+                </button>
+                <button onClick={handleZoomIn} className="p-2 rounded-full hover:bg-white/20 text-white" title="Zoom In">
+                    <ZoomIn size={20} />
+                </button>
+            </div>
+
+            {/* Image Container */}
+            <div 
+                className="w-full h-full flex items-center justify-center p-4 overflow-auto"
+                style={{ cursor: scale > 1 ? 'grab' : 'default' }}
+            >
+                <img 
+                    src={src} 
+                    alt="Zoomed" 
+                    className="transition-transform duration-200 ease-out max-w-full max-h-full object-contain"
+                    style={{ transform: `scale(${scale})` }}
+                    onClick={(e) => e.stopPropagation()}
+                />
+            </div>
+        </div>,
+        document.body
+    );
+};
 
 export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
     const [uploading, setUploading] = useState(false);
@@ -190,31 +256,12 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
                 </DialogContent>
             </Dialog>
 
-            {/* Zoom Modal - Updated for Better Closing */}
+            {/* Render Fullscreen Viewer via Portal */}
             {zoomImage && (
-                <div 
-                    className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 cursor-zoom-out" 
-                    onClick={() => setZoomImage(null)}
-                >
-                    {/* Explicit Close Button with High Z-Index */}
-                    <button 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setZoomImage(null);
-                        }}
-                        className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-[110]"
-                        aria-label="Close fullscreen"
-                    >
-                        <X size={32} />
-                    </button>
-                    
-                    <img 
-                        src={zoomImage} 
-                        alt="Zoomed" 
-                        className="max-w-full max-h-full object-contain rounded shadow-2xl cursor-default"
-                        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
-                    />
-                </div>
+                <FullscreenViewer 
+                    src={zoomImage} 
+                    onClose={() => setZoomImage(null)} 
+                />
             )}
         </>
     );
