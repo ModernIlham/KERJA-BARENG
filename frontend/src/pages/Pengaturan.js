@@ -25,14 +25,13 @@ export default function Pengaturan() {
   const fetchData = async () => {
     try {
         const [uRes, unitRes, configRes] = await Promise.all([
-        const [uRes, unitRes] = await Promise.all([
             api.get('/api/settings/users'),
-            api.get('/api/settings/unit-kerja')
-        ]);
+            api.get('/api/settings/unit-kerja'),
             api.get('/api/settings/config')
-        setConfig(configRes.data);
+        ]);
         setUsers(uRes.data);
         setUnits(unitRes.data);
+        setConfig(configRes.data);
     } catch (e) {
         toast.error("Gagal memuat pengaturan");
     } finally {
@@ -59,6 +58,18 @@ export default function Pengaturan() {
           fetchData();
       } catch (e) {
           toast.error("Gagal menghapus unit kerja");
+      }
+  };
+
+  const updateConfig = async () => {
+      try {
+          const limit = parseInt(config.monthly_upload_limit);
+          if (isNaN(limit) || limit < 0) return toast.error("Limit harus angka positif");
+          
+          await api.put('/api/settings/config', { monthly_upload_limit: limit });
+          toast.success("Konfigurasi disimpan");
+      } catch (e) {
+          toast.error("Gagal update konfigurasi");
       }
   };
 
@@ -149,6 +160,29 @@ export default function Pengaturan() {
             
             <TabsContent value="db" className="mt-4 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="border-green-200 bg-green-50">
+                        <CardHeader>
+                            <CardTitle className="text-green-800 flex items-center">Konfigurasi Sistem</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <label className="text-sm font-medium text-slate-700">Batas Upload Foto per Bulan</label>
+                                <div className="flex gap-2 mt-1">
+                                    <Input 
+                                        type="number" 
+                                        className="bg-white max-w-[200px]" 
+                                        value={config?.monthly_upload_limit || 500} 
+                                        onChange={(e) => setConfig({...config, monthly_upload_limit: e.target.value})}
+                                    />
+                                    <Button onClick={updateConfig} className="bg-green-600 hover:bg-green-700">Simpan</Button>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Terpakai bulan ini ({config?.current_month}): <strong>{config?.current_month_count || 0}</strong> / {config?.monthly_upload_limit || 500}
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     <Card className="border-blue-200 bg-blue-50">
                         <CardHeader>
                             <CardTitle className="text-blue-800 flex items-center"><RefreshCw size={18} className="mr-2"/> Pemeliharaan Data</CardTitle>
@@ -340,37 +374,3 @@ export default function Pengaturan() {
     </div>
   );
 }
-
-  const updateConfig = async () => {
-      try {
-          const limit = parseInt(config.monthly_upload_limit);
-          if (isNaN(limit) || limit < 0) return toast.error("Limit harus angka positif");
-          
-          await api.put('/api/settings/config', { monthly_upload_limit: limit });
-          toast.success("Konfigurasi disimpan");
-      } catch (e) {
-          toast.error("Gagal update konfigurasi");
-      }
-  };
-                    <Card className="border-green-200 bg-green-50 mt-6">
-                        <CardHeader>
-                            <CardTitle className="text-green-800 flex items-center">Konfigurasi Sistem</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <label className="text-sm font-medium text-slate-700">Batas Upload Foto per Bulan</label>
-                                <div className="flex gap-2 mt-1">
-                                    <Input 
-                                        type="number" 
-                                        className="bg-white max-w-[200px]" 
-                                        value={config?.monthly_upload_limit || 500} 
-                                        onChange={(e) => setConfig({...config, monthly_upload_limit: e.target.value})}
-                                    />
-                                    <Button onClick={updateConfig} className="bg-green-600 hover:bg-green-700">Simpan</Button>
-                                </div>
-                                <p className="text-xs text-slate-500 mt-1">
-                                    Terpakai bulan ini ({config?.current_month}): <strong>{config?.current_month_count || 0}</strong> / {config?.monthly_upload_limit || 500}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
