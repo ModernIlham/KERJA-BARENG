@@ -113,14 +113,19 @@ export default function BarangList() {
     }
   }, [currentPage, limit, search, asetFilters, persediaanFilters, activeTab]);
 
-  // Debounce Effect
+  // Debounce Effect for Filters
   useEffect(() => {
       const t = setTimeout(() => {
           if (currentPage === 1) fetchBarang(); 
           else setCurrentPage(1); 
       }, 600);
       return () => clearTimeout(t);
-  }, [asetFilters, persediaanFilters, search, currentPage, fetchBarang]);
+  }, [asetFilters, persediaanFilters, search]);
+
+  // Fetch when page changes
+  useEffect(() => {
+      fetchBarang();
+  }, [currentPage]);
 
   // Reset when tab changes
   useEffect(() => {
