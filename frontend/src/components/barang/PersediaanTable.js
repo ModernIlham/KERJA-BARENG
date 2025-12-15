@@ -60,6 +60,7 @@ export default function PersediaanTable({
             {visibleColumns.mutasi && <TableHead className="text-right w-[105px] p-2 text-xs font-bold uppercase">Nilai Mutasi</TableHead>}
             {visibleColumns.lokasi && <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Lokasi</TableHead>}
             {visibleColumns.status && <TableHead className="w-[70px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
+            {visibleColumns.foto && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Foto</TableHead>}
             <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
           </TableRow>
 
