@@ -58,6 +58,10 @@ api_router.include_router(surat.router, prefix="/surat", tags=["Manajemen Persur
 @api_router.get("/")
 async def root():
     return {"message": "SIMAN-G API Ready"}
+@api_router.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 
 app.include_router(api_router)
 
