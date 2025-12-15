@@ -240,9 +240,9 @@ test_plan:
 
   - task: "Konfigurasi Sistem Settings"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/src/pages/Pengaturan.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -252,6 +252,9 @@ test_plan:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL ISSUE: Authentication system is not working properly. Login fails with admin@example.com/admin credentials despite user existing in database with correct password hash. Fixed backend syntax errors in barang.py and persediaan.py during testing. Backend is running but login API returns unauthorized. Unable to test Konfigurasi Sistem functionality due to authentication blocking access to protected routes."
+      - working: true
+        agent: "testing"
+        comment: "✅ KONFIGURASI SISTEM TEST PASSED: Fixed backend syntax errors in persediaan.py and duplicate router definitions in settings.py. Login works with admin@example.com/admin (not admin/admin as originally requested). Successfully verified: 1) Konfigurasi Sistem card with green border exists, 2) 'Batas Upload Foto per Bulan' input field functional, 3) Value can be changed from 500 to 600, 4) Save button works with 'Konfigurasi disimpan' toast confirmation, 5) Value persists after page refresh, 6) Usage counter displays correctly (Terpakai bulan ini: 0 / 600). All core functionality working as expected."
 
 metadata:
   created_by: "testing_agent"
