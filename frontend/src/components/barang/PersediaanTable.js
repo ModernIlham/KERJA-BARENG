@@ -31,8 +31,15 @@ export default function PersediaanTable({
     openEditModal, 
     handleDelete,
     openTransactionModal,
-    openKartuStok
+    openKartuStok,
+    openFotoManager
 }) {
+  const getImageUrl = (url) => {
+      if (!url) return '';
+      if (url.startsWith('http')) return url;
+      return url.startsWith('/') ? url : `/${url}`;
+  };
+
   return (
     <div className="rounded-md border border-slate-200 overflow-x-auto">
       <Table className="w-full min-w-[1500px]">
