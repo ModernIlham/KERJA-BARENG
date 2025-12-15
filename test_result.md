@@ -239,3 +239,5 @@ agent_communication:
     message: "TESTING COMPLETED SUCCESSFULLY: All 4 critical Master Barang features tested and working correctly. Login system functional. Individual and bulk selection mechanisms working. Export functionality operational. Filter and pagination state management working as expected. No critical errors found. Console shows only external analytics failures (PostHog) which don't affect core functionality."
   - agent: "testing"
     message: "ADDITIONAL TESTING COMPLETED: Verified pagination functionality on Master Barang page - pagination component exists and shows 'Halaman 1 / 2' indicating multiple pages. Data changes correctly between pages. Import Excel button on Referensi Kode page opens modal with title 'Import Referensi Kode' containing file input, Import button, and Cancel button. Both requested features are working correctly."
+  - agent: "testing"
+    message: "Starting new testing task: Verifying FOTO column in Aset Lancar (Persediaan) table and Manajemen Foto modal functionality. Will test login, navigation to /barang, tab switching, FOTO column presence, +Foto button click, and modal opening."
