@@ -125,6 +125,9 @@ class Barang(MongoBaseModel):
     
     # Land/Building Specs
     luas_tanah: float = 0
+    # Photos
+    fotos: List[Dict[str, Any]] = [] # [{"url": "/uploads/...", "is_thumbnail": True, "keterangan": "Depan"}]
+    
     luas_bangunan: float = 0
     
     # Certificates & Documents

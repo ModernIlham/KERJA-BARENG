@@ -38,7 +38,6 @@ export default function AsetTetapTable({
             {visibleColumns.kode && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Kode / NUP</TableHead>}
             {visibleColumns.kondisi && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Kondisi</TableHead>}
             {visibleColumns.stok && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Stok</TableHead>}
-            {visibleColumns.rata && <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Rata-Rata</TableHead>}
             {visibleColumns.perolehan && <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Perolehan</TableHead>}
             {visibleColumns.penyusutan && <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Penyusutan</TableHead>}
             {visibleColumns.buku && <TableHead className="text-right w-[100px] p-2 text-xs font-bold uppercase">Nilai Buku</TableHead>}
@@ -46,6 +45,7 @@ export default function AsetTetapTable({
             {visibleColumns.satker && <TableHead className="w-[120px] p-2 text-xs font-bold uppercase">Satker</TableHead>}
             {visibleColumns.register && <TableHead className="w-[100px] p-2 text-xs font-bold uppercase">Register</TableHead>}
             {visibleColumns.tahun && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Tahun</TableHead>}
+            {visibleColumns.foto && <TableHead className="w-[60px] p-2 text-xs font-bold uppercase text-center">Foto</TableHead>}
             {visibleColumns.status && <TableHead className="w-[80px] p-2 text-xs font-bold uppercase text-center">Status</TableHead>}
             <TableHead className="text-center w-[50px] p-2 text-xs font-bold uppercase sticky right-0 bg-slate-50 shadow-sm">Act</TableHead>
           </TableRow>
@@ -58,7 +58,6 @@ export default function AsetTetapTable({
                   {visibleColumns.kode && <TableHead className="p-1"><Input className="h-7 text-[10px]" placeholder="Kode/NUP..." value={filters.kode} onChange={e=>setFilters({...filters, kode: e.target.value})} /></TableHead>}
                   {visibleColumns.kondisi && <TableHead className="p-1"><select className="h-7 text-[10px] w-full border rounded px-1" value={filters.kondisi} onChange={e=>setFilters({...filters, kondisi: e.target.value})}><option value="">All</option><option value="Baik">Baik</option><option value="RR">RR</option><option value="RB">RB</option></select></TableHead>}
                   {visibleColumns.stok && <TableHead className="p-1"></TableHead>}
-                  {visibleColumns.rata && <TableHead className="p-1"></TableHead>}
                   {visibleColumns.perolehan && <TableHead className="p-1"></TableHead>}
                   {visibleColumns.penyusutan && <TableHead className="p-1"></TableHead>}
                   {visibleColumns.buku && <TableHead className="p-1"></TableHead>}
@@ -66,6 +65,7 @@ export default function AsetTetapTable({
                   {visibleColumns.satker && <TableHead className="p-1"></TableHead>}
                   {visibleColumns.register && <TableHead className="p-1"></TableHead>}
                   {visibleColumns.tahun && <TableHead className="p-1"></TableHead>}
+                  {visibleColumns.foto && <TableHead className="p-1"></TableHead>}
                   {visibleColumns.status && <TableHead className="p-1"></TableHead>}
                   <TableHead className="sticky right-0 bg-slate-50 p-1"></TableHead>
               </TableRow>
@@ -104,7 +104,6 @@ export default function AsetTetapTable({
                 {visibleColumns.kode && <TableCell className="p-2 font-mono text-[10px]"><div title={item.kode_barang}>{item.kode_barang}</div><div className="text-slate-500">NUP: {item.nup}</div></TableCell>}
                 {visibleColumns.kondisi && <TableCell className="p-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${item.kondisi === 'Baik' ? 'bg-green-50 text-green-700 border-green-200' : item.kondisi === 'Rusak Berat' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>{item.kondisi}</span></TableCell>}
                 {visibleColumns.stok && <TableCell className="text-center font-bold p-2">{item.stok}</TableCell>}
-                {visibleColumns.rata && <TableCell className="text-right p-2 whitespace-nowrap">{formatCurrency(item.nilai_satuan || 0)}</TableCell>}
                 {visibleColumns.perolehan && <TableCell className="text-right p-2 whitespace-nowrap font-medium">{formatCurrency(item.nilai_perolehan || 0)}</TableCell>}
                 {visibleColumns.penyusutan && <TableCell className="text-right p-2 whitespace-nowrap text-red-600">({formatCurrency(item.nilai_penyusutan || 0)})</TableCell>}
                 {visibleColumns.buku && <TableCell className="text-right p-2 whitespace-nowrap font-bold text-slate-800">{formatCurrency(item.nilai_buku || 0)}</TableCell>}
@@ -112,6 +111,13 @@ export default function AsetTetapTable({
                 {visibleColumns.satker && <TableCell className="p-2 truncate max-w-[120px]" title={item.nama_satker}>{item.nama_satker || '-'}</TableCell>}
                 {visibleColumns.register && <TableCell className="p-2 text-center">{item.kode_register || '-'}</TableCell>}
                 {visibleColumns.tahun && <TableCell className="p-2 text-center">{item.tahun_anggaran || '-'}</TableCell>}
+                {visibleColumns.foto && (
+                    <TableCell className="p-1 text-center">
+                        {item.fotos && item.fotos.length > 0 ? (
+                            <img src={`http://localhost:8001${item.fotos.find(f => f.is_thumbnail)?.url || item.fotos[0].url}`} alt="foto" className="h-8 w-8 object-cover rounded mx-auto border"/>
+                        ) : <div className="h-8 w-8 bg-slate-100 rounded mx-auto flex items-center justify-center text-[10px] text-slate-400">No Img</div>}
+                    </TableCell>
+                )}
                 {visibleColumns.status && (
                   <TableCell className="text-center p-2">
                     {editingStatusId === item._id ? (
