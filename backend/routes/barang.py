@@ -6,6 +6,7 @@ from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from bson import ObjectId
+import shutil
 from datetime import datetime, timezone
 import pandas as pd
 import io
@@ -441,3 +442,72 @@ async def get_barang_stats(current_user: str = Depends(get_current_user)):
     result = await db.barang.aggregate(pipeline).to_list(1)
     if not result: return {"total_items": 0, "total_value": 0, "critical_stock": 0}
     return result[0]
+
+@router.post("/{id}/upload-fotos")
+async def upload_fotos(
+    id: str,
+    files: List[UploadFile] = File(...),
+    keterangan: Optional[str] = Body(""),
+    current_user: str = Depends(get_current_user)
+):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    upload_dir = "/app/uploads/barang"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    new_fotos = []
+    for file in files:
+        safe_name = f"{id}_{int(datetime.now().timestamp())}_{file.filename.replace(' ', '_')}"
+        file_path = os.path.join(upload_dir, safe_name)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        new_fotos.append({
+            "url": f"/uploads/barang/{safe_name}",
+            "is_thumbnail": False,
+            "keterangan": keterangan,
+            "uploaded_at": datetime.now(timezone.utc)
+        })
+    
+    # If no photos existed before, make first one thumbnail
+    item = await db.barang.find_one({"_id": ObjectId(id)})
+    if not item.get("fotos") and new_fotos:
+        new_fotos[0]["is_thumbnail"] = True
+        
+    await db.barang.update_one(
+        {"_id": ObjectId(id)},
+        {"$push": {"fotos": {"$each": new_fotos}}}
+    )
+    return {"message": "Uploaded", "fotos": new_fotos}
+
+@router.put("/{id}/set-thumbnail")
+async def set_thumbnail(id: str, payload: dict = Body(...), current_user: str = Depends(get_current_user)):
+    url = payload.get("url")
+    if not url: raise HTTPException(status_code=400)
+    
+    # Unset all
+    await db.barang.update_one(
+        {"_id": ObjectId(id), "fotos.is_thumbnail": True},
+        {"$set": {"fotos.$.is_thumbnail": False}}
+    )
+    
+    # Set specific
+    await db.barang.update_one(
+        {"_id": ObjectId(id), "fotos.url": url},
+        {"$set": {"fotos.$.is_thumbnail": True}}
+    )
+    return {"message": "Thumbnail updated"}
+
+@router.delete("/{id}/foto")
+async def delete_foto(id: str, payload: dict = Body(...), current_user: str = Depends(get_current_user)):
+    url = payload.get("url")
+    await db.barang.update_one(
+        {"_id": ObjectId(id)},
+        {"$pull": {"fotos": {"url": url}}}
+    )
+    # Ideally delete file from disk too
+    try:
+        file_path = f"/app{url}"
+        if os.path.exists(file_path): os.remove(file_path)
+    except: pass
+    return {"message": "Foto deleted"}

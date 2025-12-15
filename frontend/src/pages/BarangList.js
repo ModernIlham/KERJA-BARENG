@@ -16,6 +16,7 @@ import PersediaanTable from '../components/barang/PersediaanTable';
 import PersediaanTransactionModal from '../components/barang/PersediaanTransactionModal';
 import KartuStokModal from '../components/barang/KartuStokModal';
 
+import FotoManager from '../components/barang/FotoManager';
 export default function BarangList() {
   // Tab State
   const [activeTab, setActiveTab] = useState('aset-tetap');
@@ -37,9 +38,10 @@ export default function BarangList() {
   const [asetColumns, setAsetColumns] = useState({
       gol: true, kode: true, nup: true, nama: true, kondisi: true, 
       stok: true, rata: true, perolehan: true, penyusutan: true, 
-      buku: true, lokasi: true, status: true, 
+      buku: true, lokasi: true, status: true, foto: true,
       satker: false, register: false, tahun: false
   });
+      buku: true, lokasi: true, status: true, foto: true,
 
   // Persediaan State
   const [persediaanFilters, setPersediaanFilters] = useState({
@@ -47,6 +49,7 @@ export default function BarangList() {
   });
   
   const [transactionItem, setTransactionItem] = useState(null);
+  const [fotoManagerItem, setFotoManagerItem] = useState(null);
   const [kartuStokItem, setKartuStokItem] = useState(null);
 
   const [persediaanColumns, setPersediaanColumns] = useState({
@@ -841,6 +844,15 @@ export default function BarangList() {
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="space-y-1"><label className="text-xs font-bold">No. Sertifikat</label><Input {...register("no_sertifikat")}/></div>
                                 <div className="space-y-1"><label className="text-xs font-bold">Tgl Sertifikat</label><Input type="date" {...register("tgl_sertifikat")}/></div>
+        <FotoManager 
+            isOpen={!!fotoManagerItem}
+            onClose={() => setFotoManagerItem(null)}
+            item={fotoManagerItem}
+            onSuccess={() => {
+                fetchBarang();
+                setFotoManagerItem(null);
+            }}
+        />
                                 <div className="space-y-1"><label className="text-xs font-bold">Status Sertifikasi</label><Input {...register("status_sertifikasi")}/></div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">

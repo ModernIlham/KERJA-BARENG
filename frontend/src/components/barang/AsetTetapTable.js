@@ -23,7 +23,8 @@ export default function AsetTetapTable({
     setEditingStatusId, 
     handleStatusChange,
     openEditModal, 
-    handleDelete
+    handleDelete,
+    openFotoManager
 }) {
   return (
     <div className="rounded-md border border-slate-200 overflow-x-auto">
@@ -113,9 +114,26 @@ export default function AsetTetapTable({
                 {visibleColumns.tahun && <TableCell className="p-2 text-center">{item.tahun_anggaran || '-'}</TableCell>}
                 {visibleColumns.foto && (
                     <TableCell className="p-1 text-center">
-                        {item.fotos && item.fotos.length > 0 ? (
-                            <img src={`http://localhost:8001${item.fotos.find(f => f.is_thumbnail)?.url || item.fotos[0].url}`} alt="foto" className="h-8 w-8 object-cover rounded mx-auto border"/>
-                        ) : <div className="h-8 w-8 bg-slate-100 rounded mx-auto flex items-center justify-center text-[10px] text-slate-400">No Img</div>}
+                        <div className="group relative w-10 h-10 mx-auto">
+                            {item.fotos && item.fotos.length > 0 ? (
+                                <img 
+                                    src={`http://localhost:8001${item.fotos.find(f => f.is_thumbnail)?.url || item.fotos[0].url}`} 
+                                    alt="foto" 
+                                    className="h-10 w-10 object-cover rounded border cursor-pointer"
+                                    onClick={() => openFotoManager(item)}
+                                />
+                            ) : (
+                                <div 
+                                    className="h-10 w-10 bg-slate-100 rounded border flex items-center justify-center text-[8px] text-slate-400 cursor-pointer hover:bg-slate-200"
+                                    onClick={() => openFotoManager(item)}
+                                >
+                                    +Foto
+                                </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/30 hidden group-hover:flex items-center justify-center rounded cursor-pointer" onClick={() => openFotoManager(item)}>
+                                <span className="text-[8px] text-white">Edit</span>
+                            </div>
+                        </div>
                     </TableCell>
                 )}
                 {visibleColumns.status && (
