@@ -511,3 +511,14 @@ async def delete_foto(id: str, payload: dict = Body(...), current_user: str = De
         if os.path.exists(file_path): os.remove(file_path)
     except: pass
     return {"message": "Foto deleted"}
+
+@router.put("/{id}/foto-metadata")
+async def update_foto_metadata(id: str, payload: dict = Body(...), current_user: str = Depends(get_current_user)):
+    url = payload.get("url")
+    keterangan = payload.get("keterangan")
+    
+    await db.barang.update_one(
+        {"_id": ObjectId(id), "fotos.url": url},
+        {"$set": {"fotos.$.keterangan": keterangan}}
+    )
+    return {"message": "Updated"}
