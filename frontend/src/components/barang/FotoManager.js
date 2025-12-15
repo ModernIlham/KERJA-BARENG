@@ -94,9 +94,9 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
                     <DialogTitle>Manajemen Foto: {item.nama_barang}</DialogTitle>
                 </DialogHeader>
                 
-                <div className="flex-1 overflow-hidden flex flex-col gap-4">
+                <div className="flex flex-col gap-4">
                     {/* Gallery Grid */}
-                    <div className="flex-1 overflow-y-auto p-4 border rounded-md bg-slate-50 min-h-[300px]">
+                    <div className="overflow-y-auto p-4 border rounded-md bg-slate-50 max-h-[60vh]">
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {item.fotos && item.fotos.length > 0 ? (
                                 item.fotos.map((foto, idx) => (
@@ -155,10 +155,9 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
                                     </div>
                                 ))
                             ) : (
-                                <div className="col-span-full h-40 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
-                                    <Upload className="h-8 w-8 mb-2 opacity-50" />
-                                    <p className="text-sm">Belum ada foto.</p>
-                                    <p className="text-xs">Silakan upload foto baru di bawah.</p>
+                                <div className="col-span-full h-24 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+                                    <Upload className="h-6 w-6 mb-1 opacity-50" />
+                                    <p className="text-xs">Belum ada foto.</p>
                                 </div>
                             )}
                         </div>
