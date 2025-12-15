@@ -226,8 +226,8 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Pagination on Master Barang Page"
-    - "Import Excel Button on Referensi Kode Page"
+    - "Foto Column in Persediaan Table"
+    - "Foto Manager Modal"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
