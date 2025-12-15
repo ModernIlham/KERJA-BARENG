@@ -247,8 +247,8 @@ async def get_system_config(current_user: str = Depends(get_current_user)):
     if not config:
         # Create default
         new_config = SystemSettings(key="general")
-        await db.system_settings.insert_one(new_config.dict())
-        return new_config.dict()
+        await db.system_settings.insert_one(new_config.model_dump())
+        return new_config.model_dump()
     
     # Check if month changed, reset counter if needed (lazy reset)
     current_month_str = datetime.now(timezone.utc).strftime("%Y-%m")
