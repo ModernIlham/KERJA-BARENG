@@ -38,101 +38,109 @@ export default function LaporanBMN({ onBack }) {
   const calculatePercent = (val) => kondisi.total > 0 ? ((val / kondisi.total) * 100).toFixed(1) : 0;
 
   return (
-    <div className="max-w-[210mm] mx-auto bg-white p-8 min-h-screen text-slate-900 print:p-0 font-sans" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="w-full max-w-[1280px] mx-auto bg-white p-8 min-h-screen text-slate-900 print:p-0 font-sans">
       {/* Header Actions */}
-      <div className="flex justify-between items-center mb-8 no-print">
-        <Button variant="ghost" onClick={onBack} className="text-slate-500 hover:text-slate-900 font-sans">
+      <div className="flex justify-between items-center mb-8 no-print border-b pb-4">
+        <Button variant="ghost" onClick={onBack} className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 pl-0">
           <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Button>
-        <div className="flex gap-2 font-sans">
-          <Button variant="outline" onClick={() => window.print()}>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => window.print()} className="border-slate-300 text-slate-700 hover:bg-slate-50">
             <Printer className="mr-2 h-4 w-4" /> Cetak
           </Button>
-          <Button variant="outline">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
             <Download className="mr-2 h-4 w-4" /> Unduh PDF
           </Button>
         </div>
       </div>
 
       {/* Report Header */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold mb-2">Laporan Barang Milik Negara</h1>
+      <div className="mb-12">
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Laporan Barang Milik Negara</h1>
         <p className="text-slate-500 text-lg">Rekapitulasi nilai Barang Milik Negara per {new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
       </div>
 
       {/* 1. Ringkasan Nilai Aset */}
-      <section className="mb-10">
-        <h2 className="text-xl font-bold text-slate-900 mb-6">Ringkasan Nilai Aset</h2>
+      <section className="mb-12">
+        <h2 className="text-xl font-bold text-slate-900 mb-6 border-l-4 border-blue-600 pl-4">Ringkasan Nilai Aset</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Nilai Perolehan */}
           <div>
-              <h3 className="text-base font-bold text-slate-900 mb-4">Nilai Perolehan</h3>
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Nilai Perolehan</h3>
               <div className="space-y-4">
-                <div className="border-b border-slate-200 pb-3">
-                  <div className="text-sm text-slate-500 mb-1">Tanah</div>
-                  <div className="font-bold text-lg">{formatCurrency(nilai_aset.Tanah?.nilai_perolehan)}</div>
-                  <div className="text-sm text-slate-500">{nilai_aset.Tanah?.count || 0} bidang</div>
+                <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+                  <span className="text-slate-700 font-medium">Tanah</span>
+                  <div className="text-right">
+                    <div className="font-bold text-slate-900">{formatCurrency(nilai_aset.Tanah?.nilai_perolehan)}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{nilai_aset.Tanah?.count || 0} bidang</div>
+                  </div>
                 </div>
-                <div className="border-b border-slate-200 pb-3">
-                  <div className="text-sm text-slate-500 mb-1">Gedung & Bangunan</div>
-                  <div className="font-bold text-lg">{formatCurrency(nilai_aset["Gedung & Bangunan"]?.nilai_perolehan)}</div>
-                  <div className="text-sm text-slate-500">{nilai_aset["Gedung & Bangunan"]?.count || 0} unit</div>
+                <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+                  <span className="text-slate-700 font-medium">Gedung & Bangunan</span>
+                  <div className="text-right">
+                    <div className="font-bold text-slate-900">{formatCurrency(nilai_aset["Gedung & Bangunan"]?.nilai_perolehan)}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{nilai_aset["Gedung & Bangunan"]?.count || 0} unit</div>
+                  </div>
                 </div>
-                <div className="border-b border-slate-200 pb-3">
-                  <div className="text-sm text-slate-500 mb-1">Peralatan & Mesin</div>
-                  <div className="font-bold text-lg">{formatCurrency(nilai_aset["Peralatan & Mesin"]?.nilai_perolehan)}</div>
-                  <div className="text-sm text-slate-500">{nilai_aset["Peralatan & Mesin"]?.count || 0} unit</div>
+                <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+                  <span className="text-slate-700 font-medium">Peralatan & Mesin</span>
+                  <div className="text-right">
+                    <div className="font-bold text-slate-900">{formatCurrency(nilai_aset["Peralatan & Mesin"]?.nilai_perolehan)}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{nilai_aset["Peralatan & Mesin"]?.count || 0} unit</div>
+                  </div>
                 </div>
-                <div className="pt-2">
-                  <div className="text-sm text-slate-500 mb-1">Total</div>
-                  <div className="font-bold text-xl">{formatCurrency(totalPerolehan)}</div>
+                <div className="flex justify-between items-center pt-2">
+                  <span className="font-bold text-slate-900">Total</span>
+                  <span className="font-bold text-lg text-slate-900">{formatCurrency(totalPerolehan)}</span>
                 </div>
               </div>
           </div>
 
           {/* Penyusutan */}
           <div>
-              <h3 className="text-base font-bold text-slate-900 mb-4">Penyusutan</h3>
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Penyusutan</h3>
               <div className="space-y-6">
-                <div className="border-b border-slate-200 pb-3">
+                <div className="border-b border-slate-100 pb-3">
                   <div className="text-sm text-slate-500 mb-1">Tahun Berjalan</div>
-                  <div className="font-bold text-lg">{formatCurrency(penyusutan.tahun_berjalan || 0)}</div>
+                  <div className="font-bold text-xl text-slate-900">{formatCurrency(penyusutan.tahun_berjalan || 0)}</div>
                 </div>
-                <div className="border-b border-slate-200 pb-3">
+                <div className="border-b border-slate-100 pb-3">
                   <div className="text-sm text-slate-500 mb-1">Akumulasi</div>
-                  <div className="font-bold text-lg">{formatCurrency(penyusutan.total)}</div>
+                  <div className="font-bold text-xl text-slate-900">{formatCurrency(penyusutan.total)}</div>
                 </div>
-                <div className="border-b border-slate-200 pb-3">
-                  <div className="text-sm text-slate-500 mb-1">Metode</div>
-                  <div className="font-bold text-lg">Garis Lurus</div>
-                </div>
-                <div>
-                  <div className="text-sm text-slate-500 mb-1">Masa Manfaat Rata-rata</div>
-                  <div className="font-bold text-lg">8 Tahun</div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <div className="text-xs text-slate-500 mb-1">Metode</div>
+                        <div className="font-medium text-slate-900">Garis Lurus</div>
+                    </div>
+                    <div>
+                        <div className="text-xs text-slate-500 mb-1">Masa Manfaat Rata-rata</div>
+                        <div className="font-medium text-slate-900">8 Tahun</div>
+                    </div>
                 </div>
               </div>
           </div>
 
           {/* Nilai Buku */}
           <div>
-              <h3 className="text-base font-bold text-slate-900 mb-4">Nilai Buku</h3>
-              <div className="space-y-6">
-                <div className="border-b border-slate-200 pb-3">
-                    <div className="text-sm text-slate-500 mb-1">Aset Tetap</div>
-                    <div className="font-bold text-lg">{formatCurrency(nilai_buku.total)}</div>
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Nilai Buku</h3>
+              <div className="bg-slate-50 rounded-lg p-6 space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <span className="text-sm font-medium text-slate-600">Aset Tetap</span>
+                    <span className="font-bold text-slate-900">{formatCurrency(nilai_buku.total)}</span>
                 </div>
-                <div className="border-b border-slate-200 pb-3">
-                    <div className="text-sm text-slate-500 mb-1">Aset Tak Berwujud</div>
-                    <div className="font-bold text-lg">{formatCurrency(125000000)}</div>
+                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <span className="text-sm font-medium text-slate-600">Aset Tak Berwujud</span>
+                    <span className="font-bold text-slate-900">{formatCurrency(125000000)}</span>
                 </div>
-                <div className="border-b border-slate-200 pb-3">
-                    <div className="text-sm text-slate-500 mb-1">Aset Lainnya</div>
-                    <div className="font-bold text-lg">{formatCurrency(45000000)}</div>
+                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <span className="text-sm font-medium text-slate-600">Aset Lainnya</span>
+                    <span className="font-bold text-slate-900">{formatCurrency(45000000)}</span>
                 </div>
-                <div>
+                <div className="pt-2">
                     <div className="text-sm text-slate-500 mb-1">Total Nilai Buku</div>
-                    <div className="font-bold text-xl text-blue-600">{formatCurrency(nilai_buku.total + 170000000)}</div>
+                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(nilai_buku.total + 170000000)}</div>
                 </div>
               </div>
           </div>
@@ -140,115 +148,123 @@ export default function LaporanBMN({ onBack }) {
       </section>
 
       {/* 2. Kondisi Aset */}
-      <section className="mb-10">
-        <h2 className="text-xl font-bold text-slate-900 mb-6">Kondisi Aset</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <section className="mb-12">
+        <h2 className="text-xl font-bold text-slate-900 mb-6 border-l-4 border-blue-600 pl-4">Kondisi Aset</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div>
-                <h3 className="text-base font-bold text-slate-900 mb-4">Distribusi Kondisi Aset</h3>
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Distribusi Kondisi Aset</h3>
                 <div className="space-y-6">
                     {/* Baik */}
                     <div>
-                        <div className="flex justify-between mb-2">
+                        <div className="flex justify-between items-end mb-2">
                             <span className="font-medium text-slate-700">Baik</span>
-                            <span className="font-medium text-slate-900">{kondisi.Baik} unit ({calculatePercent(kondisi.Baik)}%)</span>
+                            <span className="text-sm"><span className="font-bold text-slate-900">{kondisi.Baik}</span> <span className="text-slate-500">({calculatePercent(kondisi.Baik)}%)</span></span>
                         </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full">
-                            <div className="bg-slate-900 h-full rounded-full" style={{width: `${calculatePercent(kondisi.Baik)}%`}}></div>
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                            <div className="bg-emerald-500 h-full rounded-full" style={{width: `${calculatePercent(kondisi.Baik)}%`}}></div>
                         </div>
                     </div>
 
                     {/* Rusak Ringan */}
                     <div>
-                        <div className="flex justify-between mb-2">
+                        <div className="flex justify-between items-end mb-2">
                             <span className="font-medium text-slate-700">Rusak Ringan</span>
-                            <span className="font-medium text-slate-900">{kondisi['Rusak Ringan']} unit ({calculatePercent(kondisi['Rusak Ringan'])}%)</span>
+                            <span className="text-sm"><span className="font-bold text-slate-900">{kondisi['Rusak Ringan']}</span> <span className="text-slate-500">({calculatePercent(kondisi['Rusak Ringan'])}%)</span></span>
                         </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full">
-                            <div className="bg-slate-400 h-full rounded-full" style={{width: `${calculatePercent(kondisi['Rusak Ringan'])}%`}}></div>
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                            <div className="bg-amber-400 h-full rounded-full" style={{width: `${calculatePercent(kondisi['Rusak Ringan'])}%`}}></div>
                         </div>
                     </div>
 
                     {/* Rusak Berat */}
                     <div>
-                        <div className="flex justify-between mb-2">
+                        <div className="flex justify-between items-end mb-2">
                             <span className="font-medium text-slate-700">Rusak Berat</span>
-                            <span className="font-medium text-slate-900">{kondisi['Rusak Berat']} unit ({calculatePercent(kondisi['Rusak Berat'])}%)</span>
+                            <span className="text-sm"><span className="font-bold text-slate-900">{kondisi['Rusak Berat']}</span> <span className="text-slate-500">({calculatePercent(kondisi['Rusak Berat'])}%)</span></span>
                         </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full">
-                            <div className="bg-slate-300 h-full rounded-full" style={{width: `${calculatePercent(kondisi['Rusak Berat'])}%`}}></div>
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                            <div className="bg-red-500 h-full rounded-full" style={{width: `${calculatePercent(kondisi['Rusak Berat'])}%`}}></div>
                         </div>
                     </div>
                     
-                    <div className="pt-4 border-t border-slate-200 flex justify-between font-bold">
-                        <span>Total Aset</span>
-                        <span>{kondisi.total} unit</span>
+                    <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                        <span className="text-sm font-medium text-slate-500">Total Aset</span>
+                        <span className="font-bold text-slate-900">{kondisi.total} unit</span>
                     </div>
                 </div>
             </div>
             
-            <div>
-                <h3 className="text-base font-bold text-slate-900 mb-4">Catatan Kondisi Aset</h3>
-                <div className="space-y-6">
-                    <div>
-                        <div className="font-bold text-slate-900 mb-1">{calculatePercent(kondisi.Baik)}% Aset dalam Kondisi Baik</div>
-                        <p className="text-slate-500 text-sm">Pemeliharaan rutin berjalan sesuai jadwal</p>
-                    </div>
-                    <div>
-                        <div className="font-bold text-slate-900 mb-1">{kondisi['Rusak Ringan']} Unit Perlu Perbaikan</div>
-                        <p className="text-slate-500 text-sm">Diusulkan dalam anggaran pemeliharaan TA {new Date().getFullYear() + 1}</p>
-                    </div>
-                    <div>
-                        <div className="font-bold text-slate-900 mb-1">{kondisi['Rusak Berat']} Unit Diusulkan Penghapusan</div>
-                        <p className="text-slate-500 text-sm">Proses penghapusan sesuai PMK 83/2016</p>
-                    </div>
-                </div>
+            <div className="bg-slate-50 rounded-lg p-6">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Catatan Kondisi Aset</h3>
+                <ul className="space-y-6">
+                    <li>
+                        <div className="text-lg font-bold text-emerald-600 mb-1">{calculatePercent(kondisi.Baik)}% Aset dalam Kondisi Baik</div>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                            Pemeliharaan rutin berjalan sesuai jadwal. Aset siap digunakan untuk operasional.
+                        </p>
+                    </li>
+                    <li>
+                        <div className="text-lg font-bold text-amber-500 mb-1">{kondisi['Rusak Ringan']} Unit Perlu Perbaikan</div>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                            Diusulkan dalam anggaran pemeliharaan TA {new Date().getFullYear() + 1}. Kerusakan mayoritas pada AC dan Peralatan Kantor.
+                        </p>
+                    </li>
+                    <li>
+                        <div className="text-lg font-bold text-red-500 mb-1">{kondisi['Rusak Berat']} Unit Diusulkan Penghapusan</div>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                            Proses penghapusan sesuai PMK 83/2016. Barang sudah tidak memiliki nilai ekonomis.
+                        </p>
+                    </li>
+                </ul>
             </div>
         </div>
       </section>
 
       {/* 3. Daftar Inventaris Barang */}
-      <section className="mb-10">
-        <h2 className="text-xl font-bold text-slate-900 mb-2">Daftar Inventaris Barang</h2>
-        <p className="text-slate-500 mb-6">Rincian Barang Milik Negara berdasarkan klasifikasi SIMAK-BMN</p>
+      <section className="mb-12">
+        <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-900 mb-2 border-l-4 border-blue-600 pl-4">Daftar Inventaris Barang</h2>
+            <p className="text-slate-500 pl-5">Rincian Barang Milik Negara berdasarkan klasifikasi SIMAK-BMN</p>
+        </div>
         
-        <h3 className="text-base font-bold text-slate-900 mb-4">Kartu Inventaris Barang (KIB)</h3>
-        <div className="border border-slate-200 rounded-lg overflow-hidden">
+        <div className="rounded-lg border border-slate-200 overflow-hidden">
             <Table>
-                <TableHeader>
-                    <TableRow className="bg-slate-50 border-b border-slate-200">
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase">Kode Barang</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase">Nama/Jenis Barang</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase">Merk/Type</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase text-center">Tahun</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase text-center">Kondisi</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase text-right">Nilai Perolehan</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase text-right">Akum. Penyusutan</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase text-right">Nilai Sisa</TableHead>
+                <TableHeader className="bg-slate-50">
+                    <TableRow className="border-b border-slate-200">
+                        <TableHead className="font-bold text-slate-700 h-12">Kode Barang</TableHead>
+                        <TableHead className="font-bold text-slate-700">Nama/Jenis Barang</TableHead>
+                        <TableHead className="font-bold text-slate-700">Merk/Type</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-center">Tahun</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-center">Kondisi</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-right">Nilai Perolehan</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-right">Akum. Penyusutan</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-right">Nilai Sisa</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {kib.map((item, idx) => (
-                        <TableRow key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                        <TableRow key={idx} className="border-b border-slate-100 hover:bg-slate-50/50">
                             <TableCell className="font-mono text-sm text-slate-600">{item.kode_barang}</TableCell>
                             <TableCell className="font-medium text-sm text-slate-900">{item.nama_barang}</TableCell>
                             <TableCell className="text-sm text-slate-600">{item.merk && item.merk !== '-' ? item.merk : '-'} {item.tipe && item.tipe !== '-' ? item.tipe : ''}</TableCell>
                             <TableCell className="text-center text-sm text-slate-600">{item.tahun_anggaran}</TableCell>
                             <TableCell className="text-center">
-                                <span className={`text-sm ${
-                                    item.kondisi === 'Baik' ? 'text-slate-900' :
-                                    'text-slate-500'
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    item.kondisi === 'Baik' ? 'bg-green-100 text-green-800' :
+                                    item.kondisi === 'Rusak Berat' ? 'bg-red-100 text-red-800' :
+                                    'bg-yellow-100 text-yellow-800'
                                 }`}>
                                     {item.kondisi}
                                 </span>
                             </TableCell>
-                            <TableCell className="text-right text-sm text-slate-600">{formatCurrency(item.nilai_perolehan)}</TableCell>
-                            <TableCell className="text-right text-sm text-slate-600">{formatCurrency(item.nilai_penyusutan)}</TableCell>
-                            <TableCell className="text-right font-medium text-sm text-slate-900">{formatCurrency(item.nilai_buku)}</TableCell>
+                            <TableCell className="text-right text-sm text-slate-600 font-medium">{formatCurrency(item.nilai_perolehan)}</TableCell>
+                            <TableCell className="text-right text-sm text-slate-500">{formatCurrency(item.nilai_penyusutan)}</TableCell>
+                            <TableCell className="text-right font-bold text-sm text-slate-900">{formatCurrency(item.nilai_buku)}</TableCell>
                         </TableRow>
                     ))}
                     <TableRow className="bg-slate-50 border-t border-slate-200">
-                        <TableCell colSpan={7} className="text-right font-bold text-sm text-slate-900">Total Nilai Buku</TableCell>
-                        <TableCell className="text-right font-bold text-sm text-slate-900">
+                        <TableCell colSpan={7} className="text-right font-bold text-sm text-slate-900 p-4">Total Nilai Sisa (Halaman Ini)</TableCell>
+                        <TableCell className="text-right font-bold text-sm text-blue-600 p-4">
                             {formatCurrency(kib.reduce((sum, item) => sum + (item.nilai_buku || 0), 0))}
                         </TableCell>
                     </TableRow>
@@ -258,40 +274,41 @@ export default function LaporanBMN({ onBack }) {
       </section>
 
       {/* 4. Mutasi Barang */}
-      <section className="mb-10">
-        <h2 className="text-xl font-bold text-slate-900 mb-2">Mutasi Barang</h2>
-        <p className="text-slate-500 mb-6">Perubahan jumlah dan nilai BMN selama periode berjalan</p>
+      <section className="mb-12">
+        <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-900 mb-2 border-l-4 border-blue-600 pl-4">Mutasi Barang</h2>
+            <p className="text-slate-500 pl-5">Perubahan jumlah dan nilai BMN selama periode berjalan</p>
+        </div>
 
-        <h3 className="text-base font-bold text-slate-900 mb-4">Rekapitulasi Mutasi BMN Tahun {new Date().getFullYear()}</h3>
-        <div className="border border-slate-200 rounded-lg overflow-hidden">
+        <div className="rounded-lg border border-slate-200 overflow-hidden">
             <Table>
-                <TableHeader>
-                    <TableRow className="bg-slate-50 border-b border-slate-200">
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase">Jenis Mutasi</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase text-center">Masuk (Unit)</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase text-center">Keluar (Unit)</TableHead>
-                        <TableHead className="text-xs font-bold text-slate-900 uppercase text-right">Nilai</TableHead>
+                <TableHeader className="bg-slate-50">
+                    <TableRow className="border-b border-slate-200">
+                        <TableHead className="font-bold text-slate-700 h-12">Jenis Mutasi</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-center">Masuk (Unit)</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-center">Keluar (Unit)</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-right">Nilai</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {mutasi.length === 0 ? (
-                        <TableRow><TableCell colSpan={4} className="text-center text-sm text-slate-500 py-6 italic">Tidak ada mutasi tahun ini.</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={4} className="text-center text-sm text-slate-500 py-8 italic">Tidak ada mutasi tahun ini.</TableCell></TableRow>
                     ) : (
                         mutasi.map((m, idx) => (
-                            <TableRow key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                            <TableRow key={idx} className="border-b border-slate-100 hover:bg-slate-50/50">
                                 <TableCell className="font-medium text-sm text-slate-900">
                                     {m._id === 'MASUK' ? 'Pengadaan Baru' : 
                                      m._id === 'KELUAR' ? 'Penghapusan / Transfer Keluar' : 
                                      m._id === 'in' ? 'Pengadaan Baru' :
                                      m._id === 'out' ? 'Penghapusan' : m._id}
                                 </TableCell>
-                                <TableCell className="text-center text-sm text-slate-600">
-                                    {m._id === 'MASUK' || m._id === 'in' ? m.qty : '0'}
+                                <TableCell className="text-center text-sm">
+                                    {m._id === 'MASUK' || m._id === 'in' ? <span className="text-emerald-600 font-bold">+{m.qty}</span> : '-'}
                                 </TableCell>
-                                <TableCell className="text-center text-sm text-slate-600">
-                                    {m._id === 'KELUAR' || m._id === 'out' ? m.qty : '0'}
+                                <TableCell className="text-center text-sm">
+                                    {m._id === 'KELUAR' || m._id === 'out' ? <span className="text-red-600 font-bold">-{m.qty}</span> : '-'}
                                 </TableCell>
-                                <TableCell className="text-right font-medium text-sm text-slate-900">{formatCurrency(m.total_nilai)}</TableCell>
+                                <TableCell className="text-right font-bold text-sm text-slate-900">{formatCurrency(m.total_nilai)}</TableCell>
                             </TableRow>
                         ))
                     )}
@@ -301,58 +318,55 @@ export default function LaporanBMN({ onBack }) {
       </section>
 
       {/* 5. Dasar Hukum & Catatan */}
-      <section className="mb-16">
-        <h2 className="text-xl font-bold text-slate-900 mb-6">Dasar Hukum & Catatan</h2>
-        <div className="space-y-8">
-            <div>
-                <h4 className="font-bold text-slate-900 mb-2">Dasar Hukum:</h4>
-                <ul className="list-disc pl-5 space-y-1 text-sm text-slate-600">
-                    <li>UU No. 1 Tahun 2004 tentang Perbendaharaan Negara</li>
-                    <li>PP No. 27 Tahun 2014 tentang Pengelolaan BMN/D</li>
-                    <li>PMK No. 181/PMK.06/2016 tentang Penatausahaan BMN</li>
-                </ul>
-            </div>
-            <div>
-                <h4 className="font-bold text-slate-900 mb-2">Catatan:</h4>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                    Laporan ini disusun berdasarkan data yang tercatat dalam Sistem Informasi Manajemen dan Akuntansi Barang Milik Negara (SIMAK-BMN) dan telah direkonsiliasi dengan Sistem Akuntansi Instansi (SAI) per tanggal {new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}.
-                </p>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <div>
+            <h4 className="font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Dasar Hukum:</h4>
+            <ul className="list-disc pl-5 space-y-2 text-sm text-slate-600">
+                <li>UU No. 1 Tahun 2004 tentang Perbendaharaan Negara</li>
+                <li>PP No. 27 Tahun 2014 tentang Pengelolaan BMN/D</li>
+                <li>PMK No. 181/PMK.06/2016 tentang Penatausahaan BMN</li>
+            </ul>
         </div>
-      </section>
+        <div>
+            <h4 className="font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Catatan:</h4>
+            <p className="text-sm text-slate-600 leading-relaxed">
+                Laporan ini disusun berdasarkan data yang tercatat dalam Sistem Informasi Manajemen dan Akuntansi Barang Milik Negara (SIMAK-BMN) dan telah direkonsiliasi dengan Sistem Akuntansi Instansi (SAI) per tanggal {new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}.
+            </p>
+        </div>
+      </div>
 
       {/* 6. Lembar Pengesahan */}
-      <section className="mt-16 break-inside-avoid">
-        <h3 className="text-xl font-bold mb-12">Lembar Pengesahan</h3>
-        <div className="grid grid-cols-3 gap-8">
-            <div className="space-y-24">
+      <section className="mt-16 break-inside-avoid pt-8 border-t border-slate-200">
+        <h3 className="text-lg font-bold text-center mb-12 uppercase tracking-wide">Lembar Pengesahan</h3>
+        <div className="grid grid-cols-3 gap-8 text-center">
+            <div className="flex flex-col h-40 justify-between">
                 <div>
-                    <p className="font-medium text-slate-900">Operator SIMAK-BMN</p>
-                    <p className="text-slate-500 text-sm mt-1">Tanda Tangan</p>
+                    <p className="font-bold text-slate-900 text-sm">Operator SIMAK-BMN</p>
+                    <p className="text-slate-500 text-xs mt-1">Tanda Tangan</p>
                 </div>
                 <div>
-                    <p className="font-bold text-slate-900">Drs. Bambang Sutrisno, M.M.</p>
-                    <p className="text-slate-500 text-sm mt-1">14 Desember 2024</p>
-                </div>
-            </div>
-            <div className="space-y-24">
-                <div>
-                    <p className="font-medium text-slate-900">Pengelola BMN</p>
-                    <p className="text-slate-500 text-sm mt-1">Tanda Tangan</p>
-                </div>
-                <div>
-                    <p className="font-bold text-slate-900">Ir. Widodo Prasetyo, M.T.</p>
-                    <p className="text-slate-500 text-sm mt-1">14 Desember 2024</p>
+                    <p className="font-bold underline text-slate-900 text-sm">Drs. Bambang Sutrisno, M.M.</p>
+                    <p className="text-slate-500 text-xs mt-1">14 Desember 2024</p>
                 </div>
             </div>
-            <div className="space-y-24">
+            <div className="flex flex-col h-40 justify-between">
                 <div>
-                    <p className="font-medium text-slate-900">Kuasa Pengguna Barang</p>
-                    <p className="text-slate-500 text-sm mt-1">Tanda Tangan</p>
+                    <p className="font-bold text-slate-900 text-sm">Pengelola BMN</p>
+                    <p className="text-slate-500 text-xs mt-1">Tanda Tangan</p>
                 </div>
                 <div>
-                    <p className="font-bold text-slate-900">Dr. Sri Mulyani, S.E., M.Ak.</p>
-                    <p className="text-slate-500 text-sm mt-1">14 Desember 2024</p>
+                    <p className="font-bold underline text-slate-900 text-sm">Ir. Widodo Prasetyo, M.T.</p>
+                    <p className="text-slate-500 text-xs mt-1">14 Desember 2024</p>
+                </div>
+            </div>
+            <div className="flex flex-col h-40 justify-between">
+                <div>
+                    <p className="font-bold text-slate-900 text-sm">Kuasa Pengguna Barang</p>
+                    <p className="text-slate-500 text-xs mt-1">Tanda Tangan</p>
+                </div>
+                <div>
+                    <p className="font-bold underline text-slate-900 text-sm">Dr. Sri Mulyani, S.E., M.Ak.</p>
+                    <p className="text-slate-500 text-xs mt-1">14 Desember 2024</p>
                 </div>
             </div>
         </div>
