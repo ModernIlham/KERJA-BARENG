@@ -205,6 +205,30 @@ export default function PersediaanTable({
                       )}
                     </TableCell>
                   )}
+                  {visibleColumns.foto && (
+                      <TableCell className="p-1 text-center">
+                          <div className="group relative w-10 h-10 mx-auto">
+                              {item.fotos && item.fotos.length > 0 ? (
+                                  <img 
+                                      src={getImageUrl(item.fotos.find(f => f.is_thumbnail)?.url || item.fotos[0].url)} 
+                                      alt="foto" 
+                                      className="h-10 w-10 object-cover rounded border cursor-pointer"
+                                      onClick={() => openFotoManager(item)}
+                                  />
+                              ) : (
+                                  <div 
+                                      className="h-10 w-10 bg-slate-100 rounded border flex items-center justify-center text-[8px] text-slate-400 cursor-pointer hover:bg-slate-200"
+                                      onClick={() => openFotoManager(item)}
+                                  >
+                                      +Foto
+                                  </div>
+                              )}
+                              <div className="absolute inset-0 bg-black/30 hidden group-hover:flex items-center justify-center rounded cursor-pointer" onClick={() => openFotoManager(item)}>
+                                  <span className="text-[8px] text-white">Edit</span>
+                              </div>
+                          </div>
+                      </TableCell>
+                  )}
                   <TableCell className="text-center sticky right-0 bg-white/90 backdrop-blur shadow-sm p-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button></DropdownMenuTrigger>
