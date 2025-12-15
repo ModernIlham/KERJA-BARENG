@@ -15,6 +15,7 @@ export default function Pengaturan() {
   const [loading, setLoading] = useState(true);
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
   
+  const [config, setConfig] = useState(null);
   const { register: registerUnit, handleSubmit: handleUnitSubmit, reset: resetUnit } = useForm();
   
   useEffect(() => {
