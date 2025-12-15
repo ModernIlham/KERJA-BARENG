@@ -14,6 +14,7 @@ import Laporan from './pages/Laporan';
 import Pengaturan from './pages/Pengaturan';
 import ReferensiKode from './pages/ReferensiKode';
 
+import Surat from './pages/Surat';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="opname" element={<StockOpname />} />
             
             <Route path="laporan" element={<Navigate to="/laporan/bmn" replace />} />
+            <Route path="surat" element={<Surat />} />
             <Route path="laporan/:type" element={<Laporan />} />
             
             <Route path="banding" element={<BandingData />} />

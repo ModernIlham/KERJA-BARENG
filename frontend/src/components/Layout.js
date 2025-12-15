@@ -13,6 +13,7 @@ import {
   ClipboardCheck,
   FileText,
   Settings,
+  Mail,
   ChevronDown,
   ChevronRight,
   Book
@@ -102,6 +103,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   </NavLink>
                   <NavLink to="/laporan/kartu" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
                       Kartu Gudang
+          {/* Manajemen Persuratan */}
+          <NavLink to="/surat" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+            <Mail size={18} /> Manajemen Persuratan
+          </NavLink>
                   </NavLink>
               </CollapsibleContent>
           </Collapsible>
