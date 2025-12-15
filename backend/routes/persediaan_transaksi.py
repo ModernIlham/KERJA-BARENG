@@ -144,17 +144,66 @@ async def stock_out(txn: TransaksiPersediaanCreate, current_user: str = Depends(
         raise HTTPException(status_code=404, detail="Persediaan not found")
     
     current_stok = item.get('stok', 0)
-    current_nilai = item.get('nilai_satuan', 0)
     
     # 2. Validate Stock
     if current_stok < txn.jumlah:
         raise HTTPException(status_code=400, detail=f"Stok tidak cukup. Stok saat ini: {current_stok}")
     
+    # --- FIFO LOGIC ---
+    batches_data = item.get('batches', [])
+    # Convert to objects for easier handling, assuming they match schema
+    # Note: If migrating from old data without batches, we might have an issue.
+    # Handle legacy data: create a dummy batch for existing stock if batches is empty but stock > 0
+    if not batches_data and current_stok > 0:
+        dummy_batch = PersediaanBatch(
+            qty=current_stok,
+            price=item.get('nilai_satuan', 0),
+            date=item.get('created_at', datetime.now(timezone.utc)),
+            nota_dinas="LEGACY_STOCK"
+        )
+        batches_data = [dummy_batch.dict()]
+    
+    # Sort by date
+    batches_data.sort(key=lambda x: x.get('date', datetime.min))
+    
+    remaining_needed = txn.jumlah
+    total_cost_out = 0
+    updated_batches = []
+    consumed_info = []
+    
+    for b_data in batches_data:
+        # We work with dicts directly to preserve IDs etc
+        b_qty = b_data.get('qty', 0)
+        b_price = b_data.get('price', 0)
+        
+        if remaining_needed <= 0:
+            updated_batches.append(b_data)
+            continue
+            
+        if b_qty > remaining_needed:
+            # Partial take
+            cost = remaining_needed * b_price
+            total_cost_out += cost
+            
+            b_data['qty'] = b_qty - remaining_needed
+            consumed_info.append(f"{remaining_needed} @ {b_price}")
+            remaining_needed = 0
+            updated_batches.append(b_data)
+        else:
+            # Full take
+            cost = b_qty * b_price
+            total_cost_out += cost
+            
+            remaining_needed -= b_qty
+            consumed_info.append(f"{b_qty} @ {b_price} (All)")
+            # Do not append to updated_batches
+            
     new_stok = current_stok - txn.jumlah
     
     # 3. Update Persediaan
     update_data = {
         "stok": new_stok,
+        "batches": updated_batches,
         "updated_at": datetime.now(timezone.utc)
     }
     
@@ -164,22 +213,24 @@ async def stock_out(txn: TransaksiPersediaanCreate, current_user: str = Depends(
     )
     
     # 4. Create Transaction Record
+    avg_price_out = total_cost_out / txn.jumlah if txn.jumlah > 0 else 0
+    
     record = TransaksiPersediaan(
         jenis="out",
         persediaan_id=txn.persediaan_id,
         kode_barang=item.get('kode_barang'),
         nup=item.get('nup'),
         nama_barang=item.get('nama_barang'),
-        batch_number=txn.batch_number, # Maybe relevant if picking specific batch (FIFO)
+        batch_number="FIFO_MIX", # multiple batches potentially
         expired_date=item.get('expired_date'),
         jumlah=txn.jumlah,
-        nilai_satuan=current_nilai, # Out price is current average price
-        total_nilai=txn.jumlah * current_nilai,
+        nilai_satuan=avg_price_out, 
+        total_nilai=total_cost_out,
         stok_sebelum=current_stok,
         stok_sesudah=new_stok,
         unit_penerima=txn.unit_penerima,
         pegawai_id=txn.pegawai_id,
-        keterangan=txn.keterangan,
+        keterangan=f"{txn.keterangan or ''} [FIFO: {', '.join(consumed_info)}]",
         dokumen_ref=txn.dokumen_ref,
         petugas=current_user,
         timestamp=datetime.now(timezone.utc)
