@@ -11,6 +11,18 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
     const [uploading, setUploading] = useState(false);
     const [description, setDescription] = useState('');
 
+    const getImageUrl = (url) => {
+        if (!url) return '';
+        // If url already has http/https, use it
+        if (url.startsWith('http')) return url;
+        
+        // Otherwise assume relative path and use REACT_APP_BACKEND_URL
+        const baseUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+        // Remove duplicate slashes if any
+        const cleanPath = url.startsWith('/') ? url : `/${url}`;
+        return `${baseUrl}${cleanPath}`;
+    };
+
     const handleUpload = async (e) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
@@ -73,7 +85,7 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
                         {item.fotos && item.fotos.length > 0 ? (
                             item.fotos.map((foto, idx) => (
                                 <div key={idx} className={`relative group border rounded-lg overflow-hidden ${foto.is_thumbnail ? 'ring-2 ring-blue-500' : ''}`}>
-                                    <img src={`http://localhost:8001${foto.url}`} alt="asset" className="w-full h-32 object-cover" />
+                                    <img src={getImageUrl(foto.url)} alt="asset" className="w-full h-32 object-cover" />
                                     {foto.is_thumbnail && (
                                         <div className="absolute top-1 left-1 bg-blue-500 text-white p-1 rounded-full text-xs shadow-sm">
                                             <Star size={12} fill="white" />
