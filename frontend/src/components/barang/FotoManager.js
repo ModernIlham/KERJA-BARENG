@@ -58,7 +58,7 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess, type = '
 
     const handleSetThumbnail = async (url) => {
         try {
-            await api.put(`/api/barang/${item._id}/set-thumbnail`, { url });
+            await api.put(`/api/${type}/${item._id}/set-thumbnail`, { url });
             toast.success("Thumbnail diupdate");
             onSuccess();
         } catch (err) {
