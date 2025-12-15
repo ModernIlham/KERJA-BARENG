@@ -129,7 +129,9 @@ export default function BarangList() {
 
   // Reset when tab changes
   useEffect(() => {
-      setCurrentPage(1);
+      if (currentPage === 1) fetchBarang();
+      else setCurrentPage(1);
+      
       setSelectedIds(new Set());
       setIsAllSelected(false);
       clearSelection();
