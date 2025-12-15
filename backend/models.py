@@ -310,6 +310,7 @@ class Persediaan(MongoBaseModel):
     # Inventory - FIFO
     stok: int = 0
     batas_kritis: int = 0
+    batches: List[PersediaanBatch] = []
     
     # Financials (Calculated/History)
     nilai_mutasi: float = 0
