@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -29,6 +30,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount Uploads Directory
+upload_dir = "/app/uploads"
+os.makedirs(upload_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=upload_dir), name="uploads")
+
 # API Router
 api_router = APIRouter(prefix="/api")
 
@@ -45,9 +51,9 @@ api_router.include_router(laporan.router, prefix="/laporan", tags=["Laporan"])
 api_router.include_router(settings.router, prefix="/settings", tags=["Pengaturan"])
 api_router.include_router(referensi.router, prefix="/referensi", tags=["Referensi"])
 api_router.include_router(persediaan_transaksi.router, prefix="/persediaan-transaksi", tags=["Persediaan Transaksi"])
-
 api_router.include_router(laporan_bmn.router, prefix="/laporan-bmn", tags=["Laporan BMN"])
 api_router.include_router(surat.router, prefix="/surat", tags=["Manajemen Persuratan"])
+
 @api_router.get("/")
 async def root():
     return {"message": "SIMAN-G API Ready"}
