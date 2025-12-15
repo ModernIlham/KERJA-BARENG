@@ -519,7 +519,7 @@ export default function BarangList() {
                     handleStatusChange={handleStatusChange}
                     openEditModal={openEditModal}
                     handleDelete={handleDelete}
-                    openFotoManager={(item) => setFotoManagerItem(item)}
+                    openFotoManager={(item) => { setFotoManagerItem(item); setFotoManagerType('barang'); }}
                 />
                 <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} limit={limit} onPageChange={setCurrentPage}/>
             </CardContent>
