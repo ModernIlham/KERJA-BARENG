@@ -26,6 +26,14 @@ export default function AsetTetapTable({
     handleDelete,
     openFotoManager
 }) {
+  const getImageUrl = (url) => {
+      if (!url) return '';
+      if (url.startsWith('http')) return url;
+      const baseUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+      const cleanPath = url.startsWith('/') ? url : `/${url}`;
+      return `${baseUrl}${cleanPath}`;
+  };
+
   return (
     <div className="rounded-md border border-slate-200 overflow-x-auto">
       <Table className="w-full min-w-[1500px]">
@@ -117,7 +125,7 @@ export default function AsetTetapTable({
                         <div className="group relative w-10 h-10 mx-auto">
                             {item.fotos && item.fotos.length > 0 ? (
                                 <img 
-                                    src={`http://localhost:8001${item.fotos.find(f => f.is_thumbnail)?.url || item.fotos[0].url}`} 
+                                    src={getImageUrl(item.fotos.find(f => f.is_thumbnail)?.url || item.fotos[0].url)} 
                                     alt="foto" 
                                     className="h-10 w-10 object-cover rounded border cursor-pointer"
                                     onClick={() => openFotoManager(item)}
