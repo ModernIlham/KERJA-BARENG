@@ -3,23 +3,25 @@ from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from datetime import datetime, timezone
+from bson import ObjectId
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+def sanitize_json(data):
+    if isinstance(data, list):
+        return [sanitize_json(item) for item in data]
+    elif isinstance(data, dict):
+        return {k: sanitize_json(v) for k, v in data.items()}
+    elif isinstance(data, ObjectId):
+        return str(data)
+    return data
+
 @router.get("/bmn-summary")
 async def get_laporan_bmn_summary(current_user: str = Depends(get_current_user)):
     # 1. Ringkasan Nilai Aset (By Category)
-    # Mapping based on typical SIMAK BMN codes (approximation)
-    # 3.01 = Tanah
-    # 3.02 = Peralatan & Mesin
-    # 3.03 = Gedung & Bangunan
-    # 3.04 = Jalan, Irigasi
-    # 3.05 = Aset Tetap Lainnya
-    # 3.06 = Konstruksi
-    
     pipeline_nilai = [
         {"$project": {
             "nilai_perolehan": 1,
@@ -72,8 +74,7 @@ async def get_laporan_bmn_summary(current_user: str = Depends(get_current_user))
     ]
     mutasi_stats = await db.transaksi.aggregate(pipeline_mutasi).to_list(100)
     
-    # 4. KIB List (Top 20 by Value for preview, or full list if needed, usually reports need full)
-    # We will fetch this separately or here. Let's fetch top 100 for the report view.
+    # 4. KIB List (Top 50 by Value)
     kib_list = await db.barang.find({}).sort("nilai_perolehan", -1).limit(50).to_list(50)
     
     # Format data for frontend
@@ -101,4 +102,4 @@ async def get_laporan_bmn_summary(current_user: str = Depends(get_current_user))
         "kib": kib_list
     }
     
-    return summary
+    return sanitize_json(summary)
