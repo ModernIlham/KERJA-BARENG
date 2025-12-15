@@ -31,9 +31,10 @@ app.add_middleware(
 )
 
 # Mount Uploads Directory
+# Mounted at /api/uploads to be accessible via the same proxy/domain path as API
 upload_dir = "/app/uploads"
 os.makedirs(upload_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=upload_dir), name="uploads")
+app.mount("/api/uploads", StaticFiles(directory=upload_dir), name="uploads")
 
 # API Router
 api_router = APIRouter(prefix="/api")
