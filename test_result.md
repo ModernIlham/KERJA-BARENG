@@ -238,6 +238,30 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Konfigurasi Sistem Settings"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Pengaturan.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New testing task: Verify 'Konfigurasi Sistem' card in Pengaturan page with green border, 'Batas Upload Foto per Bulan' input with default value 500, ability to change to 600, save functionality with toast confirmation, and value persistence after refresh."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 3
+
+test_plan:
+  current_focus: 
+    - "Konfigurasi Sistem Settings"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
 agent_communication:
   - agent: "testing"
     message: "Starting comprehensive testing of Master Barang page critical features. Will test bulk operations, selection functionality, export features, and pagination state management."
@@ -249,3 +273,5 @@ agent_communication:
     message: "Starting new testing task: Verifying FOTO column in Aset Lancar (Persediaan) table and Manajemen Foto modal functionality. Will test login, navigation to /barang, tab switching, FOTO column presence, +Foto button click, and modal opening."
   - agent: "testing"
     message: "FOTO COLUMN TESTING COMPLETED SUCCESSFULLY: ✅ Login with admin@example.com/admin works. ✅ Navigation to /barang successful. ✅ Tab switch to 'Aset Lancar (Persediaan)' works correctly. ✅ FOTO column exists and is visible in table header. ✅ Found 20 +Foto buttons in table rows, all clickable. ✅ Manajemen Foto modal opens when clicking +Foto (required force=True due to overlay). ✅ Modal contains proper upload functionality with file input. ✅ Modal can be closed properly. All requested features are working correctly."
+  - agent: "testing"
+    message: "Starting new testing task: Verifying 'Konfigurasi Sistem' settings in Pengaturan page. Will test login as admin/admin, navigation to /pengaturan, verify green-bordered Konfigurasi Sistem card, check default value 500 for 'Batas Upload Foto per Bulan', change to 600, save with toast confirmation, and verify persistence after refresh."
