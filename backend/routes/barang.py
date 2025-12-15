@@ -463,7 +463,7 @@ async def upload_fotos(
             shutil.copyfileobj(file.file, buffer)
             
         new_fotos.append({
-            "url": f"/uploads/barang/{safe_name}",
+            "url": f"/api/uploads/barang/{safe_name}",
             "is_thumbnail": False,
             "keterangan": keterangan,
             "uploaded_at": datetime.now(timezone.utc)

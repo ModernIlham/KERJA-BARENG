@@ -88,7 +88,7 @@ async def upload_surat_file(
         
     # Update DB
     # We store relative path or full? Let's store relative for serving
-    relative_path = f"/uploads/surat/{safe_name}"
+    relative_path = f"/api/uploads/surat/{safe_name}"
     
     await db.surat.update_one(
         {"_id": ObjectId(id)},
