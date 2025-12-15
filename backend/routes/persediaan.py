@@ -1018,6 +1018,8 @@ async def bulk_delete_persediaan(request: BulkDeleteRequest, current_user: str =
 async def upload_fotos(
     id: str,
     files: List[UploadFile] = File(...),
+    current_user: str = Depends(get_current_user)
+):
     # 1. Check Rate Limit
     config = await db.system_settings.find_one({"key": "general"})
     if not config:
