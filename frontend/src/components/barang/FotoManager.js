@@ -33,7 +33,7 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess, type = '
         // No default description anymore
 
         try {
-            await api.post(`/api/barang/${item._id}/upload-fotos`, fd, {
+            await api.post(`/api/${type}/${item._id}/upload-fotos`, fd, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             toast.success("Foto berhasil diupload");
