@@ -29,9 +29,13 @@ export default function AsetTetapTable({
   const getImageUrl = (url) => {
       if (!url) return '';
       if (url.startsWith('http')) return url;
-      const baseUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-      const cleanPath = url.startsWith('/') ? url : `/${url}`;
-      return `${baseUrl}${cleanPath}`;
+      
+      if (process.env.REACT_APP_BACKEND_URL) {
+           const baseUrl = process.env.REACT_APP_BACKEND_URL;
+           const cleanPath = url.startsWith('/') ? url : `/${url}`;
+           return `${baseUrl}${cleanPath}`;
+      }
+      return url.startsWith('/') ? url : `/${url}`;
   };
 
   return (
