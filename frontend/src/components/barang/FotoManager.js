@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Loader2, X, Star, Upload, Trash, Maximize2, Save, Edit2, ZoomIn, ZoomOut } from 'lucide-react';
+import { Loader2, X, Star, Upload, Trash, Maximize2, Save, Edit2, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Fullscreen Zoom Component
@@ -14,6 +14,7 @@ const FullscreenViewer = ({ src, onClose }) => {
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+    const containerRef = useRef(null);
 
     // Lock body scroll
     useEffect(() => {
@@ -22,32 +23,33 @@ const FullscreenViewer = ({ src, onClose }) => {
         return () => { document.body.style.overflow = originalStyle; };
     }, []);
 
-    const handleZoomIn = (e) => {
-        e.stopPropagation();
+    const handleZoomIn = () => {
         setScale(s => Math.min(s + 0.5, 4));
     };
 
-    const handleZoomOut = (e) => {
-        e.stopPropagation();
-        setScale(s => Math.max(s - 0.5, 1)); // Don't zoom out smaller than 1
-        if (scale <= 1.5) setPosition({ x: 0, y: 0 }); // Reset pos if zooming out fully
+    const handleZoomOut = () => {
+        setScale(s => {
+            const newScale = Math.max(s - 0.5, 1);
+            if (newScale === 1) setPosition({ x: 0, y: 0 });
+            return newScale;
+        });
     };
 
-    const handleReset = (e) => {
-        e.stopPropagation();
+    const handleReset = () => {
         setScale(1);
         setPosition({ x: 0, y: 0 });
     };
 
-    const onMouseDown = (e) => {
+    // Drag Logic
+    const handleMouseDown = (e) => {
         if (scale > 1) {
             setIsDragging(true);
             setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
-            e.preventDefault(); // Prevent native drag
+            e.preventDefault(); 
         }
     };
 
-    const onMouseMove = (e) => {
+    const handleMouseMove = (e) => {
         if (isDragging && scale > 1) {
             e.preventDefault();
             setPosition({
@@ -57,61 +59,86 @@ const FullscreenViewer = ({ src, onClose }) => {
         }
     };
 
-    const onMouseUp = () => {
+    const handleMouseUp = () => {
         setIsDragging(false);
     };
 
-    // Portal to body
+    // Use Portal to escape any parent z-index/overflow issues
     return createPortal(
         <div 
-            className="fixed inset-0 z-[100000] bg-black/95 flex items-center justify-center touch-none"
-            onClick={onClose}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseUp}
+            className="fixed inset-0 z-[99999] flex items-center justify-center"
+            ref={containerRef}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
         >
-            {/* Top Bar with Close */}
+            {/* 1. Backdrop (Click to Close) */}
             <div 
-                className="absolute top-0 left-0 right-0 p-4 flex justify-end z-[100002]" 
-                onClick={e => e.stopPropagation()}
-            >
+                className="absolute inset-0 bg-black/95 backdrop-blur-sm cursor-pointer"
+                onClick={onClose}
+            />
+
+            {/* 2. Controls Layer (Pointer Events Auto) */}
+            {/* Close Button */}
+            <div className="absolute top-6 right-6 z-[100000]">
                 <button 
-                    type="button"
-                    onClick={onClose}
-                    className="bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-all"
+                    onClick={(e) => { e.stopPropagation(); onClose(); }}
+                    className="p-3 bg-white/10 hover:bg-white/25 text-white rounded-full transition-all shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer"
+                    title="Close"
                 >
-                    <X size={32} />
+                    <X size={28} />
                 </button>
             </div>
 
-            {/* Bottom Controls */}
-            <div 
-                className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[100002] flex gap-4 bg-black/50 p-3 rounded-full backdrop-blur-md border border-white/10"
-                onClick={e => e.stopPropagation()}
-            >
-                <button type="button" onClick={handleZoomOut} className="text-white hover:text-blue-400 disabled:opacity-50" disabled={scale <= 1}>
-                    <ZoomOut size={24} />
-                </button>
-                <span className="text-white font-mono w-12 text-center select-none pt-0.5">{Math.round(scale * 100)}%</span>
-                <button type="button" onClick={handleZoomIn} className="text-white hover:text-blue-400 disabled:opacity-50" disabled={scale >= 4}>
-                    <ZoomIn size={24} />
-                </button>
+            {/* Zoom Controls */}
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[100000]">
+                <div 
+                    className="flex items-center gap-4 bg-black/70 p-3 rounded-full border border-white/10 shadow-2xl backdrop-blur-md"
+                    onClick={(e) => e.stopPropagation()} // Prevent clicks passing to backdrop
+                >
+                    <button 
+                        onClick={handleZoomOut} 
+                        className="p-2 hover:bg-white/20 rounded-full text-white transition-colors disabled:opacity-30 cursor-pointer"
+                        disabled={scale <= 1}
+                        title="Zoom Out"
+                    >
+                        <ZoomOut size={24} />
+                    </button>
+                    
+                    <button
+                        onClick={handleReset}
+                        className="w-16 text-center font-mono text-sm text-white font-bold cursor-pointer hover:text-blue-400 select-none"
+                        title="Reset Zoom"
+                    >
+                        {Math.round(scale * 100)}%
+                    </button>
+                    
+                    <button 
+                        onClick={handleZoomIn} 
+                        className="p-2 hover:bg-white/20 rounded-full text-white transition-colors disabled:opacity-30 cursor-pointer"
+                        disabled={scale >= 4}
+                        title="Zoom In"
+                    >
+                        <ZoomIn size={24} />
+                    </button>
+                </div>
             </div>
 
-            {/* Image Area */}
+            {/* 3. Image Layer (Pointer Events Auto) */}
             <div 
-                className="relative w-full h-full flex items-center justify-center overflow-hidden p-6"
-                style={{ cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+                className="relative z-[99999] w-full h-full flex items-center justify-center pointer-events-none p-8"
             >
                 <img 
                     src={src} 
                     alt="Fullscreen" 
-                    className="max-w-full max-h-full object-contain transition-transform duration-100"
+                    className="max-w-full max-h-full object-contain transition-transform duration-100 ease-linear select-none pointer-events-auto"
                     style={{ 
-                        transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` 
+                        transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                        cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
                     }}
-                    onMouseDown={onMouseDown}
-                    onClick={e => e.stopPropagation()} // Stop closing when clicking image
+                    onMouseDown={handleMouseDown}
+                    onClick={(e) => e.stopPropagation()} 
+                    draggable={false}
                 />
             </div>
         </div>,
@@ -304,7 +331,7 @@ export default function FotoManager({ isOpen, onClose, item, onSuccess }) {
                 </DialogContent>
             </Dialog>
 
-            {/* Zoom Modal */}
+            {/* Zoom Modal - Updated */}
             {zoomImage && (
                 <FullscreenViewer 
                     src={zoomImage} 
