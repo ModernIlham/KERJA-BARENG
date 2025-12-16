@@ -1173,15 +1173,32 @@ class APITester:
         # Step 2: Verify NUP values in backend responses
         print("\n🔍 Step 2: Verifying NUP values in backend API responses...")
         
-        # Check Aset Tetap (Manual) NUP
-        success, aset_manual_details = self.run_test(
-            "Get Aset Manual Details",
+        # Get barang list to find our created items
+        success, response = self.run_test(
+            "Get Barang List for NUP Verification",
             "GET",
-            f"api/barang/{aset_manual_id}",
-            200
+            "api/barang",
+            200,
+            data={"page": 1, "limit": 50}
         )
         
-        if success:
+        if not success:
+            print("❌ Failed to get Barang list")
+            return False
+        
+        barang_items = response.get('data', [])
+        aset_manual_details = None
+        aset_normal_details = None
+        
+        # Find our created items
+        for item in barang_items:
+            if item.get('_id') == aset_manual_id:
+                aset_manual_details = item
+            elif item.get('_id') == aset_normal_id:
+                aset_normal_details = item
+        
+        # Check Aset Tetap (Manual) NUP
+        if aset_manual_details:
             nup_value = aset_manual_details.get('nup')
             print(f"📊 Aset Manual NUP value: '{nup_value}'")
             if str(nup_value) == "1":
@@ -1190,18 +1207,11 @@ class APITester:
                 print(f"❌ Expected NUP '1', got: '{nup_value}'")
                 return False
         else:
-            print("❌ Failed to get Aset Manual details")
+            print("❌ Aset Manual item not found in barang list")
             return False
         
         # Check Aset Tetap (Normal) NUP
-        success, aset_normal_details = self.run_test(
-            "Get Aset Normal Details",
-            "GET",
-            f"api/barang/{aset_normal_id}",
-            200
-        )
-        
-        if success:
+        if aset_normal_details:
             nup_value = aset_normal_details.get('nup')
             print(f"📊 Aset Normal NUP value: '{nup_value}'")
             if str(nup_value) == "100":
@@ -1210,7 +1220,7 @@ class APITester:
                 print(f"❌ Expected NUP '100', got: '{nup_value}'")
                 return False
         else:
-            print("❌ Failed to get Aset Normal details")
+            print("❌ Aset Normal item not found in barang list")
             return False
         
         # Check Persediaan item (should NOT have NUP field or should be ignored)
