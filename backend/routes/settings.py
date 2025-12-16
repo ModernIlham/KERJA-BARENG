@@ -8,6 +8,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from bson import ObjectId, json_util
 import math
+from routes.logo_logic import handle_logo_upload
+from fastapi import UploadFile, File
 import json
 import io
 from datetime import datetime, timezone
@@ -282,6 +284,19 @@ async def update_instansi_config(data: dict = Body(...), current_user: str = Dep
         upsert=True
     )
     return {"message": "Informasi Instansi diperbarui"}
+
+@router.post("/instansi/logo")
+async def upload_instansi_logo(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+    return await handle_logo_upload(file, db)
+
+@router.delete("/instansi/logo")
+async def delete_instansi_logo(current_user: str = Depends(get_current_user)):
+    await db.system_settings.update_one(
+        {"key": "instansi"},
+        {"$set": {"logo_url": None}},
+        upsert=True
+    )
+    return {"message": "Logo dihapus"}
         
     raise HTTPException(status_code=400, detail="Target reset tidak valid")
 
