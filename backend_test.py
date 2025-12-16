@@ -1071,9 +1071,11 @@ class APITester:
         print("\n🔧 Step 1: Setting up test items with specific NUP values...")
         
         # Create Aset Tetap (Manual) with NUP '1'
+        import time
+        timestamp = int(time.time())
         aset_manual_data = {
-            "kode_barang": "1030101001000001",  # Aset tetap code format
-            "nama_barang": "Test Aset Manual NUP 1",
+            "kode_barang": f"103010100100{timestamp % 10000:04d}",  # Unique aset tetap code
+            "nama_barang": f"Test Aset Manual NUP 1 {timestamp}",
             "merk": "Test Brand",
             "kondisi": "Baik",
             "lokasi_fisik": "Test Location",
