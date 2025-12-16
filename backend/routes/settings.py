@@ -178,16 +178,46 @@ async def recalculate_stock(current_user: str = Depends(get_current_user)):
 @router.post("/database/reset")
 async def reset_database(
     target: str, # 'transaksi', 'barang', 'referensi', 'all'
+    asset_type: str = "all", # 'all', 'aset', 'persediaan'
+    txn_type: str = "all", # 'all', 'in', 'out'
     current_user: str = Depends(get_current_user)
 ):
     if target == 'transaksi':
-        await db.transaksi.delete_many({})
-        await db.stok_batches.delete_many({})
-        await db.opname.delete_many({})
-        # Optionally reset stock to 0? Or keep as is?
-        # Usually if you delete transactions, stock history is gone, so stock should be reset or kept as "Initial".
-        # Let's keep Master Barang intact.
-        return {"message": "Data Transaksi & Opname berhasil dihapus total."}
+        deleted_counts = []
+        
+        # 1. Handle Aset Tetap Transaksi (db.transaksi)
+        if asset_type in ['all', 'aset']:
+            query = {}
+            if txn_type == 'in':
+                query["jenis"] = "MASUK"
+            elif txn_type == 'out':
+                query["jenis"] = "KELUAR"
+            
+            res = await db.transaksi.delete_many(query)
+            if res.deleted_count > 0:
+                deleted_counts.append(f"{res.deleted_count} Riwayat Aset Tetap")
+                
+            # If deleting all asset transactions, maybe clean Opname too?
+            # Keeping it simple for now as per request.
+            if txn_type == 'all':
+                 await db.opname.delete_many({"asset_type": "barang"})
+
+        # 2. Handle Persediaan Transaksi (db.transaksi_persediaan)
+        if asset_type in ['all', 'persediaan']:
+            query = {}
+            if txn_type == 'in':
+                query["jenis"] = "in"
+            elif txn_type == 'out':
+                query["jenis"] = "out"
+                
+            res = await db.transaksi_persediaan.delete_many(query)
+            if res.deleted_count > 0:
+                deleted_counts.append(f"{res.deleted_count} Riwayat Persediaan")
+
+        if not deleted_counts:
+            return {"message": "Tidak ada data transaksi yang dihapus."}
+            
+        return {"message": f"Berhasil menghapus: {', '.join(deleted_counts)}"}
         
     elif target == 'barang':
         await db.barang.delete_many({})
