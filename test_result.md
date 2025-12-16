@@ -272,10 +272,14 @@ test_plan:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 4
+  test_sequence: 5
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Advanced Employee Management Features - WNA Logic"
+    - "Advanced Employee Management Features - Non-ASN Logic"
+    - "Advanced Employee Management Features - TNI Logic"
+    - "Advanced Employee Management Features - Penugasan Status"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
