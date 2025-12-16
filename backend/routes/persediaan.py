@@ -1049,7 +1049,7 @@ async def upload_fotos(
             raise HTTPException(status_code=400, detail="Only image files allowed")
         
         # 1. Save file
-        timestamp = int(time.time())
+        timestamp = int(datetime.now().timestamp())
         safe_name = f"{id}_{timestamp}_{file.filename.replace(' ', '_')}"
         file_path = os.path.join(upload_dir, safe_name)
         
