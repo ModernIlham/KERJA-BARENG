@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T14:28:10.899252",
+  "timestamp": "2025-12-16T15:35:52.317059",
   "summary": {
     "tests_run": 17,
-    "tests_passed": 15,
-    "success_rate": "88.2%"
+    "tests_passed": 17,
+    "success_rate": "100.0%"
   },
   "detailed_results": [
     {
@@ -33,9 +33,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 2847,
-      "data_count": 1,
-      "total_items": 44
+      "response_size": 56,
+      "data_count": 0,
+      "total_items": 0
     },
     {
       "test_name": "Get Referensi List",
@@ -77,9 +77,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 48226,
-      "data_count": 20,
-      "total_items": 44
+      "response_size": 57,
+      "data_count": 0,
+      "total_items": 0
     },
     {
       "test_name": "Get Barang with Pagination",
@@ -88,9 +88,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 14384,
-      "data_count": 5,
-      "total_items": 44
+      "response_size": 56,
+      "data_count": 0,
+      "total_items": 0
     },
     {
       "test_name": "Get Barang with Search",
@@ -99,93 +99,87 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 5441,
-      "data_count": 5,
-      "total_items": 6
+      "response_size": 56,
+      "data_count": 0,
+      "total_items": 0
     },
     {
-      "test_name": "Create Aset Tetap (Manual) with NUP 1",
+      "test_name": "Test Master Barang Delete - Aset Tetap Option",
       "method": "POST",
-      "endpoint": "api/barang",
+      "endpoint": "api/settings/database/reset?target=barang&asset_type=aset",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 1087
+      "response_size": 56
     },
     {
-      "test_name": "Create Aset Tetap (Normal) with NUP 100",
+      "test_name": "Test Master Barang Delete - Persediaan Option",
       "method": "POST",
-      "endpoint": "api/barang",
+      "endpoint": "api/settings/database/reset?target=barang&asset_type=persediaan",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 1091
+      "response_size": 47
     },
     {
-      "test_name": "Create Persediaan Item",
+      "test_name": "Test Master Barang Delete - Semua Option",
       "method": "POST",
-      "endpoint": "api/persediaan",
-      "expected_status": 200,
-      "actual_status": 401,
-      "success": false,
-      "response_size": 30,
-      "error": {
-        "detail": "Not authenticated"
-      }
-    },
-    {
-      "test_name": "Get Existing Persediaan Items",
-      "method": "GET",
-      "endpoint": "api/persediaan",
-      "expected_status": 200,
-      "actual_status": 401,
-      "success": false,
-      "response_size": 30,
-      "error": {
-        "detail": "Not authenticated"
-      }
-    },
-    {
-      "test_name": "Get Barang List for NUP Verification",
-      "method": "GET",
-      "endpoint": "api/barang",
+      "endpoint": "api/settings/database/reset?target=barang&asset_type=all",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 95476,
-      "data_count": 46,
-      "total_items": 46
+      "response_size": 56
     },
     {
-      "test_name": "Create Aset IN Transaction",
+      "test_name": "Get Pegawai List",
+      "method": "GET",
+      "endpoint": "api/pegawai",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 57,
+      "data_count": 0,
+      "total_items": 0
+    },
+    {
+      "test_name": "Create Test Employee (Budi Test)",
       "method": "POST",
-      "endpoint": "api/transaksi",
+      "endpoint": "api/pegawai",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 447
+      "response_size": 734
     },
     {
-      "test_name": "Get Persediaan Transaction History",
+      "test_name": "Verify Created Employee Details",
       "method": "GET",
-      "endpoint": "api/persediaan-transaksi/",
+      "endpoint": "api/pegawai",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 11915,
-      "data_count": 23,
-      "total_items": 23
+      "response_size": 790,
+      "data_count": 1,
+      "total_items": 1
     },
     {
-      "test_name": "Get Barang List (Aset Tetap)",
-      "method": "GET",
-      "endpoint": "api/barang",
+      "test_name": "Execute Employee Mutasi (Promotion)",
+      "method": "POST",
+      "endpoint": "api/pegawai/69417c5843695dfa3147e14b/mutasi",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 95476,
-      "data_count": 46,
-      "total_items": 46
+      "response_size": 1007
+    },
+    {
+      "test_name": "Get Updated Employee Details",
+      "method": "GET",
+      "endpoint": "api/pegawai",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 56,
+      "data_count": 0,
+      "total_items": 0
     }
   ]
 }
