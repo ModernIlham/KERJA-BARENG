@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Verify the new 'Foto' column in 'Aset Lancar (Persediaan)' table with photo management functionality"
+user_problem_statement: "Verify the display of 'NUP' information for manual inventory/asset entries"
 
 frontend:
   - task: "Pagination on Master Barang Page"
