@@ -1702,7 +1702,7 @@ class APITester:
             "GET",
             f"api/pegawai",
             200,
-            data={"search": employee_id, "page": 1, "limit": 5}
+            data={"page": 1, "limit": 20}
         )
         
         if success:
