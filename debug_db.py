@@ -11,18 +11,22 @@ async def check_db():
     client = AsyncIOMotorClient(mongo_url)
     db = client[db_name]
     
-    count = await db.transaksi_persediaan.count_documents({})
-    print(f"Total Transactions: {count}")
+    print("--- Transaksi Persediaan (Inventory History) ---")
+    count_tp = await db.transaksi_persediaan.count_documents({})
+    print(f"Count: {count_tp}")
+
+    print("\n--- Transaksi (Fixed Asset History) ---")
+    count_t = await db.transaksi.count_documents({})
+    print(f"Count: {count_t}")
     
-    if count > 0:
-        cursor = db.transaksi_persediaan.find({}).sort("timestamp", -1).limit(2)
-        items = await cursor.to_list(length=2)
+    print("\n--- Persediaan (Inventory Items) ---")
+    count_p = await db.persediaan.count_documents({})
+    print(f"Count: {count_p}")
+    if count_p > 0:
+        cursor = db.persediaan.find({}).limit(3)
+        items = await cursor.to_list(length=3)
         for item in items:
-            # Convert ObjectId to str for printing
-            item['_id'] = str(item['_id'])
-            print(f"Sample Item: {item}")
-    else:
-        print("Collection is empty!")
+            print(f"Item: {item.get('nama_barang')} | Stok: {item.get('stok')} | Batches: {len(item.get('batches', []))}")
 
 if __name__ == "__main__":
     asyncio.run(check_db())
