@@ -399,6 +399,7 @@ class TransaksiPersediaanBulkItem(BaseModel):
     nilai_satuan: float
     expired_date: Optional[str] = None
 
+    unit_penerima: Optional[str] = None
 class TransaksiPersediaanBulkCreate(BaseModel):
     items: List[TransaksiPersediaanBulkItem]
     dokumen_ref: str
