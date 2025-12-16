@@ -10,6 +10,7 @@ import { Separator } from '../ui/separator';
 import { User, Briefcase, BadgeCheck, Phone, Info } from 'lucide-react';
 import api from '../../api/axios';
 import { toast } from 'sonner';
+import PegawaiPhotoUpload from './PegawaiPhotoUpload';
 
 // --- REF DATA ---
 const PANGKAT_GOLONGAN = {
