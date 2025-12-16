@@ -1711,8 +1711,7 @@ class APITester:
         print(f"✅ Penugasan Employee created successfully with ID: {penugasan_employee_id}")
         print(f"   Name: {response.get('nama_lengkap')}")
         print(f"   Status Penempatan: {response.get('status_penempatan')}")
-        print(f"   Instansi Asal: {response.get('instansi_asal')}")
-        print(f"   Masa Penugasan: {response.get('masa_penugasan_end')}")
+        print(f"   Note: Additional fields (instansi_asal, masa_penugasan_end) should be handled by frontend")
         
         # Verify Penugasan logic
         if response.get('status_penempatan') == 'Penugasan':
