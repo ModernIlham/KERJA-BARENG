@@ -55,11 +55,74 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
     const statusPenempatan = watch('status_penempatan');
     const kategoriPegawai = watch('kategori_pegawai');
 
+    // Unit Watchers for Cascading
+    const watchEselon1 = watch('eselon1');
+    const watchEselon2 = watch('eselon2');
+    const watchEselon3 = watch('eselon3');
+    const watchEselon4 = watch('eselon4');
+
+    // Unit Options State
+    const [units, setUnits] = useState([]);
+    const [optEselon1, setOptEselon1] = useState([]);
+    const [optEselon2, setOptEselon2] = useState([]);
+    const [optEselon3, setOptEselon3] = useState([]);
+    const [optEselon4, setOptEselon4] = useState([]);
+    const [optEselon5, setOptEselon5] = useState([]);
+
     // Dynamic Logic for Identity
     const isWNI = kewarganegaraan === 'WNI';
     const isASN = ['PNS', 'PPPK'].includes(statusKepegawaian);
     const isTNI_POLRI = ['TNI', 'POLRI'].includes(statusKepegawaian);
     const isNonASN = ['Non-ASN', 'Honorer'].includes(statusKepegawaian);
+
+    useEffect(() => {
+        fetchUnits();
+    }, []);
+
+    const fetchUnits = async () => {
+        try {
+            const res = await api.get('/api/settings/unit-kerja');
+            setUnits(res.data);
+            setOptEselon1(res.data.filter(u => u.eselon === "1"));
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    // Filter Logic for Cascading Dropdowns
+    useEffect(() => {
+        if (!watchEselon1) { setOptEselon2([]); return; }
+        // Find ID of selected Eselon 1 Name
+        const parent = units.find(u => u.nama_unit === watchEselon1 && u.eselon === "1");
+        if (parent) {
+            setOptEselon2(units.filter(u => u.parent_id === parent.id && u.eselon === "2"));
+        } else { setOptEselon2([]); }
+    }, [watchEselon1, units]);
+
+    useEffect(() => {
+        if (!watchEselon2) { setOptEselon3([]); return; }
+        const parent = units.find(u => u.nama_unit === watchEselon2 && u.eselon === "2");
+        if (parent) {
+            setOptEselon3(units.filter(u => u.parent_id === parent.id && u.eselon === "3"));
+        } else { setOptEselon3([]); }
+    }, [watchEselon2, units]);
+
+    useEffect(() => {
+        if (!watchEselon3) { setOptEselon4([]); return; }
+        const parent = units.find(u => u.nama_unit === watchEselon3 && u.eselon === "3");
+        if (parent) {
+            setOptEselon4(units.filter(u => u.parent_id === parent.id && u.eselon === "4"));
+        } else { setOptEselon4([]); }
+    }, [watchEselon3, units]);
+
+    useEffect(() => {
+        if (!watchEselon4) { setOptEselon5([]); return; }
+        const parent = units.find(u => u.nama_unit === watchEselon4 && u.eselon === "4");
+        if (parent) {
+            setOptEselon5(units.filter(u => u.parent_id === parent.id && u.eselon === "5"));
+        } else { setOptEselon5([]); }
+    }, [watchEselon4, units]);
+
 
     useEffect(() => {
         if (initialData) {
@@ -179,28 +242,93 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
                         </div>
 
                         <Separator className="my-2"/>
-                        <Label className="text-xs font-bold text-slate-500">Unit Kerja (Struktur Organisasi)</Label>
+                        <Label className="text-xs font-bold text-slate-500">Unit Kerja (Struktur Organisasi Bertingkat)</Label>
                         
-                        <div className="grid grid-cols-1 gap-3">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <Label className="text-[10px] text-slate-400">Unit Eselon I</Label>
-                                    <Input {...register("eselon1")} placeholder="Sekretariat Jenderal" className="h-8"/>
-                                </div>
-                                <div>
-                                    <Label className="text-[10px] text-slate-400">Unit Eselon II</Label>
-                                    <Input {...register("eselon2")} placeholder="Biro Umum" className="h-8"/>
-                                </div>
+                        <div className="grid grid-cols-1 gap-3 bg-slate-50 p-3 rounded border border-slate-200">
+                            {/* Eselon I */}
+                            <div className="grid grid-cols-2 gap-3 items-center">
+                                <Label className="text-[10px] text-slate-500">Unit Eselon I</Label>
+                                <select 
+                                    {...register("eselon1")} 
+                                    className="w-full h-8 border rounded px-2 text-xs bg-white"
+                                    onChange={(e) => {
+                                        setValue('eselon1', e.target.value);
+                                        setValue('eselon2', '');
+                                        setValue('eselon3', '');
+                                        setValue('eselon4', '');
+                                        setValue('eselon5', '');
+                                    }}
+                                >
+                                    <option value="">-- Pilih Eselon I --</option>
+                                    {optEselon1.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                                </select>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <Label className="text-[10px] text-slate-400">Unit Eselon III</Label>
-                                    <Input {...register("eselon3")} placeholder="Bagian..." className="h-8"/>
-                                </div>
-                                <div>
-                                    <Label className="text-[10px] text-slate-400">Unit Eselon IV / V</Label>
-                                    <Input {...register("eselon4")} placeholder="Subbagian..." className="h-8"/>
-                                </div>
+
+                            {/* Eselon II */}
+                            <div className="grid grid-cols-2 gap-3 items-center">
+                                <Label className="text-[10px] text-slate-500">Unit Eselon II</Label>
+                                <select 
+                                    {...register("eselon2")} 
+                                    disabled={!watchEselon1}
+                                    className="w-full h-8 border rounded px-2 text-xs bg-white disabled:bg-slate-100"
+                                    onChange={(e) => {
+                                        setValue('eselon2', e.target.value);
+                                        setValue('eselon3', '');
+                                        setValue('eselon4', '');
+                                        setValue('eselon5', '');
+                                    }}
+                                >
+                                    <option value="">-- Pilih Eselon II --</option>
+                                    {optEselon2.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Eselon III */}
+                            <div className="grid grid-cols-2 gap-3 items-center">
+                                <Label className="text-[10px] text-slate-500">Unit Eselon III</Label>
+                                <select 
+                                    {...register("eselon3")} 
+                                    disabled={!watchEselon2}
+                                    className="w-full h-8 border rounded px-2 text-xs bg-white disabled:bg-slate-100"
+                                    onChange={(e) => {
+                                        setValue('eselon3', e.target.value);
+                                        setValue('eselon4', '');
+                                        setValue('eselon5', '');
+                                    }}
+                                >
+                                    <option value="">-- Pilih Eselon III --</option>
+                                    {optEselon3.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Eselon IV */}
+                            <div className="grid grid-cols-2 gap-3 items-center">
+                                <Label className="text-[10px] text-slate-500">Unit Eselon IV</Label>
+                                <select 
+                                    {...register("eselon4")} 
+                                    disabled={!watchEselon3}
+                                    className="w-full h-8 border rounded px-2 text-xs bg-white disabled:bg-slate-100"
+                                    onChange={(e) => {
+                                        setValue('eselon4', e.target.value);
+                                        setValue('eselon5', '');
+                                    }}
+                                >
+                                    <option value="">-- Pilih Eselon IV --</option>
+                                    {optEselon4.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Eselon V */}
+                            <div className="grid grid-cols-2 gap-3 items-center">
+                                <Label className="text-[10px] text-slate-500">Unit Eselon V</Label>
+                                <select 
+                                    {...register("eselon5")} 
+                                    disabled={!watchEselon4}
+                                    className="w-full h-8 border rounded px-2 text-xs bg-white disabled:bg-slate-100"
+                                >
+                                    <option value="">-- Pilih Eselon V --</option>
+                                    {optEselon5.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                                </select>
                             </div>
                         </div>
 
