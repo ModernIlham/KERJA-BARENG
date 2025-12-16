@@ -266,6 +266,22 @@ async def reset_database(
         await db.barang.delete_many({})
         await db.pegawai.delete_many({})
         return {"message": "SEMUA DATA (Barang, Transaksi, Pegawai) berhasil di-reset ke awal."}
+@router.get("/instansi")
+async def get_instansi_config(current_user: str = Depends(get_current_user)):
+    config = await db.system_settings.find_one({"key": "instansi"})
+    if not config:
+        return {}
+    if "_id" in config: config["_id"] = str(config["_id"])
+    return config
+
+@router.put("/instansi")
+async def update_instansi_config(data: dict = Body(...), current_user: str = Depends(get_current_user)):
+    await db.system_settings.update_one(
+        {"key": "instansi"},
+        {"$set": data},
+        upsert=True
+    )
+    return {"message": "Informasi Instansi diperbarui"}
         
     raise HTTPException(status_code=400, detail="Target reset tidak valid")
 
