@@ -324,6 +324,21 @@ agent_communication:
     message: "✅ FIFO INVENTORY SYSTEM COMPREHENSIVE TEST COMPLETED SUCCESSFULLY: Performed complete end-to-end testing of FIFO inventory system as requested. All 8 verification steps passed: 1) Created new inventory item 'Test FIFO Item' with ID 694158b4088c8065ddaef7e3, 2) Added Batch 1: 10 units @ 10,000 IDR with document BATCH-001, 3) Added Batch 2: 10 units @ 20,000 IDR with document BATCH-002, 4) Verified total stock is 20 units, 5) Performed FIFO OUT transaction for 15 units with unit_penerima='Testing Dept' and dokumen_ref='DOC-001', 6) Verified remaining stock is 5 units, 7) Fetched transaction history (3 transactions found), 8) Verified FIFO calculation: total_nilai=200,000 IDR (10×10,000 + 5×20,000), unit_penerima='Testing Dept', dokumen_ref='DOC-001', and keterangan contains FIFO details '[FIFO: 10 @ 10000.0 (All), 5 @ 20000.0]'. Backend FIFO logic working perfectly with accurate batch tracking, cost calculation, and transaction history."
 
 backend:
+  - task: "NUP Display Functionality for Manual Entries"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/persediaan.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing NUP display functionality for manual inventory/asset entries as requested in review. Testing: 1) Create manual entry that defaults to NUP '1', 2) Create entry with specific NUP '100', 3) Verify frontend display logic - NUP '1' should show '(sementara)' italicized, NUP '100' should show 'NUP: 100', 4) Verify 'NUP: 1' text is gone from display, 5) Test transaction history display, 6) Verify persediaan table display logic."
+      - working: true
+        agent: "testing"
+        comment: "✅ NUP DISPLAY FUNCTIONALITY TEST PASSED: All verification steps completed successfully. 1) Manual entry created with NUP '1 (Sementara)' (ID: 694162710d6b086238e20b8a), 2) Specific NUP entry created with NUP '100' (ID: 694162710d6b086238e20b8b), 3) Transaction history shows correct NUP values, 4) Frontend logic verified: NUP '1' or containing '(Sementara)' displays as '(sementara)' italicized, 5) NUP '100' displays as 'NUP: 100', 6) Confirmed 'NUP: 1' text is replaced with '(sementara)' display. Backend NUP logic working correctly with proper auto-generation and frontend display rules implemented."
+
   - task: "FIFO Inventory System"
     implemented: true
     working: true
