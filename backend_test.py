@@ -2151,6 +2151,23 @@ def main():
     tester.save_results()
     return 0 if (tester.tests_passed == tester.tests_run and advanced_employee_success and sdm_delete_success) else 1
 
+def main():
+    tester = APITester()
+    
+    # Test login first
+    if not tester.test_login():
+        print("❌ Login failed, cannot proceed with tests")
+        return 1
+    
+    # Run Enhanced Organizational Structure test
+    organizational_success = tester.test_enhanced_organizational_structure()
+    
+    print(f"\n📊 ENHANCED ORGANIZATIONAL STRUCTURE TEST RESULTS:")
+    print(f"   Enhanced Organizational Structure Test: {'✅ PASSED' if organizational_success else '❌ FAILED'}")
+    
+    return 0 if organizational_success else 1
+
+class APITester:
     def test_enhanced_organizational_structure(self):
         """Test Enhanced Organizational Structure features as requested in review"""
         print("\n=== ENHANCED ORGANIZATIONAL STRUCTURE TEST ===")
