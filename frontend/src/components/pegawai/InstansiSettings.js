@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 
 export default function InstansiSettings() {
     const { register, handleSubmit, setValue } = useForm();
+import InstansiLogoUpload from './InstansiLogoUpload';
 
     useEffect(() => {
         fetchConfig();
