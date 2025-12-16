@@ -1085,7 +1085,7 @@ class APITester:
         success, response = self.run_test(
             "Create Aset Tetap (Manual) with NUP 1",
             "POST",
-            "api/barang/",
+            "api/barang",
             200,
             data=aset_manual_data
         )
