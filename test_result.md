@@ -275,11 +275,7 @@ metadata:
   test_sequence: 5
 
 test_plan:
-  current_focus:
-    - "Advanced Employee Management Features - WNA Logic"
-    - "Advanced Employee Management Features - Non-ASN Logic"
-    - "Advanced Employee Management Features - TNI Logic"
-    - "Advanced Employee Management Features - Penugasan Status"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
