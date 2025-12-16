@@ -382,14 +382,14 @@ async def stock_out_bulk(payload: TransaksiPersediaanBulkCreate, current_user: s
                 cost = remaining_needed * b_price
                 total_cost_out += cost
                 b_data['qty'] = b_qty - remaining_needed
-                consumed_info.append(f"{remaining_needed} @ {b_price}")
+                consumed_info.append(f"{remaining_needed} @ {b_price} (Batch: {b_data.get('nota_dinas', '-')})")
                 remaining_needed = 0
                 updated_batches.append(b_data)
             else:
                 cost = b_qty * b_price
                 total_cost_out += cost
                 remaining_needed -= b_qty
-                consumed_info.append(f"{b_qty} @ {b_price} (All)")
+                consumed_info.append(f"{b_qty} @ {b_price} (All) (Batch: {b_data.get('nota_dinas', '-')})")
                 
         new_stok = current_stok - item_req.jumlah
         
