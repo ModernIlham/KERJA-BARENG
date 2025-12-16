@@ -32,7 +32,7 @@ export default function TransactionTable({ data, loading, assetType, type }) {
             </TableRow>
           ) : (
             data.map((item) => (
-              <TableRow key={item._id} className="hover:bg-slate-50">
+              <TableRow key={item._id} className={`hover:bg-slate-50 ${(item.jenis === 'in' || item.jenis === 'MASUK') ? 'bg-green-50/30' : 'bg-red-50/30'}`}>
                 <TableCell className="font-mono text-xs">
                   {new Date(item.timestamp).toLocaleDateString('id-ID', {
                     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -41,10 +41,12 @@ export default function TransactionTable({ data, loading, assetType, type }) {
                 <TableCell className="font-mono text-xs text-slate-500">{item.kode_barang}</TableCell>
                 <TableCell className="font-medium text-sm">
                     {item.nama_barang}
-                    {(item.nup === '1' || item.nup === 1) ? (
-                        <span className="ml-1 text-xs text-slate-400 italic">(sementara)</span>
-                    ) : (
-                        item.nup && <span className="ml-1 text-xs text-slate-400">NUP: {item.nup}</span>
+                    {assetType !== 'persediaan' && (
+                        (item.nup === '1' || item.nup === 1) ? (
+                            <span className="ml-1 text-xs text-slate-400 italic">(sementara)</span>
+                        ) : (
+                            item.nup && <span className="ml-1 text-xs text-slate-400">NUP: {item.nup}</span>
+                        )
                     )}
                 </TableCell>
                 
