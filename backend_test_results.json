@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T13:03:16.373906",
+  "timestamp": "2025-12-16T13:03:48.779300",
   "summary": {
-    "tests_run": 10,
-    "tests_passed": 9,
-    "success_rate": "90.0%"
+    "tests_run": 16,
+    "tests_passed": 16,
+    "success_rate": "100.0%"
   },
   "detailed_results": [
     {
@@ -106,14 +106,66 @@
     {
       "test_name": "Create Test FIFO Item",
       "method": "POST",
-      "endpoint": "api/persediaan",
+      "endpoint": "api/persediaan/",
       "expected_status": 200,
-      "actual_status": 401,
-      "success": false,
-      "response_size": 30,
-      "error": {
-        "detail": "Not authenticated"
-      }
+      "actual_status": 200,
+      "success": true,
+      "response_size": 679
+    },
+    {
+      "test_name": "Stock IN - Batch 1",
+      "method": "POST",
+      "endpoint": "api/persediaan-transaksi/in",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 67
+    },
+    {
+      "test_name": "Stock IN - Batch 2",
+      "method": "POST",
+      "endpoint": "api/persediaan-transaksi/in",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 67
+    },
+    {
+      "test_name": "Get Item Details",
+      "method": "GET",
+      "endpoint": "api/persediaan/detail/694158b4088c8065ddaef7e3",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 963
+    },
+    {
+      "test_name": "Stock OUT - FIFO Test",
+      "method": "POST",
+      "endpoint": "api/persediaan-transaksi/out",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 47
+    },
+    {
+      "test_name": "Verify Final Stock",
+      "method": "GET",
+      "endpoint": "api/persediaan/detail/694158b4088c8065ddaef7e3",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 821
+    },
+    {
+      "test_name": "Get Transaction History",
+      "method": "GET",
+      "endpoint": "api/persediaan-transaksi/history/694158b4088c8065ddaef7e3",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 1639,
+      "data_count": 3
     }
   ]
 }
