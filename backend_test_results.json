@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T14:27:22.381551",
+  "timestamp": "2025-12-16T14:28:10.899252",
   "summary": {
-    "tests_run": 14,
-    "tests_passed": 11,
-    "success_rate": "78.6%"
+    "tests_run": 17,
+    "tests_passed": 15,
+    "success_rate": "88.2%"
   },
   "detailed_results": [
     {
@@ -35,7 +35,7 @@
       "success": true,
       "response_size": 2847,
       "data_count": 1,
-      "total_items": 42
+      "total_items": 44
     },
     {
       "test_name": "Get Referensi List",
@@ -79,7 +79,7 @@
       "success": true,
       "response_size": 48226,
       "data_count": 20,
-      "total_items": 42
+      "total_items": 44
     },
     {
       "test_name": "Get Barang with Pagination",
@@ -90,7 +90,7 @@
       "success": true,
       "response_size": 14384,
       "data_count": 5,
-      "total_items": 42
+      "total_items": 44
     },
     {
       "test_name": "Get Barang with Search",
@@ -99,9 +99,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 4361,
-      "data_count": 4,
-      "total_items": 4
+      "response_size": 5441,
+      "data_count": 5,
+      "total_items": 6
     },
     {
       "test_name": "Create Aset Tetap (Manual) with NUP 1",
@@ -146,16 +146,46 @@
       }
     },
     {
-      "test_name": "Get Aset Manual Details",
+      "test_name": "Get Barang List for NUP Verification",
       "method": "GET",
-      "endpoint": "api/barang/69416c49aa04df2ea98c4519",
+      "endpoint": "api/barang",
       "expected_status": 200,
-      "actual_status": 405,
-      "success": false,
-      "response_size": 31,
-      "error": {
-        "detail": "Method Not Allowed"
-      }
+      "actual_status": 200,
+      "success": true,
+      "response_size": 95476,
+      "data_count": 46,
+      "total_items": 46
+    },
+    {
+      "test_name": "Create Aset IN Transaction",
+      "method": "POST",
+      "endpoint": "api/transaksi",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 447
+    },
+    {
+      "test_name": "Get Persediaan Transaction History",
+      "method": "GET",
+      "endpoint": "api/persediaan-transaksi/",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 11915,
+      "data_count": 23,
+      "total_items": 23
+    },
+    {
+      "test_name": "Get Barang List (Aset Tetap)",
+      "method": "GET",
+      "endpoint": "api/barang",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 95476,
+      "data_count": 46,
+      "total_items": 46
     }
   ]
 }
