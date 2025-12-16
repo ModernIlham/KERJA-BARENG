@@ -9,56 +9,7 @@ import { Textarea } from '../ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
-
-// Helper to search barang
-const BarangSearch = ({ type, onSelect }) => {
-    const [search, setSearch] = useState('');
-    const [results, setResults] = useState([]);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (search.length > 2) doSearch();
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [search]);
-
-    const doSearch = async () => {
-        setLoading(true);
-        try {
-            const endpoint = type === 'persediaan' ? '/api/persediaan/' : '/api/barang';
-            const res = await api.get(endpoint, { params: { search, limit: 5 } });
-            setResults(res.data.data || []);
-        } catch(e) { console.error(e); }
-        finally { setLoading(false); }
-    };
-
-    return (
-        <div className="space-y-2">
-            <Label>Cari Barang</Label>
-            <Input 
-                placeholder="Ketik nama atau kode barang..." 
-                value={search} 
-                onChange={e => setSearch(e.target.value)}
-            />
-            {loading && <div className="text-xs text-slate-500">Mencari...</div>}
-            {results.length > 0 && (
-                <div className="border rounded-md max-h-40 overflow-y-auto bg-white shadow-sm">
-                    {results.map(item => (
-                        <div 
-                            key={item._id} 
-                            className="p-2 text-xs hover:bg-slate-50 cursor-pointer border-b last:border-0"
-                            onClick={() => { onSelect(item); setSearch(item.nama_barang); setResults([]); }}
-                        >
-                            <div className="font-bold">{item.nama_barang}</div>
-                            <div className="text-slate-500">{item.kode_barang} {item.nup ? `(NUP: ${item.nup})` : ''} | Stok: {item.stok}</div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
+import BarangSearch from '../barang/BarangSearch';
 
 export default function AddTransactionModal({ isOpen, onClose, type, assetType, onSuccess }) {
   const [loading, setLoading] = useState(false);
