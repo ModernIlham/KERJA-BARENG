@@ -33,6 +33,19 @@ class SystemSettings(BaseModel):
     current_month: str = Field(default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m"))
     current_month_count: int = 0
 
+class InstansiSettings(BaseModel):
+    key: str = "instansi"
+    nama_instansi: str = ""
+    alamat: str = ""
+    telepon: Optional[str] = None
+    email: Optional[str] = None
+    website: Optional[str] = None
+    kota: Optional[str] = None
+    kodepos: Optional[str] = None
+    logo_url: Optional[str] = None
+    nama_pimpinan: Optional[str] = None
+    nip_pimpinan: Optional[str] = None
+
 class UserLogin(BaseModel):
     email: str
     password: str
@@ -227,6 +240,13 @@ class Pegawai(MongoBaseModel):
     # Jabatan & Unit Kerja
     jabatan: str # Jabatan Struktural Utama
     eselon1: Optional[str] = None
+    # Leadership
+    is_pimpinan_tertinggi: bool = False # Kepala / Wakil Kepala
+    jenis_pimpinan: Optional[str] = None # "Kepala", "Wakil"
+    
+    # Photo
+    foto_url: Optional[str] = None
+    foto_thumbnail_url: Optional[str] = None
     eselon2: Optional[str] = None
     eselon3: Optional[str] = None
     eselon4: Optional[str] = None
@@ -260,6 +280,10 @@ class PegawaiCreate(BaseModel):
     npwp: Optional[str] = None
     gelar_depan: Optional[str] = None
     gelar_belakang: Optional[str] = None
+    is_pimpinan_tertinggi: Optional[bool] = False
+    jenis_pimpinan: Optional[str] = None
+    foto_url: Optional[str] = None
+    foto_thumbnail_url: Optional[str] = None
     kewarganegaraan: Optional[str] = "WNI"
     
     no_telp: Optional[str] = None
