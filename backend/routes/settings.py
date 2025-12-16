@@ -220,10 +220,39 @@ async def reset_database(
         return {"message": f"Berhasil menghapus: {', '.join(deleted_counts)}"}
         
     elif target == 'barang':
-        await db.barang.delete_many({})
-        # If barang gone, transactions should be gone too to prevent orphans?
-        # Or at least warn.
-        return {"message": "Data Master Barang berhasil dihapus total."}
+        query = {}
+        deleted_desc = "Semua Master Barang"
+        
+        # Determine query based on asset_type
+        # Note: We need to distinguish between Aset Tetap and Persediaan in the 'barang' collection.
+        # How do we distinguish? 
+        # Usually Persediaan items have 'stok' or specific logic? 
+        # Or maybe they are in different collections?
+        # WAIT! In this app, 'barang' collection is usually Aset Tetap, and 'persediaan' collection is Persediaan.
+        # Let's check models.py and routes.
+        # routes/barang.py uses db.barang
+        # routes/persediaan.py uses db.persediaan
+        
+        # So 'barang' target actually needs to delete from DIFFERENT collections based on asset_type.
+        
+        results = []
+        
+        # 1. Delete Aset Tetap (collection: barang)
+        if asset_type in ['all', 'aset']:
+            res = await db.barang.delete_many({})
+            if res.deleted_count > 0:
+                results.append(f"{res.deleted_count} Aset Tetap")
+                
+        # 2. Delete Persediaan (collection: persediaan)
+        if asset_type in ['all', 'persediaan']:
+            res = await db.persediaan.delete_many({})
+            if res.deleted_count > 0:
+                results.append(f"{res.deleted_count} Persediaan")
+                
+        if not results:
+            return {"message": "Tidak ada data master barang yang dihapus."}
+            
+        return {"message": f"Berhasil menghapus: {', '.join(results)}"}
         
     elif target == 'referensi':
         await db.kodefikasi.delete_many({})
