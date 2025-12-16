@@ -29,6 +29,8 @@ class APITester:
                 response = requests.get(url, headers=test_headers, params=data)
             elif method == 'POST':
                 response = requests.post(url, json=data, headers=test_headers)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=test_headers)
 
             success = response.status_code == expected_status
             result = {
