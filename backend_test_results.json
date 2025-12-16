@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-14T08:07:03.805757",
+  "timestamp": "2025-12-16T13:03:16.373906",
   "summary": {
-    "tests_run": 11,
+    "tests_run": 10,
     "tests_passed": 9,
-    "success_rate": "81.8%"
+    "success_rate": "90.0%"
   },
   "detailed_results": [
     {
@@ -11,33 +11,9 @@
       "method": "POST",
       "endpoint": "api/auth/login",
       "expected_status": 200,
-      "actual_status": 401,
-      "success": false,
-      "response_size": 40,
-      "error": {
-        "detail": "Incorrect email or password"
-      }
-    },
-    {
-      "test_name": "Login with admin",
-      "method": "POST",
-      "endpoint": "api/auth/login",
-      "expected_status": 200,
-      "actual_status": 401,
-      "success": false,
-      "response_size": 40,
-      "error": {
-        "detail": "Incorrect email or password"
-      }
-    },
-    {
-      "test_name": "Login with test@example.com",
-      "method": "POST",
-      "endpoint": "api/auth/login",
-      "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 180
+      "response_size": 181
     },
     {
       "test_name": "Check Referensi Data Count",
@@ -48,7 +24,7 @@
       "success": true,
       "response_size": 141,
       "data_count": 1,
-      "total_items": 13783
+      "total_items": 13785
     },
     {
       "test_name": "Check Barang Data Count",
@@ -57,9 +33,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 634,
+      "response_size": 2847,
       "data_count": 1,
-      "total_items": 45
+      "total_items": 38
     },
     {
       "test_name": "Get Referensi List",
@@ -70,7 +46,7 @@
       "success": true,
       "response_size": 1744,
       "data_count": 20,
-      "total_items": 13783
+      "total_items": 13785
     },
     {
       "test_name": "Get Referensi with Pagination",
@@ -81,7 +57,7 @@
       "success": true,
       "response_size": 490,
       "data_count": 5,
-      "total_items": 13783
+      "total_items": 13785
     },
     {
       "test_name": "Get Referensi with Search",
@@ -101,9 +77,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 12334,
+      "response_size": 48226,
       "data_count": 20,
-      "total_items": 45
+      "total_items": 38
     },
     {
       "test_name": "Get Barang with Pagination",
@@ -112,9 +88,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 3436,
+      "response_size": 14384,
       "data_count": 5,
-      "total_items": 45
+      "total_items": 38
     },
     {
       "test_name": "Get Barang with Search",
@@ -123,9 +99,21 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 2343,
-      "data_count": 4,
-      "total_items": 4
+      "response_size": 56,
+      "data_count": 0,
+      "total_items": 0
+    },
+    {
+      "test_name": "Create Test FIFO Item",
+      "method": "POST",
+      "endpoint": "api/persediaan",
+      "expected_status": 200,
+      "actual_status": 401,
+      "success": false,
+      "response_size": 30,
+      "error": {
+        "detail": "Not authenticated"
+      }
     }
   ]
 }
