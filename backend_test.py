@@ -1273,7 +1273,7 @@ class APITester:
         success, response = self.run_test(
             "Create Aset IN Transaction",
             "POST",
-            "api/transaksi/",
+            "api/transaksi",
             200,
             data=aset_in_txn
         )
