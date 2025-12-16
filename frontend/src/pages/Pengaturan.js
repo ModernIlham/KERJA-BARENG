@@ -163,10 +163,15 @@ export default function Pengaturan() {
         
         <Tabs defaultValue="db">
             <TabsList className="bg-slate-100">
+                <TabsTrigger value="instansi"><Building size={14} className="mr-2"/> Profil Instansi</TabsTrigger>
                 <TabsTrigger value="db"><Database size={14} className="mr-2"/> Database & Data</TabsTrigger>
                 <TabsTrigger value="users"><User size={14} className="mr-2"/> Manajemen User</TabsTrigger>
                 <TabsTrigger value="unit"><Building size={14} className="mr-2"/> Unit Kerja</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="instansi" className="mt-4">
+                <InstansiSettings />
+            </TabsContent>
             
             <TabsContent value="db" className="mt-4 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
