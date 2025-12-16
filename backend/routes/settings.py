@@ -73,6 +73,7 @@ async def get_unit_kerja(current_user: str = Depends(get_current_user)):
     result = []
     for u in units:
         u['id'] = str(u['_id'])
+        del u['_id']  # Remove the ObjectId field
         result.append(u)
     return result
 
