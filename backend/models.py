@@ -286,6 +286,7 @@ class MutasiPegawai(BaseModel):
     jenis_mutasi: str # "Internal", "Eksternal", "Promosi", "Demosi"
     jabatan_baru: str
     unit_kerja_baru: Optional[Dict[str, str]] = {} # {"eselon1": "...", "eselon2": "..."}
+    unit_kerja_baru: Optional[Dict[str, str]] = {} # {"eselon1": "...", "eselon2": "..."}
     pangkat_baru: Optional[str] = None
     sk_ref: Optional[str] = None
     keterangan: Optional[str] = None
