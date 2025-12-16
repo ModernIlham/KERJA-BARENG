@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Button } from '../ui/button';
+import { Button } from './ui/button';
 import { PackageX } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
-import { Label } from '../ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { Label } from './ui/label';
 
 export default function DeleteMasterDataDialog({ onConfirm, loading }) {
     const [open, setOpen] = useState(false);
