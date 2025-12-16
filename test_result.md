@@ -552,3 +552,17 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ ENHANCED ORGANIZATIONAL STRUCTURE COMPREHENSIVE TEST COMPLETED SUCCESSFULLY: Verified all requested features from review. 1) Unit Manager: Successfully created 5-level organizational hierarchy (Sekretariat Jenderal → Biro Umum → Bagian Perlengkapan → Subbagian Gudang → Ketua Tim Gudang), 2) Hierarchy Verification: All parent-child relationships correct with proper parent_id references, 3) Employee Form: Successfully created employee with full 5-level hierarchy, 4) Data Verification: All organizational levels correctly saved in employee record (eselon1 through eselon5), 5) Cascading Logic: Backend supports full organizational structure with 15 total units across 5 levels, 6) Hierarchy Depth: 5 levels working correctly. Backend APIs ready for frontend cascading dropdown implementation. Test Results: 10/10 tests passed (100% success rate)."
+  - task: "Agency Logo Upload Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/settings.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Agency Logo Upload functionality as requested in review. Testing: 1) Upload test image file via POST /api/settings/instansi/logo, 2) Verify success response and URL, 3) Test persistence via GET /api/settings/instansi to verify logo_url field, 4) Test delete via DELETE /api/settings/instansi/logo, 5) Verify logo_url becomes null after deletion."
+      - working: true
+        agent: "testing"
+        comment: "✅ AGENCY LOGO UPLOAD FUNCTIONALITY TEST COMPLETED SUCCESSFULLY: All 5 verification steps passed perfectly. 1) Logo upload works with test image file - POST /api/settings/instansi/logo returns 200 with success response, 2) Upload returns correct URL: '/api/uploads/instansi/a4fce44a-efac-41fc-860d-0ab59f74c95f.png', 3) Persistence verified - GET /api/settings/instansi shows logo_url field correctly stored and matches upload response, 4) Delete functionality works - DELETE /api/settings/instansi/logo returns 200 with 'Logo dihapus' message, 5) Verification complete - logo_url becomes null after deletion as expected. All logo upload, persistence, and deletion functionality working correctly. Backend endpoints fully functional for agency logo management."
