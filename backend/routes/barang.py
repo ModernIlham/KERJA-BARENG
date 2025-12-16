@@ -476,37 +476,41 @@ async def upload_fotos(
     
     new_fotos = []
     for file in files:
-        # 2. Compress
-        try:
-            # Read back contents to compress
-            with open(file_path, "rb") as f:
-                raw_data = f.read()
-            
-            compressed_data = compress_image(raw_data)
-            
-            # Overwrite with compressed data
-            with open(file_path, "wb") as f:
-                f.write(compressed_data)
-        except Exception as e:
-            print(f"Compression failed: {e}")
-
-        safe_name = f"{id}_{int(datetime.now().timestamp())}_{file.filename.replace(' ', '_')}"
+        # Generate path
+        timestamp = int(datetime.now().timestamp())
+        safe_name = f"{id}_{timestamp}_{file.filename.replace(' ', '_')}"
         file_path = os.path.join(upload_dir, safe_name)
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        
+        # Read content
+        content = await file.read()
+        
+        # Compress
+        try:
+            # Only compress if image
+            if file.content_type.startswith('image/'):
+                compressed_content = compress_image(content)
+            else:
+                compressed_content = content
+        except Exception as e:
+            print(f"Compression error: {e}")
+            compressed_content = content
             
+        # Save
+        with open(file_path, "wb") as f:
+            f.write(compressed_content)
+            
+        new_fotos.append({
+            "url": f"/api/uploads/barang/{safe_name}",
+            "is_thumbnail": False,
+            "keterangan": keterangan,
+            "uploaded_at": datetime.now(timezone.utc)
+        })
+
     # 3. Update Counter
     await db.system_settings.update_one(
         {"key": "general"},
         {"$inc": {"current_month_count": len(files)}}
     )
-    
-    new_fotos.append({
-        "url": f"/api/uploads/barang/{safe_name}",
-        "is_thumbnail": False,
-        "keterangan": keterangan,
-        "uploaded_at": datetime.now(timezone.utc)
-    })
     
     # If no photos existed before, make first one thumbnail
     item = await db.barang.find_one({"_id": ObjectId(id)})
