@@ -1684,9 +1684,7 @@ class APITester:
             
             # Tab Status - Penugasan specific
             "status_kepegawaian": "PNS",
-            "status_penempatan": "Penugasan",  # This should trigger additional fields
-            "instansi_asal": "Kementerian Dalam Negeri",  # Should appear for Penugasan
-            "masa_penugasan_end": "2024-12-31",  # Should appear for Penugasan
+            "status_penempatan": "Penugasan",  # This should trigger additional fields in frontend
             "pangkat_golongan": "Penata (III/c)",
             "status_jabatan": "Definitif",
             "status": "AKTIF",
