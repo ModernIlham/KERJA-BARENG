@@ -258,15 +258,10 @@ export default function Pengaturan() {
                                 Hapus Referensi Kode
                             </Button>
                             
-                            <Button 
-                                variant="outline" 
-                                className="w-full justify-start bg-white hover:bg-red-100 border-red-200 text-red-700"
-                                onClick={() => runReset('barang')}
-                                disabled={maintenanceLoading}
-                            >
-                                <PackageX size={16} className="mr-2"/> 
-                                Hapus Master Barang
-                            </Button>
+                            <DeleteMasterDataDialog 
+                                onConfirm={runReset} 
+                                loading={maintenanceLoading} 
+                            />
 
                             <Button 
                                 className="w-full bg-red-600 hover:bg-red-700 text-white mt-4"
