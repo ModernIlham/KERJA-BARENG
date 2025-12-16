@@ -9,6 +9,7 @@ from pathlib import Path
 
 # Import Routers
 from routes import auth, barang, pegawai, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn, surat
+from routes import auth, barang, pegawai, pegawai_photos, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn, surat
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -43,6 +44,7 @@ api_router = APIRouter(prefix="/api")
 api_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 api_router.include_router(barang.router, prefix="/barang", tags=["Barang"])
 api_router.include_router(persediaan.router, prefix="/persediaan", tags=["Persediaan"])
+api_router.include_router(pegawai_photos.router, prefix="/pegawai", tags=["Pegawai Photos"])
 api_router.include_router(pegawai.router, prefix="/pegawai", tags=["Pegawai"])
 api_router.include_router(transaksi.router, prefix="/transaksi", tags=["Transaksi"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
