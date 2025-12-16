@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T15:36:06.425218",
+  "timestamp": "2025-12-16T15:36:21.402695",
   "summary": {
     "tests_run": 19,
-    "tests_passed": 18,
-    "success_rate": "94.7%"
+    "tests_passed": 19,
+    "success_rate": "100.0%"
   },
   "detailed_results": [
     {
@@ -137,9 +137,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 1064,
-      "data_count": 1,
-      "total_items": 1
+      "response_size": 2072,
+      "data_count": 2,
+      "total_items": 2
     },
     {
       "test_name": "Create Test Employee (Budi Test)",
@@ -157,14 +157,14 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 1798,
-      "data_count": 2,
-      "total_items": 2
+      "response_size": 2806,
+      "data_count": 3,
+      "total_items": 3
     },
     {
       "test_name": "Execute Employee Mutasi (Promotion)",
       "method": "POST",
-      "endpoint": "api/pegawai/69417c6643695dfa3147e14d/mutasi",
+      "endpoint": "api/pegawai/69417c7543695dfa3147e14f/mutasi",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
@@ -177,9 +177,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 2072,
-      "data_count": 2,
-      "total_items": 2
+      "response_size": 3080,
+      "data_count": 3,
+      "total_items": 3
     },
     {
       "test_name": "Verify Employee in List with Updated Job",
@@ -188,16 +188,18 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 2072,
-      "data_count": 2,
-      "total_items": 2
+      "response_size": 3080,
+      "data_count": 3,
+      "total_items": 3
     },
     {
       "test_name": "Delete Test Employee",
       "method": "DELETE",
-      "endpoint": "api/pegawai/69417c6643695dfa3147e14d",
-      "success": false,
-      "error": "cannot access local variable 'response' where it is not associated with a value"
+      "endpoint": "api/pegawai/69417c7543695dfa3147e14f",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 29
     }
   ]
 }
