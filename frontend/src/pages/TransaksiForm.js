@@ -8,7 +8,7 @@ import { Plus } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TransactionTable from '../components/transaksi/TransactionTable';
 import AddTransactionModal from '../components/transaksi/AddTransactionModal';
-import PersediaanTransactionModal from '../components/barang/PersediaanTransactionModal';
+import PersediaanIncomingForm from '../components/transaksi/PersediaanIncomingForm';
 
 export default function TransaksiPage() {
   const { type } = useParams(); // 'masuk', 'keluar', 'riwayat'
@@ -19,9 +19,6 @@ export default function TransaksiPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [persediaanModalOpen, setPersediaanModalOpen] = useState(false); // For Persediaan (legacy/specific) if needed, but we built a generic one?
-  // Wait, PersediaanTransactionModal requires an ITEM to be passed.
-  // AddTransactionModal handles item selection internally. Use AddTransactionModal for both.
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,32 +41,16 @@ export default function TransaksiPage() {
               if (activeTab === 'masuk') params.jenis = 'MASUK';
               if (activeTab === 'keluar') params.jenis = 'KELUAR';
           } else {
-              endpoint = '/api/persediaan-transaksi/'; // Inventory Transactions (List View)
-              // NOTE: The endpoint I just added returns ALL history. 
-              // Does it filter by type? No.
-              // I need to filter by 'jenis' in the backend if I want specific tabs?
-              // Currently backend `get_all_history` doesn't filter by `jenis`.
-              // But wait, the prompt says "Riwayat Transaksi" needs 2 tables.
-              // For "Masuk" and "Keluar" tabs, usually we just want to perform actions?
-              // Or list recent "Masuk" transactions?
-              // Let's assume standard listing for all tabs.
-              // Ideally I should add `jenis` filter to `get_all_history` in backend.
-              // For now, I'll filter client side or update backend? 
-              // Let's stick to 'Riwayat' showing everything for now, 
-              // and 'Masuk'/'Keluar' showing recent ones of that type? 
-              // Or better yet, 'Masuk'/'Keluar' tabs are primarily for ACTIONS.
+              endpoint = '/api/persediaan-transaksi/'; // Inventory Transactions
           }
 
           const res = await api.get(endpoint, { params });
           
-          // Filter client side if backend doesn't support 'jenis' filter for Persediaan list yet
+          // Client-side Filtering for Persediaan (since endpoint returns all)
           let items = res.data.data;
           if (assetType === 'persediaan' && activeTab !== 'riwayat') {
               const filterType = activeTab === 'masuk' ? 'in' : 'out';
-              // Note: 'jenis' in DB is 'in'/'out' for Persediaan
               items = items.filter(i => i.jenis === filterType);
-          } else if (assetType === 'aset' && activeTab !== 'riwayat') {
-               // Backend handles it via params.jenis
           }
 
           setData(items);
@@ -87,6 +68,9 @@ export default function TransaksiPage() {
       setCurrentPage(1);
   };
 
+  // Condition to show "Direct Form" instead of "Add Button"
+  const isDirectFormMode = activeTab === 'masuk' && assetType === 'persediaan';
+
   return (
     <div className="space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -94,7 +78,9 @@ export default function TransaksiPage() {
                 <h1 className="text-2xl font-bold text-slate-900">Transaksi Gudang</h1>
                 <p className="text-slate-500 text-sm">Kelola barang masuk dan keluar</p>
             </div>
-            {activeTab !== 'riwayat' && (
+            
+            {/* Show Add Button ONLY if NOT in Direct Form Mode and NOT in Riwayat */}
+            {activeTab !== 'riwayat' && !isDirectFormMode && (
                 <Button className="bg-slate-900 text-white" onClick={() => setModalOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" /> 
                     Tambah Barang {activeTab === 'masuk' ? 'Masuk' : 'Keluar'}
@@ -109,7 +95,6 @@ export default function TransaksiPage() {
                 <TabsTrigger value="riwayat" className="px-6">Riwayat Transaksi</TabsTrigger>
             </TabsList>
 
-            {/* Content for All Tabs (Structure is similar) */}
             <div className="space-y-4">
                 {/* Sub-Tabs / Toggle for Asset Type */}
                 <div className="flex gap-2 mb-4">
@@ -134,6 +119,11 @@ export default function TransaksiPage() {
                         Aset Tetap
                     </button>
                 </div>
+
+                {/* Direct Entry Form for Persediaan Masuk */}
+                {isDirectFormMode && (
+                    <PersediaanIncomingForm onSuccess={fetchData} />
+                )}
 
                 <Card>
                     <CardHeader className="pb-3 border-b">
