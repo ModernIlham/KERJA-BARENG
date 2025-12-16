@@ -81,12 +81,20 @@ async def stock_in(txn: TransaksiPersediaanCreate, current_user: str = Depends(g
         total_value_new = txn.jumlah * input_price
         new_nilai = (total_value_old + total_value_new) / new_stok
     
+    # Helper to safely parse expiry
+    expiry_val = txn.expired_date
+    if not expiry_val:
+            expiry_val = item.get('expired_date')
+    
+    if expiry_val == "":
+        expiry_val = None
+
     # 3. Create New Batch (FIFO)
     new_batch = PersediaanBatch(
         qty=txn.jumlah,
         price=input_price,
         nota_dinas=txn.dokumen_ref,
-        expiry=txn.expired_date if txn.expired_date else item.get('expired_date'),
+        expiry=expiry_val,
         date=datetime.now(timezone.utc)
     )
     
@@ -274,12 +282,20 @@ async def stock_in_bulk(payload: TransaksiPersediaanBulkCreate, current_user: st
             total_value_new = item_req.jumlah * input_price
             new_nilai = (total_value_old + total_value_new) / new_stok
             
+        # Helper to safely parse expiry
+        expiry_val = item_req.expired_date
+        if not expiry_val:
+             expiry_val = item.get('expired_date')
+        
+        if expiry_val == "":
+            expiry_val = None
+            
         # 3. Create Batch
         new_batch = PersediaanBatch(
             qty=item_req.jumlah,
             price=input_price,
             nota_dinas=payload.dokumen_ref,
-            expiry=item_req.expired_date if item_req.expired_date else item.get('expired_date'),
+            expiry=expiry_val,
             date=datetime.now(timezone.utc)
         )
         
