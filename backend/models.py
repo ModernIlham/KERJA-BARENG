@@ -196,39 +196,98 @@ class BarangCreate(BaseModel):
     detail_lainnya: Optional[Dict[str, Any]] = {}
 
 # --- Pegawai (Employee) Models ---
+class RiwayatKarir(BaseModel):
+    id: str = Field(default_factory=lambda: str(ObjectId()))
+    tanggal: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    jenis: str # "Pengangkatan", "Mutasi Internal", "Mutasi Eksternal", "Kenaikan Pangkat"
+    deskripsi: str
+    jabatan_baru: Optional[str] = None
+    unit_kerja_baru: Optional[str] = None # Eselon combined or full string
+    pangkat_baru: Optional[str] = None
+    sk_ref: Optional[str] = None
+
 class Pegawai(MongoBaseModel):
+    # Informasi Utama
     nip: str
     nik: Optional[str] = None
     npwp: Optional[str] = None
     nama_lengkap: str
     gelar_depan: Optional[str] = None
     gelar_belakang: Optional[str] = None
+    kewarganegaraan: str = "WNI"
+    
+    # Kontak
+    no_telp: Optional[str] = None
+    email: Optional[str] = None
+    
+    # Bank
+    nama_bank: Optional[str] = None
+    no_rekening: Optional[str] = None
+    
+    # Jabatan & Unit Kerja
+    jabatan: str # Jabatan Struktural Utama
+    eselon1: Optional[str] = None
+    eselon2: Optional[str] = None
+    eselon3: Optional[str] = None
+    eselon4: Optional[str] = None
+    jabatan_melekat: List[str] = [] # Jabatan Fungsional Melekat
+    
+    # Atribut & Status
+    status_kepegawaian: Optional[str] = None # PNS, PPPK, Non-ASN
+    kategori_pegawai: Optional[str] = None # Struktural, Fungsional, Pelaksana
+    status_penempatan: Optional[str] = None # Pusat, Daerah, Penugasan
+    status_jabatan: Optional[str] = None # Definitif, Plt, Plh
+    pangkat_golongan: Optional[str] = None # e.g. Penata Muda (III/a)
+    
+    # System Status
+    status: str = "AKTIF" # AKTIF, CUTI, PENSIUN, KELUAR
+    keterangan: Optional[str] = None
+    
+    # History
+    riwayat_karir: List[RiwayatKarir] = []
+    
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PegawaiCreate(BaseModel):
+    # Mandatory
+    nip: str
+    nama_lengkap: str
+    jabatan: str
+    
+    # Optional Fields
+    nik: Optional[str] = None
+    npwp: Optional[str] = None
+    gelar_depan: Optional[str] = None
+    gelar_belakang: Optional[str] = None
+    kewarganegaraan: Optional[str] = "WNI"
+    
     no_telp: Optional[str] = None
     email: Optional[str] = None
     nama_bank: Optional[str] = None
     no_rekening: Optional[str] = None
-    jabatan: str
-    jenis_jabatan: Optional[str] = None 
-    status_jabatan: Optional[str] = None 
-    detail_status_kepegawaian: Optional[str] = None 
+    
+    eselon1: Optional[str] = None
+    eselon2: Optional[str] = None
+    eselon3: Optional[str] = None
+    eselon4: Optional[str] = None
+    jabatan_melekat: List[str] = []
+    
+    status_kepegawaian: Optional[str] = None
+    kategori_pegawai: Optional[str] = None
+    status_penempatan: Optional[str] = None
+    status_jabatan: Optional[str] = None
     pangkat_golongan: Optional[str] = None
-    eselon1: Optional[str] = None
-    eselon2: Optional[str] = None
-    eselon3: Optional[str] = None
-    eselon4: Optional[str] = None
-    jabatan_melekat: List[str] = []
-    status: str = "AKTIF"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    keterangan: Optional[str] = None
 
-class PegawaiCreate(BaseModel):
-    nip: str
-    nama_lengkap: str
-    jabatan: str
-    eselon1: Optional[str] = None
-    eselon2: Optional[str] = None
-    eselon3: Optional[str] = None
-    eselon4: Optional[str] = None
-    jabatan_melekat: List[str] = []
+class MutasiPegawai(BaseModel):
+    jenis_mutasi: str # "Internal", "Eksternal", "Promosi", "Demosi"
+    jabatan_baru: str
+    unit_kerja_baru: Optional[Dict[str, str]] = {} # {"eselon1": "...", "eselon2": "..."}
+    pangkat_baru: Optional[str] = None
+    sk_ref: Optional[str] = None
+    keterangan: Optional[str] = None
+    tgl_efektif: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # --- Transaksi Models ---
 class Transaksi(MongoBaseModel):
