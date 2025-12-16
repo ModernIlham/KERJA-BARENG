@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T14:24:58.119179",
+  "timestamp": "2025-12-16T14:25:22.391616",
   "summary": {
-    "tests_run": 12,
-    "tests_passed": 11,
-    "success_rate": "91.7%"
+    "tests_run": 10,
+    "tests_passed": 9,
+    "success_rate": "90.0%"
   },
   "detailed_results": [
     {
@@ -35,7 +35,7 @@
       "success": true,
       "response_size": 2847,
       "data_count": 1,
-      "total_items": 38
+      "total_items": 40
     },
     {
       "test_name": "Get Referensi List",
@@ -79,7 +79,7 @@
       "success": true,
       "response_size": 48226,
       "data_count": 20,
-      "total_items": 38
+      "total_items": 40
     },
     {
       "test_name": "Get Barang with Pagination",
@@ -90,7 +90,7 @@
       "success": true,
       "response_size": 14384,
       "data_count": 5,
-      "total_items": 38
+      "total_items": 40
     },
     {
       "test_name": "Get Barang with Search",
@@ -99,38 +99,20 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 56,
-      "data_count": 0,
-      "total_items": 0
+      "response_size": 2197,
+      "data_count": 2,
+      "total_items": 2
     },
     {
       "test_name": "Create Aset Tetap (Manual) with NUP 1",
       "method": "POST",
       "endpoint": "api/barang",
       "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 1076
-    },
-    {
-      "test_name": "Create Aset Tetap (Normal) with NUP 100",
-      "method": "POST",
-      "endpoint": "api/barang",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 1080
-    },
-    {
-      "test_name": "Create Persediaan Item",
-      "method": "POST",
-      "endpoint": "api/persediaan",
-      "expected_status": 200,
-      "actual_status": 401,
+      "actual_status": 400,
       "success": false,
-      "response_size": 30,
+      "response_size": 26,
       "error": {
-        "detail": "Not authenticated"
+        "detail": "Barang exists"
       }
     }
   ]
