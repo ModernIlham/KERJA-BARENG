@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T14:01:00.905873",
+  "timestamp": "2025-12-16T14:01:42.933012",
   "summary": {
-    "tests_run": 16,
-    "tests_passed": 13,
-    "success_rate": "81.2%"
+    "tests_run": 18,
+    "tests_passed": 16,
+    "success_rate": "88.9%"
   },
   "detailed_results": [
     {
@@ -149,9 +149,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 16246,
-      "data_count": 31,
-      "total_items": 31
+      "response_size": 17382,
+      "data_count": 33,
+      "total_items": 33
     },
     {
       "test_name": "Get Initial Aset Transaction Count",
@@ -168,25 +168,33 @@
     {
       "test_name": "Delete Persediaan OUT Transactions Only",
       "method": "POST",
-      "endpoint": "api/settings/database/reset",
+      "endpoint": "api/settings/database/reset?target=transaksi&asset_type=persediaan&txn_type=out",
       "expected_status": 200,
-      "actual_status": 422,
-      "success": false,
-      "response_size": 143,
-      "error": {
-        "detail": [
-          {
-            "type": "missing",
-            "loc": [
-              "query",
-              "target"
-            ],
-            "msg": "Field required",
-            "input": null,
-            "url": "https://errors.pydantic.dev/2.12/v/missing"
-          }
-        ]
-      }
+      "actual_status": 200,
+      "success": true,
+      "response_size": 55
+    },
+    {
+      "test_name": "Verify Persediaan Transactions After OUT Deletion",
+      "method": "GET",
+      "endpoint": "api/persediaan-transaksi/",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 11916,
+      "data_count": 23,
+      "total_items": 23
+    },
+    {
+      "test_name": "Get Transactions for Display Verification",
+      "method": "GET",
+      "endpoint": "api/persediaan-transaksi/",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 11915,
+      "data_count": 23,
+      "total_items": 23
     }
   ]
 }
