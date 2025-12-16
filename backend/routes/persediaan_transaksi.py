@@ -425,7 +425,7 @@ async def stock_out_bulk(payload: TransaksiPersediaanBulkCreate, current_user: s
             # Or we need to add unit_penerima to bulk item model?
             # The BulkCreate model has global fields.
             # Let's check models.py
-            unit_penerima=item_req.unit_penerima, 
+            unit_penerima=payload.unit_penerima, 
             # Wait, user wants "Unit Penerima" in header? Or per item?
             # In the image, "Unit Penerima" is usually per transaction header.
             # But TransaksiPersediaan has unit_penerima field.
