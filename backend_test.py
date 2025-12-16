@@ -1101,8 +1101,8 @@ class APITester:
         
         # Create Aset Tetap (Import/Normal) with NUP '100'
         aset_normal_data = {
-            "kode_barang": "1030101001000002",  # Different code
-            "nama_barang": "Test Aset Normal NUP 100",
+            "kode_barang": f"103010100100{(timestamp + 1) % 10000:04d}",  # Different unique code
+            "nama_barang": f"Test Aset Normal NUP 100 {timestamp}",
             "merk": "Test Brand",
             "kondisi": "Baik",
             "lokasi_fisik": "Test Location",
