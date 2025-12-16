@@ -243,7 +243,7 @@ class APITester:
         success, response = self.run_test(
             "Create Test FIFO Item",
             "POST",
-            "api/persediaan",
+            "api/persediaan/",
             200,
             data=test_item_data
         )
