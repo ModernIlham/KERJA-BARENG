@@ -405,3 +405,4 @@ class TransaksiPersediaanBulkCreate(BaseModel):
     dokumen_ref: str
     keterangan: Optional[str] = None
     pegawai_id: Optional[str] = None
+    unit_penerima: Optional[str] = None
