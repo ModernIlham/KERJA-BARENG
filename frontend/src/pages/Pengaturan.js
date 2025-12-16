@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download, PackageX } from 'lucide-react';
 import { toast } from 'sonner';
 
+import DeleteTransactionDialog from '../components/DeleteTransactionDialog';
 export default function Pengaturan() {
   const [users, setUsers] = useState([]);
   const [units, setUnits] = useState([]);
