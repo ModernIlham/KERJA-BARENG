@@ -41,7 +41,11 @@ export default function TransactionTable({ data, loading, assetType, type }) {
                 <TableCell className="font-mono text-xs text-slate-500">{item.kode_barang}</TableCell>
                 <TableCell className="font-medium text-sm">
                     {item.nama_barang}
-                    {item.nup && item.nup !== '1' && <span className="ml-1 text-xs text-slate-400">NUP: {item.nup}</span>}
+                    {(item.nup === '1' || item.nup === 1) ? (
+                        <span className="ml-1 text-xs text-slate-400 italic">(sementara)</span>
+                    ) : (
+                        item.nup && <span className="ml-1 text-xs text-slate-400">NUP: {item.nup}</span>
+                    )}
                 </TableCell>
                 
                 {assetType === 'persediaan' && (
