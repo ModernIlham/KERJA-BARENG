@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T13:45:21.844241",
+  "timestamp": "2025-12-16T14:01:00.905873",
   "summary": {
-    "tests_run": 24,
-    "tests_passed": 24,
-    "success_rate": "100.0%"
+    "tests_run": 16,
+    "tests_passed": 13,
+    "success_rate": "81.2%"
   },
   "detailed_results": [
     {
@@ -104,52 +104,16 @@
       "total_items": 0
     },
     {
-      "test_name": "Create Manual Item (NUP 1)",
+      "test_name": "Create Test Item for Delete Test",
       "method": "POST",
       "endpoint": "api/persediaan/",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 687
+      "response_size": 677
     },
     {
-      "test_name": "Get NUP 1 Item Details",
-      "method": "GET",
-      "endpoint": "api/persediaan/detail/694162710d6b086238e20b8a",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 687
-    },
-    {
-      "test_name": "Create Item with NUP 100",
-      "method": "POST",
-      "endpoint": "api/persediaan/",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 678
-    },
-    {
-      "test_name": "Get NUP 100 Item Details",
-      "method": "GET",
-      "endpoint": "api/persediaan/detail/694162710d6b086238e20b8b",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 678
-    },
-    {
-      "test_name": "Create Transaction for NUP 1 Item",
-      "method": "POST",
-      "endpoint": "api/persediaan-transaksi/in",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 66
-    },
-    {
-      "test_name": "Create Transaction for NUP 100 Item",
+      "test_name": "Create Persediaan IN Transaction",
       "method": "POST",
       "endpoint": "api/persediaan-transaksi/in",
       "expected_status": 200,
@@ -158,65 +122,7 @@
       "response_size": 67
     },
     {
-      "test_name": "Get All Transaction History",
-      "method": "GET",
-      "endpoint": "api/persediaan-transaksi/",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 13471,
-      "data_count": 26,
-      "total_items": 26
-    },
-    {
-      "test_name": "Get Persediaan List",
-      "method": "GET",
-      "endpoint": "api/persediaan/",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 16510,
-      "data_count": 27,
-      "total_items": 27
-    },
-    {
-      "test_name": "Create Test FIFO Item",
-      "method": "POST",
-      "endpoint": "api/persediaan/",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 679
-    },
-    {
-      "test_name": "Stock IN - Batch 1",
-      "method": "POST",
-      "endpoint": "api/persediaan-transaksi/in",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 67
-    },
-    {
-      "test_name": "Stock IN - Batch 2",
-      "method": "POST",
-      "endpoint": "api/persediaan-transaksi/in",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 67
-    },
-    {
-      "test_name": "Get Item Details",
-      "method": "GET",
-      "endpoint": "api/persediaan/detail/694162710d6b086238e20b90",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 963
-    },
-    {
-      "test_name": "Stock OUT - FIFO Test",
+      "test_name": "Create Persediaan OUT Transaction",
       "method": "POST",
       "endpoint": "api/persediaan-transaksi/out",
       "expected_status": 200,
@@ -225,23 +131,62 @@
       "response_size": 47
     },
     {
-      "test_name": "Verify Final Stock",
-      "method": "GET",
-      "endpoint": "api/persediaan/detail/694162710d6b086238e20b90",
+      "test_name": "Create Test Aset Item",
+      "method": "POST",
+      "endpoint": "api/barang/",
       "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 821
+      "actual_status": 401,
+      "success": false,
+      "response_size": 30,
+      "error": {
+        "detail": "Not authenticated"
+      }
     },
     {
-      "test_name": "Get Transaction History",
+      "test_name": "Get Initial Persediaan Transaction Count",
       "method": "GET",
-      "endpoint": "api/persediaan-transaksi/history/694162710d6b086238e20b90",
+      "endpoint": "api/persediaan-transaksi/",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 1639,
-      "data_count": 3
+      "response_size": 16246,
+      "data_count": 31,
+      "total_items": 31
+    },
+    {
+      "test_name": "Get Initial Aset Transaction Count",
+      "method": "GET",
+      "endpoint": "api/transaksi/",
+      "expected_status": 200,
+      "actual_status": 401,
+      "success": false,
+      "response_size": 30,
+      "error": {
+        "detail": "Not authenticated"
+      }
+    },
+    {
+      "test_name": "Delete Persediaan OUT Transactions Only",
+      "method": "POST",
+      "endpoint": "api/settings/database/reset",
+      "expected_status": 200,
+      "actual_status": 422,
+      "success": false,
+      "response_size": 143,
+      "error": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "query",
+              "target"
+            ],
+            "msg": "Field required",
+            "input": null,
+            "url": "https://errors.pydantic.dev/2.12/v/missing"
+          }
+        ]
+      }
     }
   ]
 }
