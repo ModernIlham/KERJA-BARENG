@@ -310,64 +310,7 @@ export default function Pengaturan() {
             </TabsContent>
             
             <TabsContent value="unit" className="mt-4">
-                {/* ... (Existing Units Content) ... */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="md:col-span-1">
-                        <CardHeader>
-                            <CardTitle>Tambah Unit Kerja</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleUnitSubmit(onAddUnit)} className="space-y-3">
-                                <div className="space-y-1">
-                                    <label className="text-xs font-medium">Nama Unit</label>
-                                    <Input {...registerUnit('nama_unit', {required: true})} placeholder="Biro Umum" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-medium">Tingkat Eselon</label>
-                                    <select {...registerUnit('eselon', {required: true})} className="w-full text-sm border rounded p-2">
-                                        <option value="1">Eselon I</option>
-                                        <option value="2">Eselon II</option>
-                                        <option value="3">Eselon III</option>
-                                        <option value="4">Eselon IV</option>
-                                    </select>
-                                </div>
-                                <Button type="submit" className="w-full bg-slate-900">Simpan</Button>
-                            </form>
-                        </CardContent>
-                    </Card>
-                    
-                    <Card className="md:col-span-2">
-                        <CardHeader>
-                            <CardTitle>Struktur Organisasi</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="max-h-[500px] overflow-y-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Nama Unit</TableHead>
-                                            <TableHead>Eselon</TableHead>
-                                            <TableHead className="text-right">Aksi</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {units.map((unit) => (
-                                            <TableRow key={unit.id}>
-                                                <TableCell>{unit.nama_unit}</TableCell>
-                                                <TableCell>Eselon {unit.eselon}</TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button size="sm" variant="ghost" onClick={() => onDeleteUnit(unit.id)} className="text-red-500">
-                                                        <Trash size={14}/>
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                <UnitKerjaManager />
             </TabsContent>
         </Tabs>
     </div>
