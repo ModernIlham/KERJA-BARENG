@@ -1065,6 +1065,153 @@ class APITester:
         
         return True
 
+    def test_agency_logo_upload(self):
+        """Test Agency Logo Upload functionality as requested in review"""
+        print("\n=== AGENCY LOGO UPLOAD FUNCTIONALITY TEST ===")
+        
+        # Step 1: Test Logo Upload
+        print("\n📤 Step 1: Testing logo upload...")
+        
+        # Create a simple test image file (1x1 pixel PNG)
+        # This is a minimal valid PNG file in base64
+        import base64
+        import io
+        
+        # Minimal 1x1 pixel PNG file data
+        png_data = base64.b64decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU8'
+            'lAAAAAElFTkSuQmCC'
+        )
+        
+        # Create file-like object
+        test_file = io.BytesIO(png_data)
+        test_file.name = "test_logo.png"
+        
+        # Prepare multipart form data for file upload
+        files = {'file': ('test_logo.png', test_file, 'image/png')}
+        
+        # Test logo upload
+        url = f"{self.base_url}/api/settings/instansi/logo"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        print(f"   Uploading to: {url}")
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Logo upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    print(f"   URL: {response_data.get('url', 'N/A')}")
+                    
+                    logo_url = response_data.get('url')
+                    if logo_url:
+                        print(f"✅ Logo URL received: {logo_url}")
+                    else:
+                        print("❌ No logo URL in response")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Upload failed: {error_data}")
+                except:
+                    print(f"❌ Upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Upload request failed: {e}")
+            return False
+        
+        # Step 2: Test Persistence - Get instansi settings
+        print("\n🔍 Step 2: Testing persistence - verifying logo_url in settings...")
+        
+        success, response = self.run_test(
+            "Get Instansi Settings",
+            "GET",
+            "api/settings/instansi",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get instansi settings")
+            return False
+        
+        # Verify logo_url field is present and correct
+        stored_logo_url = response.get('logo_url')
+        if stored_logo_url:
+            print(f"✅ logo_url field found in settings: {stored_logo_url}")
+            
+            # Verify it matches what we got from upload
+            if stored_logo_url == logo_url:
+                print("✅ Stored logo_url matches upload response")
+            else:
+                print(f"⚠️ Stored logo_url differs from upload response")
+                print(f"   Upload: {logo_url}")
+                print(f"   Stored: {stored_logo_url}")
+        else:
+            print("❌ logo_url field not found in instansi settings")
+            return False
+        
+        # Step 3: Test Delete Logo
+        print("\n🗑️ Step 3: Testing logo deletion...")
+        
+        success, response = self.run_test(
+            "Delete Logo",
+            "DELETE",
+            "api/settings/instansi/logo",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to delete logo")
+            return False
+        
+        print(f"✅ Delete response: {response.get('message', 'Success')}")
+        
+        # Step 4: Verify logo_url becomes null after deletion
+        print("\n🔍 Step 4: Verifying logo_url becomes null after deletion...")
+        
+        success, response = self.run_test(
+            "Get Instansi Settings After Delete",
+            "GET",
+            "api/settings/instansi",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get instansi settings after delete")
+            return False
+        
+        # Verify logo_url is null or not present
+        deleted_logo_url = response.get('logo_url')
+        if deleted_logo_url is None:
+            print("✅ logo_url is null after deletion - CORRECT")
+        else:
+            print(f"❌ logo_url should be null after deletion, got: {deleted_logo_url}")
+            return False
+        
+        print("\n🎉 AGENCY LOGO UPLOAD FUNCTIONALITY TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   - Logo upload works with test image file")
+        print("   - Upload returns success response with URL")
+        print("   - logo_url field persists in instansi settings")
+        print("   - Delete functionality works correctly")
+        print("   - logo_url becomes null after deletion")
+        
+        return True
+
     def test_nup_display_and_transaction_visuals(self):
         """Test NUP display logic and Transaction History visuals as requested in review"""
         print("\n=== NUP DISPLAY LOGIC & TRANSACTION HISTORY VISUALS TEST ===")
