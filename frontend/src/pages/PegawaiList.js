@@ -6,17 +6,26 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Trash, Edit, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Loader2, Trash, Edit, AlertTriangle, ArrowRightLeft, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Pagination } from '../components/ui/pagination';
 import { TableSkeleton } from '../components/ui/skeleton-table';
+import PegawaiForm from '../components/pegawai/PegawaiForm';
+import MutasiModal from '../components/pegawai/MutasiModal';
 
 export default function PegawaiList() {
   const [pegawai, setPegawai] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  
+  // Modals
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isMutasiOpen, setIsMutasiOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  
+  // State for selected item
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,12 +33,6 @@ export default function PegawaiList() {
   const [totalItems, setTotalItems] = useState(0);
   const limit = 20;
   
-  // Delete Dialog State
-  const [deleteId, setDeleteId] = useState(null);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  
-  const { register, handleSubmit, reset, setValue } = useForm();
-
   const fetchPegawai = async () => {
     setLoading(true);
     try {
@@ -55,40 +58,18 @@ export default function PegawaiList() {
   }, [search, currentPage]);
 
   const openAdd = () => {
-      setEditingItem(null);
-      reset({});
-      setIsModalOpen(true);
+      setSelectedItem(null);
+      setIsFormOpen(true);
   };
 
   const openEdit = (item) => {
-      setEditingItem(item);
-      setValue("nip", item.nip);
-      setValue("nama_lengkap", item.nama_lengkap);
-      setValue("jabatan", item.jabatan);
-      setValue("eselon1", item.eselon1);
-      setValue("eselon2", item.eselon2);
-      setValue("eselon3", item.eselon3);
-      setValue("eselon4", item.eselon4);
-      // Handle array or other fields if needed
-      setIsModalOpen(true);
+      setSelectedItem(item);
+      setIsFormOpen(true);
   };
 
-  const onSubmit = async (data) => {
-    try {
-      if (editingItem) {
-          await api.put(`/api/pegawai/${editingItem._id}`, data);
-          toast.success("Data pegawai diperbarui");
-      } else {
-          await api.post('/api/pegawai', data);
-          toast.success("Pegawai berhasil ditambahkan");
-      }
-      setIsModalOpen(false);
-      reset();
-      setEditingItem(null);
-      fetchPegawai();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || "Gagal menyimpan pegawai");
-    }
+  const openMutasi = (item) => {
+      setSelectedItem(item);
+      setIsMutasiOpen(true);
   };
 
   const confirmDelete = (id) => {
@@ -112,60 +93,38 @@ export default function PegawaiList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Data Pegawai & Struktur Organisasi</h1>
+        <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Manajemen SDM</h1>
+            <p className="text-sm text-slate-500">Kelola data pegawai, mutasi, dan struktur organisasi</p>
+        </div>
         <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={openAdd}>
-            <Plus className="mr-2 h-4 w-4" /> Tambah Pegawai
+            <Plus className="mr-2 h-4 w-4" /> Tambah Pegawai Baru
         </Button>
         
-        {/* Form Modal */}
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="max-w-2xl">
+        {/* Pegawai Form Modal (Add/Edit) */}
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingItem ? 'Edit Pegawai' : 'Tambah Pegawai Baru'}</DialogTitle>
+              <DialogTitle>{selectedItem ? 'Edit Data Pegawai' : 'Tambah Pegawai Baru'}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <label className="text-sm font-medium">NIP</label>
-                    <Input {...register("nip", { required: true })} placeholder="1980xxxx" />
-                </div>
-                <div className="space-y-2">
-                    <label className="text-sm font-medium">Nama Lengkap</label>
-                    <Input {...register("nama_lengkap", { required: true })} placeholder="Budi Santoso" />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Jabatan</label>
-                <Input {...register("jabatan", { required: true })} placeholder="Pengelola BMN" />
-              </div>
-              
-              <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 space-y-3">
-                  <h3 className="text-sm font-bold text-slate-700 mb-2">Unit Kerja (Struktur Organisasi)</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-500">Eselon I</label>
-                        <Input {...register("eselon1")} placeholder="Sekretariat Jenderal" className="h-8 text-sm"/>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-500">Eselon II</label>
-                        <Input {...register("eselon2")} placeholder="Biro Umum" className="h-8 text-sm"/>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-500">Eselon III</label>
-                        <Input {...register("eselon3")} placeholder="Bagian Perlengkapan" className="h-8 text-sm"/>
-                      </div>
-                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-500">Eselon IV</label>
-                        <Input {...register("eselon4")} placeholder="Subbagian Gudang" className="h-8 text-sm"/>
-                      </div>
-                  </div>
-              </div>
-
-              <Button type="submit" className="w-full bg-slate-900 text-white">Simpan Data</Button>
-            </form>
+            <PegawaiForm 
+                initialData={selectedItem} 
+                onSuccess={() => {
+                    setIsFormOpen(false);
+                    fetchPegawai();
+                }}
+                onClose={() => setIsFormOpen(false)}
+            />
           </DialogContent>
         </Dialog>
+
+        {/* Mutasi Modal */}
+        <MutasiModal 
+            isOpen={isMutasiOpen}
+            onClose={() => setIsMutasiOpen(false)}
+            pegawai={selectedItem}
+            onSuccess={fetchPegawai}
+        />
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
@@ -203,11 +162,11 @@ export default function PegawaiList() {
             <Table>
               <TableHeader className="bg-slate-50">
                 <TableRow>
-                  <TableHead>NIP / Nama</TableHead>
-                  <TableHead>Jabatan</TableHead>
+                  <TableHead>Profil Pegawai</TableHead>
+                  <TableHead>Jabatan & Pangkat</TableHead>
                   <TableHead>Unit Kerja (Eselon)</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-center w-[100px]">Aksi</TableHead>
+                  <TableHead className="text-center w-[120px]">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -223,25 +182,40 @@ export default function PegawaiList() {
                   pegawai.map((item) => (
                     <TableRow key={item._id} className="hover:bg-slate-50">
                       <TableCell>
-                         <div className="font-bold text-slate-900">{item.nama_lengkap}</div>
-                         <div className="font-mono text-xs text-slate-500">{item.nip}</div>
+                         <div className="flex items-center gap-3">
+                             <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                 <UserCircle size={24}/>
+                             </div>
+                             <div>
+                                <div className="font-bold text-slate-900 text-sm">{item.nama_lengkap}</div>
+                                <div className="font-mono text-[10px] text-slate-500">{item.nip}</div>
+                                <div className="text-[10px] text-blue-600 font-medium">{item.status_kepegawaian}</div>
+                             </div>
+                         </div>
                       </TableCell>
-                      <TableCell className="text-slate-600">{item.jabatan}</TableCell>
+                      <TableCell className="text-slate-600 text-xs">
+                          <div className="font-semibold">{item.jabatan}</div>
+                          {item.pangkat_golongan && <div className="text-slate-500">{item.pangkat_golongan}</div>}
+                          {item.status_jabatan && <span className="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 text-[9px] rounded border border-yellow-200">{item.status_jabatan}</span>}
+                      </TableCell>
                       <TableCell className="text-xs text-slate-600">
                           {item.eselon1 && <div className="font-semibold">{item.eselon1}</div>}
                           {item.eselon2 && <div>&rdsh; {item.eselon2}</div>}
                       </TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${item.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${item.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
                           {item.status}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => openEdit(item)} className="text-blue-500 h-8 w-8 p-0">
+                            <Button variant="ghost" size="sm" onClick={() => openMutasi(item)} title="Mutasi/Promosi" className="text-blue-600 h-8 w-8 p-0 hover:bg-blue-50">
+                              <ArrowRightLeft className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => openEdit(item)} title="Edit Profil" className="text-slate-500 h-8 w-8 p-0 hover:bg-slate-100">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => confirmDelete(item._id)} className="text-red-500 h-8 w-8 p-0">
+                            <Button variant="ghost" size="sm" onClick={() => confirmDelete(item._id)} title="Hapus" className="text-red-500 h-8 w-8 p-0 hover:bg-red-50">
                               <Trash className="h-4 w-4" />
                             </Button>
                         </div>
