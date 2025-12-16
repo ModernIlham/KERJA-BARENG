@@ -102,10 +102,13 @@ export default function Pengaturan() {
       }
   };
 
-  const runReset = async (target) => {
+  const runReset = async (target, assetType = 'all', txnType = 'all') => {
       let confirmMsg = `Yakin ingin menghapus semua data ${target.toUpperCase()}? Data tidak bisa dikembalikan.`;
       
-      if (target === 'all') {
+      if (target === 'transaksi') {
+          // Custom confirmation handled by dialog, but safe check here too
+          // Pass params
+      } else if (target === 'all') {
           confirmMsg = "PERINGATAN KERAS: SEMUA DATA (Barang, Transaksi, Pegawai) akan DIHAPUS PERMANEN. Ketik 'SETUJU' untuk melanjutkan.";
           const check = window.prompt(confirmMsg);
           if (check !== 'SETUJU') return;
@@ -118,7 +121,10 @@ export default function Pengaturan() {
 
       setMaintenanceLoading(true);
       try {
-          const res = await api.post('/api/settings/database/reset', null, { params: { target }});
+          // Pass asset_type and txn_type as query params
+          const res = await api.post('/api/settings/database/reset', null, { 
+              params: { target, asset_type: assetType, txn_type: txnType }
+          });
           toast.success(res.data.message);
       } catch (e) {
           toast.error("Gagal reset data");
@@ -237,15 +243,10 @@ export default function Pengaturan() {
                             <CardDescription className="text-red-600">Menghapus data secara permanen. Berhati-hatilah.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <Button 
-                                variant="outline" 
-                                className="w-full justify-start bg-white hover:bg-red-100 border-red-200 text-red-700"
-                                onClick={() => runReset('transaksi')}
-                                disabled={maintenanceLoading}
-                            >
-                                <Eraser size={16} className="mr-2"/> 
-                                Hapus Riwayat Transaksi Saja
-                            </Button>
+                            <DeleteTransactionDialog 
+                                onConfirm={runReset} 
+                                loading={maintenanceLoading} 
+                            />
                             <Button 
                                 variant="outline" 
                                 className="w-full justify-start bg-white hover:bg-red-100 border-red-200 text-red-700"
