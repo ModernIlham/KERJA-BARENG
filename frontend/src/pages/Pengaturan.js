@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 import DeleteTransactionDialog from '../components/DeleteTransactionDialog';
 import UnitKerjaManager from '../components/pegawai/UnitKerjaManager';
+import InstansiSettings from '../components/pegawai/InstansiSettings';
 import DeleteMasterDataDialog from '../components/DeleteMasterDataDialog';
 export default function Pengaturan() {
   const [users, setUsers] = useState([]);
