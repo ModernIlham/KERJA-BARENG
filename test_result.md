@@ -272,7 +272,7 @@ test_plan:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 3
+  test_sequence: 4
 
 test_plan:
   current_focus: []
