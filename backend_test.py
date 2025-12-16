@@ -897,12 +897,12 @@ class APITester:
         # Step 3: Test granular deletion - Delete Only OUT Transactions (Persediaan)
         print("\n🗑️ Step 3: Testing granular deletion - Delete Only Persediaan OUT transactions...")
         
+        # Use query parameters instead of body data for the reset endpoint
         success, response = self.run_test(
             "Delete Persediaan OUT Transactions Only",
             "POST",
-            "api/settings/database/reset",
-            200,
-            data={"target": "transaksi", "asset_type": "persediaan", "txn_type": "out"}
+            "api/settings/database/reset?target=transaksi&asset_type=persediaan&txn_type=out",
+            200
         )
         
         if not success:
