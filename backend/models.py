@@ -392,3 +392,15 @@ class TransaksiPersediaanCreate(BaseModel):
     unit_penerima: Optional[str] = None
     keterangan: Optional[str] = None
     dokumen_ref: Optional[str] = None 
+
+class TransaksiPersediaanBulkItem(BaseModel):
+    persediaan_id: str
+    jumlah: int
+    nilai_satuan: float
+    expired_date: Optional[str] = None
+
+class TransaksiPersediaanBulkCreate(BaseModel):
+    items: List[TransaksiPersediaanBulkItem]
+    dokumen_ref: str
+    keterangan: Optional[str] = None
+    pegawai_id: Optional[str] = None
