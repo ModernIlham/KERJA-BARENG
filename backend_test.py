@@ -89,6 +89,7 @@ class APITester:
         
         # Try common admin credentials
         credentials = [
+            {"email": "admin@example.com", "password": "admin"},
             {"email": "admin@example.com", "password": "admin123"},
             {"email": "admin", "password": "admin123"},
             {"email": "test@example.com", "password": "test123"}
