@@ -1495,22 +1495,23 @@ def main():
     tester.test_referensi_api()
     tester.test_barang_api()
     
-    # Test NUP Display Logic and Transaction History Visuals (Main Test for this review)
-    nup_display_success = tester.test_nup_display_and_transaction_visuals()
+    # Test Manajemen SDM and Master Barang Delete Enhancements (Main Test for this review)
+    sdm_delete_success = tester.test_manajemen_sdm_and_master_barang_delete()
     
     # Previous tests (keeping for reference)
     # delete_success = tester.test_delete_transaction_history()
     # fifo_success = tester.test_fifo_inventory_system()
+    # nup_display_success = tester.test_nup_display_and_transaction_visuals()
 
     # Print final results
     print(f"\n📊 FINAL RESULTS:")
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
-    print(f"   NUP Display & Transaction Visuals Test: {'✅ PASSED' if nup_display_success else '❌ FAILED'}")
+    print(f"   Manajemen SDM & Master Barang Delete Test: {'✅ PASSED' if sdm_delete_success else '❌ FAILED'}")
     
     tester.save_results()
-    return 0 if (tester.tests_passed == tester.tests_run and nup_display_success) else 1
+    return 0 if (tester.tests_passed == tester.tests_run and sdm_delete_success) else 1
 
 if __name__ == "__main__":
     sys.exit(main())
