@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Verify the 'Delete Transaction History' functionality in the Settings page and Transaction Display"
+user_problem_statement: "Verify the Advanced Employee Management features"
 
 frontend:
   - task: "Pagination on Master Barang Page"
