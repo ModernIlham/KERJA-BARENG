@@ -2128,7 +2128,10 @@ def main():
     tester.test_referensi_api()
     tester.test_barang_api()
     
-    # Test Manajemen SDM and Master Barang Delete Enhancements (Main Test for this review)
+    # Test Advanced Employee Management Features (Main Test for this review)
+    advanced_employee_success = tester.test_advanced_employee_management_features()
+    
+    # Test Manajemen SDM and Master Barang Delete Enhancements
     sdm_delete_success = tester.test_manajemen_sdm_and_master_barang_delete()
     
     # Previous tests (keeping for reference)
@@ -2141,10 +2144,11 @@ def main():
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
+    print(f"   Advanced Employee Management Test: {'✅ PASSED' if advanced_employee_success else '❌ FAILED'}")
     print(f"   Manajemen SDM & Master Barang Delete Test: {'✅ PASSED' if sdm_delete_success else '❌ FAILED'}")
     
     tester.save_results()
-    return 0 if (tester.tests_passed == tester.tests_run and sdm_delete_success) else 1
+    return 0 if (tester.tests_passed == tester.tests_run and advanced_employee_success and sdm_delete_success) else 1
 
 if __name__ == "__main__":
     sys.exit(main())
