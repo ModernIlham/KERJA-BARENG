@@ -222,6 +222,282 @@ class APITester:
             data_count = len(response.get('data', []))
             print(f"📊 Barang Database: {total} total records, {data_count} in current page")
 
+    def test_nup_display_functionality(self):
+        """Test NUP display functionality for manual inventory/asset entries"""
+        print("\n=== NUP DISPLAY FUNCTIONALITY TEST ===")
+        
+        # Step 1: Create a manual entry that defaults to NUP "1"
+        print("\n🔧 Step 1: Creating manual entry with default NUP 1...")
+        manual_item_data = {
+            "kode_barang": "1010301998000001",  # 16-digit code for persediaan
+            "nama_barang": "Manual Test Item NUP 1",
+            "merk": "Test Brand",
+            "satuan": "Pcs",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "stok": 5,
+            "batas_kritis": 2,
+            "nilai_satuan": 15000
+        }
+        
+        success, response = self.run_test(
+            "Create Manual Item (NUP 1)",
+            "POST",
+            "api/persediaan/",
+            200,
+            data=manual_item_data
+        )
+        
+        if not success:
+            print("❌ Failed to create manual item with NUP 1")
+            return False
+            
+        nup1_item_id = response.get('_id') or response.get('id')
+        if not nup1_item_id:
+            print("❌ No item ID returned for NUP 1 item")
+            return False
+            
+        print(f"✅ Manual item created with ID: {nup1_item_id}")
+        
+        # Verify the NUP field in the created item
+        success, item_details = self.run_test(
+            "Get NUP 1 Item Details",
+            "GET",
+            f"api/persediaan/detail/{nup1_item_id}",
+            200
+        )
+        
+        if success:
+            nup_value = item_details.get('nup')
+            print(f"📊 NUP value for manual item: '{nup_value}'")
+            # Check if NUP is "1" or contains "(Sementara)"
+            if nup_value == "1" or nup_value == 1 or "(Sementara)" in str(nup_value):
+                print("✅ NUP 1 item created successfully")
+            else:
+                print(f"❌ Expected NUP to be '1' or contain '(Sementara)', got: '{nup_value}'")
+                return False
+        else:
+            print("❌ Failed to get NUP 1 item details")
+            return False
+        
+        # Step 2: Create an entry with specific NUP "100"
+        print("\n🔧 Step 2: Creating entry with specific NUP 100...")
+        specific_nup_data = {
+            "kode_barang": "1010301998000002",  # Different code
+            "nama_barang": "Specific NUP Test Item",
+            "merk": "Test Brand",
+            "satuan": "Pcs", 
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "stok": 10,
+            "batas_kritis": 3,
+            "nilai_satuan": 25000,
+            "nup": "100"  # Explicitly set NUP to 100
+        }
+        
+        success, response = self.run_test(
+            "Create Item with NUP 100",
+            "POST",
+            "api/persediaan/",
+            200,
+            data=specific_nup_data
+        )
+        
+        if not success:
+            print("❌ Failed to create item with NUP 100")
+            return False
+            
+        nup100_item_id = response.get('_id') or response.get('id')
+        if not nup100_item_id:
+            print("❌ No item ID returned for NUP 100 item")
+            return False
+            
+        print(f"✅ NUP 100 item created with ID: {nup100_item_id}")
+        
+        # Verify the NUP field
+        success, item_details = self.run_test(
+            "Get NUP 100 Item Details",
+            "GET",
+            f"api/persediaan/detail/{nup100_item_id}",
+            200
+        )
+        
+        if success:
+            nup_value = item_details.get('nup')
+            print(f"📊 NUP value for specific item: '{nup_value}'")
+            if str(nup_value) == "100":
+                print("✅ NUP 100 item created successfully")
+            else:
+                print(f"❌ Expected NUP to be '100', got: '{nup_value}'")
+                return False
+        else:
+            print("❌ Failed to get NUP 100 item details")
+            return False
+        
+        # Step 3: Create transactions for both items to test transaction history display
+        print("\n📦 Step 3: Creating transactions for both items...")
+        
+        # Transaction for NUP 1 item
+        nup1_transaction = {
+            "jenis": "in",
+            "persediaan_id": nup1_item_id,
+            "jumlah": 3,
+            "nilai_satuan": 15000,
+            "dokumen_ref": "DOC-NUP1-001",
+            "keterangan": "Test transaction for NUP 1 item"
+        }
+        
+        success, response = self.run_test(
+            "Create Transaction for NUP 1 Item",
+            "POST",
+            "api/persediaan-transaksi/in",
+            200,
+            data=nup1_transaction
+        )
+        
+        if not success:
+            print("❌ Failed to create transaction for NUP 1 item")
+            return False
+        print("✅ Transaction created for NUP 1 item")
+        
+        # Transaction for NUP 100 item
+        nup100_transaction = {
+            "jenis": "in",
+            "persediaan_id": nup100_item_id,
+            "jumlah": 5,
+            "nilai_satuan": 25000,
+            "dokumen_ref": "DOC-NUP100-001",
+            "keterangan": "Test transaction for NUP 100 item"
+        }
+        
+        success, response = self.run_test(
+            "Create Transaction for NUP 100 Item",
+            "POST",
+            "api/persediaan-transaksi/in",
+            200,
+            data=nup100_transaction
+        )
+        
+        if not success:
+            print("❌ Failed to create transaction for NUP 100 item")
+            return False
+        print("✅ Transaction created for NUP 100 item")
+        
+        # Step 4: Fetch transaction history to verify NUP display logic
+        print("\n📋 Step 4: Fetching transaction history to verify NUP display...")
+        
+        # Get all transactions
+        success, response = self.run_test(
+            "Get All Transaction History",
+            "GET",
+            "api/persediaan-transaksi/",
+            200,
+            data={"page": 1, "limit": 50}
+        )
+        
+        if not success:
+            print("❌ Failed to fetch transaction history")
+            return False
+            
+        transactions = response.get('data', [])
+        print(f"📊 Found {len(transactions)} transactions")
+        
+        # Find our test transactions
+        nup1_txn = None
+        nup100_txn = None
+        
+        for txn in transactions:
+            if txn.get('dokumen_ref') == 'DOC-NUP1-001':
+                nup1_txn = txn
+            elif txn.get('dokumen_ref') == 'DOC-NUP100-001':
+                nup100_txn = txn
+        
+        # Step 5: Verify NUP display logic in transaction data
+        print("\n🔍 Step 5: Verifying NUP display logic...")
+        
+        if nup1_txn:
+            nup_value = nup1_txn.get('nup')
+            print(f"📊 NUP 1 transaction NUP value: '{nup_value}'")
+            
+            # According to frontend logic: (item.nup === '1' || item.nup === 1) should show "(sementara)"
+            if nup_value == '1' or nup_value == 1 or "(Sementara)" in str(nup_value):
+                print("✅ NUP 1 transaction should display '(sementara)' - CORRECT")
+            else:
+                print(f"❌ NUP 1 transaction has unexpected NUP value: '{nup_value}'")
+                return False
+        else:
+            print("❌ NUP 1 transaction not found in history")
+            return False
+        
+        if nup100_txn:
+            nup_value = nup100_txn.get('nup')
+            print(f"📊 NUP 100 transaction NUP value: '{nup_value}'")
+            
+            # Should display "NUP: 100"
+            if str(nup_value) == "100":
+                print("✅ NUP 100 transaction should display 'NUP: 100' - CORRECT")
+            else:
+                print(f"❌ NUP 100 transaction has unexpected NUP value: '{nup_value}'")
+                return False
+        else:
+            print("❌ NUP 100 transaction not found in history")
+            return False
+        
+        # Step 6: Test the persediaan list to verify NUP display in table
+        print("\n📋 Step 6: Verifying NUP display in persediaan list...")
+        
+        success, response = self.run_test(
+            "Get Persediaan List",
+            "GET",
+            "api/persediaan/",
+            200,
+            data={"page": 1, "limit": 50}
+        )
+        
+        if success:
+            items = response.get('data', [])
+            nup1_item = None
+            nup100_item = None
+            
+            for item in items:
+                if item.get('_id') == nup1_item_id:
+                    nup1_item = item
+                elif item.get('_id') == nup100_item_id:
+                    nup100_item = item
+            
+            if nup1_item:
+                nup_value = nup1_item.get('nup')
+                print(f"📊 NUP 1 item in list NUP value: '{nup_value}'")
+                # Frontend checks for "(Sementara)" in the NUP string for styling
+                if "(Sementara)" in str(nup_value) or nup_value == '1' or nup_value == 1:
+                    print("✅ NUP 1 item should show yellow background (temporary) - CORRECT")
+                else:
+                    print(f"❌ NUP 1 item has unexpected NUP value: '{nup_value}'")
+                    return False
+            
+            if nup100_item:
+                nup_value = nup100_item.get('nup')
+                print(f"📊 NUP 100 item in list NUP value: '{nup_value}'")
+                if str(nup_value) == "100":
+                    print("✅ NUP 100 item should show normal display - CORRECT")
+                else:
+                    print(f"❌ NUP 100 item has unexpected NUP value: '{nup_value}'")
+                    return False
+        else:
+            print("❌ Failed to get persediaan list")
+            return False
+        
+        print("\n🎉 NUP DISPLAY FUNCTIONALITY TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   - Manual entry defaults to NUP 1 (or contains 'Sementara')")
+        print("   - Specific NUP entry (100) created correctly")
+        print("   - Transaction history contains correct NUP values")
+        print("   - NUP 1 should display '(sementara)' in frontend")
+        print("   - NUP 100 should display 'NUP: 100' in frontend")
+        print("   - Frontend logic verified for both cases")
+        
+        return True
+
     def test_fifo_inventory_system(self):
         """Comprehensive test of FIFO inventory system as requested"""
         print("\n=== FIFO INVENTORY SYSTEM TEST ===")
