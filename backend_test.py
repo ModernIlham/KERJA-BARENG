@@ -757,7 +757,10 @@ def main():
     tester.test_referensi_api()
     tester.test_barang_api()
     
-    # Test FIFO Inventory System (Main Test)
+    # Test NUP Display Functionality (Main Test for this review)
+    nup_success = tester.test_nup_display_functionality()
+    
+    # Test FIFO Inventory System (Previous Test)
     fifo_success = tester.test_fifo_inventory_system()
 
     # Print final results
@@ -765,10 +768,11 @@ def main():
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
+    print(f"   NUP Display Test: {'✅ PASSED' if nup_success else '❌ FAILED'}")
     print(f"   FIFO Test: {'✅ PASSED' if fifo_success else '❌ FAILED'}")
     
     tester.save_results()
-    return 0 if (tester.tests_passed == tester.tests_run and fifo_success) else 1
+    return 0 if (tester.tests_passed == tester.tests_run and nup_success and fifo_success) else 1
 
 if __name__ == "__main__":
     sys.exit(main())
