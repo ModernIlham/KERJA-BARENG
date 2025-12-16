@@ -389,3 +389,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ NUP DISPLAY LOGIC & TRANSACTION HISTORY VISUALS TEST PASSED: All backend API verifications completed successfully. 1) Created Aset Tetap (Manual) with NUP '1' - backend provides correct data for '(sementara)' display, 2) Created Aset Tetap (Normal) with NUP '100' - backend provides correct data for 'NUP: 100' display, 3) Verified Persediaan items exist (auth issues noted but not critical), 4) Confirmed transaction history API provides correct 'jenis' field ('in'/'out') for visual styling, 5) Verified Master Barang API returns proper NUP values. Backend APIs provide all necessary data for frontend visual requirements: Aset Tetap NUP display (1='sementara', others='NUP: X'), Persediaan NUP hiding, Transaction History styling (IN=green/+, OUT=red/-)."
+
+  - task: "Manajemen SDM and Master Barang Delete Enhancements"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai.py, /app/backend/routes/settings.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Manajemen SDM and Master Barang delete enhancements as requested in review. Testing: 1) Master Barang Delete Dialog backend support with options (Semua, Aset Tetap, Persediaan), 2) Pegawai Form (Add) with multi-tab structure (Utama, Jabatan, Status, Kontak), 3) Create dummy employee (Budi Test, NIP: 12345, Status: PNS, Unit: Sekjen), 4) Test Mutasi functionality (Jabatan Baru: Kabag Umum, Jenis: Promosi), 5) Verify database riwayat_karir updates, 6) Verify employee list shows updated job information."
+      - working: true
+        agent: "testing"
+        comment: "✅ MANAJEMEN SDM & MASTER BARANG DELETE ENHANCEMENTS TEST PASSED: All 7 verification steps completed successfully. 1) Master Barang Delete Dialog backend supports all options (Semua, Aset Tetap, Persediaan) via /api/settings/database/reset endpoint, 2) Pegawai Form (Add) works with multi-tab structure - created test employee 'Budi Test Employee' with all required fields, 3) Employee creation successful with multi-tab data preserved (Utama, Jabatan, Status, Kontak), 4) Mutasi functionality works correctly - executed promotion from initial position to 'Kabag Umum' with new pangkat 'Penata (III/c)', 5) Employee's main data updated correctly after mutasi (jabatan, pangkat, unit kerja), 6) Database riwayat_karir field updated with complete mutasi history including jenis='Promosi', jabatan_baru, unit_kerja_baru, pangkat_baru, and SK reference, 7) Employee list shows updated job information correctly. All backend APIs supporting the frontend enhancements are fully functional."
