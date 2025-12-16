@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T14:25:53.520662",
+  "timestamp": "2025-12-16T14:27:22.381551",
   "summary": {
-    "tests_run": 12,
+    "tests_run": 14,
     "tests_passed": 11,
-    "success_rate": "91.7%"
+    "success_rate": "78.6%"
   },
   "detailed_results": [
     {
@@ -35,7 +35,7 @@
       "success": true,
       "response_size": 2847,
       "data_count": 1,
-      "total_items": 40
+      "total_items": 42
     },
     {
       "test_name": "Get Referensi List",
@@ -79,7 +79,7 @@
       "success": true,
       "response_size": 48226,
       "data_count": 20,
-      "total_items": 40
+      "total_items": 42
     },
     {
       "test_name": "Get Barang with Pagination",
@@ -90,7 +90,7 @@
       "success": true,
       "response_size": 14384,
       "data_count": 5,
-      "total_items": 40
+      "total_items": 42
     },
     {
       "test_name": "Get Barang with Search",
@@ -99,9 +99,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 2197,
-      "data_count": 2,
-      "total_items": 2
+      "response_size": 4361,
+      "data_count": 4,
+      "total_items": 4
     },
     {
       "test_name": "Create Aset Tetap (Manual) with NUP 1",
@@ -131,6 +131,30 @@
       "response_size": 30,
       "error": {
         "detail": "Not authenticated"
+      }
+    },
+    {
+      "test_name": "Get Existing Persediaan Items",
+      "method": "GET",
+      "endpoint": "api/persediaan",
+      "expected_status": 200,
+      "actual_status": 401,
+      "success": false,
+      "response_size": 30,
+      "error": {
+        "detail": "Not authenticated"
+      }
+    },
+    {
+      "test_name": "Get Aset Manual Details",
+      "method": "GET",
+      "endpoint": "api/barang/69416c49aa04df2ea98c4519",
+      "expected_status": 200,
+      "actual_status": 405,
+      "success": false,
+      "response_size": 31,
+      "error": {
+        "detail": "Method Not Allowed"
       }
     }
   ]
