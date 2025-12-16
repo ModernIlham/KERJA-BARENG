@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T15:35:52.317059",
+  "timestamp": "2025-12-16T15:36:06.425218",
   "summary": {
-    "tests_run": 17,
-    "tests_passed": 17,
-    "success_rate": "100.0%"
+    "tests_run": 19,
+    "tests_passed": 18,
+    "success_rate": "94.7%"
   },
   "detailed_results": [
     {
@@ -119,7 +119,7 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 47
+      "response_size": 56
     },
     {
       "test_name": "Test Master Barang Delete - Semua Option",
@@ -137,9 +137,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 57,
-      "data_count": 0,
-      "total_items": 0
+      "response_size": 1064,
+      "data_count": 1,
+      "total_items": 1
     },
     {
       "test_name": "Create Test Employee (Budi Test)",
@@ -157,14 +157,14 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 790,
-      "data_count": 1,
-      "total_items": 1
+      "response_size": 1798,
+      "data_count": 2,
+      "total_items": 2
     },
     {
       "test_name": "Execute Employee Mutasi (Promotion)",
       "method": "POST",
-      "endpoint": "api/pegawai/69417c5843695dfa3147e14b/mutasi",
+      "endpoint": "api/pegawai/69417c6643695dfa3147e14d/mutasi",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
@@ -177,9 +177,27 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 56,
-      "data_count": 0,
-      "total_items": 0
+      "response_size": 2072,
+      "data_count": 2,
+      "total_items": 2
+    },
+    {
+      "test_name": "Verify Employee in List with Updated Job",
+      "method": "GET",
+      "endpoint": "api/pegawai",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 2072,
+      "data_count": 2,
+      "total_items": 2
+    },
+    {
+      "test_name": "Delete Test Employee",
+      "method": "DELETE",
+      "endpoint": "api/pegawai/69417c6643695dfa3147e14d",
+      "success": false,
+      "error": "cannot access local variable 'response' where it is not associated with a value"
     }
   ]
 }
