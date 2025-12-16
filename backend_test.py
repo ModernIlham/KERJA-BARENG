@@ -1539,7 +1539,8 @@ class APITester:
         
         # Create Non-ASN employee "Teknisi Lab"
         non_asn_employee_data = {
-            # Tab Utama - Non-ASN with NIK
+            # Tab Utama - Non-ASN with NIK (still need NIP for backend)
+            "nip": f"NASN{timestamp % 10000000:06d}002",  # Non-ASN identifier in NIP format
             "nama_lengkap": "Teknisi Lab",
             "kewarganegaraan": "WNI",
             "nik": f"31010119900{timestamp % 100:02d}002",  # 16 digit NIK
