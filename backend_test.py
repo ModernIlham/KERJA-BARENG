@@ -1601,10 +1601,11 @@ class APITester:
         
         # Create TNI employee "Kopral Jono"
         tni_employee_data = {
-            # Tab Utama - TNI with NRP
+            # Tab Utama - TNI with NRP (backend still uses NIP field, but frontend logic handles NRP)
+            "nip": f"TNI{timestamp % 1000000:06d}003",  # NRP stored in NIP field for TNI
             "nama_lengkap": "Kopral Jono",
             "kewarganegaraan": "WNI",
-            "nrp": f"TNI{timestamp % 1000000:06d}",  # NRP for TNI
+            "nrp": f"TNI{timestamp % 1000000:06d}003",  # NRP for TNI (same as NIP for consistency)
             "nik": f"31010119900{timestamp % 100:02d}003",  # Additional NIK
             
             # Tab Jabatan
