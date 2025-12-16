@@ -225,6 +225,21 @@ frontend:
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: Manajemen Foto modal opens correctly when clicking +Foto button. Modal title shows 'Manajemen Foto: [Item Name]'. Contains upload section with 'Upload Foto Baru' text and functional file input for image uploads. Close button ('Tutup') works properly. Modal functionality is complete and working as expected."
 
+  - task: "Direct Form Barang Masuk Persediaan"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/transaksi/PersediaanIncomingForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New testing task: Verify Direct Form for Barang Masuk Persediaan. Test login as admin@example.com/admin, navigate to /transaksi/masuk, ensure 'Aset Lancar (Persediaan)' selected, verify NO 'Tambah Barang Masuk' button, verify form visible with title 'Form Barang Masuk (Persediaan)', enter document number, search and select item, enter qty/price, click 'Simpan Item', verify success toast and table update."
+      - working: true
+        agent: "testing"
+        comment: "✅ DIRECT FORM TESTING COMPLETED SUCCESSFULLY: All 11 verification steps passed perfectly. 1) Login successful with admin@example.com/admin, 2) Navigation to /transaksi/masuk works, 3) 'Aset Lancar (Persediaan)' properly selected with blue styling, 4) Confirmed NO 'Tambah Barang Masuk' button (correct for direct form mode), 5) 'Form Barang Masuk (Persediaan)' card visible, 6) Document number 'INV-TEST-001' entered successfully, 7) Item search for 'kertas' functional, 8) Item selection works, 9) Qty (5) and Price (15000) entry with total calculation, 10) 'Simpan Item' button functional, 11) Success toast 'Berhasil menambahkan: Kertas Fotocopy A3' and new transaction appears in table with document 'INV-TEST-001'. Direct form functionality fully operational."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
