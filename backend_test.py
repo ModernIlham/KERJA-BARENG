@@ -1112,7 +1112,7 @@ class APITester:
         success, response = self.run_test(
             "Create Aset Tetap (Normal) with NUP 100",
             "POST",
-            "api/barang/",
+            "api/barang",
             200,
             data=aset_normal_data
         )
