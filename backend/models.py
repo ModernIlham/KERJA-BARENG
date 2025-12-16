@@ -231,6 +231,7 @@ class Pegawai(MongoBaseModel):
     eselon3: Optional[str] = None
     eselon4: Optional[str] = None
     jabatan_melekat: List[str] = [] # Jabatan Fungsional Melekat
+    eselon5: Optional[str] = None
     
     # Atribut & Status
     status_kepegawaian: Optional[str] = None # PNS, PPPK, Non-ASN
@@ -270,6 +271,7 @@ class PegawaiCreate(BaseModel):
     eselon2: Optional[str] = None
     eselon3: Optional[str] = None
     eselon4: Optional[str] = None
+    eselon5: Optional[str] = None
     jabatan_melekat: List[str] = []
     
     status_kepegawaian: Optional[str] = None
