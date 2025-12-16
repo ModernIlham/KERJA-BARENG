@@ -969,9 +969,8 @@ class APITester:
             success, response = self.run_test(
                 "Delete All Aset Transactions",
                 "POST",
-                "api/settings/database/reset",
-                200,
-                data={"target": "transaksi", "asset_type": "aset", "txn_type": "all"}
+                "api/settings/database/reset?target=transaksi&asset_type=aset&txn_type=all",
+                200
             )
             
             if not success:
