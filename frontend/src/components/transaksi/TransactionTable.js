@@ -56,8 +56,11 @@ export default function TransactionTable({ data, loading, assetType, type }) {
                 )}
 
                 <TableCell className="text-center">
-                    <Badge variant={type === 'masuk' ? 'success' : 'warning'} className={`${type === 'masuk' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                        {type === 'masuk' ? '+' : '-'}{item.jumlah}
+                    <Badge 
+                        variant={(item.jenis === 'in' || item.jenis === 'MASUK' || type === 'masuk') ? 'success' : 'warning'} 
+                        className={`${(item.jenis === 'in' || item.jenis === 'MASUK' || type === 'masuk') ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}
+                    >
+                        {(item.jenis === 'in' || item.jenis === 'MASUK' || type === 'masuk') ? '+' : '-'}{item.jumlah}
                     </Badge>
                 </TableCell>
                 <TableCell className="text-right font-medium">
