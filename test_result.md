@@ -340,6 +340,51 @@ agent_communication:
     message: "✅ ENHANCED ORGANIZATIONAL STRUCTURE TESTING COMPLETED SUCCESSFULLY: Comprehensive verification of Enhanced Organizational Structure features completed as requested in review. All verification steps passed: 1) Unit Manager: Successfully created 5-level organizational hierarchy (Sekretariat Jenderal → Biro Umum → Bagian Perlengkapan → Subbagian Gudang → Ketua Tim Gudang), 2) Hierarchy Verification: All parent-child relationships correct with proper parent_id references, 3) Employee Form: Successfully created employee with full 5-level hierarchy, 4) Data Verification: All organizational levels correctly saved in employee record (eselon1 through eselon5), 5) Cascading Logic: Backend supports full organizational structure, 6) Hierarchy Depth: 5 levels working correctly. Fixed backend ObjectId serialization issue in unit-kerja endpoint during testing. Backend APIs ready for frontend cascading dropdown implementation."
 
 backend:
+  - task: "Profil Instansi Settings"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/settings.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Profil Instansi functionality as requested in review. Testing: 1) Update settings via PUT /api/settings/instansi with Name: 'Kementerian Percobaan', Address: 'Jl. Test No. 1', Pimpinan: 'Bapak Test' (NIP: 123), 2) Verify persistence via GET /api/settings/instansi."
+      - working: true
+        agent: "testing"
+        comment: "✅ PROFIL INSTANSI TEST PASSED: Successfully updated and verified Profil Instansi settings. PUT /api/settings/instansi accepts data correctly and returns success message. GET /api/settings/instansi retrieves persisted data accurately. All fields (nama_instansi: 'Kementerian Percobaan', alamat: 'Jl. Test No. 1', pimpinan: 'Bapak Test', nip_pimpinan: '123') working correctly. Backend endpoints fully functional for Profil Instansi management."
+
+  - task: "Pegawai Pimpinan Flag"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Pegawai Pimpinan Flag functionality as requested in review. Testing: 1) Create/Update employee with is_pimpinan_tertinggi=True and jenis_pimpinan='Kepala', 2) Verify persistence in database."
+      - working: true
+        agent: "testing"
+        comment: "✅ PEGAWAI PIMPINAN FLAG TEST PASSED: Successfully created employee with is_pimpinan_tertinggi=True and jenis_pimpinan='Kepala'. Employee creation via POST /api/pegawai works correctly with pimpinan flags. Database persistence verified through GET /api/pegawai - flags stored and retrieved accurately. Update functionality tested via PUT /api/pegawai/{id} - pimpinan flags can be modified successfully. All CRUD operations support pimpinan flag fields correctly."
+
+  - task: "Photo Upload Endpoint Availability"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai_photos.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Photo Upload Endpoint Availability as requested in review. Testing: 1) Check if POST /api/pegawai/{id}/upload-foto exists and is reachable (even if we get 422 for missing file, it confirms route registration)."
+      - working: true
+        agent: "testing"
+        comment: "✅ PHOTO UPLOAD ENDPOINT TEST PASSED: POST /api/pegawai/{id}/upload-foto endpoint exists and is reachable. Route properly registered in FastAPI application. Returns 422 (Unprocessable Entity) for missing file parameter as expected, confirming endpoint functionality. Authentication validation working (requires Bearer token). Employee ID parameter validation working (validates ObjectId format). Method restriction working (only accepts POST). Endpoint ready for actual file upload functionality. Fixed backend import issue in image_processor.py during testing."
+
   - task: "Advanced Employee Management Features - WNA Logic"
     implemented: true
     working: true
