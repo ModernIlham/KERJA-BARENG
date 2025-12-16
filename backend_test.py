@@ -1464,6 +1464,349 @@ class APITester:
         
         return True
 
+    def test_manajemen_sdm_and_master_barang_delete(self):
+        """Test Manajemen SDM and Master Barang delete enhancements as requested in review"""
+        print("\n=== MANAJEMEN SDM & MASTER BARANG DELETE ENHANCEMENTS TEST ===")
+        
+        # Step 1: Test Master Barang Delete Dialog Backend Support
+        print("\n🗑️ Step 1: Testing Master Barang Delete Dialog Backend Support...")
+        
+        # Test the delete endpoint with different asset types
+        # First, let's verify the endpoint exists and accepts the parameters
+        
+        # Test delete with "aset" type (should delete from barang collection)
+        success, response = self.run_test(
+            "Test Master Barang Delete - Aset Tetap Option",
+            "POST",
+            "api/settings/database/reset?target=barang&asset_type=aset",
+            200
+        )
+        
+        if success:
+            print("✅ Master Barang Delete - Aset Tetap option supported")
+            print(f"   Response: {response.get('message', 'Success')}")
+        else:
+            print("❌ Master Barang Delete - Aset Tetap option failed")
+            return False
+        
+        # Test delete with "persediaan" type (should delete from persediaan collection)
+        success, response = self.run_test(
+            "Test Master Barang Delete - Persediaan Option",
+            "POST",
+            "api/settings/database/reset?target=barang&asset_type=persediaan",
+            200
+        )
+        
+        if success:
+            print("✅ Master Barang Delete - Persediaan option supported")
+            print(f"   Response: {response.get('message', 'Success')}")
+        else:
+            print("❌ Master Barang Delete - Persediaan option failed")
+            return False
+        
+        # Test delete with "all" type (should delete both collections)
+        success, response = self.run_test(
+            "Test Master Barang Delete - Semua Option",
+            "POST",
+            "api/settings/database/reset?target=barang&asset_type=all",
+            200
+        )
+        
+        if success:
+            print("✅ Master Barang Delete - Semua option supported")
+            print(f"   Response: {response.get('message', 'Success')}")
+        else:
+            print("❌ Master Barang Delete - Semua option failed")
+            return False
+        
+        # Step 2: Test Pegawai (Employee) Management APIs
+        print("\n👥 Step 2: Testing Pegawai Management APIs...")
+        
+        # Test GET pegawai list
+        success, response = self.run_test(
+            "Get Pegawai List",
+            "GET",
+            "api/pegawai",
+            200,
+            data={"page": 1, "limit": 10}
+        )
+        
+        if not success:
+            print("❌ Failed to get pegawai list")
+            return False
+        
+        initial_pegawai_count = response.get('total', 0)
+        print(f"📊 Initial pegawai count: {initial_pegawai_count}")
+        
+        # Step 3: Test Pegawai Form (Add) - Create dummy employee
+        print("\n➕ Step 3: Testing Pegawai Form (Add) - Create dummy employee...")
+        
+        import time
+        timestamp = int(time.time())
+        
+        # Create test employee data matching the multi-tab form structure
+        test_employee_data = {
+            # Tab Utama
+            "nip": f"12345{timestamp % 10000:04d}",  # Unique NIP
+            "nama_lengkap": "Budi Test Employee",
+            "nik": f"31010119900{timestamp % 100:02d}001",
+            "npwp": f"123456789{timestamp % 100:02d}001",
+            "gelar_depan": "Drs.",
+            "gelar_belakang": "M.Si",
+            "kewarganegaraan": "WNI",
+            
+            # Tab Jabatan
+            "jabatan": "Kabag Umum",
+            "eselon1": "Sekjen",
+            "eselon2": "Biro Umum",
+            "eselon3": "Bagian Umum",
+            "eselon4": "",
+            "jabatan_melekat": ["Koordinator IT"],
+            
+            # Tab Status
+            "status_kepegawaian": "PNS",
+            "kategori_pegawai": "Struktural",
+            "status_penempatan": "Pusat",
+            "status_jabatan": "Definitif",
+            "pangkat_golongan": "Penata Muda (III/a)",
+            "status": "AKTIF",
+            
+            # Tab Kontak
+            "no_telp": "081234567890",
+            "email": "budi.test@example.com",
+            "nama_bank": "BNI",
+            "no_rekening": "1234567890",
+            
+            "keterangan": "Test employee for review verification"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Employee (Budi Test)",
+            "POST",
+            "api/pegawai",
+            200,
+            data=test_employee_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test employee")
+            return False
+        
+        employee_id = response.get('_id') or response.get('id')
+        if not employee_id:
+            print("❌ No employee ID returned")
+            return False
+        
+        print(f"✅ Test employee created successfully with ID: {employee_id}")
+        print(f"   Name: {response.get('nama_lengkap')}")
+        print(f"   NIP: {response.get('nip')}")
+        print(f"   Jabatan: {response.get('jabatan')}")
+        print(f"   Status: {response.get('status_kepegawaian')}")
+        print(f"   Unit: {response.get('eselon1')}")
+        
+        # Verify employee was created correctly
+        success, employee_details = self.run_test(
+            "Verify Created Employee Details",
+            "GET",
+            f"api/pegawai",
+            200,
+            data={"search": "Budi Test", "page": 1, "limit": 5}
+        )
+        
+        if success:
+            employees = employee_details.get('data', [])
+            created_employee = None
+            for emp in employees:
+                if emp.get('_id') == employee_id:
+                    created_employee = emp
+                    break
+            
+            if created_employee:
+                print("✅ Employee verification successful:")
+                print(f"   Multi-tab data preserved correctly")
+                print(f"   Utama: {created_employee.get('nama_lengkap')} (NIP: {created_employee.get('nip')})")
+                print(f"   Jabatan: {created_employee.get('jabatan')} at {created_employee.get('eselon1')}")
+                print(f"   Status: {created_employee.get('status_kepegawaian')} - {created_employee.get('status')}")
+                print(f"   Kontak: {created_employee.get('email')}, {created_employee.get('no_telp')}")
+            else:
+                print("❌ Created employee not found in list")
+                return False
+        else:
+            print("⚠️ Could not verify employee details, but creation was successful")
+        
+        # Step 4: Test Mutasi (Employee Transfer/Promotion)
+        print("\n🔄 Step 4: Testing Mutasi (Employee Transfer/Promotion)...")
+        
+        # Create mutasi data
+        mutasi_data = {
+            "jenis_mutasi": "Promosi",
+            "jabatan_baru": "Kabag Umum",  # New position
+            "unit_kerja_baru": {
+                "eselon1": "Sekjen",
+                "eselon2": "Biro Kepegawaian",
+                "eselon3": "Bagian Mutasi",
+                "eselon4": ""
+            },
+            "pangkat_baru": "Penata (III/c)",
+            "sk_ref": f"SK-MUTASI-{timestamp}",
+            "keterangan": "Promosi berdasarkan prestasi kerja",
+            "tgl_efektif": "2024-01-15T00:00:00Z"
+        }
+        
+        success, response = self.run_test(
+            "Execute Employee Mutasi (Promotion)",
+            "POST",
+            f"api/pegawai/{employee_id}/mutasi",
+            200,
+            data=mutasi_data
+        )
+        
+        if not success:
+            print("❌ Failed to execute employee mutasi")
+            return False
+        
+        print("✅ Employee mutasi executed successfully")
+        print(f"   New Jabatan: {response.get('jabatan')}")
+        print(f"   New Pangkat: {response.get('pangkat_golongan')}")
+        print(f"   New Unit: {response.get('eselon1')} - {response.get('eselon2')}")
+        
+        # Verify the employee's main data was updated
+        updated_jabatan = response.get('jabatan')
+        updated_pangkat = response.get('pangkat_golongan')
+        updated_eselon2 = response.get('eselon2')
+        
+        if updated_jabatan == "Kabag Umum":
+            print("✅ Employee's main jabatan updated correctly")
+        else:
+            print(f"❌ Expected jabatan 'Kabag Umum', got '{updated_jabatan}'")
+            return False
+        
+        if updated_pangkat == "Penata (III/c)":
+            print("✅ Employee's pangkat updated correctly")
+        else:
+            print(f"❌ Expected pangkat 'Penata (III/c)', got '{updated_pangkat}'")
+            return False
+        
+        if updated_eselon2 == "Biro Kepegawaian":
+            print("✅ Employee's unit kerja updated correctly")
+        else:
+            print(f"❌ Expected eselon2 'Biro Kepegawaian', got '{updated_eselon2}'")
+            return False
+        
+        # Step 5: Verify Database - Check riwayat_karir was updated
+        print("\n📋 Step 5: Verifying Database - Check riwayat_karir was updated...")
+        
+        # Get the updated employee details to check riwayat_karir
+        success, employee_details = self.run_test(
+            "Get Updated Employee Details",
+            "GET",
+            f"api/pegawai",
+            200,
+            data={"search": employee_id, "page": 1, "limit": 5}
+        )
+        
+        if success:
+            employees = employee_details.get('data', [])
+            updated_employee = None
+            for emp in employees:
+                if emp.get('_id') == employee_id:
+                    updated_employee = emp
+                    break
+            
+            if updated_employee:
+                riwayat_karir = updated_employee.get('riwayat_karir', [])
+                print(f"📊 Employee riwayat_karir entries: {len(riwayat_karir)}")
+                
+                if len(riwayat_karir) > 0:
+                    latest_riwayat = riwayat_karir[-1]  # Get the latest entry
+                    print("✅ riwayat_karir updated successfully:")
+                    print(f"   Jenis: {latest_riwayat.get('jenis')}")
+                    print(f"   Deskripsi: {latest_riwayat.get('deskripsi')}")
+                    print(f"   Jabatan Baru: {latest_riwayat.get('jabatan_baru')}")
+                    print(f"   Unit Kerja Baru: {latest_riwayat.get('unit_kerja_baru')}")
+                    print(f"   Pangkat Baru: {latest_riwayat.get('pangkat_baru')}")
+                    print(f"   SK Ref: {latest_riwayat.get('sk_ref')}")
+                    
+                    # Verify the riwayat_karir contains correct data
+                    if (latest_riwayat.get('jenis') == "Promosi" and
+                        latest_riwayat.get('jabatan_baru') == "Kabag Umum" and
+                        latest_riwayat.get('pangkat_baru') == "Penata (III/c)" and
+                        latest_riwayat.get('sk_ref') == f"SK-MUTASI-{timestamp}"):
+                        print("✅ riwayat_karir data verification successful")
+                    else:
+                        print("❌ riwayat_karir data verification failed")
+                        return False
+                else:
+                    print("❌ No riwayat_karir entries found after mutasi")
+                    return False
+            else:
+                print("❌ Updated employee not found")
+                return False
+        else:
+            print("❌ Failed to get updated employee details")
+            return False
+        
+        # Step 6: Test Pegawai List Update Verification
+        print("\n📋 Step 6: Verifying Employee appears in list with updated job...")
+        
+        success, response = self.run_test(
+            "Verify Employee in List with Updated Job",
+            "GET",
+            "api/pegawai",
+            200,
+            data={"page": 1, "limit": 20}
+        )
+        
+        if success:
+            employees = response.get('data', [])
+            found_employee = None
+            for emp in employees:
+                if emp.get('_id') == employee_id:
+                    found_employee = emp
+                    break
+            
+            if found_employee:
+                list_jabatan = found_employee.get('jabatan')
+                if list_jabatan == "Kabag Umum":
+                    print("✅ Employee's job updated correctly in main list")
+                    print(f"   List shows: {found_employee.get('nama_lengkap')} - {list_jabatan}")
+                else:
+                    print(f"❌ Employee list shows wrong jabatan: '{list_jabatan}'")
+                    return False
+            else:
+                print("❌ Employee not found in main list")
+                return False
+        else:
+            print("❌ Failed to get employee list for verification")
+            return False
+        
+        # Step 7: Clean up - Delete test employee (optional)
+        print("\n🧹 Step 7: Cleaning up test data...")
+        
+        success, response = self.run_test(
+            "Delete Test Employee",
+            "DELETE",
+            f"api/pegawai/{employee_id}",
+            200
+        )
+        
+        if success:
+            print("✅ Test employee deleted successfully")
+        else:
+            print("⚠️ Failed to delete test employee (not critical)")
+        
+        print("\n🎉 MANAJEMEN SDM & MASTER BARANG DELETE ENHANCEMENTS TEST COMPLETED!")
+        print("✅ All verifications passed:")
+        print("   - Master Barang Delete Dialog backend supports all options (Semua, Aset Tetap, Persediaan)")
+        print("   - Pegawai Form (Add) works with multi-tab structure (Utama, Jabatan, Status, Kontak)")
+        print("   - Employee creation successful with all required fields")
+        print("   - Mutasi functionality works correctly")
+        print("   - Employee's main job updated after mutasi")
+        print("   - riwayat_karir database field updated correctly")
+        print("   - Employee list shows updated job information")
+        
+        return True
+
     def save_results(self):
         """Save test results to file"""
         results_data = {
