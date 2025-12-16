@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T15:36:21.402695",
+  "timestamp": "2025-12-16T16:14:08.015922",
   "summary": {
-    "tests_run": 19,
+    "tests_run": 20,
     "tests_passed": 19,
-    "success_rate": "100.0%"
+    "success_rate": "95.0%"
   },
   "detailed_results": [
     {
@@ -104,6 +104,49 @@
       "total_items": 0
     },
     {
+      "test_name": "Create WNA Employee (John Doe)",
+      "method": "POST",
+      "endpoint": "api/pegawai",
+      "expected_status": 200,
+      "actual_status": 422,
+      "success": false,
+      "response_size": 714,
+      "error": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "nip"
+            ],
+            "msg": "Field required",
+            "input": {
+              "nama_lengkap": "John Doe",
+              "gelar_depan": "Mr.",
+              "kewarganegaraan": "WNA",
+              "jenis_identitas_wna": "PASPOR",
+              "nomor_identitas_wna": "US901647",
+              "jabatan": "Senior Consultant",
+              "eselon1": "Sekjen",
+              "eselon2": "Biro Kerjasama",
+              "eselon3": "Bagian Kerjasama Luar Negeri",
+              "status_kepegawaian": "Non-ASN",
+              "jenis_non_asn": "Konsultan Individu",
+              "sub_kategori_non_asn": "Tenaga Ahli",
+              "status_penempatan": "Definitif",
+              "status": "AKTIF",
+              "tgl_mulai_kontrak": "2024-01-01",
+              "tgl_selesai_kontrak": "2024-12-31",
+              "no_telp": "+1234567890",
+              "email": "john.doe@example.com",
+              "keterangan": "WNA Test Employee - Foreign Expert"
+            },
+            "url": "https://errors.pydantic.dev/2.12/v/missing"
+          }
+        ]
+      }
+    },
+    {
       "test_name": "Test Master Barang Delete - Aset Tetap Option",
       "method": "POST",
       "endpoint": "api/settings/database/reset?target=barang&asset_type=aset",
@@ -164,7 +207,7 @@
     {
       "test_name": "Execute Employee Mutasi (Promotion)",
       "method": "POST",
-      "endpoint": "api/pegawai/69417c7543695dfa3147e14f/mutasi",
+      "endpoint": "api/pegawai/6941854f43695dfa3147e151/mutasi",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
@@ -195,7 +238,7 @@
     {
       "test_name": "Delete Test Employee",
       "method": "DELETE",
-      "endpoint": "api/pegawai/69417c7543695dfa3147e14f",
+      "endpoint": "api/pegawai/6941854f43695dfa3147e151",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
