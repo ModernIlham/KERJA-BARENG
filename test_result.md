@@ -472,3 +472,33 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ MANAJEMEN SDM & MASTER BARANG DELETE ENHANCEMENTS TEST PASSED: All 7 verification steps completed successfully. 1) Master Barang Delete Dialog backend supports all options (Semua, Aset Tetap, Persediaan) via /api/settings/database/reset endpoint, 2) Pegawai Form (Add) works with multi-tab structure - created test employee 'Budi Test Employee' with all required fields, 3) Employee creation successful with multi-tab data preserved (Utama, Jabatan, Status, Kontak), 4) Mutasi functionality works correctly - executed promotion from initial position to 'Kabag Umum' with new pangkat 'Penata (III/c)', 5) Employee's main data updated correctly after mutasi (jabatan, pangkat, unit kerja), 6) Database riwayat_karir field updated with complete mutasi history including jenis='Promosi', jabatan_baru, unit_kerja_baru, pangkat_baru, and SK reference, 7) Employee list shows updated job information correctly. All backend APIs supporting the frontend enhancements are fully functional."
+
+  - task: "Enhanced Organizational Structure - Unit Manager"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/settings.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Enhanced Organizational Structure features as requested in review. Testing Unit Manager functionality to create 5-level organizational hierarchy (Eselon I through V) and verify cascading logic in employee forms."
+      - working: true
+        agent: "testing"
+        comment: "✅ ENHANCED ORGANIZATIONAL STRUCTURE TEST COMPLETED SUCCESSFULLY: All verifications passed: 1) Unit Manager: Successfully created 5-level organizational hierarchy (Sekretariat Jenderal → Biro Umum → Bagian Perlengkapan → Subbagian Gudang → Ketua Tim Gudang), 2) Hierarchy Verification: All parent-child relationships correct with proper parent_id references, 3) Employee Form: Successfully created employee with full 5-level hierarchy, 4) Data Verification: All organizational levels correctly saved in employee record (eselon1 through eselon5), 5) Cascading Logic: Backend supports full organizational structure, 6) Hierarchy Depth: 5 levels working correctly. Fixed backend ObjectId serialization issue in unit-kerja endpoint during testing."
+
+  - task: "Enhanced Organizational Structure - Employee Cascading Form"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Employee Form cascading logic with full 5-level organizational hierarchy. Verifying that employee records can save and retrieve all organizational unit names correctly."
+      - working: true
+        agent: "testing"
+        comment: "✅ EMPLOYEE CASCADING FORM TEST PASSED: Successfully created employee 'Pegawai Test Organisasi' with complete 5-level hierarchy. All eselon fields (eselon1: 'Sekretariat Jenderal', eselon2: 'Biro Umum', eselon3: 'Bagian Perlengkapan', eselon4: 'Subbagian Gudang', eselon5: 'Ketua Tim Gudang') correctly saved and retrieved. Backend supports full organizational structure persistence. Cascading dropdown logic ready for frontend implementation."
