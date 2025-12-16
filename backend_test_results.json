@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T14:01:42.933012",
+  "timestamp": "2025-12-16T14:24:21.286715",
   "summary": {
-    "tests_run": 18,
-    "tests_passed": 16,
-    "success_rate": "88.9%"
+    "tests_run": 10,
+    "tests_passed": 9,
+    "success_rate": "90.0%"
   },
   "detailed_results": [
     {
@@ -104,34 +104,7 @@
       "total_items": 0
     },
     {
-      "test_name": "Create Test Item for Delete Test",
-      "method": "POST",
-      "endpoint": "api/persediaan/",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 677
-    },
-    {
-      "test_name": "Create Persediaan IN Transaction",
-      "method": "POST",
-      "endpoint": "api/persediaan-transaksi/in",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 67
-    },
-    {
-      "test_name": "Create Persediaan OUT Transaction",
-      "method": "POST",
-      "endpoint": "api/persediaan-transaksi/out",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 47
-    },
-    {
-      "test_name": "Create Test Aset Item",
+      "test_name": "Create Aset Tetap (Manual) with NUP 1",
       "method": "POST",
       "endpoint": "api/barang/",
       "expected_status": 200,
@@ -141,60 +114,6 @@
       "error": {
         "detail": "Not authenticated"
       }
-    },
-    {
-      "test_name": "Get Initial Persediaan Transaction Count",
-      "method": "GET",
-      "endpoint": "api/persediaan-transaksi/",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 17382,
-      "data_count": 33,
-      "total_items": 33
-    },
-    {
-      "test_name": "Get Initial Aset Transaction Count",
-      "method": "GET",
-      "endpoint": "api/transaksi/",
-      "expected_status": 200,
-      "actual_status": 401,
-      "success": false,
-      "response_size": 30,
-      "error": {
-        "detail": "Not authenticated"
-      }
-    },
-    {
-      "test_name": "Delete Persediaan OUT Transactions Only",
-      "method": "POST",
-      "endpoint": "api/settings/database/reset?target=transaksi&asset_type=persediaan&txn_type=out",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 55
-    },
-    {
-      "test_name": "Verify Persediaan Transactions After OUT Deletion",
-      "method": "GET",
-      "endpoint": "api/persediaan-transaksi/",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 11916,
-      "data_count": 23,
-      "total_items": 23
-    },
-    {
-      "test_name": "Get Transactions for Display Verification",
-      "method": "GET",
-      "endpoint": "api/persediaan-transaksi/",
-      "expected_status": 200,
-      "actual_status": 200,
-      "success": true,
-      "response_size": 11915,
-      "data_count": 23,
-      "total_items": 23
     }
   ]
 }
