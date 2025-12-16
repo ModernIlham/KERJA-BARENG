@@ -9,6 +9,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import TransactionTable from '../components/transaksi/TransactionTable';
 import AddTransactionModal from '../components/transaksi/AddTransactionModal';
 import PersediaanIncomingForm from '../components/transaksi/PersediaanIncomingForm';
+import PersediaanOutgoingForm from '../components/transaksi/PersediaanOutgoingForm';
 
 export default function TransaksiPage() {
   const { type } = useParams(); // 'masuk', 'keluar', 'riwayat'
@@ -68,8 +69,9 @@ export default function TransaksiPage() {
       setCurrentPage(1);
   };
 
-  // Condition to show "Direct Form" instead of "Add Button"
-  const isDirectFormMode = activeTab === 'masuk' && assetType === 'persediaan';
+  // Conditions to show "Direct Form" instead of "Add Button"
+  const isDirectIncomingMode = activeTab === 'masuk' && assetType === 'persediaan';
+  const isDirectOutgoingMode = activeTab === 'keluar' && assetType === 'persediaan';
 
   return (
     <div className="space-y-6">
@@ -80,7 +82,7 @@ export default function TransaksiPage() {
             </div>
             
             {/* Show Add Button ONLY if NOT in Direct Form Mode and NOT in Riwayat */}
-            {activeTab !== 'riwayat' && !isDirectFormMode && (
+            {activeTab !== 'riwayat' && !isDirectIncomingMode && !isDirectOutgoingMode && (
                 <Button className="bg-slate-900 text-white" onClick={() => setModalOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" /> 
                     Tambah Barang {activeTab === 'masuk' ? 'Masuk' : 'Keluar'}
@@ -121,8 +123,13 @@ export default function TransaksiPage() {
                 </div>
 
                 {/* Direct Entry Form for Persediaan Masuk */}
-                {isDirectFormMode && (
+                {isDirectIncomingMode && (
                     <PersediaanIncomingForm onSuccess={fetchData} />
+                )}
+
+                {/* Direct Entry Form for Persediaan Keluar */}
+                {isDirectOutgoingMode && (
+                    <PersediaanOutgoingForm onSuccess={fetchData} />
                 )}
 
                 <Card>
