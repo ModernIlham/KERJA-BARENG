@@ -106,3 +106,10 @@ async def process_image_upload(file: UploadFile, folder: str, db):
         "optimized": f"{folder}/{filename}", # Same as original if no compression
         "thumbnail": f"{folder}/{filename}" # Same as original if no thumbnail gen
     }
+
+async def compress_image(file: UploadFile, folder: str, db):
+    """
+    Legacy function for backward compatibility.
+    Calls the main process_image_upload function.
+    """
+    return await process_image_upload(file, folder, db)
