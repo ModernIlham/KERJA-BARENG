@@ -1478,7 +1478,8 @@ class APITester:
         
         # Create WNA employee "John Doe"
         wna_employee_data = {
-            # Tab Utama - WNA specific
+            # Tab Utama - WNA specific (still need NIP for backend, but frontend logic will handle WNA fields)
+            "nip": f"WNA{timestamp % 10000000:07d}001",  # WNA identifier in NIP format
             "nama_lengkap": "John Doe",
             "gelar_depan": "Mr.",
             "kewarganegaraan": "WNA",
