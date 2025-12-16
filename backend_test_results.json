@@ -1,9 +1,9 @@
 {
-  "timestamp": "2025-12-16T16:14:08.015922",
+  "timestamp": "2025-12-16T16:38:59.667566",
   "summary": {
-    "tests_run": 20,
-    "tests_passed": 19,
-    "success_rate": "95.0%"
+    "tests_run": 24,
+    "tests_passed": 24,
+    "success_rate": "100.0%"
   },
   "detailed_results": [
     {
@@ -108,43 +108,47 @@
       "method": "POST",
       "endpoint": "api/pegawai",
       "expected_status": 200,
-      "actual_status": 422,
-      "success": false,
-      "response_size": 714,
-      "error": {
-        "detail": [
-          {
-            "type": "missing",
-            "loc": [
-              "body",
-              "nip"
-            ],
-            "msg": "Field required",
-            "input": {
-              "nama_lengkap": "John Doe",
-              "gelar_depan": "Mr.",
-              "kewarganegaraan": "WNA",
-              "jenis_identitas_wna": "PASPOR",
-              "nomor_identitas_wna": "US901647",
-              "jabatan": "Senior Consultant",
-              "eselon1": "Sekjen",
-              "eselon2": "Biro Kerjasama",
-              "eselon3": "Bagian Kerjasama Luar Negeri",
-              "status_kepegawaian": "Non-ASN",
-              "jenis_non_asn": "Konsultan Individu",
-              "sub_kategori_non_asn": "Tenaga Ahli",
-              "status_penempatan": "Definitif",
-              "status": "AKTIF",
-              "tgl_mulai_kontrak": "2024-01-01",
-              "tgl_selesai_kontrak": "2024-12-31",
-              "no_telp": "+1234567890",
-              "email": "john.doe@example.com",
-              "keterangan": "WNA Test Employee - Foreign Expert"
-            },
-            "url": "https://errors.pydantic.dev/2.12/v/missing"
-          }
-        ]
-      }
+      "actual_status": 200,
+      "success": true,
+      "response_size": 691
+    },
+    {
+      "test_name": "Create Non-ASN Employee (Teknisi Lab)",
+      "method": "POST",
+      "endpoint": "api/pegawai",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 732
+    },
+    {
+      "test_name": "Create TNI Employee (Kopral Jono)",
+      "method": "POST",
+      "endpoint": "api/pegawai",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 707
+    },
+    {
+      "test_name": "Create Penugasan Employee",
+      "method": "POST",
+      "endpoint": "api/pegawai",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 753
+    },
+    {
+      "test_name": "Get All Created Test Employees",
+      "method": "GET",
+      "endpoint": "api/pegawai",
+      "expected_status": 200,
+      "actual_status": 200,
+      "success": true,
+      "response_size": 10614,
+      "data_count": 14,
+      "total_items": 14
     },
     {
       "test_name": "Test Master Barang Delete - Aset Tetap Option",
@@ -180,9 +184,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 2072,
-      "data_count": 2,
-      "total_items": 2
+      "response_size": 7691,
+      "data_count": 10,
+      "total_items": 14
     },
     {
       "test_name": "Create Test Employee (Budi Test)",
@@ -191,7 +195,7 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 734
+      "response_size": 749
     },
     {
       "test_name": "Verify Created Employee Details",
@@ -200,18 +204,18 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 2806,
+      "response_size": 2821,
       "data_count": 3,
       "total_items": 3
     },
     {
       "test_name": "Execute Employee Mutasi (Promotion)",
       "method": "POST",
-      "endpoint": "api/pegawai/6941854f43695dfa3147e151/mutasi",
+      "endpoint": "api/pegawai/69418b23f6067379e412d25d/mutasi",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 1007
+      "response_size": 1022
     },
     {
       "test_name": "Get Updated Employee Details",
@@ -220,9 +224,9 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 3080,
-      "data_count": 3,
-      "total_items": 3
+      "response_size": 11637,
+      "data_count": 15,
+      "total_items": 15
     },
     {
       "test_name": "Verify Employee in List with Updated Job",
@@ -231,14 +235,14 @@
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
-      "response_size": 3080,
-      "data_count": 3,
-      "total_items": 3
+      "response_size": 11637,
+      "data_count": 15,
+      "total_items": 15
     },
     {
       "test_name": "Delete Test Employee",
       "method": "DELETE",
-      "endpoint": "api/pegawai/6941854f43695dfa3147e151",
+      "endpoint": "api/pegawai/69418b23f6067379e412d25d",
       "expected_status": 200,
       "actual_status": 200,
       "success": true,
