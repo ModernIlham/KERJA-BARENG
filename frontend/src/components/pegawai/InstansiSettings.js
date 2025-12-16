@@ -47,6 +47,7 @@ import InstansiLogoUpload from './InstansiLogoUpload';
                 </div>
             </CardHeader>
             <CardContent className="pt-4">
+                <InstansiLogoUpload logoUrl={watch('logo_url')} onSuccess={fetchConfig} />
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div className="space-y-1">
                         <label className="text-xs font-medium text-slate-600">Nama Instansi</label>
