@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Optional, Dict, Any
 from models import Pegawai, PegawaiCreate
 from auth import get_current_user
+from models import Pegawai, PegawaiCreate, MutasiPegawai, RiwayatKarir
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from datetime import datetime, timezone
@@ -79,3 +80,46 @@ async def delete_pegawai(id: str, current_user: str = Depends(get_current_user))
     res = await db.pegawai.delete_one({"_id": ObjectId(id)})
     if res.deleted_count == 0: raise HTTPException(status_code=404)
     return {"message": "Pegawai deleted"}
+
+@router.post("/{id}/mutasi", response_model=Pegawai)
+async def mutasi_pegawai(id: str, mutasi: MutasiPegawai, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    if not pegawai: raise HTTPException(status_code=404)
+    
+    # Create History Record
+    riwayat = RiwayatKarir(
+        jenis=mutasi.jenis_mutasi,
+        deskripsi=mutasi.keterangan or f"Mutasi ke {mutasi.jabatan_baru}",
+        jabatan_baru=mutasi.jabatan_baru,
+        unit_kerja_baru=f"{mutasi.unit_kerja_baru.get('eselon1','')}, {mutasi.unit_kerja_baru.get('eselon2','')}",
+        pangkat_baru=mutasi.pangkat_baru,
+        sk_ref=mutasi.sk_ref,
+        tanggal=mutasi.tgl_efektif
+    )
+    
+    # Update Fields
+    update_fields = {
+        "jabatan": mutasi.jabatan_baru,
+    }
+    if mutasi.pangkat_baru:
+        update_fields["pangkat_golongan"] = mutasi.pangkat_baru
+        
+    # Update Unit Kerja if provided
+    if mutasi.unit_kerja_baru:
+        for k, v in mutasi.unit_kerja_baru.items():
+            if k in ['eselon1', 'eselon2', 'eselon3', 'eselon4']:
+                update_fields[k] = v
+                
+    # Execute Update
+    res = await db.pegawai.find_one_and_update(
+        {"_id": ObjectId(id)},
+        {
+            "$set": update_fields,
+            "$push": {"riwayat_karir": riwayat.dict()}
+        },
+        return_document=True
+    )
+    
+    return res
