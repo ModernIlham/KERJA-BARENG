@@ -161,6 +161,32 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
                 await api.post('/api/pegawai', data);
                 toast.success("Pegawai berhasil ditambahkan");
             }
+                        {kategoriPegawai === 'Struktural' && (
+                            <div className="bg-blue-50 p-3 rounded border border-blue-200 mt-2">
+                                <Label className="text-xs font-bold text-blue-800 mb-2 block">Status Pimpinan (Khusus Kepala/Wakil)</Label>
+                                <div className="flex gap-4">
+                                    <div className="flex items-center space-x-2">
+                                        <input 
+                                            type="checkbox" 
+                                            {...register("is_pimpinan_tertinggi")} 
+                                            id="chk_pimpinan"
+                                            className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <Label htmlFor="chk_pimpinan" className="text-xs cursor-pointer">Set sebagai Pimpinan Tertinggi / Wakil</Label>
+                                    </div>
+                                    
+                                    {watch('is_pimpinan_tertinggi') && (
+                                        <select {...register("jenis_pimpinan")} className="h-7 border rounded px-2 text-xs bg-white">
+                                            <option value="Kepala">Kepala</option>
+                                            <option value="Wakil">Wakil Kepala</option>
+                                        </select>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-blue-600 mt-1">
+                                    Centang jika pegawai ini adalah Kepala atau Wakil Kepala Instansi (bukan sekadar Eselon).
+                                </p>
+                            </div>
+                        )}
             onSuccess();
         } catch (error) {
             toast.error(error.response?.data?.detail || "Gagal menyimpan pegawai");
