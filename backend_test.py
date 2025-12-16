@@ -1128,8 +1128,8 @@ class APITester:
         
         # Create Persediaan item (should NOT show NUP)
         persediaan_data = {
-            "kode_barang": "1010301998000001",  # Persediaan code format
-            "nama_barang": "Test Persediaan Item",
+            "kode_barang": f"101030199800{timestamp % 10000:04d}",  # Unique persediaan code
+            "nama_barang": f"Test Persediaan Item {timestamp}",
             "merk": "Test Brand",
             "satuan": "Pcs",
             "kondisi": "Baik",
