@@ -10,6 +10,7 @@ import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangl
 import { toast } from 'sonner';
 
 import DeleteTransactionDialog from '../components/DeleteTransactionDialog';
+import DeleteMasterDataDialog from '../components/DeleteMasterDataDialog';
 export default function Pengaturan() {
   const [users, setUsers] = useState([]);
   const [units, setUnits] = useState([]);
