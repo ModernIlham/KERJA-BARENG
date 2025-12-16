@@ -1063,6 +1063,384 @@ class APITester:
         
         return True
 
+    def test_nup_display_and_transaction_visuals(self):
+        """Test NUP display logic and Transaction History visuals as requested in review"""
+        print("\n=== NUP DISPLAY LOGIC & TRANSACTION HISTORY VISUALS TEST ===")
+        
+        # Step 1: Setup - Create test items with specific NUP values
+        print("\n🔧 Step 1: Setting up test items with specific NUP values...")
+        
+        # Create Aset Tetap (Manual) with NUP '1'
+        aset_manual_data = {
+            "kode_barang": "1030101001000001",  # Aset tetap code format
+            "nama_barang": "Test Aset Manual NUP 1",
+            "merk": "Test Brand",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "nilai_perolehan": 1000000,
+            "tahun_perolehan": 2024,
+            "nup": "1"  # Manual entry should have NUP 1
+        }
+        
+        success, response = self.run_test(
+            "Create Aset Tetap (Manual) with NUP 1",
+            "POST",
+            "api/barang/",
+            200,
+            data=aset_manual_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Aset Tetap (Manual) item")
+            return False
+            
+        aset_manual_id = response.get('_id') or response.get('id')
+        print(f"✅ Aset Tetap (Manual) created with ID: {aset_manual_id}")
+        
+        # Create Aset Tetap (Import/Normal) with NUP '100'
+        aset_normal_data = {
+            "kode_barang": "1030101001000002",  # Different code
+            "nama_barang": "Test Aset Normal NUP 100",
+            "merk": "Test Brand",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "nilai_perolehan": 2000000,
+            "tahun_perolehan": 2024,
+            "nup": "100"  # Normal entry with specific NUP
+        }
+        
+        success, response = self.run_test(
+            "Create Aset Tetap (Normal) with NUP 100",
+            "POST",
+            "api/barang/",
+            200,
+            data=aset_normal_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Aset Tetap (Normal) item")
+            return False
+            
+        aset_normal_id = response.get('_id') or response.get('id')
+        print(f"✅ Aset Tetap (Normal) created with ID: {aset_normal_id}")
+        
+        # Create Persediaan item (should NOT show NUP)
+        persediaan_data = {
+            "kode_barang": "1010301998000001",  # Persediaan code format
+            "nama_barang": "Test Persediaan Item",
+            "merk": "Test Brand",
+            "satuan": "Pcs",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "stok": 10,
+            "batas_kritis": 5,
+            "nilai_satuan": 15000
+        }
+        
+        success, response = self.run_test(
+            "Create Persediaan Item",
+            "POST",
+            "api/persediaan/",
+            200,
+            data=persediaan_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Persediaan item")
+            return False
+            
+        persediaan_id = response.get('_id') or response.get('id')
+        print(f"✅ Persediaan item created with ID: {persediaan_id}")
+        
+        # Step 2: Verify NUP values in backend responses
+        print("\n🔍 Step 2: Verifying NUP values in backend API responses...")
+        
+        # Check Aset Tetap (Manual) NUP
+        success, aset_manual_details = self.run_test(
+            "Get Aset Manual Details",
+            "GET",
+            f"api/barang/{aset_manual_id}",
+            200
+        )
+        
+        if success:
+            nup_value = aset_manual_details.get('nup')
+            print(f"📊 Aset Manual NUP value: '{nup_value}'")
+            if str(nup_value) == "1":
+                print("✅ Aset Manual has correct NUP '1' - should display '(sementara)'")
+            else:
+                print(f"❌ Expected NUP '1', got: '{nup_value}'")
+                return False
+        else:
+            print("❌ Failed to get Aset Manual details")
+            return False
+        
+        # Check Aset Tetap (Normal) NUP
+        success, aset_normal_details = self.run_test(
+            "Get Aset Normal Details",
+            "GET",
+            f"api/barang/{aset_normal_id}",
+            200
+        )
+        
+        if success:
+            nup_value = aset_normal_details.get('nup')
+            print(f"📊 Aset Normal NUP value: '{nup_value}'")
+            if str(nup_value) == "100":
+                print("✅ Aset Normal has correct NUP '100' - should display 'NUP: 100'")
+            else:
+                print(f"❌ Expected NUP '100', got: '{nup_value}'")
+                return False
+        else:
+            print("❌ Failed to get Aset Normal details")
+            return False
+        
+        # Check Persediaan item (should NOT have NUP field or should be ignored)
+        success, persediaan_details = self.run_test(
+            "Get Persediaan Details",
+            "GET",
+            f"api/persediaan/detail/{persediaan_id}",
+            200
+        )
+        
+        if success:
+            nup_value = persediaan_details.get('nup')
+            print(f"📊 Persediaan NUP value: '{nup_value}'")
+            # For persediaan, NUP should not be displayed in frontend, regardless of backend value
+            print("✅ Persediaan item retrieved - NUP should NOT be displayed in frontend")
+        else:
+            print("❌ Failed to get Persediaan details")
+            return False
+        
+        # Step 3: Create transactions for testing Transaction History visuals
+        print("\n📦 Step 3: Creating transactions for Transaction History visual testing...")
+        
+        # Create Persediaan IN transaction (should show green/positive)
+        persediaan_in_txn = {
+            "jenis": "in",
+            "persediaan_id": persediaan_id,
+            "jumlah": 5,
+            "nilai_satuan": 15000,
+            "dokumen_ref": "TXN-IN-001",
+            "keterangan": "Test IN transaction for visual testing"
+        }
+        
+        success, response = self.run_test(
+            "Create Persediaan IN Transaction",
+            "POST",
+            "api/persediaan-transaksi/in",
+            200,
+            data=persediaan_in_txn
+        )
+        
+        if not success:
+            print("❌ Failed to create Persediaan IN transaction")
+            return False
+        print("✅ Persediaan IN transaction created")
+        
+        # Create Persediaan OUT transaction (should show red/negative)
+        persediaan_out_txn = {
+            "jenis": "out",
+            "persediaan_id": persediaan_id,
+            "jumlah": 3,
+            "unit_penerima": "Test Department",
+            "dokumen_ref": "TXN-OUT-001",
+            "keterangan": "Test OUT transaction for visual testing"
+        }
+        
+        success, response = self.run_test(
+            "Create Persediaan OUT Transaction",
+            "POST",
+            "api/persediaan-transaksi/out",
+            200,
+            data=persediaan_out_txn
+        )
+        
+        if not success:
+            print("❌ Failed to create Persediaan OUT transaction")
+            return False
+        print("✅ Persediaan OUT transaction created")
+        
+        # Create Aset transactions if possible
+        aset_in_txn = {
+            "jenis": "MASUK",
+            "barang_id": aset_manual_id,
+            "jumlah": 1,
+            "keterangan": "Test Aset IN transaction for visual testing",
+            "dokumen_ref": "ASET-IN-001"
+        }
+        
+        success, response = self.run_test(
+            "Create Aset IN Transaction",
+            "POST",
+            "api/transaksi/",
+            200,
+            data=aset_in_txn
+        )
+        
+        if success:
+            print("✅ Aset IN transaction created")
+        else:
+            print("⚠️ Failed to create Aset transaction, continuing with persediaan tests")
+        
+        # Step 4: Verify Transaction History API responses for visual styling
+        print("\n🎨 Step 4: Verifying Transaction History API responses for visual styling...")
+        
+        # Get Persediaan transaction history
+        success, response = self.run_test(
+            "Get Persediaan Transaction History",
+            "GET",
+            "api/persediaan-transaksi/",
+            200,
+            data={"page": 1, "limit": 50}
+        )
+        
+        if not success:
+            print("❌ Failed to get Persediaan transaction history")
+            return False
+        
+        transactions = response.get('data', [])
+        print(f"📊 Found {len(transactions)} persediaan transactions")
+        
+        # Find our test transactions and verify data for visual styling
+        test_in_txn = None
+        test_out_txn = None
+        
+        for txn in transactions:
+            if txn.get('dokumen_ref') == 'TXN-IN-001':
+                test_in_txn = txn
+            elif txn.get('dokumen_ref') == 'TXN-OUT-001':
+                test_out_txn = txn
+        
+        # Verify IN transaction data
+        if test_in_txn:
+            jenis = test_in_txn.get('jenis')
+            jumlah = test_in_txn.get('jumlah')
+            nama_barang = test_in_txn.get('nama_barang')
+            nup_value = test_in_txn.get('nup')
+            
+            print(f"📊 IN Transaction: {nama_barang}")
+            print(f"   - Jenis: {jenis} (should be 'in')")
+            print(f"   - Jumlah: {jumlah} (should display as +{jumlah} with green styling)")
+            print(f"   - NUP: {nup_value} (Persediaan should NOT show NUP in frontend)")
+            
+            if jenis == 'in':
+                print("✅ IN transaction has correct 'jenis' for green styling")
+            else:
+                print(f"❌ Expected jenis 'in', got '{jenis}'")
+                return False
+        else:
+            print("❌ Test IN transaction not found in history")
+            return False
+        
+        # Verify OUT transaction data
+        if test_out_txn:
+            jenis = test_out_txn.get('jenis')
+            jumlah = test_out_txn.get('jumlah')
+            nama_barang = test_out_txn.get('nama_barang')
+            nup_value = test_out_txn.get('nup')
+            
+            print(f"📊 OUT Transaction: {nama_barang}")
+            print(f"   - Jenis: {jenis} (should be 'out')")
+            print(f"   - Jumlah: {jumlah} (should display as -{jumlah} with red styling)")
+            print(f"   - NUP: {nup_value} (Persediaan should NOT show NUP in frontend)")
+            
+            if jenis == 'out':
+                print("✅ OUT transaction has correct 'jenis' for red styling")
+            else:
+                print(f"❌ Expected jenis 'out', got '{jenis}'")
+                return False
+        else:
+            print("❌ Test OUT transaction not found in history")
+            return False
+        
+        # Step 5: Verify Master Barang (Aset Tetap) API responses
+        print("\n📋 Step 5: Verifying Master Barang (Aset Tetap) API responses...")
+        
+        success, response = self.run_test(
+            "Get Barang List (Aset Tetap)",
+            "GET",
+            "api/barang",
+            200,
+            data={"page": 1, "limit": 50}
+        )
+        
+        if not success:
+            print("❌ Failed to get Barang list")
+            return False
+        
+        barang_items = response.get('data', [])
+        print(f"📊 Found {len(barang_items)} barang items")
+        
+        # Find our test aset items
+        aset_manual_item = None
+        aset_normal_item = None
+        
+        for item in barang_items:
+            if item.get('_id') == aset_manual_id:
+                aset_manual_item = item
+            elif item.get('_id') == aset_normal_id:
+                aset_normal_item = item
+        
+        # Verify Aset Manual NUP display logic
+        if aset_manual_item:
+            nup_value = aset_manual_item.get('nup')
+            nama_barang = aset_manual_item.get('nama_barang')
+            
+            print(f"📊 Aset Manual in list: {nama_barang}")
+            print(f"   - NUP: {nup_value}")
+            
+            if str(nup_value) == "1":
+                print("✅ Aset Manual NUP '1' should display as '(sementara)' in frontend")
+            else:
+                print(f"❌ Expected NUP '1', got '{nup_value}'")
+                return False
+        else:
+            print("❌ Aset Manual item not found in barang list")
+            return False
+        
+        # Verify Aset Normal NUP display logic
+        if aset_normal_item:
+            nup_value = aset_normal_item.get('nup')
+            nama_barang = aset_normal_item.get('nama_barang')
+            
+            print(f"📊 Aset Normal in list: {nama_barang}")
+            print(f"   - NUP: {nup_value}")
+            
+            if str(nup_value) == "100":
+                print("✅ Aset Normal NUP '100' should display as 'NUP: 100' in frontend")
+            else:
+                print(f"❌ Expected NUP '100', got '{nup_value}'")
+                return False
+        else:
+            print("❌ Aset Normal item not found in barang list")
+            return False
+        
+        # Step 6: Summary of findings for frontend implementation
+        print("\n📝 Step 6: Summary of backend API verification for frontend visuals...")
+        
+        print("\n🎯 BACKEND API VERIFICATION COMPLETE:")
+        print("✅ Aset Tetap (Manual) with NUP '1' - Backend provides correct data")
+        print("   → Frontend should display: '(sementara)' (italicized)")
+        print("✅ Aset Tetap (Normal) with NUP '100' - Backend provides correct data")
+        print("   → Frontend should display: 'NUP: 100'")
+        print("✅ Persediaan items - Backend may have NUP field")
+        print("   → Frontend should NOT display NUP for Persediaan items")
+        print("✅ Transaction History IN - Backend provides jenis='in'")
+        print("   → Frontend should display: +quantity with GREEN background")
+        print("✅ Transaction History OUT - Backend provides jenis='out'")
+        print("   → Frontend should display: -quantity with RED background")
+        
+        print("\n🎉 NUP DISPLAY LOGIC & TRANSACTION HISTORY VISUALS TEST COMPLETED!")
+        print("✅ All backend API verifications passed:")
+        print("   - Aset Tetap NUP values are correctly provided by backend")
+        print("   - Persediaan items can be identified (NUP should be hidden in frontend)")
+        print("   - Transaction history provides correct 'jenis' field for visual styling")
+        print("   - Master Barang API provides correct NUP data for Aset Tetap")
+        print("   - All data required for frontend visual logic is available")
+        
+        return True
+
     def save_results(self):
         """Save test results to file"""
         results_data = {
