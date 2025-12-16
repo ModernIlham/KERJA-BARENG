@@ -1140,7 +1140,7 @@ class APITester:
         success, response = self.run_test(
             "Create Persediaan Item",
             "POST",
-            "api/persediaan/",
+            "api/persediaan",
             200,
             data=persediaan_data
         )
