@@ -104,6 +104,12 @@ export default function PersediaanIncomingForm({ onSuccess }) {
 
     const grandTotal = itemsList.reduce((sum, item) => sum + item.total, 0);
 
+    const preventDecimal = (e) => {
+        if (e.key === '.' || e.key === ',') {
+            e.preventDefault();
+        }
+    };
+
     return (
         <div className="space-y-6 mb-8">
             <Card className="border-blue-200 bg-blue-50/50">
@@ -160,6 +166,8 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     {...register('jumlah', {required: true, min: 1})} 
                                     placeholder="Qty"
                                     className="bg-white font-semibold"
+                                    onKeyDown={preventDecimal}
+                                    step="1"
                                 />
                             </div>
 
@@ -169,6 +177,8 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     type="number" 
                                     {...register('nilai_satuan', {required: true})} 
                                     className="bg-white"
+                                    onKeyDown={preventDecimal}
+                                    step="1"
                                 />
                             </div>
 
