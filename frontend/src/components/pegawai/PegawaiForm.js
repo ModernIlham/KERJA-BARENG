@@ -54,6 +54,21 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
     const statusKepegawaian = watch('status_kepegawaian');
     const jenisNonAsn = watch('jenis_non_asn');
     const statusPenempatan = watch('status_penempatan');
+                    {/* --- TAB 0: SIDEBAR / PHOTO (Custom Layout) --- */}
+                    <div className="mb-4 flex justify-center">
+                        {initialData && (
+                            <PegawaiPhotoUpload 
+                                pegawai={initialData} 
+                                onSuccess={onSuccess}
+                            />
+                        )}
+                        {!initialData && (
+                            <div className="text-center p-4 bg-slate-50 rounded border border-dashed border-slate-300 text-slate-400 text-xs w-full">
+                                Simpan data terlebih dahulu untuk upload foto.
+                            </div>
+                        )}
+                    </div>
+
     const kategoriPegawai = watch('kategori_pegawai');
 
     // Unit Watchers for Cascading
