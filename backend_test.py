@@ -2675,18 +2675,44 @@ def main():
 def main():
     tester = APITester()
     
-    # Test login first
-    if not tester.test_login():
+    # Test login first - try common credentials
+    print("\n=== AUTHENTICATION TEST ===")
+    
+    # Try common admin credentials
+    credentials = [
+        {"email": "admin@example.com", "password": "admin"},
+        {"email": "admin@example.com", "password": "admin123"},
+        {"email": "admin", "password": "admin123"},
+        {"email": "test@example.com", "password": "test123"}
+    ]
+    
+    login_success = False
+    for cred in credentials:
+        print(f"Trying login with: {cred['email']}")
+        success, response = tester.run_test(
+            f"Login with {cred['email']}",
+            "POST",
+            "api/auth/login",
+            200,
+            data=cred
+        )
+        if success and 'access_token' in response:
+            tester.token = response['access_token']
+            print(f"✅ Token obtained: {tester.token[:20]}...")
+            login_success = True
+            break
+    
+    if not login_success:
         print("❌ Login failed, cannot proceed with tests")
         return 1
     
-    # Run Enhanced Organizational Structure test
-    organizational_success = tester.test_enhanced_organizational_structure()
+    # Run Agency Logo Upload test
+    logo_success = tester.test_agency_logo_upload()
     
-    print(f"\n📊 ENHANCED ORGANIZATIONAL STRUCTURE TEST RESULTS:")
-    print(f"   Enhanced Organizational Structure Test: {'✅ PASSED' if organizational_success else '❌ FAILED'}")
+    print(f"\n📊 AGENCY LOGO UPLOAD TEST RESULTS:")
+    print(f"   Agency Logo Upload Test: {'✅ PASSED' if logo_success else '❌ FAILED'}")
     
-    return 0 if organizational_success else 1
+    return 0 if logo_success else 1
 
 class APITester:
     def test_enhanced_organizational_structure(self):
