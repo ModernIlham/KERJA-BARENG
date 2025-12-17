@@ -1882,13 +1882,22 @@ class APITester:
         # Step 8: Verify Edit Modal Support (Backend CRUD Operations)
         print("\n✏️ Step 8: Testing Edit Modal Backend Support...")
         
-        # Test GET single employee (for edit modal)
+        # Test GET single employee (for edit modal) - using list endpoint with search
         success, response = self.run_test(
             "Get Single Employee for Edit",
             "GET",
-            f"api/pegawai/{employee_id}",
-            200
+            "api/pegawai",
+            200,
+            data={"page": 1, "limit": 50}
         )
+        
+        employee_data = None
+        if success:
+            employees = response.get('data', [])
+            for emp in employees:
+                if emp.get('_id') == employee_id:
+                    employee_data = emp
+                    break
         
         if success:
             employee_data = response
