@@ -1947,7 +1947,7 @@ class APITester:
                         employee_details = emp
                         break
             
-            if success:
+            if employee_details:
                 foto_url = employee_details.get('foto_url')
                 foto_thumbnail_url = employee_details.get('foto_thumbnail_url')
                 
