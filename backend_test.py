@@ -1613,6 +1613,279 @@ class APITester:
         
         return True
 
+    def test_image_upload_functionality(self):
+        """Test image upload functionality for Barang, Persediaan, and Pegawai as requested in review"""
+        print("\n=== IMAGE UPLOAD FUNCTIONALITY TEST ===")
+        
+        # Create a simple test image file (1x1 pixel PNG)
+        import base64
+        import io
+        
+        # Minimal 1x1 pixel PNG file data
+        png_data = base64.b64decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU8'
+            'lAAAAAElFTkSuQmCC'
+        )
+        
+        # Step 1: Create a new Barang item
+        print("\n🔧 Step 1: Creating new Barang item...")
+        import time
+        timestamp = int(time.time())
+        
+        barang_data = {
+            "kode_barang": f"103010100100{timestamp % 10000:04d}",
+            "nama_barang": f"Test Barang Upload {timestamp}",
+            "merk": "Test Brand",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "nilai_perolehan": 1000000,
+            "tahun_perolehan": 2024,
+            "nup": "1"
+        }
+        
+        success, response = self.run_test(
+            "Create Barang Item",
+            "POST",
+            "api/barang",
+            200,
+            data=barang_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Barang item")
+            return False
+            
+        barang_id = response.get('_id') or response.get('id')
+        print(f"✅ Barang item created with ID: {barang_id}")
+        
+        # Step 2: Upload image to Barang using POST /api/barang/{id}/upload-fotos
+        print(f"\n📤 Step 2: Uploading image to Barang {barang_id}...")
+        
+        # Prepare multipart form data for file upload
+        files = {'files': ('test_image.png', io.BytesIO(png_data), 'image/png')}
+        
+        url = f"{self.base_url}/api/barang/{barang_id}/upload-fotos"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Barang image upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    
+                    fotos = response_data.get('fotos', [])
+                    if fotos and len(fotos) > 0:
+                        foto_url = fotos[0].get('url')
+                        print(f"   Photo URL: {foto_url}")
+                        if foto_url:
+                            print("✅ Barang upload returned file URL")
+                        else:
+                            print("❌ No photo URL in Barang upload response")
+                            return False
+                    else:
+                        print("❌ No fotos array in Barang upload response")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse Barang upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Barang upload failed: {error_data}")
+                except:
+                    print(f"❌ Barang upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Barang upload request failed: {e}")
+            return False
+        
+        # Step 3: Create a new Persediaan item
+        print("\n🔧 Step 3: Creating new Persediaan item...")
+        
+        persediaan_data = {
+            "kode_barang": f"101030199800{timestamp % 10000:04d}",
+            "nama_barang": f"Test Persediaan Upload {timestamp}",
+            "merk": "Test Brand",
+            "satuan": "Pcs",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "stok": 10,
+            "batas_kritis": 5,
+            "nilai_satuan": 15000
+        }
+        
+        success, response = self.run_test(
+            "Create Persediaan Item",
+            "POST",
+            "api/persediaan",
+            200,
+            data=persediaan_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Persediaan item")
+            return False
+            
+        persediaan_id = response.get('_id') or response.get('id')
+        print(f"✅ Persediaan item created with ID: {persediaan_id}")
+        
+        # Step 4: Upload image to Persediaan using POST /api/persediaan/{id}/upload-fotos
+        print(f"\n📤 Step 4: Uploading image to Persediaan {persediaan_id}...")
+        
+        files = {'files': ('test_image.png', io.BytesIO(png_data), 'image/png')}
+        
+        url = f"{self.base_url}/api/persediaan/{persediaan_id}/upload-fotos"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        try:
+            response = requests.post(url, files=files, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Persediaan image upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    
+                    fotos = response_data.get('fotos', [])
+                    if fotos and len(fotos) > 0:
+                        foto_url = fotos[0].get('url')
+                        print(f"   Photo URL: {foto_url}")
+                        if foto_url:
+                            print("✅ Persediaan upload returned file URL")
+                        else:
+                            print("❌ No photo URL in Persediaan upload response")
+                            return False
+                    else:
+                        print("❌ No fotos array in Persediaan upload response")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse Persediaan upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Persediaan upload failed: {error_data}")
+                except:
+                    print(f"❌ Persediaan upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Persediaan upload request failed: {e}")
+            return False
+        
+        # Step 5: Create a new Pegawai
+        print("\n🔧 Step 5: Creating new Pegawai...")
+        
+        pegawai_data = {
+            "nama_lengkap": f"Test Pegawai Upload {timestamp}",
+            "nip": f"19800101{timestamp % 1000000:06d}01",
+            "status_kepegawaian": "PNS",
+            "jabatan": "Staff Testing",
+            "eselon1": "Sekretariat Jenderal",
+            "status": "AKTIF",
+            "kewarganegaraan": "WNI"
+        }
+        
+        success, response = self.run_test(
+            "Create Pegawai",
+            "POST",
+            "api/pegawai",
+            200,
+            data=pegawai_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Pegawai")
+            return False
+            
+        pegawai_id = response.get('_id') or response.get('id')
+        print(f"✅ Pegawai created with ID: {pegawai_id}")
+        
+        # Step 6: Upload image to Pegawai using POST /api/pegawai/{id}/upload-foto
+        print(f"\n📤 Step 6: Uploading image to Pegawai {pegawai_id}...")
+        
+        files = {'file': ('test_image.png', io.BytesIO(png_data), 'image/png')}
+        
+        url = f"{self.base_url}/api/pegawai/{pegawai_id}/upload-foto"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        try:
+            response = requests.post(url, files=files, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Pegawai image upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    
+                    foto_url = response_data.get('url')
+                    thumbnail_url = response_data.get('thumbnail')
+                    
+                    if foto_url:
+                        print(f"   Photo URL: {foto_url}")
+                        print("✅ Pegawai upload returned file URL")
+                    else:
+                        print("❌ No photo URL in Pegawai upload response")
+                        return False
+                        
+                    if thumbnail_url:
+                        print(f"   Thumbnail URL: {thumbnail_url}")
+                        print("✅ Pegawai upload returned thumbnail URL")
+                    else:
+                        print("⚠️ No thumbnail URL in Pegawai upload response")
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse Pegawai upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Pegawai upload failed: {error_data}")
+                except:
+                    print(f"❌ Pegawai upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Pegawai upload request failed: {e}")
+            return False
+        
+        # Step 7: Verify all uploads return 200 OK and contain file URLs
+        print("\n🎉 IMAGE UPLOAD FUNCTIONALITY TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   - Barang item created successfully")
+        print("   - Barang image upload works (POST /api/barang/{id}/upload-fotos)")
+        print("   - Barang upload returns 200 OK and file URLs")
+        print("   - Persediaan item created successfully")
+        print("   - Persediaan image upload works (POST /api/persediaan/{id}/upload-fotos)")
+        print("   - Persediaan upload returns 200 OK and file URLs")
+        print("   - Pegawai created successfully")
+        print("   - Pegawai image upload works (POST /api/pegawai/{id}/upload-foto)")
+        print("   - Pegawai upload returns 200 OK and file URLs")
+        
+        return True
+
     def test_enhanced_pegawai_list_and_photo_compression(self):
         """Test Enhanced Pegawai List and Photo Compression as requested in review"""
         print("\n=== ENHANCED PEGAWAI LIST AND PHOTO COMPRESSION TEST ===")
