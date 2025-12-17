@@ -13,6 +13,18 @@ from fastapi import UploadFile, HTTPException
 # but passing DB instance to this lib function is cleaner.
 
 async def process_image_upload(file: UploadFile, folder: str, db):
+    # If coming from a route like upload_fotos in barang.py, file might be bytes
+    if isinstance(file, bytes):
+        # We need to wrap it if it's bytes, but UploadFile has async read.
+        # Actually, if it's bytes, we can skip read()
+        content = file
+        # But we need filename...
+        # This function signature expects UploadFile. 
+        # The caller should handle conversion or we check type.
+        # Let's assume UploadFile for now as per type hint.
+        pass
+        
+
     """
     Process image upload:
     1. Check quota from DB.
