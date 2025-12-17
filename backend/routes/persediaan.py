@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File, 
 from fastapi.responses import StreamingResponse
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-from lib.image_processor import compress_image
+from lib.image_processor import compress_image, process_image_upload
 from models import Persediaan, PersediaanCreate, TransaksiPersediaan, TransaksiPersediaanCreate
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
