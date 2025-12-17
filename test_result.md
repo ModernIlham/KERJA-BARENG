@@ -348,6 +348,21 @@ agent_communication:
     message: "✅ AGENCY LOGO UPLOAD RE-VERIFICATION COMPLETED SUCCESSFULLY: Conducted comprehensive re-testing of Agency Logo Upload functionality as specifically requested in review. All verification steps passed perfectly: 1) Logo upload works with test image file - POST /api/settings/instansi/logo returns 200 with success response and URL '/api/uploads/instansi/4a7f2ed6-4641-4120-8317-d7f51dcda867.png', 2) Persistence verified - GET /api/settings/instansi shows logo_url field correctly stored and matches upload response, 3) Delete functionality works - DELETE /api/settings/instansi/logo returns 200 with 'Logo dihapus' message, 4) Verification complete - logo_url becomes null after deletion as expected. All logo upload, persistence, and deletion functionality working correctly. Backend endpoints fully functional for agency logo management. Test Results: 5/5 tests passed (100% success rate). Agency Logo Upload functionality is fully operational and ready for production use."
 
 backend:
+  - task: "Enhanced Pegawai List and Photo Compression"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai_photos.py, /app/backend/lib/image_processor.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Enhanced Pegawai List and Photo Compression as requested in review. Testing: 1) Photo upload endpoint POST /api/pegawai/{id}/upload-foto, 2) Photo delete endpoint DELETE /api/pegawai/{id}/foto, 3) Photo compression with TinyPNG fallback logic, 4) File storage optimization, 5) Pegawai List UI backend support (pagination, search, CRUD operations)."
+      - working: true
+        agent: "testing"
+        comment: "✅ ENHANCED PEGAWAI LIST AND PHOTO COMPRESSION TEST PASSED: All 9 verification steps completed successfully. 1) Photo upload endpoint exists and validates file requirements (422 for missing file), 2) Photo delete endpoint exists and working (200 response), 3) Photo upload with actual file successful - returns photo URL and thumbnail URL, 4) Backend logs show compression system is implemented with fallback logic, 5) Photo URLs correctly stored in employee records (foto_url and foto_thumbnail_url fields), 6) Pegawai List API supports pagination (20 employees, 1 page, 20 total), 7) Search functionality working (6 results for 'Test Employee'), 8) Edit modal backend support confirmed - all required fields present for form population, 9) Photo delete functionality working - URLs cleared from employee record after deletion. Photo compression system implemented with TinyPNG integration and proper fallback mechanism."
+
   - task: "NUP Logic for Manual vs Import Items"
     implemented: true
     working: true
