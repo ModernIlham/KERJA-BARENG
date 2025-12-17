@@ -344,10 +344,11 @@ async def stock_in_bulk(payload: TransaksiPersediaanBulkCreate, current_user: st
         results.append(item.get('nama_barang'))
         
     return {"message": f"Berhasil memproses {len(results)} item", "items": results, "ids": created_ids}
-    created_ids = []
+
 @router.post("/out/bulk")
 async def stock_out_bulk(payload: TransaksiPersediaanBulkCreate, current_user: str = Depends(get_current_user)):
     results = []
+    created_ids = []
     
     for item_req in payload.items:
         if not ObjectId.is_valid(item_req.persediaan_id):
