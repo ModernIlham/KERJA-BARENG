@@ -1780,13 +1780,28 @@ class APITester:
         # Step 4: Test Photo Compression - Check TinyPNG API Key
         print("\n📸 Step 4: Testing Photo Compression Setup...")
         
-        # Check if TINYPNG_API_KEY is set in environment
+        # Check if TINYPNG_API_KEY is set in backend .env file
         import os
+        
+        # Check environment variable first
         tinypng_key = os.environ.get('TINYPNG_API_KEY')
+        
+        # If not in environment, check backend .env file
+        if not tinypng_key:
+            try:
+                with open('/app/backend/.env', 'r') as f:
+                    env_content = f.read()
+                    for line in env_content.split('\n'):
+                        if line.startswith('TINYPNG_API_KEY='):
+                            tinypng_key = line.split('=', 1)[1].strip()
+                            break
+            except:
+                pass
+        
         if tinypng_key:
-            print(f"✅ TINYPNG_API_KEY is set: {tinypng_key[:10]}...")
+            print(f"✅ TINYPNG_API_KEY is configured: {tinypng_key[:10]}...")
         else:
-            print("❌ TINYPNG_API_KEY is not set in .env")
+            print("❌ TINYPNG_API_KEY is not configured")
             return False
         
         # Step 5: Test Employee Photo Upload Endpoint
