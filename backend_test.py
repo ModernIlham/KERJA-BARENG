@@ -1781,6 +1781,7 @@ class APITester:
         print("\n📸 Step 4: Testing Photo Compression Setup...")
         
         # Check if TINYPNG_API_KEY is set in environment
+        import os
         tinypng_key = os.environ.get('TINYPNG_API_KEY')
         if tinypng_key:
             print(f"✅ TINYPNG_API_KEY is set: {tinypng_key[:10]}...")
