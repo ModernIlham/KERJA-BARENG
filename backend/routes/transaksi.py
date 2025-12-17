@@ -141,6 +141,12 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
     )
     
     result = await db.transaksi.insert_one(new_tx.model_dump(by_alias=True, exclude=["id"]))
+    
+    # Return the created transaction
+    created_tx = await db.transaksi.find_one({"_id": result.inserted_id})
+    if created_tx:
+        created_tx["_id"] = str(created_tx["_id"])
+    return created_tx
 
 @router.post("/{id}/upload-bukti")
 async def upload_bukti_transaksi(
