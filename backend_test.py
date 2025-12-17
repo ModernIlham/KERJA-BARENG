@@ -1786,13 +1786,22 @@ class APITester:
         # Step 5: Verify File Storage and Size Optimization
         print("\n💾 Step 5: Verifying file storage and optimization...")
         
-        # Get employee details to check if photo URL is stored
-        success, employee_details = self.run_test(
+        # Get employee details to check if photo URL is stored (using list endpoint)
+        success, response = self.run_test(
             "Get Employee Details After Photo Upload",
             "GET",
-            f"api/pegawai/{employee_id}",
-            200
+            "api/pegawai",
+            200,
+            data={"page": 1, "limit": 50}
         )
+        
+        employee_details = None
+        if success:
+            employees = response.get('data', [])
+            for emp in employees:
+                if emp.get('_id') == employee_id:
+                    employee_details = emp
+                    break
         
         if success:
             foto_url = employee_details.get('foto_url')
