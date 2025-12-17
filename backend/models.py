@@ -333,6 +333,7 @@ class Transaksi(MongoBaseModel):
     dokumen_ref: Optional[str] = None 
     petugas: Optional[str] = None 
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    bukti_fotos: List[Dict[str, Any]] = [] # [{"url": "...", "keterangan": "..."}]
 
 class TransaksiCreate(BaseModel):
     jenis: str
@@ -466,6 +467,7 @@ class TransaksiPersediaan(MongoBaseModel):
     dokumen_ref: Optional[str] = None
     petugas: Optional[str] = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    bukti_fotos: List[Dict[str, Any]] = []
 
 class TransaksiPersediaanCreate(BaseModel):
     jenis: str

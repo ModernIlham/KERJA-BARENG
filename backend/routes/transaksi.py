@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import List, Dict, Any
 from models import Transaksi, TransaksiCreate, StokBatch
 from auth import get_current_user
@@ -8,6 +8,7 @@ from bson import ObjectId
 from datetime import datetime, timezone
 import math
 from pymongo import UpdateOne
+from lib.image_processor import process_image_upload
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -140,4 +141,44 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
     )
     
     result = await db.transaksi.insert_one(new_tx.model_dump(by_alias=True, exclude=["id"]))
+
+@router.post("/{id}/upload-bukti")
+async def upload_bukti_transaksi(
+    id: str,
+    file: UploadFile = File(...),
+    keterangan: str = Form(""),
+    current_user: str = Depends(get_current_user)
+):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(status_code=400, detail="Invalid ID")
+        
+    try:
+        # Validate image
+        if not file.content_type.startswith("image/"):
+             raise HTTPException(status_code=400, detail="File must be an image")
+
+        # Process upload
+        result = await process_image_upload(file, "bukti_transaksi", db)
+        
+        foto_data = {
+            "url": f"/api/uploads/{result['optimized']}",
+            "keterangan": keterangan,
+            "uploaded_at": datetime.now(timezone.utc)
+        }
+        
+        # Update Transaksi
+        res = await db.transaksi.update_one(
+            {"_id": ObjectId(id)},
+            {"$push": {"bukti_fotos": foto_data}}
+        )
+        
+        if res.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Transaksi not found")
+            
+        return {"message": "Bukti berhasil diupload", "data": foto_data}
+        
+    except Exception as e:
+        print(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
     return await db.transaksi.find_one({"_id": result.inserted_id})

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Body, Query
+from fastapi import APIRouter, HTTPException, Depends, Body, Query, UploadFile, File, Form
 from typing import List, Dict, Optional
 from models import TransaksiPersediaan, TransaksiPersediaanCreate, Persediaan, PersediaanBatch, TransaksiPersediaanBulkCreate
 from auth import get_current_user
@@ -7,6 +7,7 @@ import os
 from bson import ObjectId
 from datetime import datetime, timezone
 import math
+from lib.image_processor import process_image_upload
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -139,7 +140,7 @@ async def stock_in(txn: TransaksiPersediaanCreate, current_user: str = Depends(g
     
     await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
     
-    return {"message": "Stock In successful", "new_stok": new_stok, "new_nilai": new_nilai}
+    return {"message": "Stock In successful", "new_stok": new_stok, "new_nilai": new_nilai, "id": str(record.id)}
 
 @router.post("/out")
 async def stock_out(txn: TransaksiPersediaanCreate, current_user: str = Depends(get_current_user)):
@@ -246,7 +247,7 @@ async def stock_out(txn: TransaksiPersediaanCreate, current_user: str = Depends(
     
     await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
     
-    return {"message": "Stock Out successful", "new_stok": new_stok}
+    return {"message": "Stock Out successful", "new_stok": new_stok, "id": str(record.id)}
 
 @router.get("/history/{persediaan_id}")
 async def get_history(persediaan_id: str, current_user: str = Depends(get_current_user)):
@@ -257,6 +258,7 @@ async def get_history(persediaan_id: str, current_user: str = Depends(get_curren
     history = await cursor.to_list(length=100)
     return sanitize_json(history)
 @router.post("/in/bulk")
+    created_ids = []
 async def stock_in_bulk(payload: TransaksiPersediaanBulkCreate, current_user: str = Depends(get_current_user)):
     results = []
     
@@ -337,10 +339,12 @@ async def stock_in_bulk(payload: TransaksiPersediaanBulkCreate, current_user: st
             timestamp=datetime.now(timezone.utc)
         )
         
-        await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
+        res_insert = await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
+        created_ids.append(str(res_insert.inserted_id))
         results.append(item.get('nama_barang'))
         
-    return {"message": f"Berhasil memproses {len(results)} item", "items": results}
+    return {"message": f"Berhasil memproses {len(results)} item", "items": results, "ids": created_ids}
+    created_ids = []
 @router.post("/out/bulk")
 async def stock_out_bulk(payload: TransaksiPersediaanBulkCreate, current_user: str = Depends(get_current_user)):
     results = []
@@ -455,7 +459,46 @@ async def stock_out_bulk(payload: TransaksiPersediaanBulkCreate, current_user: s
             timestamp=datetime.now(timezone.utc)
         )
         
-        await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
+        res_insert = await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
+        created_ids.append(str(res_insert.inserted_id))
         results.append(item.get('nama_barang'))
         
-    return {"message": f"Berhasil memproses {len(results)} item keluar", "items": results}
+    return {"message": f"Berhasil memproses {len(results)} item keluar", "items": results, "ids": created_ids}
+
+@router.post("/upload-bukti")
+async def upload_bukti_bulk(
+    ids: str = Form(...), # Comma separated IDs
+    file: UploadFile = File(...),
+    current_user: str = Depends(get_current_user)
+):
+    try:
+        # Validate image
+        if not file.content_type.startswith("image/"):
+             raise HTTPException(status_code=400, detail="File must be an image")
+
+        # Process upload
+        result = await process_image_upload(file, "bukti_transaksi", db)
+        
+        foto_data = {
+            "url": f"/api/uploads/{result['optimized']}",
+            "uploaded_at": datetime.now(timezone.utc)
+        }
+        
+        # Parse IDs
+        id_list = [ObjectId(i.strip()) for i in ids.split(",") if ObjectId.is_valid(i.strip())]
+        
+        if not id_list:
+            raise HTTPException(status_code=400, detail="No valid IDs provided")
+            
+        # Update Transactions
+        res = await db.transaksi_persediaan.update_many(
+            {"_id": {"$in": id_list}},
+            {"$push": {"bukti_fotos": foto_data}}
+        )
+            
+        return {"message": "Bukti berhasil diupload", "data": foto_data, "updated": res.modified_count}
+        
+    except Exception as e:
+        print(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
