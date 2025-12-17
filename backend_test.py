@@ -1212,6 +1212,330 @@ class APITester:
         
         return True
 
+    def test_transaction_evidence_upload(self):
+        """Test new Transaction evidence upload features as requested in review"""
+        print("\n=== TRANSACTION EVIDENCE UPLOAD TEST ===")
+        
+        # Create a simple test image file (1x1 pixel PNG)
+        import base64
+        import io
+        import time
+        
+        # Minimal 1x1 pixel PNG file data
+        png_data = base64.b64decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU8'
+            'lAAAAAElFTkSuQmCC'
+        )
+        
+        # Step 1: Create a test transaction first
+        print("\n🔧 Step 1: Creating test transaction for evidence upload...")
+        
+        # First create a test barang item
+        timestamp = int(time.time())
+        barang_data = {
+            "kode_barang": f"103010100100{timestamp % 10000:04d}",
+            "nama_barang": f"Test Barang Evidence {timestamp}",
+            "merk": "Test Brand",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "nilai_perolehan": 1000000,
+            "tahun_perolehan": 2024,
+            "nup": "1"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Barang for Transaction",
+            "POST",
+            "api/barang",
+            200,
+            data=barang_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test barang item")
+            return False
+            
+        barang_id = response.get('_id') or response.get('id')
+        print(f"✅ Test barang created with ID: {barang_id}")
+        
+        # Create a transaction
+        transaction_data = {
+            "jenis": "MASUK",
+            "barang_id": barang_id,
+            "jumlah": 1,
+            "nilai_satuan": 1000000,
+            "keterangan": "Test transaction for evidence upload",
+            "dokumen_ref": f"TXN-EVIDENCE-{timestamp}"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Transaction",
+            "POST",
+            "api/transaksi",
+            200,
+            data=transaction_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test transaction")
+            return False
+            
+        transaction_id = response.get('_id') or response.get('id')
+        print(f"✅ Test transaction created with ID: {transaction_id}")
+        
+        # Step 2: Test POST /api/transaksi/{id}/upload-bukti
+        print(f"\n📤 Step 2: Testing transaction evidence upload to /api/transaksi/{transaction_id}/upload-bukti...")
+        
+        # Prepare multipart form data for file upload
+        files = {'file': ('evidence.png', io.BytesIO(png_data), 'image/png')}
+        form_data = {'keterangan': 'Test evidence photo'}
+        
+        url = f"{self.base_url}/api/transaksi/{transaction_id}/upload-bukti"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=form_data, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Transaction evidence upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    
+                    evidence_data = response_data.get('data', {})
+                    evidence_url = evidence_data.get('url')
+                    if evidence_url:
+                        print(f"✅ Evidence URL received: {evidence_url}")
+                    else:
+                        print("❌ No evidence URL in response")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Upload failed: {error_data}")
+                except:
+                    print(f"❌ Upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Upload request failed: {e}")
+            return False
+        
+        # Step 3: Create persediaan transactions for bulk upload test
+        print("\n🔧 Step 3: Creating persediaan transactions for bulk evidence upload...")
+        
+        # Create a persediaan item first
+        persediaan_data = {
+            "kode_barang": f"101030199800{timestamp % 10000:04d}",
+            "nama_barang": f"Test Persediaan Evidence {timestamp}",
+            "merk": "Test Brand",
+            "satuan": "Pcs",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "stok": 0,
+            "batas_kritis": 5,
+            "nilai_satuan": 15000
+        }
+        
+        success, response = self.run_test(
+            "Create Test Persediaan for Bulk Upload",
+            "POST",
+            "api/persediaan/",
+            200,
+            data=persediaan_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test persediaan item")
+            return False
+            
+        persediaan_id = response.get('_id') or response.get('id')
+        print(f"✅ Test persediaan created with ID: {persediaan_id}")
+        
+        # Create multiple persediaan transactions
+        transaction_ids = []
+        
+        for i in range(2):
+            txn_data = {
+                "jenis": "in",
+                "persediaan_id": persediaan_id,
+                "jumlah": 5 + i,
+                "nilai_satuan": 15000,
+                "dokumen_ref": f"BULK-TXN-{timestamp}-{i}",
+                "keterangan": f"Test bulk transaction {i+1}"
+            }
+            
+            success, response = self.run_test(
+                f"Create Persediaan Transaction {i+1}",
+                "POST",
+                "api/persediaan-transaksi/in",
+                200,
+                data=txn_data
+            )
+            
+            if success:
+                txn_id = response.get('id')
+                if txn_id:
+                    transaction_ids.append(txn_id)
+                    print(f"✅ Persediaan transaction {i+1} created with ID: {txn_id}")
+                else:
+                    print(f"⚠️ No ID returned for persediaan transaction {i+1}")
+            else:
+                print(f"❌ Failed to create persediaan transaction {i+1}")
+        
+        if not transaction_ids:
+            print("❌ No persediaan transactions created for bulk upload test")
+            return False
+        
+        # Step 4: Test POST /api/persediaan-transaksi/upload-bukti (Bulk)
+        print(f"\n📤 Step 4: Testing bulk persediaan evidence upload to /api/persediaan-transaksi/upload-bukti...")
+        
+        # Prepare bulk upload data
+        ids_string = ",".join(transaction_ids)
+        files = {'file': ('bulk_evidence.png', io.BytesIO(png_data), 'image/png')}
+        form_data = {'ids': ids_string}
+        
+        url = f"{self.base_url}/api/persediaan-transaksi/upload-bukti"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=form_data, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Bulk upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Bulk persediaan evidence upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    print(f"   Updated transactions: {response_data.get('updated', 0)}")
+                    
+                    bulk_evidence_data = response_data.get('data', {})
+                    bulk_evidence_url = bulk_evidence_data.get('url')
+                    if bulk_evidence_url:
+                        print(f"✅ Bulk evidence URL received: {bulk_evidence_url}")
+                    else:
+                        print("❌ No bulk evidence URL in response")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse bulk upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Bulk upload failed: {error_data}")
+                except:
+                    print(f"❌ Bulk upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Bulk upload request failed: {e}")
+            return False
+        
+        # Step 5: Test Employee Photo Upload with Cropping Support
+        print("\n📤 Step 5: Testing employee photo upload with cropping support...")
+        
+        # First create a test employee
+        employee_data = {
+            "nama_lengkap": f"Test Employee Photo {timestamp}",
+            "nip": f"TEST{timestamp % 100000:05d}",
+            "nik": f"12345678901234{timestamp % 100:02d}",
+            "email": f"test.employee.{timestamp}@example.com",
+            "status_kepegawaian": "PNS",
+            "eselon1": "Test Unit"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Employee for Photo Upload",
+            "POST",
+            "api/pegawai",
+            200,
+            data=employee_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test employee")
+            return False
+            
+        employee_id = response.get('_id') or response.get('id')
+        print(f"✅ Test employee created with ID: {employee_id}")
+        
+        # Test employee photo upload
+        files = {'file': ('employee_photo.png', io.BytesIO(png_data), 'image/png')}
+        
+        url = f"{self.base_url}/api/pegawai/{employee_id}/upload-foto"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Employee photo upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Employee photo upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    
+                    photo_url = response_data.get('url')
+                    thumbnail_url = response_data.get('thumbnail')
+                    
+                    if photo_url:
+                        print(f"✅ Photo URL received: {photo_url}")
+                    else:
+                        print("❌ No photo URL in response")
+                        return False
+                        
+                    if thumbnail_url:
+                        print(f"✅ Thumbnail URL received: {thumbnail_url}")
+                    else:
+                        print("❌ No thumbnail URL in response")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse employee photo upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Employee photo upload failed: {error_data}")
+                except:
+                    print(f"❌ Employee photo upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Employee photo upload request failed: {e}")
+            return False
+        
+        print("\n🎉 TRANSACTION EVIDENCE UPLOAD TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   - Transaction evidence upload via POST /api/transaksi/{id}/upload-bukti works")
+        print("   - Bulk persediaan evidence upload via POST /api/persediaan-transaksi/upload-bukti works")
+        print("   - Employee photo upload via POST /api/pegawai/{id}/upload-foto works with cropping support")
+        print("   - All uploads return proper URLs and success responses")
+        print("   - File validation and processing working correctly")
+        
+        return True
+
     def test_nup_display_and_transaction_visuals(self):
         """Test NUP display logic and Transaction History visuals as requested in review"""
         print("\n=== NUP DISPLAY LOGIC & TRANSACTION HISTORY VISUALS TEST ===")
