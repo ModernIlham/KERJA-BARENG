@@ -76,6 +76,10 @@ export default function PegawaiList() {
 
   const confirmDelete = (id) => {
       setDeleteId(id);
+  const openPhoto = (item) => {
+      setSelectedItem(item);
+      setIsPhotoOpen(true);
+  };
       setIsDeleteOpen(true);
   };
 
