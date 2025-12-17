@@ -23,6 +23,7 @@ export default function PegawaiList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isMutasiOpen, setIsMutasiOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   
   // State for selected item
   const [selectedItem, setSelectedItem] = useState(null);
