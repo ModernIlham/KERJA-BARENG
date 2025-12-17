@@ -1457,6 +1457,7 @@ class APITester:
             "nik": f"12345678901234{timestamp % 100:02d}",
             "email": f"test.employee.{timestamp}@example.com",
             "status_kepegawaian": "PNS",
+            "jabatan": "Test Position",
             "eselon1": "Test Unit"
         }
         
