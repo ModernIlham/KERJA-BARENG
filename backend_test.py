@@ -3987,13 +3987,13 @@ def main():
         print("❌ Login failed, cannot proceed with tests")
         return 1
     
-    # Run Image Upload Functionality test as requested in review
-    image_upload_success = tester.test_image_upload_functionality()
+    # Run Transaction Evidence Upload test as requested in review
+    transaction_evidence_success = tester.test_transaction_evidence_upload()
     
-    print(f"\n📊 IMAGE UPLOAD FUNCTIONALITY TEST RESULTS:")
-    print(f"   Image Upload Test: {'✅ PASSED' if image_upload_success else '❌ FAILED'}")
+    print(f"\n📊 TRANSACTION EVIDENCE UPLOAD TEST RESULTS:")
+    print(f"   Transaction Evidence Upload Test: {'✅ PASSED' if transaction_evidence_success else '❌ FAILED'}")
     
-    return 0 if image_upload_success else 1
+    return 0 if transaction_evidence_success else 1
 
     def test_enhanced_organizational_structure(self):
         """Test Enhanced Organizational Structure features as requested in review"""
