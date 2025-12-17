@@ -44,6 +44,7 @@ export default function TransactionTable({ data, loading, assetType, type }) {
                     {assetType !== 'persediaan' && (
                         (item.nup === '1' || item.nup === 1) ? (
                             <span className="ml-1 text-xs text-slate-400 italic">(sementara)</span>
+                        (item.source !== 'import' && (item.nup === '1' || item.nup === 1)) ? (
                         ) : (
                             item.nup && <span className="ml-1 text-xs text-slate-400">NUP: {item.nup}</span>
                         )
