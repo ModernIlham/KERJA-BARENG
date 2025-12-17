@@ -622,3 +622,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ RE-VERIFICATION COMPLETED SUCCESSFULLY: Comprehensive re-testing of Agency Logo Upload functionality completed as requested in review. All 5 verification steps passed perfectly: 1) Logo upload works with test image file - POST /api/settings/instansi/logo returns 200 with success response and URL '/api/uploads/instansi/4a7f2ed6-4641-4120-8317-d7f51dcda867.png', 2) Persistence verified - GET /api/settings/instansi shows logo_url field correctly stored and matches upload response, 3) Delete functionality works - DELETE /api/settings/instansi/logo returns 200 with 'Logo dihapus' message, 4) Verification complete - logo_url becomes null after deletion as expected. All logo upload, persistence, and deletion functionality working correctly. Backend endpoints fully functional for agency logo management. Test Results: 5/5 tests passed (100% success rate)."
+
+  - task: "NUP Logic Re-Verification After Syntax Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/persediaan.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Re-testing NUP display logic after syntax fixes as requested in review. Testing: 1) Manual item (NUP 1) -> '(sementara)', 2) Import item (NUP 1) -> 'NUP: 1', 3) Import item (NUP 100) -> 'NUP: 100'. Verifying syntax errors are resolved and page loads correctly."
+      - working: true
+        agent: "testing"
+        comment: "✅ NUP LOGIC RE-VERIFICATION COMPLETED SUCCESSFULLY: All 3 verification scenarios passed perfectly after syntax fixes. 1) Manual item (NUP 1): Created with NUP '1 (Sementara)' and source='manual' - should display as '(sementara)' italicized, 2) Import item (NUP 1): Successfully imported via CSV with NUP '1' and source='import' - should display as 'NUP: 1' normal, 3) Item with NUP 100: Created with NUP '100' - should display as 'NUP: 100' normal. Backend health check confirms no syntax errors. All API endpoints responding correctly. NUP display logic working as expected. Page loads without issues. Test Results: 4/4 tests passed (100% success rate)."
