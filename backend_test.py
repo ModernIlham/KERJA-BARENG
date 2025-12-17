@@ -3364,13 +3364,13 @@ def main():
         print("❌ Login failed, cannot proceed with tests")
         return 1
     
-    # Run NUP Logic and Photo Compression test
-    nup_photo_success = tester.test_nup_logic_and_photo_compression()
+    # Run Enhanced Pegawai List and Photo Compression test
+    enhanced_pegawai_success = tester.test_enhanced_pegawai_list_and_photo_compression()
     
-    print(f"\n📊 NUP LOGIC AND PHOTO COMPRESSION TEST RESULTS:")
-    print(f"   NUP Logic and Photo Compression Test: {'✅ PASSED' if nup_photo_success else '❌ FAILED'}")
+    print(f"\n📊 ENHANCED PEGAWAI LIST AND PHOTO COMPRESSION TEST RESULTS:")
+    print(f"   Enhanced Pegawai List and Photo Compression Test: {'✅ PASSED' if enhanced_pegawai_success else '❌ FAILED'}")
     
-    return 0 if nup_photo_success else 1
+    return 0 if enhanced_pegawai_success else 1
 
     def test_enhanced_organizational_structure(self):
         """Test Enhanced Organizational Structure features as requested in review"""
