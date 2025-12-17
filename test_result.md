@@ -654,3 +654,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ NUP LOGIC RE-VERIFICATION COMPLETED SUCCESSFULLY: All 3 verification scenarios passed perfectly after syntax fixes. 1) Manual item (NUP 1): Created with NUP '1 (Sementara)' and source='manual' - should display as '(sementara)' italicized, 2) Import item (NUP 1): Successfully imported via CSV with NUP '1' and source='import' - should display as 'NUP: 1' normal, 3) Item with NUP 100: Created with NUP '100' - should display as 'NUP: 100' normal. Backend health check confirms no syntax errors. All API endpoints responding correctly. NUP display logic working as expected. Page loads without issues. Test Results: 4/4 tests passed (100% success rate)."
+
+  - task: "Image Upload Functionality for Barang, Persediaan, and Pegawai"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/barang.py, /app/backend/routes/persediaan.py, /app/backend/routes/pegawai_photos.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing image upload functionality for Barang, Persediaan, and Pegawai as requested in review. Testing: 1) Create new Barang item, 2) Upload image to Barang using POST /api/barang/{id}/upload-fotos, 3) Create new Persediaan item, 4) Upload image to Persediaan using POST /api/persediaan/{id}/upload-fotos, 5) Create new Pegawai, 6) Upload image to Pegawai using POST /api/pegawai/{id}/upload-foto, 7) Verify all uploads return 200 OK and contain file URLs."
+      - working: true
+        agent: "testing"
+        comment: "✅ IMAGE UPLOAD FUNCTIONALITY TEST COMPLETED SUCCESSFULLY: All 7 verification steps passed perfectly. 1) Barang item created successfully with ID, 2) Barang image upload works via POST /api/barang/{id}/upload-fotos - returns 200 OK with file URL '/api/uploads/barang/946cce8b-c494-4a17-9834-a475cdff3f6c.png', 3) Persediaan item created successfully with ID, 4) Persediaan image upload works via POST /api/persediaan/{id}/upload-fotos - returns 200 OK with file URL '/api/uploads/persediaan/9c18b10a-8aab-4f34-9272-2d5e455f6315.png', 5) Pegawai created successfully with ID, 6) Pegawai image upload works via POST /api/pegawai/{id}/upload-foto - returns 200 OK with file URL and thumbnail URL '/api/uploads/pegawai/fefd40a7-2972-4513-a9c3-505ba225c752.png', 7) All uploads return 200 OK status and contain proper file URLs. Image upload functionality is fully operational across all three modules. Fixed import issues in barang.py and persediaan.py during testing to include process_image_upload function."
