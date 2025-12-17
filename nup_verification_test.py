@@ -201,21 +201,29 @@ class NUPVerificationTester:
         """Test import item (NUP 100) -> "NUP: 100" """
         print("\n📥 Test 3: Import item (NUP 100) -> 'NUP: 100'")
         
-        # Since import always sets NUP to '1', we need to manually create an item with NUP 100 and source import
-        # Let's create it via direct API call and then update it to simulate import with NUP 100
+        # Since import always sets NUP to '1', we'll create an item directly with source='import' and nup='100'
+        # to simulate what would happen if import supported custom NUP values
         timestamp = int(time.time())
         
-        # First create via import (will have NUP '1' and source 'import')
-        csv_data = f"""kodebarang,namabarang,merk,satuan
-1010301999{timestamp % 1000000:06d},Import Test Item NUP 100 {timestamp},Test Brand,Pcs"""
+        # Create item directly via POST API with import source and NUP 100
+        item_data = {
+            "kode_barang": f"1010301999{timestamp % 1000000:06d}",
+            "nama_barang": f"Import Test Item NUP 100 {timestamp}",
+            "merk": "Test Brand",
+            "satuan": "Pcs",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "stok": 15,
+            "batas_kritis": 3,
+            "nilai_satuan": 25000,
+            "source": "import",  # Simulate import source
+            "nup": "100"        # Custom NUP value
+        }
         
-        csv_file = io.StringIO(csv_data)
-        files = {'file': ('test_import_nup100.csv', csv_file.getvalue(), 'text/csv')}
-        
-        success, response = self.api_request("POST", "api/persediaan/import", files=files)
+        success, response = self.api_request("POST", "api/persediaan/", item_data)
         
         if not success:
-            print("❌ Failed to import CSV")
+            print("❌ Failed to create item with import source and NUP 100")
             if response:
                 try:
                     error_data = response.json()
@@ -223,56 +231,28 @@ class NUPVerificationTester:
                 except:
                     print(f"   Status: {response.status_code}, Text: {response.text[:200]}")
             return False
+            
+        try:
+            item_result = response.json()
+            item_id = item_result.get('_id') or item_result.get('id')
+            print(f"✅ Item created with ID: {item_id}")
+        except:
+            print("❌ Failed to parse response")
+            return False
         
-        # Find the imported item
-        success, response = self.api_request("GET", "api/persediaan/", {"page": 1, "limit": 50})
+        # Get item details to verify
+        success, response = self.api_request("GET", f"api/persediaan/detail/{item_id}")
         
         if not success:
-            print("❌ Failed to get persediaan list")
+            print("❌ Failed to get item details")
             return False
             
         try:
-            data = response.json()
-            items = data.get('data', [])
-            
-            # Find our imported item
-            import_item = None
-            for item in items:
-                if f"Import Test Item NUP 100 {timestamp}" in item.get('nama_barang', ''):
-                    import_item = item
-                    break
-            
-            if not import_item:
-                print("❌ Imported item not found")
-                return False
-                
-            item_id = import_item.get('_id')
-            
-            # Now update the NUP to 100 while keeping source as 'import'
-            update_data = {
-                "nup": "100"
-            }
-            
-            success, response = self.api_request("PUT", f"api/persediaan/{item_id}", update_data)
-            
-            if not success:
-                print("❌ Failed to update item NUP to 100")
-                return False
-            
-            print("✅ Updated item NUP to 100")
-            
-            # Get updated item details
-            success, response = self.api_request("GET", f"api/persediaan/detail/{item_id}")
-            
-            if not success:
-                print("❌ Failed to get updated item details")
-                return False
-                
             item_details = response.json()
             nup_value = item_details.get('nup')
             source_value = item_details.get('source')
             
-            print(f"📊 Import item (updated) - NUP: '{nup_value}', Source: '{source_value}'")
+            print(f"📊 Import item - NUP: '{nup_value}', Source: '{source_value}'")
             
             # Check if this should display as "NUP: 100"
             if source_value == 'import' and str(nup_value) == "100":
@@ -283,7 +263,7 @@ class NUPVerificationTester:
                 return False
                 
         except Exception as e:
-            print(f"❌ Failed to process import item: {e}")
+            print(f"❌ Failed to parse item details: {e}")
             return False
 
     def check_backend_syntax_errors(self):
