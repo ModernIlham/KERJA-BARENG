@@ -1291,7 +1291,7 @@ class APITester:
         success, response = self.run_test(
             "Create Persediaan Item",
             "POST",
-            "api/persediaan",
+            "api/persediaan/",
             200,
             data=persediaan_data
         )
@@ -1304,7 +1304,7 @@ class APITester:
             success, response = self.run_test(
                 "Get Existing Persediaan Items",
                 "GET",
-                "api/persediaan",
+                "api/persediaan/",
                 200,
                 data={"page": 1, "limit": 1}
             )
@@ -1728,7 +1728,7 @@ class APITester:
         success, response = self.run_test(
             "Create Persediaan Item",
             "POST",
-            "api/persediaan",
+            "api/persediaan/",
             200,
             data=persediaan_data
         )
