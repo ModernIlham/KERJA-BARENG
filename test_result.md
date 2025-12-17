@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Verify the Advanced Employee Management features"
+user_problem_statement: "Test the new Transaction features: 1. Upload a dummy evidence photo to a Transaction using POST /api/transaksi/{id}/upload-bukti. 2. Upload a dummy evidence photo to a Persediaan Transaction using POST /api/persediaan-transaksi/upload-bukti (Bulk). 3. Verify the files are uploaded and URLs are returned. 4. Verify Employee Photo upload now supports cropping (Frontend feature, but backend endpoint POST /api/pegawai/{id}/upload-foto should still accept the file)."
 
 frontend:
   - task: "Pagination on Master Barang Page"
