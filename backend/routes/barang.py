@@ -466,95 +466,59 @@ async def upload_fotos(
         config["current_month_count"] = 0
         await db.system_settings.update_one({"key": "general"}, {"$set": {"current_month": current_month_str, "current_month_count": 0}})
     
-    if config.get("current_month_count", 0) + len(files) > config.get("monthly_upload_limit", 500):
-    upload_dir = "/app/uploads/barang"
-    os.makedirs(upload_dir, exist_ok=True)
-    
+    # 3. Process each file
     new_fotos = []
-    for file in files:
-        # Generate path
-        timestamp = int(datetime.now().timestamp())
-        safe_name = f"{id}_{timestamp}_{file.filename.replace(' ', '_')}"
-        file_path = os.path.join(upload_dir, safe_name)
-        
-        # Read content
-        content = await file.read()
-        
-        # Compress
-        result = await process_image_upload(file, "barang", db)
-        
-        # Override file read above since process_image_upload handles saving
-        # But wait, the existing code loops over files. 
-        # process_image_upload expects a single file and saves it.
-        # But we need to handle the loop.
-        
-        # Let's fix this properly.
-        # We need to call process_image_upload which handles compression and saving.
-        # It returns dict with URLs.
-        
-        # However, process_image_upload does read() which consumes stream. 
-        # We should NOT read content before passing if possible, or re-structure.
-        
-        # But wait, UploadFile stream is seekable?
-        # Let's just use process_image_upload instead of manual logic.
-        pass
-
-        remaining = config.get("monthly_upload_limit", 500) - config.get("current_month_count", 0)
-        raise HTTPException(status_code=400, detail=f"Batas upload bulanan terlampaui. Sisa kuota: {remaining} foto.")
-
-    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    errors = []
     
-    upload_dir = "/app/uploads/barang"
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    new_fotos = []
     for file in files:
-        # Generate path
-        timestamp = int(datetime.now().timestamp())
-        safe_name = f"{id}_{timestamp}_{file.filename.replace(' ', '_')}"
-        file_path = os.path.join(upload_dir, safe_name)
-        
-        # Read content
-        content = await file.read()
-        
-        # Compress
         try:
-            # Only compress if image
-            if file.content_type.startswith('image/'):
-                compressed_content = compress_image(content)
-            else:
-                compressed_content = content
-        except Exception as e:
-            print(f"Compression error: {e}")
-            compressed_content = content
-            
-        # Save
-        with open(file_path, "wb") as f:
-            f.write(compressed_content)
-            
-        new_fotos.append({
-            "url": f"/api/uploads/barang/{safe_name}",
-            "is_thumbnail": False,
-            "keterangan": keterangan,
-            "uploaded_at": datetime.now(timezone.utc)
-        })
+            # Validate image
+            if not file.content_type.startswith("image/"):
+                errors.append(f"{file.filename}: Not an image")
+                continue
 
-    # 3. Update Counter
-    await db.system_settings.update_one(
-        {"key": "general"},
-        {"$inc": {"current_month_count": len(files)}}
-    )
+            # Process with centralized processor (handles compression & saving)
+            # Reset cursor just in case
+            await file.seek(0)
+            result = await process_image_upload(file, "barang", db)
+            
+            # Result contains relative paths like "barang/xyz.jpg"
+            # We need full API URLs
+            
+            new_fotos.append({
+                "url": f"/api/uploads/{result['optimized']}",
+                "is_thumbnail": False,
+                "keterangan": keterangan,
+                "uploaded_at": datetime.now(timezone.utc)
+            })
+            
+        except Exception as e:
+            errors.append(f"{file.filename}: {str(e)}")
+            continue
+
+    if not new_fotos and errors:
+        raise HTTPException(status_code=500, detail=f"Failed to upload: {'; '.join(errors)}")
+
+    # 4. Update Counter
+    if new_fotos:
+        await db.system_settings.update_one(
+            {"key": "general"},
+            {"$inc": {"current_month_count": len(new_fotos)}}
+        )
     
+    # 5. Update Barang Record
     # If no photos existed before, make first one thumbnail
     item = await db.barang.find_one({"_id": ObjectId(id)})
     if not item.get("fotos") and new_fotos:
         new_fotos[0]["is_thumbnail"] = True
         
-    await db.barang.update_one(
-        {"_id": ObjectId(id)},
-        {"$push": {"fotos": {"$each": new_fotos}}}
-    )
-    return {"message": "Uploaded", "fotos": new_fotos}
+    if new_fotos:
+        await db.barang.update_one(
+            {"_id": ObjectId(id)},
+            {"$push": {"fotos": {"$each": new_fotos}}}
+        )
+        
+    return {"message": "Uploaded", "fotos": new_fotos, "errors": errors}
 
 @router.put("/{id}/set-thumbnail")
 async def set_thumbnail(id: str, payload: dict = Body(...), current_user: str = Depends(get_current_user)):
