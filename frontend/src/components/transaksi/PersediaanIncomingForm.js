@@ -7,7 +7,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Loader2, Plus, Save, Trash, ShoppingCart } from 'lucide-react';
+import { Loader2, Plus, Save, Trash, ShoppingCart, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
 import BarangSearch from '../barang/BarangSearch';
@@ -16,6 +16,9 @@ export default function PersediaanIncomingForm({ onSuccess }) {
     const [selectedItem, setSelectedItem] = useState(null);
     const [loading, setLoading] = useState(false);
     const [itemsList, setItemsList] = useState([]);
+    
+    // Evidence File
+    const [buktiFile, setBuktiFile] = useState(null);
     
     // Header state
     const [header, setHeader] = useState({
@@ -74,6 +77,8 @@ export default function PersediaanIncomingForm({ onSuccess }) {
         if (!header.dokumen_ref) return toast.error("Isi Nomor Dokumen / Nota");
 
         setLoading(true);
+        const t = toast.loading("Menyimpan transaksi...");
+        
         try {
             const payload = {
                 items: itemsList.map(i => ({
@@ -86,17 +91,31 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                 keterangan: header.keterangan
             };
 
-            await api.post('/api/persediaan-transaksi/in/bulk', payload);
+            const res = await api.post('/api/persediaan-transaksi/in/bulk', payload);
+            const createdIds = res.data.ids;
             
-            toast.success(`Berhasil menyimpan ${itemsList.length} item transaksi`);
+            // Upload Evidence if exists
+            if (buktiFile && createdIds && createdIds.length > 0) {
+                toast.loading("Mengupload bukti foto...", { id: t });
+                const formData = new FormData();
+                formData.append('file', buktiFile);
+                formData.append('ids', createdIds.join(',')); // Send comma separated IDs
+
+                await api.post('/api/persediaan-transaksi/upload-bukti', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+            }
+            
+            toast.success(`Berhasil menyimpan ${itemsList.length} item transaksi`, { id: t });
             
             setItemsList([]);
             setHeader({ dokumen_ref: '', keterangan: '' });
+            setBuktiFile(null);
             
             if (onSuccess) onSuccess();
         } catch (err) {
             console.error(err);
-            toast.error(err.response?.data?.detail || "Gagal menyimpan transaksi");
+            toast.error(err.response?.data?.detail || "Gagal menyimpan transaksi", { id: t });
         } finally {
             setLoading(false);
         }
@@ -130,7 +149,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                 className="bg-white"
                             />
                         </div>
-                        <div className="md:col-span-3 space-y-1">
+                        <div className="md:col-span-2 space-y-1">
                             <Label className="text-xs">Keterangan (Global)</Label>
                             <Input 
                                 value={header.keterangan} 
@@ -138,6 +157,18 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                 placeholder="Keterangan transaksi..."
                                 className="bg-white"
                             />
+                        </div>
+                        <div className="md:col-span-1 space-y-1">
+                            <Label className="text-xs">Bukti Foto (Opsional)</Label>
+                            <div className="flex gap-2 items-center">
+                                <Input 
+                                    type="file" 
+                                    accept="image/*"
+                                    onChange={(e) => setBuktiFile(e.target.files[0])}
+                                    className="bg-white h-9 text-xs"
+                                />
+                                {buktiFile && <Upload size={16} className="text-green-600"/>}
+                            </div>
                         </div>
                     </div>
 

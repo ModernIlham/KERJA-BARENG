@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { formatCurrency } from '../../lib/utils';
 import { Badge } from '../ui/badge';
 import { TableSkeleton } from '../ui/skeleton-table';
+import { ExternalLink, Image } from 'lucide-react';
 
 export default function TransactionTable({ data, loading, assetType, type }) {
   return (
@@ -19,14 +20,15 @@ export default function TransactionTable({ data, loading, assetType, type }) {
             <TableHead>Keterangan</TableHead>
             {type === 'keluar' && <TableHead>Penerima</TableHead>}
             <TableHead className="text-right">Dokumen</TableHead>
+            <TableHead className="text-center w-[50px]">Bukti</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading ? (
-            <TableSkeleton columns={assetType === 'persediaan' ? 9 : 8} rows={5} />
+            <TableSkeleton columns={assetType === 'persediaan' ? 10 : 9} rows={5} />
           ) : data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={assetType === 'persediaan' ? 9 : 8} className="text-center py-8 text-slate-500">
+              <TableCell colSpan={assetType === 'persediaan' ? 10 : 9} className="text-center py-8 text-slate-500">
                 Tidak ada data transaksi.
               </TableCell>
             </TableRow>
@@ -76,6 +78,21 @@ export default function TransactionTable({ data, loading, assetType, type }) {
                 )}
                 <TableCell className="text-right text-xs font-mono text-slate-500">
                     {item.dokumen_ref || '-'}
+                </TableCell>
+                <TableCell className="text-center">
+                    {item.bukti_fotos && item.bukti_fotos.length > 0 ? (
+                        <a 
+                            href={item.bukti_fotos[0].url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Lihat Bukti Foto"
+                        >
+                            <Image size={16} />
+                        </a>
+                    ) : (
+                        <span className="text-slate-300">-</span>
+                    )}
                 </TableCell>
               </TableRow>
             ))
