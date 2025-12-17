@@ -245,9 +245,9 @@ async def stock_out(txn: TransaksiPersediaanCreate, current_user: str = Depends(
         timestamp=datetime.now(timezone.utc)
     )
     
-    await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
+    result = await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
     
-    return {"message": "Stock Out successful", "new_stok": new_stok, "id": str(record.id)}
+    return {"message": "Stock Out successful", "new_stok": new_stok, "id": str(result.inserted_id)}
 
 @router.get("/history/{persediaan_id}")
 async def get_history(persediaan_id: str, current_user: str = Depends(get_current_user)):
