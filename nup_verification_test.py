@@ -132,7 +132,7 @@ class NUPVerificationTester:
         # Create CSV data for import - backend always sets NUP to '1' for imports
         timestamp = int(time.time())
         csv_data = f"""kodebarang,namabarang,merk,satuan
-101030199801{timestamp % 1000:03d},Import Test Item NUP 1 {timestamp},Test Brand,Pcs"""
+1010301998{timestamp % 1000000:06d},Import Test Item NUP 1 {timestamp},Test Brand,Pcs"""
         
         # Create file-like object
         csv_file = io.StringIO(csv_data)
