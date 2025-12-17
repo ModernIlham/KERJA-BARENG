@@ -172,6 +172,7 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 
                 item_data = {
                     "source": "import",
+                    "source": "import",
                     "kode_barang": kode, "nup": nup, "golongan_barang": gol,
                     "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
                     "merk": row.get('Merk'), "tipe": row.get('Tipe'), "kondisi": row.get('Kondisi'),
