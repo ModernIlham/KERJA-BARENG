@@ -1899,8 +1899,7 @@ class APITester:
                     employee_data = emp
                     break
         
-        if success:
-            employee_data = response
+        if employee_data:
             print(f"✅ Single employee retrieval working for edit modal")
             print(f"   Employee: {employee_data.get('nama_lengkap')}")
             print(f"   NIP: {employee_data.get('nip')}")
