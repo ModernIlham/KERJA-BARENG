@@ -2978,13 +2978,13 @@ def main():
         print("❌ Login failed, cannot proceed with tests")
         return 1
     
-    # Run Agency Logo Upload test
-    logo_success = tester.test_agency_logo_upload()
+    # Run NUP Logic and Photo Compression test
+    nup_photo_success = tester.test_nup_logic_and_photo_compression()
     
-    print(f"\n📊 AGENCY LOGO UPLOAD TEST RESULTS:")
-    print(f"   Agency Logo Upload Test: {'✅ PASSED' if logo_success else '❌ FAILED'}")
+    print(f"\n📊 NUP LOGIC AND PHOTO COMPRESSION TEST RESULTS:")
+    print(f"   NUP Logic and Photo Compression Test: {'✅ PASSED' if nup_photo_success else '❌ FAILED'}")
     
-    return 0 if logo_success else 1
+    return 0 if nup_photo_success else 1
 
 class APITester:
     def test_enhanced_organizational_structure(self):
