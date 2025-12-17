@@ -3962,11 +3962,11 @@ def main():
         print("❌ Login failed, cannot proceed with tests")
         return 1
     
-    # Run Transaction Evidence Upload test as requested in review
-    transaction_evidence_success = tester.test_transaction_evidence_upload()
+    # Run Transaction Evidence Upload Features test as requested in review
+    transaction_evidence_success = tester.test_transaction_evidence_upload_features()
     
-    print(f"\n📊 TRANSACTION EVIDENCE UPLOAD TEST RESULTS:")
-    print(f"   Transaction Evidence Upload Test: {'✅ PASSED' if transaction_evidence_success else '❌ FAILED'}")
+    print(f"\n📊 TRANSACTION EVIDENCE UPLOAD FEATURES TEST RESULTS:")
+    print(f"   Transaction Evidence Upload Features Test: {'✅ PASSED' if transaction_evidence_success else '❌ FAILED'}")
     
     return 0 if transaction_evidence_success else 1
 
