@@ -186,5 +186,3 @@ async def upload_bukti_transaksi(
     except Exception as e:
         print(f"Upload error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-    return await db.transaksi.find_one({"_id": result.inserted_id})
