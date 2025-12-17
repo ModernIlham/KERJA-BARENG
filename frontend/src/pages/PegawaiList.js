@@ -76,11 +76,12 @@ export default function PegawaiList() {
 
   const confirmDelete = (id) => {
       setDeleteId(id);
+      setIsDeleteOpen(true);
+  };
+
   const openPhoto = (item) => {
       setSelectedItem(item);
       setIsPhotoOpen(true);
-  };
-      setIsDeleteOpen(true);
   };
 
   const handleDelete = async () => {
@@ -128,6 +129,14 @@ export default function PegawaiList() {
         <MutasiModal 
             isOpen={isMutasiOpen}
             onClose={() => setIsMutasiOpen(false)}
+            pegawai={selectedItem}
+            onSuccess={fetchPegawai}
+        />
+
+        {/* Photo Modal */}
+        <PegawaiPhotoModal
+            isOpen={isPhotoOpen}
+            onClose={() => setIsPhotoOpen(false)}
             pegawai={selectedItem}
             onSuccess={fetchPegawai}
         />
@@ -189,8 +198,20 @@ export default function PegawaiList() {
                     <TableRow key={item._id} className="hover:bg-slate-50">
                       <TableCell>
                          <div className="flex items-center gap-3">
-                             <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                                 <UserCircle size={24}/>
+                             <div 
+                                className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden cursor-pointer hover:ring-2 hover:ring-slate-300 transition-all"
+                                onClick={() => openPhoto(item)}
+                                title="Klik untuk ubah foto"
+                             >
+                                 {item.foto_thumbnail_url || item.foto_url ? (
+                                    <img 
+                                        src={item.foto_thumbnail_url || item.foto_url} 
+                                        alt={item.nama_lengkap}
+                                        className="h-full w-full object-cover"
+                                    />
+                                 ) : (
+                                    <UserCircle size={24}/>
+                                 )}
                              </div>
                              <div>
                                 <div className="font-bold text-slate-900 text-sm">{item.nama_lengkap}</div>
