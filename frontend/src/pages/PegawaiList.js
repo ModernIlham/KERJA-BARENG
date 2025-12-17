@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
+import { ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
@@ -199,20 +200,37 @@ export default function PegawaiList() {
                       <TableCell>
                          <div className="flex items-center gap-3">
                              <div 
-                                className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden cursor-pointer hover:ring-2 hover:ring-slate-300 transition-all"
+                                className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden cursor-pointer hover:ring-2 hover:ring-slate-300 transition-all relative group"
                                 onClick={() => openPhoto(item)}
                                 title="Klik untuk ubah foto"
                              >
                                  {item.foto_thumbnail_url || item.foto_url ? (
-                                    <img 
-                                        src={item.foto_thumbnail_url || item.foto_url} 
-                                        alt={item.nama_lengkap}
-                                        className="h-full w-full object-cover"
-                                    />
+                                    <>
+                                        <img 
+                                            src={item.foto_thumbnail_url || item.foto_url} 
+                                            alt={item.nama_lengkap}
+                                            className="h-full w-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center">
+                                            <span className="text-[8px] text-white">Edit</span>
+                                        </div>
+                                    </>
                                  ) : (
                                     <UserCircle size={24}/>
                                  )}
                              </div>
+                             {(item.foto_url || item.foto_thumbnail_url) && (
+                                <a 
+                                    href={item.foto_url || item.foto_thumbnail_url} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="text-slate-400 hover:text-blue-600"
+                                    title="Buka Foto Fullscreen"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <ExternalLink size={14}/>
+                                </a>
+                             )}
                              <div>
                                 <div className="font-bold text-slate-900 text-sm">{item.nama_lengkap}</div>
                                 <div className="font-mono text-[10px] text-slate-500">{item.nip}</div>
