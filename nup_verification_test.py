@@ -206,8 +206,8 @@ class NUPVerificationTester:
         timestamp = int(time.time())
         
         # First create via import (will have NUP '1' and source 'import')
-        csv_data = f"""kode_barang,nama_barang,merk,satuan,kondisi,lokasi_fisik,stok,nilai_satuan
-101030199802{timestamp % 1000:03d},Import Test Item NUP 100 {timestamp},Test Brand,Pcs,Baik,Test Location,15,25000"""
+        csv_data = f"""kodebarang,namabarang,merk,satuan
+101030199802{timestamp % 1000:03d},Import Test Item NUP 100 {timestamp},Test Brand,Pcs"""
         
         csv_file = io.StringIO(csv_data)
         files = {'file': ('test_import_nup100.csv', csv_file.getvalue(), 'text/csv')}
