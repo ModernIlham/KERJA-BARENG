@@ -111,6 +111,7 @@ export default function AsetTetapTable({
                 {visibleColumns.nama && <TableCell className="p-2"><div className="font-semibold text-slate-900 truncate max-w-[200px]" title={item.nama_barang}>{item.nama_barang}</div><div className="text-[10px] text-slate-500 truncate max-w-[200px]">{item.merk} {item.tipe}</div></TableCell>}
                 {visibleColumns.kode && <TableCell className="p-2 font-mono text-[10px]"><div title={item.kode_barang}>{item.kode_barang}</div>
                     {(item.nup === '1' || item.nup === 1) ? (
+                    {(item.source !== 'import' && (item.nup === '1' || item.nup === 1)) ? (
                          <div className="text-slate-500 italic">(sementara)</div>
                     ) : (
                          <div className="text-slate-500">NUP: {item.nup}</div>
