@@ -258,9 +258,9 @@ async def get_history(persediaan_id: str, current_user: str = Depends(get_curren
     history = await cursor.to_list(length=100)
     return sanitize_json(history)
 @router.post("/in/bulk")
-    created_ids = []
 async def stock_in_bulk(payload: TransaksiPersediaanBulkCreate, current_user: str = Depends(get_current_user)):
     results = []
+    created_ids = []
     
     for item_req in payload.items:
         if not ObjectId.is_valid(item_req.persediaan_id):
