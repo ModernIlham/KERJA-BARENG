@@ -13,6 +13,7 @@ import { TableSkeleton } from '../components/ui/skeleton-table';
 import PegawaiForm from '../components/pegawai/PegawaiForm';
 import MutasiModal from '../components/pegawai/MutasiModal';
 
+import PegawaiPhotoModal from '../components/pegawai/PegawaiPhotoModal';
 export default function PegawaiList() {
   const [pegawai, setPegawai] = useState([]);
   const [loading, setLoading] = useState(true);
