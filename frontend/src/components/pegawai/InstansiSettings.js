@@ -6,10 +6,10 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Building } from 'lucide-react';
 import { toast } from 'sonner';
+import InstansiLogoUpload from './InstansiLogoUpload';
 
 export default function InstansiSettings() {
-    const { register, handleSubmit, setValue } = useForm();
-import InstansiLogoUpload from './InstansiLogoUpload';
+    const { register, handleSubmit, setValue, watch } = useForm();
 
     useEffect(() => {
         fetchConfig();
