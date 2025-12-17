@@ -307,7 +307,7 @@ class NUPVerificationTester:
         print(f"Backend Health Check: {'✅ PASS' if backend_ok else '❌ FAIL'}")
         print(f"Manual item (NUP 1) -> '(sementara)': {'✅ PASS' if test1_result else '❌ FAIL'}")
         print(f"Import item (NUP 1) -> 'NUP: 1': {'✅ PASS' if test2_result else '❌ FAIL'}")
-        print(f"Import item (NUP 100) -> 'NUP: 100': {'✅ PASS' if test3_result else '❌ FAIL'}")
+        print(f"Item with NUP 100 -> 'NUP: 100': {'✅ PASS' if test3_result else '❌ FAIL'}")
         
         all_passed = backend_ok and test1_result and test2_result and test3_result
         
