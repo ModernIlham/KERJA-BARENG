@@ -138,9 +138,9 @@ async def stock_in(txn: TransaksiPersediaanCreate, current_user: str = Depends(g
         timestamp=datetime.now(timezone.utc)
     )
     
-    await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
+    result = await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
     
-    return {"message": "Stock In successful", "new_stok": new_stok, "new_nilai": new_nilai, "id": str(record.id)}
+    return {"message": "Stock In successful", "new_stok": new_stok, "new_nilai": new_nilai, "id": str(result.inserted_id)}
 
 @router.post("/out")
 async def stock_out(txn: TransaksiPersediaanCreate, current_user: str = Depends(get_current_user)):
