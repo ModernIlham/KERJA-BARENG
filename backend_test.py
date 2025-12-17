@@ -1931,12 +1931,21 @@ class APITester:
             print(f"✅ Photo delete successful: {response.get('message', 'Success')}")
             
             # Verify photo URLs are cleared from employee record
-            success, employee_details = self.run_test(
+            success, response = self.run_test(
                 "Verify Photo URLs Cleared",
                 "GET",
-                f"api/pegawai/{employee_id}",
-                200
+                "api/pegawai",
+                200,
+                data={"page": 1, "limit": 50}
             )
+            
+            employee_details = None
+            if success:
+                employees = response.get('data', [])
+                for emp in employees:
+                    if emp.get('_id') == employee_id:
+                        employee_details = emp
+                        break
             
             if success:
                 foto_url = employee_details.get('foto_url')
