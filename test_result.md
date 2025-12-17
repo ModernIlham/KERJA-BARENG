@@ -671,3 +671,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ IMAGE UPLOAD FUNCTIONALITY TEST COMPLETED SUCCESSFULLY: All 7 verification steps passed perfectly. 1) Barang item created successfully with ID, 2) Barang image upload works via POST /api/barang/{id}/upload-fotos - returns 200 OK with file URL '/api/uploads/barang/946cce8b-c494-4a17-9834-a475cdff3f6c.png', 3) Persediaan item created successfully with ID, 4) Persediaan image upload works via POST /api/persediaan/{id}/upload-fotos - returns 200 OK with file URL '/api/uploads/persediaan/9c18b10a-8aab-4f34-9272-2d5e455f6315.png', 5) Pegawai created successfully with ID, 6) Pegawai image upload works via POST /api/pegawai/{id}/upload-foto - returns 200 OK with file URL and thumbnail URL '/api/uploads/pegawai/fefd40a7-2972-4513-a9c3-505ba225c752.png', 7) All uploads return 200 OK status and contain proper file URLs. Image upload functionality is fully operational across all three modules. Fixed import issues in barang.py and persediaan.py during testing to include process_image_upload function."
+
+  - task: "Transaction Evidence Upload Features"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/transaksi.py, /app/backend/routes/persediaan_transaksi.py, /app/backend/routes/pegawai_photos.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing new Transaction evidence upload features as requested in review. Testing: 1) Upload dummy evidence photo to Transaction using POST /api/transaksi/{id}/upload-bukti, 2) Upload dummy evidence photo to Persediaan Transaction using POST /api/persediaan-transaksi/upload-bukti (Bulk), 3) Verify files are uploaded and URLs are returned, 4) Verify Employee Photo upload supports cropping (backend endpoint POST /api/pegawai/{id}/upload-foto should accept file)."
+      - working: true
+        agent: "testing"
+        comment: "✅ TRANSACTION EVIDENCE UPLOAD TEST COMPLETED SUCCESSFULLY: All verification steps passed perfectly. 1) Transaction Evidence Upload: Created test barang and transaction, successfully uploaded evidence photo via POST /api/transaksi/{id}/upload-bukti - returns 200 OK with evidence URL '/api/uploads/bukti_transaksi/aee4b053-9dce-447a-9109-f8cd26ec7cd1.png', 2) Bulk Persediaan Evidence Upload: Created test persediaan item and 2 transactions, successfully uploaded bulk evidence via POST /api/persediaan-transaksi/upload-bukti - returns 200 OK with bulk evidence URL '/api/uploads/bukti_transaksi/a839cb83-74ce-460b-93bb-7edbe12fa87f.png' and updated 2 transactions, 3) Employee Photo Upload with Cropping: Created test employee, successfully uploaded photo via POST /api/pegawai/{id}/upload-foto - returns 200 OK with photo URL '/api/uploads/pegawai/558c718a-a487-4f43-856b-f22f472c6b4c.png' and thumbnail URL, 4) All uploads return proper URLs and success responses, file validation and processing working correctly. Fixed backend syntax errors in persediaan_transaksi.py and transaksi.py during testing to ensure proper response handling."
