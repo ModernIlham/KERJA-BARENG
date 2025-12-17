@@ -2986,7 +2986,6 @@ def main():
     
     return 0 if nup_photo_success else 1
 
-class APITester:
     def test_enhanced_organizational_structure(self):
         """Test Enhanced Organizational Structure features as requested in review"""
         print("\n=== ENHANCED ORGANIZATIONAL STRUCTURE TEST ===")
