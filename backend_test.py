@@ -4320,13 +4320,16 @@ def main():
         print("❌ Login failed, cannot proceed with tests")
         return 1
     
-    # Run Transaction Evidence Upload Features test as requested in review
-    transaction_evidence_success = tester.test_transaction_evidence_upload_features()
+    # Run Transaksi Aset Tetap Module test as requested in review
+    transaksi_aset_tetap_success = tester.test_transaksi_aset_tetap_module()
     
-    print(f"\n📊 TRANSACTION EVIDENCE UPLOAD FEATURES TEST RESULTS:")
-    print(f"   Transaction Evidence Upload Features Test: {'✅ PASSED' if transaction_evidence_success else '❌ FAILED'}")
+    print(f"\n📊 TRANSAKSI ASET TETAP MODULE TEST RESULTS:")
+    print(f"   Tests Run: {tester.tests_run}")
+    print(f"   Tests Passed: {tester.tests_passed}")
+    print(f"   Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
+    print(f"   Transaksi Aset Tetap Module Test: {'✅ PASSED' if transaksi_aset_tetap_success else '❌ FAILED'}")
     
-    return 0 if transaction_evidence_success else 1
+    return 0 if transaksi_aset_tetap_success else 1
 
     def test_enhanced_organizational_structure(self):
         """Test Enhanced Organizational Structure features as requested in review"""
