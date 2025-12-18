@@ -6374,7 +6374,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting RUH Pembelian Enhancements Backend API Testing...")
+    print("🚀 Starting Persediaan Incoming Features Backend API Testing...")
     print("=" * 60)
     
     # Test login first
@@ -6382,9 +6382,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the RUH Pembelian enhancements test
-    if not tester.test_ruh_pembelian_enhancements():
-        print("❌ RUH Pembelian enhancements test failed")
+    # Run the Persediaan Incoming features test (NEW TEST for review request)
+    if not tester.test_persediaan_incoming_features():
+        print("❌ Persediaan Incoming features test failed")
         return 1
     
     # Print summary
