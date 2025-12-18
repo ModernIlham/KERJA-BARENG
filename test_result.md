@@ -107,15 +107,18 @@ user_problem_statement: "Enhance 'Persediaan Masuk' form to match the new screen
 frontend:
   - task: "Persediaan Incoming Form Enhancement"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/transaksi/PersediaanIncomingForm.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Updated form with new fields: No Bukti, Tgl Buku, Jenis Dokumen (Radio), PPK Dropdown, No Kontrak. Reorganized layout to match screenshot."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Frontend form correctly implements all required fields: No. Dokumen, Tgl Dokumen, No. Bukti, Tgl Buku, Jenis Dokumen (Radio buttons: Kontrak, Non Kontrak, Kontrak BLU, Non Kontrak BLU), PPK Dropdown (populated from /api/pegawai/pejabat), Nomor Kontrak (conditional visibility), NPWP fields. Form correctly submits to /api/persediaan-transaksi/in/bulk with all new fields. Backend integration verified working."
 
 backend:
   - task: "Persediaan Transaction Model Update"
