@@ -127,9 +127,10 @@ async def create_persediaan(persediaan_in: PersediaanCreate, current_user: str =
     persediaan_in.kode_barang = clean_code_str(persediaan_in.kode_barang)
     
     # Validate kode_barang length (should be 16 digits for persediaan)
-    if len(persediaan_in.kode_barang) < 16:
     if len(persediaan_in.kode_barang) >= 1 and not persediaan_in.kode_barang.startswith('1'):
         raise HTTPException(status_code=400, detail="Kode Barang Persediaan harus berawalan '1'")
+
+    if len(persediaan_in.kode_barang) < 16:
         # If only 10 digits provided, auto-generate the last 6 digits
         if len(persediaan_in.kode_barang) == 10:
             # Find max kode_barang with same 10-digit prefix
