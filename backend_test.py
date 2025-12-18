@@ -1406,7 +1406,7 @@ class APITester:
         success, response = self.run_test(
             "Get Aset Transaction History",
             "GET",
-            "api/transaksi/",
+            "api/transaksi",
             200,
             data={"page": 1, "limit": 50}
         )
