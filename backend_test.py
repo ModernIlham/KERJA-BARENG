@@ -1600,7 +1600,7 @@ class APITester:
             "GET",
             "api/barang",
             200,
-            data={"search": asset_id, "page": 1, "limit": 1}
+            data={"search": "Test RUH Pembelian Equipment", "page": 1, "limit": 10}
         )
         
         if not success:
