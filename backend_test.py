@@ -4614,7 +4614,7 @@ class APITester:
                 "GET",
                 "api/barang",
                 200,
-                data={"search": asset_id, "page": 1, "limit": 1}
+                data={"search": f"KUIT-RUH-{timestamp}-{i+1}", "page": 1, "limit": 5}
             )
             
             if not success:
@@ -4688,7 +4688,7 @@ class APITester:
                 "GET",
                 "api/barang",
                 200,
-                data={"search": asset_id, "page": 1, "limit": 1}
+                data={"search": f"KUIT-RUH-{timestamp}-{i+1}", "page": 1, "limit": 5}
             )
             
             if not success:
@@ -5391,7 +5391,7 @@ def main():
                 "GET",
                 "api/barang",
                 200,
-                data={"search": asset_id, "page": 1, "limit": 1}
+                data={"search": f"KUIT-RUH-{timestamp}-{i+1}", "page": 1, "limit": 5}
             )
             
             if not success:
@@ -5465,7 +5465,7 @@ def main():
                 "GET",
                 "api/barang",
                 200,
-                data={"search": asset_id, "page": 1, "limit": 1}
+                data={"search": f"KUIT-RUH-{timestamp}-{i+1}", "page": 1, "limit": 5}
             )
             
             if not success:
