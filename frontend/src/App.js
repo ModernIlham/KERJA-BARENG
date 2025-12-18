@@ -49,6 +49,7 @@ import DokumenList from './pages/DokumenList';
             <Route path="barang" element={<BarangList />} />
             <Route path="pegawai" element={<PegawaiList />} />
             <Route path="referensi" element={<ReferensiKode />} />
+            <Route path="referensi/dokumen" element={<DokumenList />} />
             
             {/* New Simplified Transaction Routes */}
             <Route path="transaksi-aset" element={<TransaksiAset />} />
