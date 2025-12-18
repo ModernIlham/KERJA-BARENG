@@ -25,6 +25,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { logout } = useAuth();
   const [openSubmenus, setOpenSubmenus] = useState({
       transaksi: true,
+      transaksiAset: true,
       laporan: true
   });
   
@@ -58,6 +59,22 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </NavLink>
 
           {/* Transaksi Group */}
+
+          {/* Transaksi Aset Tetap Group */}
+          <Collapsible open={openSubmenus.transaksiAset} onOpenChange={() => toggleSubmenu('transaksiAset')}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
+                  <div className="flex items-center gap-3">
+                      <ArrowRightLeft size={18} /> Transaksi Aset Tetap
+                  </div>
+                  {openSubmenus.transaksiAset ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                  <NavLink to="/transaksi-aset" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                      Masuk / Keluar / Riwayat
+                  </NavLink>
+              </CollapsibleContent>
+          </Collapsible>
+
           <Collapsible open={openSubmenus.transaksi} onOpenChange={() => toggleSubmenu('transaksi')}>
               <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
                   <div className="flex items-center gap-3">
