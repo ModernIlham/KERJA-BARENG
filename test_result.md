@@ -105,7 +105,37 @@
 user_problem_statement: "Verify the 'Master Dokumen Sumber' feature implementation including frontend page, backend APIs, and integration with Aset Tetap and Persediaan forms."
 
 frontend:
-  - task: "Persediaan Incoming Form Enhancement"
+  - task: "Master Dokumen Sumber Page"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/DokumenList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented complete Master Dokumen Sumber page at /referensi/dokumen with create/edit modal, table view, search functionality, and PPK dropdown integration."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Master Dokumen page (/referensi/dokumen) fully functional. Backend API integration confirmed working. Can create new Dokumen Sumber with all fields (jenis_dokumen, nomor_dokumen, tanggal_dokumen, PPK, penyedia, NPWP, etc.). List view, search, and CRUD operations all working correctly."
+
+  - task: "Aset Tetap Form - Pilih Dokumen Sumber Integration"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/transaksi/AssetIncomingForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Pilih Dokumen Sumber' button and modal to AssetIncomingForm. Implements auto-population of fields (Nomor Dokumen, PPK, Penyedia) when document is selected. Links transactions with dokumen_sumber_id."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Aset Tetap Form has 'Pilih Dokumen Sumber' functionality implemented. Modal fetches documents from /api/dokumen-sumber endpoint. Auto-population logic for Nomor Dokumen, PPK, Penyedia fields confirmed in code. dokumen_sumber_id linking implemented for transaction persistence."
+
+  - task: "Persediaan Form - Pilih Dokumen Sumber Integration"
     implemented: true
     working: true
     file: "/app/frontend/src/components/transaksi/PersediaanIncomingForm.js"
@@ -115,10 +145,25 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Updated form with new fields: No Bukti, Tgl Buku, Jenis Dokumen (Radio), PPK Dropdown, No Kontrak. Reorganized layout to match screenshot."
+        comment: "Added 'Pilih Dokumen Sumber' button and modal to PersediaanIncomingForm. Implements auto-population of fields (Nomor Dokumen, PPK, Penyedia, NPWP) when document is selected. Links transactions with dokumen_sumber_id."
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Frontend form correctly implements all required fields: No. Dokumen, Tgl Dokumen, No. Bukti, Tgl Buku, Jenis Dokumen (Radio buttons: Kontrak, Non Kontrak, Kontrak BLU, Non Kontrak BLU), PPK Dropdown (populated from /api/pegawai/pejabat), Nomor Kontrak (conditional visibility), NPWP fields. Form correctly submits to /api/persediaan-transaksi/in/bulk with all new fields. Backend integration verified working."
+        comment: "✅ VERIFIED: Persediaan Form has 'Pilih Dokumen Sumber' functionality implemented. Modal fetches documents from /api/dokumen-sumber endpoint. Auto-population logic for header fields (dokumen_ref, ppk_id, ppk_nama, npwp, nama_pemilik_npwp) confirmed in code. dokumen_sumber_id linking implemented for bulk transaction persistence."
+
+  - task: "Frontend Routing for Dokumen"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added route /referensi/dokumen to App.js routing configuration pointing to DokumenList component."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Frontend routing correctly configured. Route /referensi/dokumen properly defined in App.js and points to DokumenList component. Navigation structure supports Master Dokumen Sumber page access."
 
 backend:
   - task: "Master Dokumen Sumber API Implementation"
