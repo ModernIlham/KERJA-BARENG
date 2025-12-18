@@ -5143,9 +5143,10 @@ class APITester:
         print(f"   Using kode_barang: {valid_code}")
         
         # Create RUH Pembelian payload with new fields as specified in review request
+        unique_name = f"Test RUH Pembelian Equipment {timestamp}"
         ruh_pembelian_payload = {
             "kode_barang": valid_code,
-            "nama_barang": "Test RUH Pembelian Equipment",
+            "nama_barang": unique_name,
             "jumlah": 1,
             "tgl_buku": "2024-01-20",
             "detail_lainnya": {
