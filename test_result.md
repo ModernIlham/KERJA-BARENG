@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Verify the new 'Transaksi Aset Tetap' module: 1. 'Barang Masuk' (Fixed Asset Acquisition): Create 2 new assets via the bulk form AssetIncomingForm (check if it hits POST /api/barang and POST /api/transaksi correctly). 2. 'Barang Keluar' (Fixed Asset Distribution): Search for the newly created assets, select them, and process a 'Keluar' transaction via POST /api/transaksi/bulk. 3. Check if the transactions appear in the history (GET /api/transaksi). 4. Check if the Asset status/location updated in db.barang."
+user_problem_statement: "Verify the new 'RUH Pembelian' enhancements: 1. Verify `Kode UAKPB` can be saved in settings (`PUT /api/settings/instansi`). 2. Verify `PPK` search endpoint (`GET /api/pegawai/pejabat?role=PPK`) returns correct results (create a test Pegawai with 'PPK' in `jabatan_melekat` first). 3. Submit a 'Barang Masuk' (Aset Tetap) transaction with the new fields: `periode`: '13', `no_sppa_2`: '123', `nama_ppk`: 'Test PPK', `jenis_dokumen`: 'Non_Kontrak'. 4. Verify all these fields are persisted in the `Barang` document (`detail_lainnya`)."
 
 frontend:
   - task: "Pagination on Master Barang Page"
