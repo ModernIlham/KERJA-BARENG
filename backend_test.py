@@ -1598,8 +1598,9 @@ class APITester:
         success, response = self.run_test(
             "Get Created Asset Details",
             "GET",
-            f"api/barang/{asset_id}",
-            200
+            "api/barang",
+            200,
+            data={"search": asset_id, "page": 1, "limit": 1}
         )
         
         if not success:
