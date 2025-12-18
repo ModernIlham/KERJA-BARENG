@@ -336,7 +336,18 @@ async def stock_in_bulk(payload: TransaksiPersediaanBulkCreate, current_user: st
             keterangan=payload.keterangan,
             dokumen_ref=payload.dokumen_ref,
             petugas=current_user,
-            timestamp=datetime.now(timezone.utc)
+            timestamp=datetime.now(timezone.utc),
+            
+            # Extended Fields
+            no_bukti=payload.no_bukti,
+            tgl_dokumen=payload.tgl_dokumen,
+            tgl_buku=payload.tgl_buku,
+            jenis_dokumen=payload.jenis_dokumen,
+            no_kontrak=payload.no_kontrak,
+            ppk_id=payload.ppk_id,
+            ppk_nama=payload.ppk_nama,
+            npwp=payload.npwp,
+            nama_pemilik_npwp=payload.nama_pemilik_npwp
         )
         
         res_insert = await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
