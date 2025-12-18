@@ -527,6 +527,21 @@ backend:
         agent: "testing"
         comment: "✅ PHOTO UPLOAD ENDPOINT TEST PASSED: POST /api/pegawai/{id}/upload-foto endpoint exists and is reachable. Route properly registered in FastAPI application. Returns 422 (Unprocessable Entity) for missing file parameter as expected, confirming endpoint functionality. Authentication validation working (requires Bearer token). Employee ID parameter validation working (validates ObjectId format). Method restriction working (only accepts POST). Endpoint ready for actual file upload functionality. Fixed backend import issue in image_processor.py during testing."
 
+  - task: "Aset Tetap vs Persediaan Code Validation"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/barang.py, /app/backend/routes/persediaan.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Aset Tetap vs Persediaan code validation distinction as requested in review. Verifying: 1) Persediaan item with code NOT starting with '1' should fail, 2) Aset Tetap item with code starting with '1' should fail, 3) Valid items for both (Persediaan with '1...', Aset Tetap with '3...') should succeed, 4) ReferensiSearch component logic verification."
+      - working: true
+        agent: "testing"
+        comment: "✅ ASET TETAP VS PERSEDIAAN CODE VALIDATION TEST PASSED: All validation rules working correctly. 1) ✅ Persediaan creation with invalid code (starting with '3') correctly rejected with error 'Kode Barang Persediaan harus berawalan 1', 2) ✅ Aset Tetap creation with invalid code (starting with '1') correctly rejected with error 'Kode Barang berawalan 1 adalah Persediaan (Aset Lancar). Tidak boleh diinput sebagai Aset Tetap.', 3) ✅ Valid Persediaan creation with code starting with '1' successful, 4) ✅ Valid Aset Tetap creation with code starting with '3' successful. Backend validation logic ensures proper asset type classification: Persediaan must start with '1', Aset Tetap must NOT start with '1'. ReferensiSearch component can use prefix filtering for proper code selection. Code validation prevents cross-contamination between asset categories."
+
   - task: "Advanced Employee Management Features - WNA Logic"
     implemented: true
     working: true
