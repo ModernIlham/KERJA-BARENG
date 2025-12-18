@@ -1818,13 +1818,13 @@ class APITester:
             print("❌ Failed to get updated Asset 1 details")
             return False
         
-        # Check Asset 2 updates
+        # Check Asset 2 updates - search by name instead of ID
         success, response = self.run_test(
             "Get Updated Asset 2 Details",
             "GET",
             f"api/barang",
             200,
-            data={"search": asset2_id, "page": 1, "limit": 1}
+            data={"search": f"Test Asset 2 - Printer Canon {timestamp}", "page": 1, "limit": 10}
         )
         
         if success:
