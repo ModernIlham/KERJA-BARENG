@@ -9,7 +9,7 @@ from pathlib import Path
 
 # Import Routers
 from routes import auth, barang, pegawai, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn, surat
-from routes import auth, barang, pegawai, pegawai_photos, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn, surat
+from routes import auth, barang, pegawai, pegawai_photos, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn, surat, dokumen
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
