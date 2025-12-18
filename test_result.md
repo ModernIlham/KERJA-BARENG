@@ -366,7 +366,7 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/routes/barang.py, /app/backend/models.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -376,6 +376,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ PARTIAL SUCCESS WITH CRITICAL ISSUES: Frontend form implementation verified correctly with all required fields. Asset creation and NUP increment working properly (created 2 assets with NUP 13 and 14). Transaction creation successful. However, CRITICAL DATA PERSISTENCE ISSUES: 1) tgl_buku field not being stored (remains None despite being added to BarangCreate model), 2) detail_lainnya fields not being stored (all fields are None), 3) Backend may not be properly handling these fields during asset creation. Fixed BarangCreate model to include tgl_buku field and restarted backend service. Core functionality works but data persistence needs main agent attention."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL DATA PERSISTENCE FAILURE CONFIRMED: Comprehensive testing of RUH Pembelian form data persistence shows CRITICAL ISSUES persist. Test results: 1) ✅ Frontend form correctly implemented with all required fields (jenis_dokumen, tgl_pembukuan, kondisi, jumlah), 2) ✅ Asset creation successful with proper NUP increment (NUP 15, 16), 3) ✅ Transaction creation successful, 4) ❌ CRITICAL: tgl_buku field NOT persisted (expected '2024-01-20', got 'None'), 5) ❌ CRITICAL: ALL detail_lainnya fields NOT persisted (jenis_dokumen, nomor_dokumen, tgl_dokumen, no_kontrak, no_sppa, dasar_harga, keterangan all return 'None'). Backend BarangCreate model includes these fields but data is not being saved to database. Backend POST /api/barang endpoint needs investigation for proper field handling and persistence."
 
   - task: "Fixed Asset Codification Logic"
     implemented: true
