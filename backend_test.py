@@ -826,7 +826,7 @@ class APITester:
         success, response = self.run_test(
             "Create Test Aset Item",
             "POST",
-            "api/barang/",
+            "api/barang",
             200,
             data=aset_item_data
         )
@@ -2419,7 +2419,7 @@ class APITester:
         success, response = self.run_test(
             "Get Barang List to Verify Asset",
             "GET",
-            "api/barang/",
+            "api/barang",
             200,
             data={"search": f"Test RUH Pembelian Item {timestamp}", "page": 1, "limit": 10}
         )
@@ -2528,7 +2528,7 @@ class APITester:
         success, response = self.run_test(
             "Create Aset Tetap with Invalid Code (1...)",
             "POST",
-            "api/barang/",
+            "api/barang",
             400,  # Expecting failure
             data=invalid_aset_data
         )
@@ -2590,7 +2590,7 @@ class APITester:
         success, response = self.run_test(
             "Create Aset Tetap with Valid Code (3...)",
             "POST",
-            "api/barang/",
+            "api/barang",
             200,  # Expecting success
             data=valid_aset_data
         )
