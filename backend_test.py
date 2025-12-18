@@ -5130,13 +5130,14 @@ class APITester:
             data={"search": "3", "page": 1, "limit": 5}
         )
         
-        valid_code = "3010101001"  # Default fallback
+        valid_code = f"301010100{timestamp % 10000:04d}"  # Default fallback with timestamp
         if success:
             referensi_data = response.get('data', [])
             for ref in referensi_data:
                 code = ref.get('kode', '')
-                if code and code.startswith('3'):
-                    valid_code = code
+                if code and code.startswith('3') and len(code) >= 10:
+                    # Use the referensi code but make it unique by appending timestamp
+                    valid_code = f"{code[:10]}{timestamp % 10000:04d}"
                     break
         
         print(f"   Using kode_barang: {valid_code}")
