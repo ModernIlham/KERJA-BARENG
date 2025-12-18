@@ -225,8 +225,8 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "3.0"
-  test_sequence: 15
+  version: "4.0"
+  test_sequence: 16
   run_ui: true
 
 test_plan:
