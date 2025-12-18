@@ -126,7 +126,8 @@ export default function AssetIncomingForm({ onSuccess }) {
                         dasar_harga: data.dasar_harga,
                         keterangan: data.keterangan,
                         periode: data.periode,
-                        nama_ppk: data.nama_ppk // Name of PPK
+                        nama_ppk: data.nama_ppk, // Name of PPK
+                        uakpb: kodeUakpb // Save UAKPB snapshot
                     }
                 };
 
