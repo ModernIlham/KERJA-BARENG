@@ -1576,7 +1576,7 @@ class APITester:
         success, response = self.run_test(
             "Create RUH Pembelian Asset",
             "POST",
-            "api/barang/",
+            "api/barang",
             200,
             data=ruh_pembelian_payload
         )
