@@ -6792,7 +6792,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Persediaan Incoming Features Backend API Testing...")
+    print("🚀 Starting Master Dokumen Sumber Feature Backend API Testing...")
     print("=" * 60)
     
     # Test login first
@@ -6800,9 +6800,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Persediaan Incoming features test (NEW TEST for review request)
-    if not tester.test_persediaan_incoming_features():
-        print("❌ Persediaan Incoming features test failed")
+    # Run the Master Dokumen Sumber feature test (NEW TEST for review request)
+    if not tester.test_master_dokumen_sumber_feature():
+        print("❌ Master Dokumen Sumber feature test failed")
         return 1
     
     # Print summary
