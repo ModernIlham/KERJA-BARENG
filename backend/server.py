@@ -24,6 +24,7 @@ app = FastAPI(title="SIMAN-G API", version="1.0.0")
 
 # CORS
 app.add_middleware(
+from routes import dokumen
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=["*"], 
