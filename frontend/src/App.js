@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
@@ -7,22 +7,26 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import BarangList from './pages/BarangList';
 import PegawaiList from './pages/PegawaiList';
-import TransaksiList from './pages/TransaksiForm';
 import BandingData from './pages/BandingData';
 import StockOpname from './pages/StockOpname';
 import Laporan from './pages/Laporan';
 import Pengaturan from './pages/Pengaturan';
 import ReferensiKode from './pages/ReferensiKode';
-
-import Surat from './pages/Surat';
 import TransaksiAset from './pages/TransaksiAset';
+import TransaksiPersediaan from './pages/TransaksiPersediaan';
+import Surat from './pages/Surat';
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
-
   return children;
+};
+
+// Wrapper for Params
+const TransaksiPersediaanWrapper = () => {
+    const { type } = useParams();
+    return <TransaksiPersediaan activeTab={type || 'riwayat'} />;
 };
 
 export default function App() {
@@ -39,13 +43,16 @@ export default function App() {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
+            
+            {/* Master Data */}
             <Route path="barang" element={<BarangList />} />
             <Route path="pegawai" element={<PegawaiList />} />
             <Route path="referensi" element={<ReferensiKode />} />
             
-            <Route path="transaksi" element={<Navigate to="/transaksi/riwayat" replace />} />
+            {/* New Simplified Transaction Routes */}
             <Route path="transaksi-aset" element={<TransaksiAset />} />
-            <Route path="transaksi/:type" element={<TransaksiList />} />
+            <Route path="transaksi-persediaan" element={<Navigate to="/transaksi-persediaan/riwayat" replace />} />
+            <Route path="transaksi-persediaan/:type" element={<TransaksiPersediaanWrapper />} />
             
             <Route path="opname" element={<StockOpname />} />
             

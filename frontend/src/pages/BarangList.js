@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
+import { useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -18,8 +19,12 @@ import KartuStokModal from '../components/barang/KartuStokModal';
 import FotoManager from '../components/barang/FotoManager';
 
 export default function BarangList() {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const initialTab = query.get('tab') || 'aset-tetap';
+
   // Tab State
-  const [activeTab, setActiveTab] = useState('aset-tetap');
+  const [activeTab, setActiveTab] = useState(initialTab);
   
   const [barang, setBarang] = useState([]);
   const [loading, setLoading] = useState(true);

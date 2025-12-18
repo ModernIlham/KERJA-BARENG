@@ -16,7 +16,9 @@ import {
   Mail,
   ChevronDown,
   ChevronRight,
-  Book
+  Book,
+  Box,
+  Building
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -24,9 +26,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collap
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { logout } = useAuth();
   const [openSubmenus, setOpenSubmenus] = useState({
-      transaksi: true,
-      transaksiAset: true,
-      laporan: true
+      aset: true,
+      persediaan: true,
+      laporan: false
   });
   
   const toggleSubmenu = (key) => {
@@ -48,59 +50,60 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <LayoutDashboard size={18} /> Dashboard
           </NavLink>
 
-          {/* Master Barang */}
-          <NavLink to="/barang" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Package size={18} /> Master Barang
-          </NavLink>
+          <div className="pt-4 pb-2 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Modul Utama
+          </div>
 
-          {/* Referensi Kode (NEW) */}
-          <NavLink to="/referensi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Book size={18} /> Referensi Kode
-          </NavLink>
-
-          {/* Transaksi Group */}
-
-          {/* Transaksi Aset Tetap Group */}
-          <Collapsible open={openSubmenus.transaksiAset} onOpenChange={() => toggleSubmenu('transaksiAset')}>
+          {/* Group: Aset Tetap */}
+          <Collapsible open={openSubmenus.aset} onOpenChange={() => toggleSubmenu('aset')}>
               <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
                   <div className="flex items-center gap-3">
-                      <ArrowRightLeft size={18} /> Transaksi Aset Tetap
+                      <Building size={18} /> Aset Tetap (BMN)
                   </div>
-                  {openSubmenus.transaksiAset ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                  {openSubmenus.aset ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                  <NavLink to="/barang?tab=aset-tetap" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                      Daftar Aset
+                  </NavLink>
                   <NavLink to="/transaksi-aset" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Masuk / Keluar / Riwayat
+                      Transaksi (Masuk/Keluar)
+                  </NavLink>
+                  <NavLink to="/opname" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                      Stock Opname
                   </NavLink>
               </CollapsibleContent>
           </Collapsible>
 
-          <Collapsible open={openSubmenus.transaksi} onOpenChange={() => toggleSubmenu('transaksi')}>
+          {/* Group: Persediaan */}
+          <Collapsible open={openSubmenus.persediaan} onOpenChange={() => toggleSubmenu('persediaan')}>
               <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
                   <div className="flex items-center gap-3">
-                      <ArrowRightLeft size={18} /> Transaksi
+                      <Box size={18} /> Persediaan (Gudang)
                   </div>
-                  {openSubmenus.transaksi ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                  {openSubmenus.persediaan ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 space-y-1 mt-1">
-                  <NavLink to="/transaksi/masuk" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                  <NavLink to="/barang?tab=persediaan" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                      Daftar Barang
+                  </NavLink>
+                  <NavLink to="/transaksi-persediaan/masuk" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
                       Barang Masuk
                   </NavLink>
-                  <NavLink to="/transaksi/keluar" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                  <NavLink to="/transaksi-persediaan/keluar" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
                       Barang Keluar
                   </NavLink>
-                  <NavLink to="/transaksi/riwayat" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                  <NavLink to="/transaksi-persediaan/riwayat" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
                       Riwayat Transaksi
                   </NavLink>
               </CollapsibleContent>
           </Collapsible>
 
-          {/* Stock Opname */}
-          <NavLink to="/opname" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <ClipboardCheck size={18} /> Stock Opname
-          </NavLink>
+          <div className="pt-4 pb-2 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Pendukung
+          </div>
 
-          {/* Laporan Group */}
+          {/* Laporan */}
           <Collapsible open={openSubmenus.laporan} onOpenChange={() => toggleSubmenu('laporan')}>
               <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
                   <div className="flex items-center gap-3">
@@ -120,27 +123,28 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   </NavLink>
                   <NavLink to="/laporan/kartu" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
                       Kartu Gudang
-          {/* Manajemen Persuratan */}
-          <NavLink to="/surat" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Mail size={18} /> Manajemen Persuratan
-          </NavLink>
                   </NavLink>
               </CollapsibleContent>
           </Collapsible>
+
+          <NavLink to="/surat" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+            <Mail size={18} /> Persuratan
+          </NavLink>
           
-          {/* Manajemen Pegawai */}
           <NavLink to="/pegawai" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Users size={18} /> Data Pegawai
+            <Users size={18} /> Kepegawaian
           </NavLink>
 
-          {/* Pengaturan */}
-          <NavLink to="/pengaturan" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Settings size={18} /> Pengaturan
+          <NavLink to="/referensi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+            <Book size={18} /> Referensi Kode
           </NavLink>
-          
-           {/* Banding Data */}
+
           <NavLink to="/banding" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
             <FileSpreadsheet size={18} /> Banding Data
+          </NavLink>
+
+          <NavLink to="/pengaturan" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+            <Settings size={18} /> Pengaturan
           </NavLink>
 
       </nav>
