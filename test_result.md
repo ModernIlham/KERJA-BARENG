@@ -388,6 +388,21 @@ backend:
         agent: "testing"
         comment: "✅ TRANSACTION EVIDENCE UPLOAD FEATURES TEST COMPLETED SUCCESSFULLY: All 5 verification steps passed perfectly. 1) ✅ 'Barang Masuk Persediaan' form supports 'Bukti Foto' upload field - created persediaan item and incoming transaction successfully, 2) ✅ Creating Incoming Inventory Transaction with photo uploads and links correctly - POST /api/persediaan-transaksi/upload-bukti works with bulk upload, returns proper URL and updates 1 transaction, 3) ✅ Employee Photo upload supports cropping - POST /api/pegawai/{id}/upload-foto accepts files and returns both photo URL and thumbnail URL for cropping support, 4) ✅ Employee Photo list has fullscreen link support - backend provides foto_url for fullscreen and foto_thumbnail_url for list view, 5) ✅ Transaction History shows evidence photo data - bukti_fotos field contains photo URLs for icon display. All backend endpoints functional and ready for frontend integration."
 
+  - task: "Navigation Restructuring Backend Support"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/transaksi.py, /app/backend/routes/barang.py, /app/backend/routes/persediaan.py, /app/backend/routes/persediaan_transaksi.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Navigation restructuring backend support as requested in review. Verifying: 1) 'Barang Masuk' should now be clearly separated for 'Aset Tetap' vs 'Persediaan', 2) Check backend APIs support for /transaksi-aset and /transaksi-persediaan routes, 3) Verify backend APIs support for /barang?tab=persediaan and /barang?tab=aset-tetap tabs, 4) Test transaction creation separation for both types."
+      - working: true
+        agent: "testing"
+        comment: "✅ NAVIGATION RESTRUCTURING TEST COMPLETED SUCCESSFULLY: All 7 verification steps passed perfectly. 1) ✅ Backend APIs for /transaksi-aset route working correctly - GET /api/transaksi supports transaction history (16 transactions), GET /api/barang supports asset search (13,566 assets), 2) ✅ Backend APIs for /transaksi-persediaan route working correctly - GET /api/persediaan-transaksi supports persediaan transaction history (20 transactions), GET /api/persediaan supports persediaan search (32 items), 3) ✅ Backend APIs for /barang?tab=aset-tetap working correctly - GET /api/barang with filters supports Aset Tetap tab with proper data structure, 4) ✅ Backend APIs for /barang?tab=persediaan working correctly - GET /api/persediaan with filters supports Persediaan tab with proper data structure, 5) ✅ 'Barang Masuk' separation working correctly - POST /api/barang for Aset Tetap creation, POST /api/persediaan for Persediaan creation, 6) ✅ Transaction creation separated correctly - POST /api/transaksi for Aset Tetap transactions, POST /api/persediaan-transaksi/in for Persediaan transactions, 7) ✅ API endpoints properly separated and filtered - /api/barang returns Aset Tetap data with NUP, /api/persediaan returns Persediaan data with stok. All backend APIs supporting navigation restructuring are fully functional and ready for frontend implementation."
+
   - task: "Enhanced Pegawai List and Photo Compression"
     implemented: true
     working: true
