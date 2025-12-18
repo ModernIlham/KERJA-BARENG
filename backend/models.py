@@ -46,6 +46,7 @@ class InstansiSettings(BaseModel):
     nama_pimpinan: Optional[str] = None
     nip_pimpinan: Optional[str] = None
 
+    kode_uakpb: Optional[str] = None
 class UserLogin(BaseModel):
     email: str
     password: str

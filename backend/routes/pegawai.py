@@ -16,6 +16,21 @@ db = client[os.environ['DB_NAME']]
 
 @router.get("", response_model=Dict[str, Any])
 async def get_pegawai_list(
+@router.get("/pejabat")
+async def get_pejabat_list(
+    role: str = Query("PPK", description="Role to filter (e.g., PPK)"),
+    current_user: str = Depends(get_current_user)
+):
+    # Filter pegawai where jabatan_melekat contains the role (case insensitive)
+    query = {"jabatan_melekat": {"$regex": role, "$options": "i"}}
+    cursor = db.pegawai.find(query).sort("nama_lengkap", 1)
+    items = await cursor.to_list(None)
+    
+    for item in items:
+        if "_id" in item: item["_id"] = str(item["_id"])
+        
+    return items
+
     page: int = 1,
     limit: int = 20,
     search: Optional[str] = None,

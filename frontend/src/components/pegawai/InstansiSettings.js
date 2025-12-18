@@ -55,6 +55,10 @@ export default function InstansiSettings() {
                     </div>
                     
                     <div className="space-y-1">
+                        <label className="text-xs font-medium text-slate-600">Kode UAKPB</label>
+                        <Input {...register("kode_uakpb")} placeholder="Kode UAKPB..." className="bg-slate-50 font-mono"/>
+                    </div>
+                    <div className="space-y-1">
                         <label className="text-xs font-medium text-slate-600">Alamat Lengkap</label>
                         <Input {...register("alamat")} placeholder="Jl. Jenderal Sudirman No. 1..." />
                     </div>

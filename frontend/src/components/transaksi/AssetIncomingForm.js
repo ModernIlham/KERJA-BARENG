@@ -11,10 +11,13 @@ import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
 import ReferensiSearch from '../barang/ReferensiSearch';
 import { Separator } from '../ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export default function AssetIncomingForm({ onSuccess }) {
     const [loading, setLoading] = useState(false);
     const [nextNup, setNextNup] = useState(null);
+    const [ppkList, setPpkList] = useState([]);
+    const [kodeUakpb, setKodeUakpb] = useState('');
     
     // Form Setup
     const { register, handleSubmit, reset, setValue, watch, control } = useForm({
@@ -25,7 +28,8 @@ export default function AssetIncomingForm({ onSuccess }) {
             tgl_pembukuan: new Date().toISOString().split('T')[0],
             kondisi: 'Baik',
             jenis_dokumen: 'Kuitansi',
-            dasar_harga: 'Perolehan'
+            dasar_harga: 'Perolehan',
+            periode: 'normal'
         }
     });
 
@@ -34,6 +38,26 @@ export default function AssetIncomingForm({ onSuccess }) {
     const jumlah = watch('jumlah') || 0;
     const nilaiSatuan = watch('nilai_satuan') || 0;
     const totalNilai = jumlah * nilaiSatuan;
+
+    // Fetch Initial Data
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Get PPK List
+                const resPpk = await api.get('/api/pegawai/pejabat', { params: { role: 'PPK' } });
+                setPpkList(resPpk.data);
+
+                // Get Settings for UAKPB
+                const resSettings = await api.get('/api/settings/instansi');
+                if (resSettings.data.kode_uakpb) {
+                    setKodeUakpb(resSettings.data.kode_uakpb);
+                }
+            } catch (e) {
+                console.error("Failed to load initial data", e);
+            }
+        };
+        fetchData();
+    }, []);
 
     // Fetch Next NUP when Kode Barang changes
     useEffect(() => {
@@ -66,9 +90,8 @@ export default function AssetIncomingForm({ onSuccess }) {
             const createdIds = [];
             
             // Loop for Quantity to create individual Asset Records (Standard BMN Practice)
-            // Each asset gets a unique NUP
             for (let i = 0; i < parseInt(data.jumlah); i++) {
-                const currentNup = nextNup ? (nextNup + i) : (1 + i); // Fallback logic
+                const currentNup = nextNup ? (nextNup + i) : (1 + i); 
                 
                 const assetPayload = {
                     // Standard Fields
@@ -79,12 +102,12 @@ export default function AssetIncomingForm({ onSuccess }) {
                     tipe: data.tipe,
                     kondisi: data.kondisi,
                     tgl_perolehan: data.tgl_perolehan,
-                    tgl_buku: data.tgl_pembukuan, // Mapped to tgl_buku model
+                    tgl_buku: data.tgl_pembukuan,
                     tahun_anggaran: String(data.tahun_anggaran),
                     
                     // Financials
                     nilai_perolehan: parseFloat(data.nilai_satuan),
-                    nilai_buku: parseFloat(data.nilai_satuan), // Initial Book Value = Acquisition
+                    nilai_buku: parseFloat(data.nilai_satuan),
                     nilai_satuan: parseFloat(data.nilai_satuan),
                     
                     // Defaults
@@ -92,15 +115,18 @@ export default function AssetIncomingForm({ onSuccess }) {
                     source: 'manual',
                     status_aset: 'Aktif',
                     
-                    // Detailed Fields (Mapped to detail_lainnya for flexibility)
+                    // Detailed Fields
                     detail_lainnya: {
                         jenis_dokumen: data.jenis_dokumen,
                         nomor_dokumen: data.nomor_dokumen,
                         tgl_dokumen: data.tgl_dokumen,
                         no_kontrak: data.no_kontrak,
                         no_sppa: data.no_sppa,
+                        no_sppa_2: data.no_sppa_2, // Second SPPA field
                         dasar_harga: data.dasar_harga,
-                        keterangan: data.keterangan
+                        keterangan: data.keterangan,
+                        periode: data.periode,
+                        nama_ppk: data.nama_ppk // Name of PPK
                     }
                 };
 
@@ -140,25 +166,44 @@ export default function AssetIncomingForm({ onSuccess }) {
                     <Save className="h-5 w-5 text-blue-600"/>
                     RUH Transaksi BMN Perolehan - Pembelian
                 </CardTitle>
-                <div className="text-xs text-slate-500">
-                    Input data perolehan aset tetap sesuai standar SIMAN/BMN
+                <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+                    <span>Input data perolehan aset tetap sesuai standar SIMAN/BMN</span>
+                    <span className="font-mono bg-slate-100 px-2 py-1 rounded">
+                        Kode UAKPB: <strong>{kodeUakpb || 'Belum diset'}</strong>
+                    </span>
                 </div>
             </CardHeader>
             <CardContent className="pt-6">
                 <form onSubmit={handleSubmit(onSubmit)}>
                     {/* Top Level Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-slate-600">No SPPA (Opsional)</Label>
-                            <Input {...register('no_sppa')} className="bg-white h-9" placeholder="Nomor SPPA..."/>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                        <div className="md:col-span-4 space-y-1">
+                            <Label className="text-xs font-semibold text-slate-600">No SPPA</Label>
+                            <div className="flex gap-2">
+                                <Input {...register('no_sppa')} className="bg-white h-9 flex-1" placeholder="Prefix..."/>
+                                <Input {...register('no_sppa_2')} className="bg-white h-9 flex-[2]" placeholder="Nomor SPPA..."/>
+                            </div>
                         </div>
-                        <div className="space-y-1">
+                        <div className="md:col-span-2 space-y-1">
                             <Label className="text-xs font-semibold text-slate-600">Tahun Anggaran</Label>
                             <Input {...register('tahun_anggaran')} className="bg-white h-9 font-bold" />
                         </div>
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-slate-600">Tanggal Rekam</Label>
-                            <Input value={new Date().toLocaleDateString('id-ID')} disabled className="bg-slate-100 h-9 border-slate-200" />
+                        <div className="md:col-span-6 space-y-1">
+                            <Label className="text-xs font-semibold text-slate-600">Periode Pencatatan</Label>
+                            <RadioGroup defaultValue="normal" onValueChange={(v) => setValue('periode', v)} className="flex gap-4 pt-2">
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="normal" id="p1" />
+                                    <Label htmlFor="p1" className="text-xs">Normal (1-12)</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="13" id="p13" />
+                                    <Label htmlFor="p13" className="text-xs">Periode 13 (Unaudited)</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="14" id="p14" />
+                                    <Label htmlFor="p14" className="text-xs">Periode 14 (Audited)</Label>
+                                </div>
+                            </RadioGroup>
                         </div>
                     </div>
 
@@ -237,26 +282,25 @@ export default function AssetIncomingForm({ onSuccess }) {
                                 
                                 <div className="space-y-2">
                                     <Label className="text-xs font-semibold">Jenis Dokumen</Label>
-                                    <RadioGroup defaultValue="Kuitansi" onValueChange={(v) => setValue('jenis_dokumen', v)} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="Kuitansi" id="r1" />
-                                            <Label htmlFor="r1" className="text-xs">Kuitansi</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="BAST" id="r2" />
-                                            <Label htmlFor="r2" className="text-xs">BAST</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="Kontrak" id="r3" />
-                                            <Label htmlFor="r3" className="text-xs">Kontrak</Label>
-                                        </div>
-                                    </RadioGroup>
+                                    <Select onValueChange={(v) => setValue('jenis_dokumen', v)} defaultValue="Kuitansi">
+                                        <SelectTrigger className="h-9 bg-white">
+                                            <SelectValue placeholder="Pilih Jenis Dokumen" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Kuitansi">Kuitansi</SelectItem>
+                                            <SelectItem value="BAST">BAST (Berita Acara Serah Terima)</SelectItem>
+                                            <SelectItem value="Kontrak">Kontrak</SelectItem>
+                                            <SelectItem value="Non_Kontrak">Non Kontrak/Penerimaan Barang</SelectItem>
+                                            <SelectItem value="Kontrak_BLU">Kontrak BLU</SelectItem>
+                                            <SelectItem value="Non_Kontrak_BLU">Non Kontrak BLU</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Nomor Dokumen</Label>
-                                        <Input {...register('nomor_dokumen', {required: true})} className="bg-white" placeholder="No. Kuitansi/BAST"/>
+                                        <Input {...register('nomor_dokumen', {required: true})} className="bg-white" placeholder="No. Dokumen..."/>
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Tanggal Dokumen</Label>
@@ -304,6 +348,26 @@ export default function AssetIncomingForm({ onSuccess }) {
                                             <Label htmlFor="h2" className="text-xs">Harga Taksiran</Label>
                                         </div>
                                     </RadioGroup>
+                                </div>
+                                <div className="space-y-2 pt-2">
+                                    <Label className="text-xs font-semibold">Pejabat Pembuat Komitmen (PPK)</Label>
+                                    <Select onValueChange={(v) => setValue('nama_ppk', v)}>
+                                        <SelectTrigger className="h-9 bg-white">
+                                            <SelectValue placeholder="Pilih PPK..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ppkList.length > 0 ? (
+                                                ppkList.map(ppk => (
+                                                    <SelectItem key={ppk._id} value={ppk.nama_lengkap}>{ppk.nama_lengkap} (NIP: {ppk.nip})</SelectItem>
+                                                ))
+                                            ) : (
+                                                <SelectItem value="none" disabled>Tidak ada PPK terdaftar</SelectItem>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-[10px] text-slate-500">
+                                        *Diambil dari pegawai dengan jabatan melekat 'PPK'.
+                                    </p>
                                 </div>
                             </div>
 
