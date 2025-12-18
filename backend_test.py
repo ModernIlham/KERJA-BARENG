@@ -5104,8 +5104,10 @@ class APITester:
         for officer in ppk_officers:
             if officer.get('_id') == ppk_employee_id:
                 found_test_ppk = True
-                jabatan_melekat = officer.get('jabatan_melekat', '')
-                if 'PPK' in jabatan_melekat:
+                jabatan_melekat = officer.get('jabatan_melekat', [])
+                # Check if any item in the jabatan_melekat list contains 'PPK'
+                has_ppk = any('PPK' in jabatan for jabatan in jabatan_melekat)
+                if has_ppk:
                     print(f"✅ Test PPK found in search results: {officer.get('nama_lengkap')}")
                 else:
                     print(f"❌ Test PPK found but jabatan_melekat doesn't contain PPK: {jabatan_melekat}")
