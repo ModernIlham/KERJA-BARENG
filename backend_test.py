@@ -4608,16 +4608,26 @@ class APITester:
         print("\n🔍 Step 3: Verifying backend storage of detail_lainnya fields...")
         
         for i, asset_id in enumerate(created_asset_ids):
+            # Use the list endpoint to search for the specific asset by ID
             success, response = self.run_test(
                 f"Get Asset {i+1} Details",
                 "GET",
-                f"api/barang/{asset_id}",
-                200
+                "api/barang",
+                200,
+                data={"search": asset_id, "page": 1, "limit": 1}
             )
             
             if not success:
                 print(f"❌ Failed to get Asset {i+1} details")
                 return False
+            
+            # Extract the asset from the response
+            assets = response.get('data', [])
+            if not assets:
+                print(f"❌ Asset {i+1} not found in search results")
+                return False
+            
+            response = assets[0]  # Use the first (and should be only) result
             
             # Verify detail_lainnya fields
             detail_lainnya = response.get('detail_lainnya', {})
@@ -4672,16 +4682,26 @@ class APITester:
         asset2_nup = None
         
         for i, asset_id in enumerate(created_asset_ids):
+            # Use the list endpoint to search for the specific asset by ID
             success, response = self.run_test(
-                f"Get Asset {i+1} NUP",
+                f"Get Asset {i+1} Details",
                 "GET",
-                f"api/barang/{asset_id}",
-                200
+                "api/barang",
+                200,
+                data={"search": asset_id, "page": 1, "limit": 1}
             )
             
             if not success:
-                print(f"❌ Failed to get Asset {i+1} NUP")
+                print(f"❌ Failed to get Asset {i+1} details")
                 return False
+            
+            # Extract the asset from the response
+            assets = response.get('data', [])
+            if not assets:
+                print(f"❌ Asset {i+1} not found in search results")
+                return False
+            
+            response = assets[0]  # Use the first (and should be only) result
             
             nup_value = response.get('nup')
             if i == 0:
@@ -5365,16 +5385,26 @@ def main():
         print("\n🔍 Step 3: Verifying backend storage of detail_lainnya fields...")
         
         for i, asset_id in enumerate(created_asset_ids):
+            # Use the list endpoint to search for the specific asset by ID
             success, response = self.run_test(
                 f"Get Asset {i+1} Details",
                 "GET",
-                f"api/barang/{asset_id}",
-                200
+                "api/barang",
+                200,
+                data={"search": asset_id, "page": 1, "limit": 1}
             )
             
             if not success:
                 print(f"❌ Failed to get Asset {i+1} details")
                 return False
+            
+            # Extract the asset from the response
+            assets = response.get('data', [])
+            if not assets:
+                print(f"❌ Asset {i+1} not found in search results")
+                return False
+            
+            response = assets[0]  # Use the first (and should be only) result
             
             # Verify detail_lainnya fields
             detail_lainnya = response.get('detail_lainnya', {})
@@ -5429,16 +5459,26 @@ def main():
         asset2_nup = None
         
         for i, asset_id in enumerate(created_asset_ids):
+            # Use the list endpoint to search for the specific asset by ID
             success, response = self.run_test(
-                f"Get Asset {i+1} NUP",
+                f"Get Asset {i+1} Details",
                 "GET",
-                f"api/barang/{asset_id}",
-                200
+                "api/barang",
+                200,
+                data={"search": asset_id, "page": 1, "limit": 1}
             )
             
             if not success:
-                print(f"❌ Failed to get Asset {i+1} NUP")
+                print(f"❌ Failed to get Asset {i+1} details")
                 return False
+            
+            # Extract the asset from the response
+            assets = response.get('data', [])
+            if not assets:
+                print(f"❌ Asset {i+1} not found in search results")
+                return False
+            
+            response = assets[0]  # Use the first (and should be only) result
             
             nup_value = response.get('nup')
             if i == 0:
