@@ -6,12 +6,13 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Loader2, Plus, Save, Trash, Upload, Info } from 'lucide-react';
+import { Loader2, Plus, Save, Trash, Upload, Info, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
 import BarangSearch from '../barang/BarangSearch';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 
 export default function PersediaanIncomingForm({ onSuccess }) {
     const [selectedItem, setSelectedItem] = useState(null);
@@ -23,10 +24,12 @@ export default function PersediaanIncomingForm({ onSuccess }) {
     // Evidence File
     const [buktiFile, setBuktiFile] = useState(null);
     
-    // Header state handled via react-hook-form for better validation
-    // Note: We use a separate form context for header if we want validation there?
-    // Or just simple state. The previous implementation used state for header.
-    // Let's use state for header to keep it simple, but expanded.
+    // Document Selection
+    const [isDocModalOpen, setIsModalOpen] = useState(false);
+    const [dokumenList, setDokumenList] = useState([]);
+    const [selectedDokumen, setSelectedDokumen] = useState(null);
+
+    // Header state
     const [header, setHeader] = useState({
         dokumen_ref: '', // No Dokumen
         no_bukti: '',
@@ -76,6 +79,46 @@ export default function PersediaanIncomingForm({ onSuccess }) {
     const handleItemSelect = (item) => {
         setSelectedItem(item);
         setValue('nilai_satuan', item.nilai_satuan || 0);
+    };
+
+    // Document Selection Logic
+    const handleOpenDocModal = async () => {
+        setIsModalOpen(true);
+        try {
+            const res = await api.get('/api/dokumen-sumber');
+            setDokumenList(res.data.data);
+        } catch (e) { console.error(e); }
+    };
+    
+    const handleSelectDoc = (doc) => {
+        setSelectedDokumen(doc);
+        
+        setHeader(prev => ({
+            ...prev,
+            dokumen_ref: doc.nomor_dokumen,
+            jenis_dokumen: doc.jenis_dokumen,
+            tgl_dokumen: doc.tanggal_dokumen,
+            keterangan: doc.uraian || prev.keterangan,
+            ppk_id: doc.ppk_id || prev.ppk_id,
+            ppk_nama: doc.ppk_nama || prev.ppk_nama,
+            npwp: doc.npwp_penyedia || prev.npwp,
+            nama_pemilik_npwp: doc.nama_penyedia || prev.nama_pemilik_npwp
+        }));
+        
+        setIsModalOpen(false);
+        toast.success("Data dokumen disalin");
+    };
+    
+    const clearDocSelection = () => {
+        setSelectedDokumen(null);
+        setHeader(prev => ({
+            ...prev,
+            dokumen_ref: '',
+            ppk_id: '',
+            ppk_nama: '',
+            npwp: '',
+            nama_pemilik_npwp: ''
+        }));
     };
 
     const handleAddItem = (data) => {
@@ -138,7 +181,10 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                 ppk_id: header.ppk_id,
                 ppk_nama: header.ppk_nama,
                 npwp: header.npwp,
-                nama_pemilik_npwp: header.nama_pemilik_npwp
+                nama_pemilik_npwp: header.nama_pemilik_npwp,
+                
+                // Link
+                dokumen_sumber_id: selectedDokumen?._id
             };
 
             const res = await api.post('/api/persediaan-transaksi/in/bulk', payload);
@@ -169,6 +215,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                 npwp: '',
                 nama_pemilik_npwp: ''
             }));
+            setSelectedDokumen(null);
             setBuktiFile(null);
             
             if (onSuccess) onSuccess();
@@ -200,14 +247,27 @@ export default function PersediaanIncomingForm({ onSuccess }) {
         <div className="space-y-6 mb-8">
             <Card className="border-blue-200 bg-blue-50/50">
                 <CardHeader className="pb-2 border-b bg-white rounded-t-lg">
-                    <CardTitle className="text-lg font-bold text-blue-800 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-bold text-blue-800 flex items-center gap-2">
                             <Plus size={18}/> Transaksi Masuk Persediaan (Pembelian)
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                            {/* Source Doc Selection */}
+                            {selectedDokumen ? (
+                                <div className="flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 px-2 py-1 rounded">
+                                    <span className="font-bold text-xs">Ref: {selectedDokumen.nomor_dokumen}</span>
+                                    <button onClick={clearDocSelection}><X size={12}/></button>
+                                </div>
+                            ) : (
+                                <Button variant="outline" size="sm" onClick={handleOpenDocModal} className="h-7 text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                    <Search className="mr-1 h-3 w-3"/> Pilih Dokumen Sumber
+                                </Button>
+                            )}
+                            <div className="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                                Kode UAKPB: <strong>{kodeUakpb || 'Belum diset'}</strong>
+                            </div>
                         </div>
-                        <div className="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                            Kode UAKPB: <strong>{kodeUakpb || 'Belum diset'}</strong>
-                        </div>
-                    </CardTitle>
+                    </div>
                 </CardHeader>
                 <CardContent className="pt-6">
                     {/* Header Section */}
@@ -224,6 +284,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                         onChange={(e) => setHeader({...header, dokumen_ref: e.target.value})}
                                         placeholder="No. Dok..."
                                         className="bg-white h-8"
+                                        readOnly={!!selectedDokumen}
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -233,6 +294,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                         value={header.tgl_dokumen} 
                                         onChange={(e) => setHeader({...header, tgl_dokumen: e.target.value})}
                                         className="bg-white h-8"
+                                        readOnly={!!selectedDokumen}
                                     />
                                 </div>
                             </div>
@@ -273,14 +335,6 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                         <RadioGroupItem value="Non_Kontrak" id="r2" />
                                         <Label htmlFor="r2" className="text-xs font-normal">Non Kontrak / Penerimaan Barang</Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Kontrak_BLU" id="r3" />
-                                        <Label htmlFor="r3" className="text-xs font-normal">Kontrak BLU Penerimaan Barang BLU</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Non_Kontrak_BLU" id="r4" />
-                                        <Label htmlFor="r4" className="text-xs font-normal">Non Kontrak / Penerimaan Barang BLU</Label>
-                                    </div>
                                 </RadioGroup>
                             </div>
                         </div>
@@ -291,7 +345,11 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                             
                             <div className="space-y-1">
                                 <Label className="text-xs">Pejabat Pembuat Komitmen (PPK)</Label>
-                                <Select onValueChange={handlePpkChange}>
+                                <Select 
+                                    onValueChange={handlePpkChange} 
+                                    value={header.ppk_id}
+                                    disabled={!!selectedDokumen && !!header.ppk_id}
+                                >
                                     <SelectTrigger className="h-8 bg-white">
                                         <SelectValue placeholder="Pilih PPK..." />
                                     </SelectTrigger>
@@ -316,19 +374,21 @@ export default function PersediaanIncomingForm({ onSuccess }) {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <Label className="text-xs">NPWP (Opsional)</Label>
+                                    <Label className="text-xs">NPWP</Label>
                                     <Input 
                                         value={header.npwp} 
                                         onChange={(e) => setHeader({...header, npwp: e.target.value})}
                                         className="bg-white h-8"
+                                        readOnly={!!selectedDokumen}
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <Label className="text-xs">Nama Pemilik NPWP</Label>
+                                    <Label className="text-xs">Nama Rekanan</Label>
                                     <Input 
                                         value={header.nama_pemilik_npwp} 
                                         onChange={(e) => setHeader({...header, nama_pemilik_npwp: e.target.value})}
                                         className="bg-white h-8"
+                                        readOnly={!!selectedDokumen}
                                     />
                                 </div>
                             </div>
@@ -498,6 +558,57 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                     </CardContent>
                 </Card>
             )}
+
+            {/* Document Selection Modal */}
+            <Dialog open={isDocModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>Pilih Dokumen Sumber</DialogTitle>
+                    </DialogHeader>
+                    <div className="max-h-[60vh] overflow-y-auto">
+                        <div className="mb-4">
+                            <Input placeholder="Cari Dokumen..." className="mb-2" />
+                        </div>
+                        {dokumenList.length === 0 ? (
+                            <div className="text-center py-8 text-slate-500">
+                                Tidak ada dokumen sumber tersimpan.<br/>
+                                <span className="text-xs">Silakan rekam dokumen terlebih dahulu di menu Referensi Dokumen.</span>
+                            </div>
+                        ) : (
+                            <table className="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-100 text-left">
+                                        <th className="p-2 border">Jenis & No</th>
+                                        <th className="p-2 border">Tanggal</th>
+                                        <th className="p-2 border">Penyedia / PPK</th>
+                                        <th className="p-2 border">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dokumenList.map(doc => (
+                                        <tr key={doc._id} className="hover:bg-slate-50">
+                                            <td className="p-2 border">
+                                                <div className="font-bold">{doc.jenis_dokumen}</div>
+                                                <div className="text-xs text-blue-600">{doc.nomor_dokumen}</div>
+                                            </td>
+                                            <td className="p-2 border">{doc.tanggal_dokumen}</td>
+                                            <td className="p-2 border">
+                                                <div className="text-xs font-semibold">{doc.nama_penyedia || '-'}</div>
+                                                <div className="text-xs text-slate-500">{doc.ppk_nama || '-'}</div>
+                                            </td>
+                                            <td className="p-2 border text-center">
+                                                <Button size="sm" variant="ghost" className="h-6 text-xs bg-blue-50 text-blue-700" onClick={() => handleSelectDoc(doc)}>
+                                                    Pilih
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
