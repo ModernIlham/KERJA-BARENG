@@ -360,6 +360,21 @@ agent_communication:
     message: "✅ NAVIGATION RESTRUCTURING BACKEND SUPPORT TESTING COMPLETED SUCCESSFULLY: Comprehensive verification of Navigation restructuring backend support completed as requested in review. All 7 verification steps passed perfectly: 1) ✅ Backend APIs for /transaksi-aset route working correctly - GET /api/transaksi supports transaction history (16 transactions found), GET /api/barang supports asset search (13,566 assets available), 2) ✅ Backend APIs for /transaksi-persediaan route working correctly - GET /api/persediaan-transaksi supports persediaan transaction history (20 transactions found), GET /api/persediaan supports persediaan search (32 items available), 3) ✅ Backend APIs for /barang?tab=aset-tetap working correctly - GET /api/barang with filters supports Aset Tetap tab with proper data structure including NUP field, 4) ✅ Backend APIs for /barang?tab=persediaan working correctly - GET /api/persediaan with filters supports Persediaan tab with proper data structure including stok field, 5) ✅ 'Barang Masuk' separation working correctly - POST /api/barang for Aset Tetap creation functional, POST /api/persediaan for Persediaan creation functional, 6) ✅ Transaction creation separated correctly - POST /api/transaksi for Aset Tetap transactions functional, POST /api/persediaan-transaksi/in for Persediaan transactions functional, 7) ✅ API endpoints properly separated and filtered - /api/barang returns Aset Tetap data with NUP field, /api/persediaan returns Persediaan data with stok field. All backend APIs supporting the navigation restructuring are fully functional and ready for frontend implementation. The separation between 'Aset Tetap' and 'Persediaan' is properly supported at the API level."
 
 backend:
+  - task: "Fixed Asset Codification Logic"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/barang.py, /app/backend/routes/referensi.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing Fixed Asset Codification Logic as requested in review. Verifying: 1) 'Barang Masuk' (Fixed Asset) form requires valid 10-digit code from Reference, 2) Simulate creating asset with code like '3010101001', 3) Verify NUP generation still works (POST /api/barang handles new code and generates next NUP automatically), 4) Verify frontend passes correct kode_barang field."
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED ASSET CODIFICATION LOGIC TEST COMPLETED SUCCESSFULLY: All 4 verification steps passed perfectly. 1) ✅ Referensi endpoint has valid 10-digit codes (found 42 valid codes, used 1010101001), 2) ✅ Lookup functionality works for 10-digit code - proper hierarchy breakdown (Golongan: 1-Persediaan, Bidang: 101-BARANG PAKAI HABIS, etc.), 3) ✅ NUP generation works correctly (Next NUP: 1, Formatted: '1 (Sementara)'), 4) ✅ Fixed asset creation with 10-digit code successful (Asset ID: 694402d1022f7470a615a9e3, Code: 1010101001, NUP: 1). Backend properly handles kode_barang field validation, NUP generation working as expected, frontend should pass correct kode_barang field to backend. Test Results: 5/5 API calls successful (100% success rate)."
+
   - task: "Transaksi Aset Tetap Module"
     implemented: true
     working: true
