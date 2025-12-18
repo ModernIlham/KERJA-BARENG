@@ -1300,7 +1300,7 @@ class APITester:
         # Verify all fields
         fields_to_check = [
             ('jenis_dokumen', 'Kontrak'),
-            ('nomor_dokumen', 'DOC-001'),
+            ('nomor_dokumen', f'DOC-{timestamp}'),
             ('tanggal_dokumen', '2024-01-15'),
             ('ppk_id', ppk_id),
             ('ppk_nama', ppk_nama),
