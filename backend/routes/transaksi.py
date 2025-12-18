@@ -148,6 +148,96 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
         created_tx["_id"] = str(created_tx["_id"])
     return created_tx
 
+@router.post("/bulk")
+async def bulk_asset_transaction(
+    payload: Dict[str, Any],
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Handle bulk transactions for Aset Tetap (Moving multiple specific assets).
+    Payload: {
+        "asset_ids": ["id1", "id2"],
+        "jenis": "KELUAR" | "MASUK" | "MUTASI",
+        "keterangan": "...",
+        "dokumen_ref": "...",
+        "pegawai_id": "...",
+        "unit_penerima": "..."
+    }
+    """
+    asset_ids = payload.get("asset_ids", [])
+    jenis = payload.get("jenis")
+    if not asset_ids or not jenis:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+        
+    valid_ids = [ObjectId(i) for i in asset_ids if ObjectId.is_valid(i)]
+    if not valid_ids:
+        raise HTTPException(status_code=400, detail="No valid Asset IDs")
+        
+    # Get Assets
+    cursor = db.barang.find({"_id": {"$in": valid_ids}})
+    assets = await cursor.to_list(None)
+    
+    # Process recipient info
+    nama_pegawai = None
+    unit_penerima = payload.get("unit_penerima")
+    
+    if payload.get("pegawai_id") and ObjectId.is_valid(payload.get("pegawai_id")):
+        pegawai = await db.pegawai.find_one({"_id": ObjectId(payload.get("pegawai_id"))})
+        if pegawai:
+            nama_pegawai = pegawai['nama_lengkap']
+            # If unit_penerima not manually provided, take from employee
+            if not unit_penerima:
+                unit_penerima = pegawai.get('eselon3') or pegawai.get('eselon4')
+
+    created_ids = []
+    
+    for asset in assets:
+        # Create Transaction Log
+        new_tx = Transaksi(
+            jenis=jenis,
+            barang_id=str(asset["_id"]),
+            kode_barang=asset.get('kode_barang', ''),
+            nup=asset.get('nup', ''),
+            nama_barang=asset.get('nama_barang', ''),
+            jumlah=1, # Always 1 for specific asset movement
+            nilai_satuan=asset.get('nilai_buku', 0),
+            total_nilai=asset.get('nilai_buku', 0),
+            pegawai_id=payload.get("pegawai_id"),
+            nama_pegawai=nama_pegawai,
+            unit_penerima=unit_penerima,
+            keterangan=payload.get("keterangan"),
+            dokumen_ref=payload.get("dokumen_ref"),
+            petugas=current_user,
+            timestamp=datetime.now(timezone.utc)
+        )
+        
+        res = await db.transaksi.insert_one(new_tx.model_dump(by_alias=True, exclude=["id"]))
+        created_ids.append(str(res.inserted_id))
+        
+        # Update Asset Status/Location if needed
+        update_fields = {"updated_at": datetime.now(timezone.utc)}
+        
+        if jenis == "KELUAR":
+            # Assume "Keluar" means it's still an asset but maybe status changes?
+            # Or is it "Penghapusan"? Let's assume generic "Keluar" updates location/holder
+            if unit_penerima:
+                update_fields["lokasi_fisik"] = unit_penerima # Simple logic: location = unit
+            if payload.get("pegawai_id"):
+                update_fields["detail_lainnya.pemegang"] = nama_pegawai
+                
+        elif jenis == "MUTASI":
+             if unit_penerima:
+                update_fields["lokasi_fisik"] = unit_penerima
+                update_fields["kode_satker"] = "MUTASI" # Example
+                
+        await db.barang.update_one({"_id": asset["_id"]}, {"$set": update_fields})
+
+    return {
+        "message": f"Successfully processed {len(created_ids)} assets", 
+        "ids": created_ids,
+        "count": len(created_ids)
+    }
+
 @router.post("/{id}/upload-bukti")
 async def upload_bukti_transaksi(
     id: str,
