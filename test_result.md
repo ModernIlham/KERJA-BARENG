@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the new Transaction features: 1. Upload a dummy evidence photo to a Transaction using POST /api/transaksi/{id}/upload-bukti. 2. Upload a dummy evidence photo to a Persediaan Transaction using POST /api/persediaan-transaksi/upload-bukti (Bulk). 3. Verify the files are uploaded and URLs are returned. 4. Verify Employee Photo upload now supports cropping (Frontend feature, but backend endpoint POST /api/pegawai/{id}/upload-foto should still accept the file)."
+user_problem_statement: "Verify the new 'Transaksi Aset Tetap' module: 1. 'Barang Masuk' (Fixed Asset Acquisition): Create 2 new assets via the bulk form AssetIncomingForm (check if it hits POST /api/barang and POST /api/transaksi correctly). 2. 'Barang Keluar' (Fixed Asset Distribution): Search for the newly created assets, select them, and process a 'Keluar' transaction via POST /api/transaksi/bulk. 3. Check if the transactions appear in the history (GET /api/transaksi). 4. Check if the Asset status/location updated in db.barang."
 
 frontend:
   - task: "Pagination on Master Barang Page"
