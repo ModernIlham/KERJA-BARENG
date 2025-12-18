@@ -211,8 +211,18 @@ export default function PegawaiList() {
                                             alt={item.nama_lengkap}
                                             className="h-full w-full object-cover"
                                         />
-                                        <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center">
-                                            <span className="text-[8px] text-white">Edit</span>
+                                        <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center gap-2">
+                                            <span className="text-[8px] text-white bg-slate-900/50 px-1 rounded">Edit</span>
+                                            <a 
+                                                href={item.foto_url || item.foto_thumbnail_url} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="p-1 bg-white/20 rounded-full hover:bg-white/40 text-white"
+                                                onClick={(e) => e.stopPropagation()}
+                                                title="Zoom Fullscreen"
+                                            >
+                                                <ExternalLink size={10}/>
+                                            </a>
                                         </div>
                                     </>
                                  ) : (
