@@ -4614,7 +4614,7 @@ class APITester:
                 "GET",
                 "api/barang",
                 200,
-                data={"search": "Test RUH Pembelian Equipment", "page": 1, "limit": 10}
+                data={"filter_nup": str(next_nup + i), "page": 1, "limit": 1}
             )
             
             if not success:
@@ -4688,7 +4688,7 @@ class APITester:
                 "GET",
                 "api/barang",
                 200,
-                data={"search": "Test RUH Pembelian Equipment", "page": 1, "limit": 10}
+                data={"filter_nup": str(next_nup + i), "page": 1, "limit": 1}
             )
             
             if not success:
@@ -5391,7 +5391,7 @@ def main():
                 "GET",
                 "api/barang",
                 200,
-                data={"search": "Test RUH Pembelian Equipment", "page": 1, "limit": 10}
+                data={"filter_nup": str(next_nup + i), "page": 1, "limit": 1}
             )
             
             if not success:
@@ -5465,7 +5465,7 @@ def main():
                 "GET",
                 "api/barang",
                 200,
-                data={"search": "Test RUH Pembelian Equipment", "page": 1, "limit": 10}
+                data={"filter_nup": str(next_nup + i), "page": 1, "limit": 1}
             )
             
             if not success:
