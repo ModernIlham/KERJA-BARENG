@@ -1511,6 +1511,364 @@ class APITester:
         
         return True
 
+    def test_transaksi_aset_tetap_module(self):
+        """Test the new 'Transaksi Aset Tetap' module as requested in review"""
+        print("\n=== TRANSAKSI ASET TETAP MODULE TEST ===")
+        
+        import time
+        timestamp = int(time.time())
+        
+        # Step 1: "Barang Masuk" (Fixed Asset Acquisition) - Create 2 new assets via bulk form
+        print("\n🔧 Step 1: Testing 'Barang Masuk' (Fixed Asset Acquisition) - Creating 2 new assets...")
+        
+        # Create first asset
+        asset1_data = {
+            "kode_barang": f"103010100100{timestamp % 10000:04d}",  # Aset tetap code format
+            "nama_barang": f"Test Asset 1 - Laptop Dell {timestamp}",
+            "merk": "Dell",
+            "tipe": "Latitude 5520",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Ruang IT",
+            "nilai_perolehan": 15000000,
+            "nilai_buku": 15000000,
+            "tahun_perolehan": 2024,
+            "nup": "1"
+        }
+        
+        success, response = self.run_test(
+            "Create Asset 1 via POST /api/barang",
+            "POST",
+            "api/barang",
+            200,
+            data=asset1_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Asset 1")
+            return False
+            
+        asset1_id = response.get('_id') or response.get('id')
+        print(f"✅ Asset 1 created with ID: {asset1_id}")
+        
+        # Create second asset
+        asset2_data = {
+            "kode_barang": f"103010100100{(timestamp + 1) % 10000:04d}",  # Different unique code
+            "nama_barang": f"Test Asset 2 - Printer Canon {timestamp}",
+            "merk": "Canon",
+            "tipe": "ImageClass MF445dw",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Ruang Admin",
+            "nilai_perolehan": 5000000,
+            "nilai_buku": 5000000,
+            "tahun_perolehan": 2024,
+            "nup": "2"
+        }
+        
+        success, response = self.run_test(
+            "Create Asset 2 via POST /api/barang",
+            "POST",
+            "api/barang",
+            200,
+            data=asset2_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Asset 2")
+            return False
+            
+        asset2_id = response.get('_id') or response.get('id')
+        print(f"✅ Asset 2 created with ID: {asset2_id}")
+        
+        # Create incoming transactions for both assets
+        print("\n📦 Step 1b: Creating incoming transactions via POST /api/transaksi...")
+        
+        # Transaction for Asset 1
+        txn1_data = {
+            "jenis": "MASUK",
+            "barang_id": asset1_id,
+            "jumlah": 1,
+            "nilai_satuan": 15000000,
+            "keterangan": f"Pengadaan Laptop Dell - Test {timestamp}",
+            "dokumen_ref": f"PO-LAPTOP-{timestamp}"
+        }
+        
+        success, response = self.run_test(
+            "Create Incoming Transaction for Asset 1",
+            "POST",
+            "api/transaksi",
+            200,
+            data=txn1_data
+        )
+        
+        if not success:
+            print("❌ Failed to create incoming transaction for Asset 1")
+            return False
+            
+        txn1_id = response.get('_id') or response.get('id')
+        print(f"✅ Incoming transaction for Asset 1 created with ID: {txn1_id}")
+        
+        # Transaction for Asset 2
+        txn2_data = {
+            "jenis": "MASUK",
+            "barang_id": asset2_id,
+            "jumlah": 1,
+            "nilai_satuan": 5000000,
+            "keterangan": f"Pengadaan Printer Canon - Test {timestamp}",
+            "dokumen_ref": f"PO-PRINTER-{timestamp}"
+        }
+        
+        success, response = self.run_test(
+            "Create Incoming Transaction for Asset 2",
+            "POST",
+            "api/transaksi",
+            200,
+            data=txn2_data
+        )
+        
+        if not success:
+            print("❌ Failed to create incoming transaction for Asset 2")
+            return False
+            
+        txn2_id = response.get('_id') or response.get('id')
+        print(f"✅ Incoming transaction for Asset 2 created with ID: {txn2_id}")
+        
+        # Step 2: "Barang Keluar" (Fixed Asset Distribution) - Search and select assets, process bulk "Keluar"
+        print("\n📤 Step 2: Testing 'Barang Keluar' (Fixed Asset Distribution) - Bulk outgoing transaction...")
+        
+        # First, search for our newly created assets to verify they exist
+        success, response = self.run_test(
+            "Search for Created Assets",
+            "GET",
+            "api/barang",
+            200,
+            data={"search": f"Test Asset", "page": 1, "limit": 50}
+        )
+        
+        if success:
+            assets = response.get('data', [])
+            found_asset1 = False
+            found_asset2 = False
+            
+            for asset in assets:
+                if asset.get('_id') == asset1_id:
+                    found_asset1 = True
+                    print(f"✅ Found Asset 1 in search: {asset.get('nama_barang')}")
+                elif asset.get('_id') == asset2_id:
+                    found_asset2 = True
+                    print(f"✅ Found Asset 2 in search: {asset.get('nama_barang')}")
+            
+            if not found_asset1 or not found_asset2:
+                print("❌ Not all created assets found in search")
+                return False
+        else:
+            print("❌ Failed to search for assets")
+            return False
+        
+        # Create a test employee to receive the assets
+        employee_data = {
+            "nama_lengkap": f"Test Employee Receiver {timestamp}",
+            "nip": f"REC{timestamp % 100000:05d}",
+            "nik": f"12345678901234{timestamp % 100:02d}",
+            "email": f"test.receiver.{timestamp}@example.com",
+            "status_kepegawaian": "PNS",
+            "jabatan": "Staff IT",
+            "eselon1": "Bagian IT",
+            "eselon3": "Subbagian Infrastruktur"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Employee Receiver",
+            "POST",
+            "api/pegawai",
+            200,
+            data=employee_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test employee receiver")
+            return False
+            
+        employee_id = response.get('_id') or response.get('id')
+        print(f"✅ Test employee receiver created with ID: {employee_id}")
+        
+        # Process bulk "Keluar" transaction via POST /api/transaksi/bulk
+        bulk_keluar_data = {
+            "asset_ids": [asset1_id, asset2_id],
+            "jenis": "KELUAR",
+            "keterangan": f"Distribusi aset ke Staff IT - Test {timestamp}",
+            "dokumen_ref": f"DIST-{timestamp}",
+            "pegawai_id": employee_id,
+            "unit_penerima": "Subbagian Infrastruktur"
+        }
+        
+        success, response = self.run_test(
+            "Process Bulk Keluar Transaction",
+            "POST",
+            "api/transaksi/bulk",
+            200,
+            data=bulk_keluar_data
+        )
+        
+        if not success:
+            print("❌ Failed to process bulk keluar transaction")
+            return False
+            
+        bulk_result = response
+        processed_count = bulk_result.get('count', 0)
+        created_txn_ids = bulk_result.get('ids', [])
+        
+        print(f"✅ Bulk keluar transaction processed successfully")
+        print(f"   Processed assets: {processed_count}")
+        print(f"   Created transaction IDs: {created_txn_ids}")
+        
+        if processed_count != 2:
+            print(f"❌ Expected 2 processed assets, got {processed_count}")
+            return False
+        
+        # Step 3: Check if transactions appear in history (GET /api/transaksi)
+        print("\n📋 Step 3: Verifying transactions appear in history via GET /api/transaksi...")
+        
+        success, response = self.run_test(
+            "Get Transaction History",
+            "GET",
+            "api/transaksi",
+            200,
+            data={"page": 1, "limit": 50}
+        )
+        
+        if not success:
+            print("❌ Failed to get transaction history")
+            return False
+            
+        transactions = response.get('data', [])
+        print(f"📊 Found {len(transactions)} transactions in history")
+        
+        # Find our test transactions
+        found_masuk_txns = 0
+        found_keluar_txns = 0
+        
+        for txn in transactions:
+            txn_id = txn.get('_id')
+            jenis = txn.get('jenis')
+            dokumen_ref = txn.get('dokumen_ref', '')
+            
+            # Check for our incoming transactions
+            if (txn_id == txn1_id or txn_id == txn2_id or 
+                dokumen_ref.startswith(f"PO-LAPTOP-{timestamp}") or 
+                dokumen_ref.startswith(f"PO-PRINTER-{timestamp}")):
+                found_masuk_txns += 1
+                print(f"✅ Found MASUK transaction: {txn.get('nama_barang')} - {dokumen_ref}")
+            
+            # Check for our outgoing transactions
+            if (txn_id in created_txn_ids or 
+                dokumen_ref == f"DIST-{timestamp}"):
+                found_keluar_txns += 1
+                print(f"✅ Found KELUAR transaction: {txn.get('nama_barang')} - {dokumen_ref}")
+        
+        if found_masuk_txns < 2:
+            print(f"❌ Expected at least 2 MASUK transactions, found {found_masuk_txns}")
+            return False
+            
+        if found_keluar_txns < 2:
+            print(f"❌ Expected at least 2 KELUAR transactions, found {found_keluar_txns}")
+            return False
+        
+        print(f"✅ Transaction history verification passed: {found_masuk_txns} MASUK, {found_keluar_txns} KELUAR")
+        
+        # Step 4: Check if Asset status/location updated in db.barang
+        print("\n🔍 Step 4: Verifying Asset status/location updated in database...")
+        
+        # Check Asset 1 updates
+        success, response = self.run_test(
+            "Get Updated Asset 1 Details",
+            "GET",
+            f"api/barang",
+            200,
+            data={"search": asset1_id, "page": 1, "limit": 1}
+        )
+        
+        if success:
+            assets = response.get('data', [])
+            if assets:
+                asset1_updated = assets[0]
+                lokasi_fisik = asset1_updated.get('lokasi_fisik')
+                detail_lainnya = asset1_updated.get('detail_lainnya', {})
+                pemegang = detail_lainnya.get('pemegang')
+                
+                print(f"📊 Asset 1 updated details:")
+                print(f"   Lokasi fisik: {lokasi_fisik}")
+                print(f"   Pemegang: {pemegang}")
+                
+                # Verify location was updated to unit_penerima
+                if lokasi_fisik == "Subbagian Infrastruktur":
+                    print("✅ Asset 1 location updated correctly")
+                else:
+                    print(f"❌ Asset 1 location not updated correctly. Expected 'Subbagian Infrastruktur', got '{lokasi_fisik}'")
+                    return False
+                    
+                # Verify pemegang was updated to employee name
+                if pemegang and "Test Employee Receiver" in pemegang:
+                    print("✅ Asset 1 pemegang updated correctly")
+                else:
+                    print(f"⚠️ Asset 1 pemegang may not be updated: '{pemegang}'")
+            else:
+                print("❌ Asset 1 not found in updated search")
+                return False
+        else:
+            print("❌ Failed to get updated Asset 1 details")
+            return False
+        
+        # Check Asset 2 updates
+        success, response = self.run_test(
+            "Get Updated Asset 2 Details",
+            "GET",
+            f"api/barang",
+            200,
+            data={"search": asset2_id, "page": 1, "limit": 1}
+        )
+        
+        if success:
+            assets = response.get('data', [])
+            if assets:
+                asset2_updated = assets[0]
+                lokasi_fisik = asset2_updated.get('lokasi_fisik')
+                detail_lainnya = asset2_updated.get('detail_lainnya', {})
+                pemegang = detail_lainnya.get('pemegang')
+                
+                print(f"📊 Asset 2 updated details:")
+                print(f"   Lokasi fisik: {lokasi_fisik}")
+                print(f"   Pemegang: {pemegang}")
+                
+                # Verify location was updated to unit_penerima
+                if lokasi_fisik == "Subbagian Infrastruktur":
+                    print("✅ Asset 2 location updated correctly")
+                else:
+                    print(f"❌ Asset 2 location not updated correctly. Expected 'Subbagian Infrastruktur', got '{lokasi_fisik}'")
+                    return False
+                    
+                # Verify pemegang was updated to employee name
+                if pemegang and "Test Employee Receiver" in pemegang:
+                    print("✅ Asset 2 pemegang updated correctly")
+                else:
+                    print(f"⚠️ Asset 2 pemegang may not be updated: '{pemegang}'")
+            else:
+                print("❌ Asset 2 not found in updated search")
+                return False
+        else:
+            print("❌ Failed to get updated Asset 2 details")
+            return False
+        
+        print("\n🎉 TRANSAKSI ASET TETAP MODULE TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ 'Barang Masuk' - Created 2 new assets via POST /api/barang")
+        print("   2. ✅ 'Barang Masuk' - Created incoming transactions via POST /api/transaksi")
+        print("   3. ✅ 'Barang Keluar' - Successfully searched for created assets")
+        print("   4. ✅ 'Barang Keluar' - Processed bulk outgoing transaction via POST /api/transaksi/bulk")
+        print("   5. ✅ Transaction History - All transactions appear in GET /api/transaksi")
+        print("   6. ✅ Asset Updates - Asset status/location updated correctly in database")
+        
+        return True
+
     def test_nup_display_and_transaction_visuals(self):
         """Test NUP display logic and Transaction History visuals as requested in review"""
         print("\n=== NUP DISPLAY LOGIC & TRANSACTION HISTORY VISUALS TEST ===")
