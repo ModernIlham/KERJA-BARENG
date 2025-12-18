@@ -1253,7 +1253,7 @@ class APITester:
         # Create a new Dokumen Sumber (e.g., "Kontrak Pengadaan ATK", No: "DOC-001")
         dokumen_data = {
             "jenis_dokumen": "Kontrak",
-            "nomor_dokumen": "DOC-001",
+            "nomor_dokumen": f"DOC-{timestamp}",
             "tanggal_dokumen": "2024-01-15",
             "ppk_id": ppk_id,
             "ppk_nama": ppk_nama,
