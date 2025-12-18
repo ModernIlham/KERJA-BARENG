@@ -1511,6 +1511,214 @@ class APITester:
         
         return True
 
+    def test_ruh_pembelian_form_data_persistence(self):
+        """Test RUH Pembelian form data persistence as requested in review"""
+        print("\n=== RUH PEMBELIAN FORM DATA PERSISTENCE TEST ===")
+        
+        import time
+        timestamp = int(time.time())
+        
+        # Step 1: Submit a test transaction using frontend-like payload
+        print("\n📦 Step 1: Submitting test transaction with RUH Pembelian payload...")
+        
+        # Get a valid referensi code first
+        success, response = self.run_test(
+            "Get Valid Referensi Code",
+            "GET",
+            "api/referensi",
+            200,
+            data={"page": 1, "limit": 5}
+        )
+        
+        if not success:
+            print("❌ Failed to get referensi codes")
+            return False
+            
+        referensi_data = response.get('data', [])
+        if not referensi_data:
+            print("❌ No referensi codes available")
+            return False
+            
+        # Find a code that doesn't start with '1' (for Aset Tetap)
+        valid_code = None
+        for ref in referensi_data:
+            code = ref.get('kode', '')
+            if code and not code.startswith('1'):
+                valid_code = code
+                break
+                
+        if not valid_code:
+            # Use a default valid code for Aset Tetap
+            valid_code = f"301030100100{timestamp % 10000:04d}"
+            
+        print(f"   Using kode_barang: {valid_code}")
+        
+        # Create RUH Pembelian payload as specified in review request
+        ruh_pembelian_payload = {
+            "kode_barang": valid_code,
+            "nama_barang": f"Test RUH Pembelian Item {timestamp}",
+            "jumlah": 1,
+            "tgl_buku": "2024-01-01",
+            "detail_lainnya": {
+                "jenis_dokumen": "Kuitansi",
+                "nomor_dokumen": "TEST-001"
+            },
+            # Additional required fields for Aset Tetap
+            "merk": "Test Brand",
+            "tipe": "Test Type", 
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "nilai_perolehan": 1000000,
+            "tahun_anggaran": "2024",
+            "nup": "1"
+        }
+        
+        success, response = self.run_test(
+            "Create RUH Pembelian Asset",
+            "POST",
+            "api/barang/",
+            200,
+            data=ruh_pembelian_payload
+        )
+        
+        if not success:
+            print("❌ Failed to create RUH Pembelian asset")
+            return False
+            
+        asset_id = response.get('_id') or response.get('id')
+        if not asset_id:
+            print("❌ No asset ID returned")
+            return False
+            
+        print(f"✅ RUH Pembelian asset created with ID: {asset_id}")
+        
+        # Step 2: Check the created Barang document in DB
+        print("\n🔍 Step 2: Checking created Barang document for data persistence...")
+        
+        success, response = self.run_test(
+            "Get Created Asset Details",
+            "GET",
+            f"api/barang/{asset_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get created asset details")
+            return False
+            
+        asset_details = response
+        print(f"📊 Asset details retrieved successfully")
+        
+        # Step 2a: Verify tgl_buku is saved as '2024-01-01'
+        print("\n📅 Step 2a: Verifying tgl_buku field persistence...")
+        
+        tgl_buku = asset_details.get('tgl_buku')
+        expected_tgl_buku = "2024-01-01"
+        
+        if tgl_buku == expected_tgl_buku:
+            print(f"✅ tgl_buku correctly saved as '{tgl_buku}'")
+        else:
+            print(f"❌ CRITICAL ISSUE: tgl_buku field not persisted correctly")
+            print(f"   Expected: '{expected_tgl_buku}'")
+            print(f"   Actual: '{tgl_buku}'")
+            return False
+        
+        # Step 2b: Verify detail_lainnya contains correct fields
+        print("\n📋 Step 2b: Verifying detail_lainnya field persistence...")
+        
+        detail_lainnya = asset_details.get('detail_lainnya', {})
+        expected_jenis_dokumen = "Kuitansi"
+        expected_nomor_dokumen = "TEST-001"
+        
+        actual_jenis_dokumen = detail_lainnya.get('jenis_dokumen')
+        actual_nomor_dokumen = detail_lainnya.get('nomor_dokumen')
+        
+        if actual_jenis_dokumen == expected_jenis_dokumen:
+            print(f"✅ jenis_dokumen correctly saved as '{actual_jenis_dokumen}'")
+        else:
+            print(f"❌ CRITICAL ISSUE: jenis_dokumen not persisted correctly")
+            print(f"   Expected: '{expected_jenis_dokumen}'")
+            print(f"   Actual: '{actual_jenis_dokumen}'")
+            return False
+            
+        if actual_nomor_dokumen == expected_nomor_dokumen:
+            print(f"✅ nomor_dokumen correctly saved as '{actual_nomor_dokumen}'")
+        else:
+            print(f"❌ CRITICAL ISSUE: nomor_dokumen not persisted correctly")
+            print(f"   Expected: '{expected_nomor_dokumen}'")
+            print(f"   Actual: '{actual_nomor_dokumen}'")
+            return False
+        
+        # Step 3: Verify NUP is correct
+        print("\n🔢 Step 3: Verifying NUP is correct...")
+        
+        nup = asset_details.get('nup')
+        expected_nup = "1"
+        
+        if str(nup) == expected_nup:
+            print(f"✅ NUP correctly set as '{nup}'")
+        else:
+            print(f"❌ NUP issue: Expected '{expected_nup}', got '{nup}'")
+            return False
+        
+        # Additional verification: Check if asset appears in barang list
+        print("\n📋 Step 4: Verifying asset appears in barang list...")
+        
+        success, response = self.run_test(
+            "Get Barang List to Verify Asset",
+            "GET",
+            "api/barang/",
+            200,
+            data={"search": f"Test RUH Pembelian Item {timestamp}", "page": 1, "limit": 10}
+        )
+        
+        if success:
+            barang_list = response.get('data', [])
+            found_asset = None
+            
+            for item in barang_list:
+                if item.get('_id') == asset_id:
+                    found_asset = item
+                    break
+            
+            if found_asset:
+                print("✅ Asset found in barang list")
+                
+                # Verify fields in list view
+                list_tgl_buku = found_asset.get('tgl_buku')
+                list_detail_lainnya = found_asset.get('detail_lainnya', {})
+                
+                if list_tgl_buku == expected_tgl_buku:
+                    print(f"✅ tgl_buku in list view: '{list_tgl_buku}'")
+                else:
+                    print(f"❌ tgl_buku in list view incorrect: '{list_tgl_buku}'")
+                    return False
+                    
+                if (list_detail_lainnya.get('jenis_dokumen') == expected_jenis_dokumen and 
+                    list_detail_lainnya.get('nomor_dokumen') == expected_nomor_dokumen):
+                    print("✅ detail_lainnya fields correct in list view")
+                else:
+                    print(f"❌ detail_lainnya fields incorrect in list view: {list_detail_lainnya}")
+                    return False
+            else:
+                print("❌ Asset not found in barang list")
+                return False
+        else:
+            print("❌ Failed to get barang list")
+            return False
+        
+        print("\n🎉 RUH PEMBELIAN FORM DATA PERSISTENCE TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   - RUH Pembelian asset created successfully")
+        print("   - tgl_buku field persisted correctly as '2024-01-01'")
+        print("   - detail_lainnya.jenis_dokumen persisted as 'Kuitansi'")
+        print("   - detail_lainnya.nomor_dokumen persisted as 'TEST-001'")
+        print("   - NUP is correct (1)")
+        print("   - Asset appears correctly in barang list")
+        print("   - All fields persist correctly in both detail and list views")
+        
+        return True
+
     def test_aset_tetap_persediaan_code_validation(self):
         """Test the distinction between Aset Tetap and Persediaan code validation as requested in review"""
         print("\n=== ASET TETAP VS PERSEDIAAN CODE VALIDATION TEST ===")
