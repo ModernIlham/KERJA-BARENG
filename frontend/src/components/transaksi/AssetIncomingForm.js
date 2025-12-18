@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Loader2, Plus, Save, Trash, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
+import ReferensiSearch from '../barang/ReferensiSearch';
 
 export default function AssetIncomingForm({ onSuccess }) {
     const [itemsList, setItemsList] = useState([]);
@@ -22,7 +23,7 @@ export default function AssetIncomingForm({ onSuccess }) {
         tgl_perolehan: new Date().toISOString().split('T')[0]
     });
 
-    const { register, handleSubmit, reset, watch } = useForm({
+    const { register, handleSubmit, reset, setValue, watch } = useForm({
         defaultValues: {
             jumlah: 1
         }
@@ -31,12 +32,22 @@ export default function AssetIncomingForm({ onSuccess }) {
     // We need basic fields for Asset Creation
     // Nama, Merk, Tipe, Tahun, Harga
     
+    const handleReferenceSelect = (item) => {
+        setValue('kode_barang', item.kode);
+        setValue('nama_barang', item.uraian);
+    };
+
     const handleAddItem = (data) => {
         const qty = parseInt(data.jumlah);
         if (qty < 1) return;
 
+        if (!data.kode_barang) {
+            return toast.error("Wajib memilih referensi Kode Barang (10 digit)");
+        }
+
         const newItem = {
             id: Date.now(),
+            kode_barang: data.kode_barang, // Now mandatory from reference
             nama_barang: data.nama_barang,
             merk: data.merk,
             tipe: data.tipe,
@@ -48,6 +59,7 @@ export default function AssetIncomingForm({ onSuccess }) {
 
         setItemsList([...itemsList, newItem]);
         reset({
+            kode_barang: '',
             nama_barang: '',
             merk: '',
             tipe: '',
@@ -69,13 +81,6 @@ export default function AssetIncomingForm({ onSuccess }) {
         const t = toast.loading("Memproses perolehan aset...");
 
         try {
-            // Because we don't have a specific bulk-create-asset endpoint that also logs transactions efficiently in one go,
-            // we will loop here or creating a specialized backend endpoint would be better.
-            // But 'transaksi/bulk' expects existing asset_ids. 
-            // So logic: Create Assets -> Get IDs -> Create Transaction Log.
-            // Actually, best to do this in backend. But for now, let's loop creation in frontend (simple MVP) 
-            // or better: Create a new endpoint /api/barang/bulk-receive
-            
             // Re-strategy: We reuse 'create_barang' for each item.
             // This is heavy if Qty is 100. But usually Aset Tetap entry is manual.
             
@@ -91,13 +96,7 @@ export default function AssetIncomingForm({ onSuccess }) {
                 for (let i = 0; i < item.jumlah; i++) {
                     // 1. Create Asset
                     const assetPayload = {
-                        kode_barang: 'UNKNOWN', // Ideally should pick from reference. Let's use generic or auto-gen? 
-                        // Wait, user needs to pick Kode Barang for Aset Tetap usually.
-                        // Simplification: We need a generic code or allow input.
-                        // For MVP: Let's require user to pick generic "Golongan" or something?
-                        // Let's hardcode a temporary code or ask user in form.
-                        // Let's add Kode Field to form.
-                        kode_barang: item.kode_barang || '0000000000', // Fallback
+                        kode_barang: item.kode_barang, // Strict 10 digit from reference
                         nama_barang: item.nama_barang,
                         merk: item.merk,
                         tipe: item.tipe,
@@ -192,36 +191,46 @@ export default function AssetIncomingForm({ onSuccess }) {
 
                     {/* Entry */}
                     <form onSubmit={handleSubmit(handleAddItem)} className="space-y-4">
-                        <div className="grid grid-cols-4 gap-4">
-                            <div className="col-span-2 space-y-1">
-                                <Label className="text-xs">Nama Barang</Label>
-                                <Input {...register('nama_barang', {required: true})} className="bg-white" placeholder="Contoh: Laptop Dell Latitude..."/>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <Label className="text-xs">Referensi Kode Barang (Wajib)</Label>
+                                <ReferensiSearch onSelect={handleReferenceSelect} />
+                                <input type="hidden" {...register('kode_barang', {required: true})} />
+                                <input type="hidden" {...register('nama_barang', {required: true})} />
                             </div>
                             <div className="space-y-1">
+                                <Label className="text-xs">Nama Barang (Auto-fill)</Label>
+                                <Input {...register('nama_barang')} className="bg-slate-100" readOnly placeholder="Otomatis dari referensi..."/>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4">
+                            <div className="space-y-1">
                                 <Label className="text-xs">Merk / Tipe</Label>
-                                <Input {...register('merk')} className="bg-white" placeholder="Dell / Latitude 7490"/>
+                                <Input {...register('merk')} className="bg-white" placeholder="Merk"/>
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs">Tipe/Spesifikasi</Label>
+                                <Input {...register('tipe')} className="bg-white" placeholder="Tipe"/>
                             </div>
                             <div className="space-y-1">
                                 <Label className="text-xs">Tahun Anggaran</Label>
                                 <Input type="number" {...register('tahun_anggaran')} className="bg-white" defaultValue={new Date().getFullYear()}/>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-4">
-                            <div className="space-y-1">
-                                <Label className="text-xs">Kode Barang (Opsional)</Label>
-                                <Input {...register('kode_barang')} className="bg-white" placeholder="3.xxxx...."/>
-                            </div>
                             <div className="space-y-1">
                                 <Label className="text-xs">Harga Satuan</Label>
                                 <Input type="number" {...register('nilai_satuan', {required: true})} className="bg-white"/>
                             </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-4 gap-4">
                             <div className="space-y-1">
                                 <Label className="text-xs">Jumlah Unit</Label>
                                 <Input type="number" {...register('jumlah', {min: 1})} className="bg-white font-bold" defaultValue={1}/>
                             </div>
-                            <div className="flex items-end">
+                            <div className="col-span-3 flex items-end">
                                 <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                                    <Plus className="mr-2 h-4 w-4"/> Tambah
+                                    <Plus className="mr-2 h-4 w-4"/> Tambah ke Daftar
                                 </Button>
                             </div>
                         </div>
@@ -236,6 +245,7 @@ export default function AssetIncomingForm({ onSuccess }) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Kode Barang</TableHead>
                                     <TableHead>Nama Barang</TableHead>
                                     <TableHead>Merk/Tipe</TableHead>
                                     <TableHead className="text-right">Harga</TableHead>
@@ -247,6 +257,7 @@ export default function AssetIncomingForm({ onSuccess }) {
                             <TableBody>
                                 {itemsList.map(item => (
                                     <TableRow key={item.id}>
+                                        <TableCell className="font-mono text-xs">{item.kode_barang}</TableCell>
                                         <TableCell>{item.nama_barang}</TableCell>
                                         <TableCell>{item.merk} {item.tipe}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(item.nilai_satuan)}</TableCell>
