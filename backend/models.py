@@ -80,6 +80,45 @@ class KodefikasiCreate(BaseModel):
     uraian: str
     level: Optional[int] = None
 
+# --- DOKUMEN SUMBER (NEW) ---
+class DokumenSumber(MongoBaseModel):
+    jenis_dokumen: str # SPM, SP2D, BAST, Kontrak, Kuitansi
+    nomor_dokumen: str
+    tanggal_dokumen: str # YYYY-MM-DD
+    
+    # PPK Info
+    ppk_id: Optional[str] = None
+    ppk_nama: Optional[str] = None
+    
+    # Penyedia / Rekanan Info
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
+    
+    # Other Info
+    akun_belanja: Optional[str] = None
+    uraian: Optional[str] = None # Keterangan singkat
+    nilai_total: float = 0
+    file_url: Optional[str] = None
+    
+    created_by: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DokumenSumberCreate(BaseModel):
+    jenis_dokumen: str
+    nomor_dokumen: str
+    tanggal_dokumen: str
+    
+    ppk_id: Optional[str] = None
+    ppk_nama: Optional[str] = None
+    
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
+    
+    akun_belanja: Optional[str] = None
+    uraian: Optional[str] = None
+    nilai_total: Optional[float] = 0
+
 # --- Stok FIFO Batch Model ---
 class StokBatch(MongoBaseModel):
     barang_id: str
@@ -165,6 +204,9 @@ class Barang(MongoBaseModel):
     # IMPORT DATA LAINNYA (Dynamic)
     detail_lainnya: Dict[str, Any] = {}
     
+    # Link to Source Document (NEW)
+    dokumen_sumber_id: Optional[str] = None
+    
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class BarangCreate(BaseModel):
@@ -209,6 +251,9 @@ class BarangCreate(BaseModel):
     luas_bangunan: Optional[float] = 0
     
     detail_lainnya: Optional[Dict[str, Any]] = {}
+    
+    # Link to Source Document (NEW)
+    dokumen_sumber_id: Optional[str] = None
 
 # --- Pegawai (Employee) Models ---
 class RiwayatKarir(BaseModel):
@@ -336,6 +381,9 @@ class Transaksi(MongoBaseModel):
     petugas: Optional[str] = None 
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     bukti_fotos: List[Dict[str, Any]] = [] # [{"url": "...", "keterangan": "..."}]
+    
+    # Link to Source Document (NEW)
+    dokumen_sumber_id: Optional[str] = None
 
 class TransaksiCreate(BaseModel):
     jenis: str
@@ -345,6 +393,7 @@ class TransaksiCreate(BaseModel):
     pegawai_id: Optional[str] = None
     keterangan: Optional[str] = None
     dokumen_ref: Optional[str] = None
+    dokumen_sumber_id: Optional[str] = None
 
 # --- Stock Opname Model ---
 class StockOpname(MongoBaseModel):
@@ -480,6 +529,9 @@ class TransaksiPersediaan(MongoBaseModel):
     ppk_nama: Optional[str] = None
     npwp: Optional[str] = None
     nama_pemilik_npwp: Optional[str] = None
+    
+    # Link to Source Document (NEW)
+    dokumen_sumber_id: Optional[str] = None
 
 class TransaksiPersediaanCreate(BaseModel):
     jenis: str
@@ -492,6 +544,7 @@ class TransaksiPersediaanCreate(BaseModel):
     unit_penerima: Optional[str] = None
     keterangan: Optional[str] = None
     dokumen_ref: Optional[str] = None 
+    dokumen_sumber_id: Optional[str] = None
 
 class TransaksiPersediaanBulkItem(BaseModel):
     persediaan_id: str
@@ -517,3 +570,6 @@ class TransaksiPersediaanBulkCreate(BaseModel):
     ppk_nama: Optional[str] = None
     npwp: Optional[str] = None
     nama_pemilik_npwp: Optional[str] = None
+    
+    # Link to Source Document (NEW)
+    dokumen_sumber_id: Optional[str] = None
