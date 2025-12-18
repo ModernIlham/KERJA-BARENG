@@ -31,6 +31,7 @@ const TransaksiPersediaanWrapper = () => {
 
 export default function App() {
   return (
+import DokumenList from './pages/DokumenList';
     <BrowserRouter>
       <Toaster position="top-right" richColors />
       <AuthProvider>
