@@ -15,6 +15,7 @@ import Pengaturan from './pages/Pengaturan';
 import ReferensiKode from './pages/ReferensiKode';
 
 import Surat from './pages/Surat';
+import TransaksiAset from './pages/TransaksiAset';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="referensi" element={<ReferensiKode />} />
             
             <Route path="transaksi" element={<Navigate to="/transaksi/riwayat" replace />} />
+            <Route path="transaksi-aset" element={<TransaksiAset />} />
             <Route path="transaksi/:type" element={<TransaksiList />} />
             
             <Route path="opname" element={<StockOpname />} />
