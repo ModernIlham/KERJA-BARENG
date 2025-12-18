@@ -1612,7 +1612,17 @@ class APITester:
         if not assets:
             print("❌ Asset not found in search results")
             return False
-        asset_details = assets[0]
+        
+        # Find the asset with matching ID
+        asset_details = None
+        for asset in assets:
+            if asset.get('_id') == asset_id:
+                asset_details = asset
+                break
+                
+        if not asset_details:
+            print(f"❌ Asset with ID {asset_id} not found in search results")
+            return False
         print(f"📊 Asset details retrieved successfully")
         
         # Step 2a: Verify tgl_buku is saved as '2024-01-01'
