@@ -408,7 +408,6 @@ class Persediaan(MongoBaseModel):
     batches: List[PersediaanBatch] = []
     # Photos
     fotos: List[Dict[str, Any]] = []
-
     
     # Financials (Calculated/History)
     nilai_mutasi: float = 0
@@ -470,6 +469,17 @@ class TransaksiPersediaan(MongoBaseModel):
     petugas: Optional[str] = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     bukti_fotos: List[Dict[str, Any]] = []
+    
+    # Extended fields from Image Analysis & Request
+    no_bukti: Optional[str] = None
+    tgl_dokumen: Optional[str] = None # String to keep date format simple or datetime
+    tgl_buku: Optional[str] = None
+    jenis_dokumen: Optional[str] = None
+    no_kontrak: Optional[str] = None
+    ppk_id: Optional[str] = None
+    ppk_nama: Optional[str] = None
+    npwp: Optional[str] = None
+    nama_pemilik_npwp: Optional[str] = None
 
 class TransaksiPersediaanCreate(BaseModel):
     jenis: str
@@ -488,11 +498,22 @@ class TransaksiPersediaanBulkItem(BaseModel):
     jumlah: int
     nilai_satuan: float
     expired_date: Optional[str] = None
-
     unit_penerima: Optional[str] = None
+    
 class TransaksiPersediaanBulkCreate(BaseModel):
     items: List[TransaksiPersediaanBulkItem]
     dokumen_ref: str
     keterangan: Optional[str] = None
     pegawai_id: Optional[str] = None
     unit_penerima: Optional[str] = None
+    
+    # Extended fields for Bulk Create
+    no_bukti: Optional[str] = None
+    tgl_dokumen: Optional[str] = None
+    tgl_buku: Optional[str] = None
+    jenis_dokumen: Optional[str] = None
+    no_kontrak: Optional[str] = None
+    ppk_id: Optional[str] = None
+    ppk_nama: Optional[str] = None
+    npwp: Optional[str] = None
+    nama_pemilik_npwp: Optional[str] = None
