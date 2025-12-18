@@ -1537,7 +1537,7 @@ class APITester:
             if test_txn:
                 # Verify auto-populated fields
                 fields_to_verify = [
-                    ('dokumen_ref', 'DOC-001', 'Nomor Dokumen'),
+                    ('dokumen_ref', f'DOC-{timestamp}', 'Nomor Dokumen'),
                     ('ppk_nama', ppk_nama, 'PPK'),
                     ('nama_pemilik_npwp', 'CV Alat Tulis Kantor', 'Penyedia'),
                     ('npwp', '12.345.678.9-012.345', 'NPWP'),
