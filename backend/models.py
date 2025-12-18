@@ -174,6 +174,7 @@ class BarangCreate(BaseModel):
     tipe: Optional[str] = None
     kondisi: Optional[str] = None
     tgl_perolehan: Optional[str] = None
+    tgl_buku: Optional[str] = None
     nilai_perolehan: Optional[float] = 0
     nilai_satuan: Optional[float] = 0
     lokasi_fisik: Optional[str] = None
