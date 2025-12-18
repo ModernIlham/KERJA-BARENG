@@ -120,27 +120,45 @@ frontend:
 backend:
   - task: "Persediaan Transaction Model Update"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/models.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added new fields to TransaksiPersediaan model: no_bukti, tgl_dokumen, tgl_buku, jenis_dokumen, no_kontrak, ppk_id, ppk_nama, npwp, nama_pemilik_npwp."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: All new fields (no_bukti, tgl_dokumen, tgl_buku, jenis_dokumen, no_kontrak, ppk_id, ppk_nama, npwp, nama_pemilik_npwp) are correctly defined in TransaksiPersediaan model and TransaksiPersediaanBulkCreate model. Fields are properly saved to database during bulk transactions."
 
   - task: "Persediaan Bulk Insert Logic"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/persediaan_transaksi.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Updated stock_in_bulk to handle new fields from payload and save to TransaksiPersediaan."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Bulk insert logic correctly handles all new fields. Test created transactions with no_bukti='BUKTI-1766080413', tgl_dokumen='2024-01-15', tgl_buku='2024-01-16', jenis_dokumen='Kontrak', no_kontrak='KONTRAK-1766080413', PPK fields, and NPWP fields. All data persisted correctly in database. Stock updates work with FIFO batching."
+
+  - task: "PPK Employee Management"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: PPK employee creation and filtering works correctly. Created test PPK employee with jabatan_melekat=['PPK']. GET /api/pegawai/pejabat?role=PPK correctly filters and returns PPK employees for dropdown population. PPK data (ppk_id, ppk_nama) correctly saved in transactions."
 
 metadata:
   created_by: "main_agent"
