@@ -19,8 +19,8 @@ async def get_pejabat_list(
     role: str = Query("PPK", description="Role to filter (e.g., PPK)"),
     current_user: str = Depends(get_current_user)
 ):
-    # Filter pegawai where jabatan_melekat contains the role (case insensitive)
-    query = {"jabatan_melekat": {"$regex": role, "$options": "i"}}
+    # Filter pegawai where jabatan_melekat array contains the role (case insensitive)
+    query = {"jabatan_melekat": {"$elemMatch": {"$regex": role, "$options": "i"}}}
     cursor = db.pegawai.find(query).sort("nama_lengkap", 1)
     items = await cursor.to_list(None)
     
