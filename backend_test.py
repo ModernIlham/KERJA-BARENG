@@ -848,7 +848,7 @@ class APITester:
             success, response = self.run_test(
                 "Create Aset IN Transaction",
                 "POST",
-                "api/transaksi/",
+                "api/transaksi",
                 200,
                 data=aset_transaction
             )
@@ -950,7 +950,7 @@ class APITester:
             success, response = self.run_test(
                 "Verify Aset Transactions Remain After Persediaan OUT Deletion",
                 "GET",
-                "api/transaksi/",
+                "api/transaksi",
                 200,
                 data={"page": 1, "limit": 100}
             )
@@ -987,7 +987,7 @@ class APITester:
             success, response = self.run_test(
                 "Verify Aset Transactions After Deletion",
                 "GET",
-                "api/transaksi/",
+                "api/transaksi",
                 200,
                 data={"page": 1, "limit": 100}
             )
