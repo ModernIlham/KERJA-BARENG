@@ -102,53 +102,61 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Stabilize 'RUH Pembelian' form (verify new fields: SPPA, Periode, PPK, UAKPB) and implement Employee Photo features (Crop & Fullscreen)."
+user_problem_statement: "Enhance 'Persediaan Masuk' form to match the new screenshot provided by the user. Include No Bukti, Tgl Buku, Jenis Dokumen, PPK, and No Kontrak fields."
 
 frontend:
-  - task: "RUH Pembelian New Fields & Logic"
+  - task: "Persediaan Incoming Form Enhancement"
     implemented: true
-    working: true
-    file: "/app/frontend/src/components/transaksi/AssetIncomingForm.js"
+    working: "NA"
+    file: "/app/frontend/src/components/transaksi/PersediaanIncomingForm.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implemented fix to include 'uakpb' in payload. New fields (SPPA, Periode, Jenis Dokumen) are present. PPK dropdown should be populated."
-      - working: true
-        agent: "testing"
-        comment: "✅ COMPREHENSIVE TESTING COMPLETED: All new fields verified working: 1) UAKPB display shows correct value (123456789) in form header, 2) SPPA fields (Prefix + Number) both functional and accepting input, 3) Periode 13 & 14 radio buttons present and selectable, 4) PPK dropdown opens and shows options from pegawai with PPK role, 5) Form integrates UAKPB into payload correctly. All RUH Pembelian requirements met."
+        comment: "Updated form with new fields: No Bukti, Tgl Buku, Jenis Dokumen (Radio), PPK Dropdown, No Kontrak. Reorganized layout to match screenshot."
 
-  - task: "Employee Photo Features (Crop & Fullscreen)"
+backend:
+  - task: "Persediaan Transaction Model Update"
     implemented: true
-    working: true
-    file: "/app/frontend/src/components/pegawai/PegawaiPhotoUpload.js"
+    working: "NA"
+    file: "/app/backend/models.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Cropping logic exists in PegawaiPhotoUpload.js. Added Zoom button to PegawaiList.js for fullscreen view. Need to verify UI."
-      - working: true
-        agent: "testing"
-        comment: "✅ EMPLOYEE PHOTO FEATURES VERIFIED: 1) Employee list shows 10+ records with photo functionality, 2) Photo click opens PegawaiPhotoModal with upload/change options, 3) Cropping modal (react-easy-crop) integrated and functional, 4) Zoom/Fullscreen buttons visible in employee list (external link icons), 5) Photo upload workflow complete with file validation and crop functionality. All photo features working correctly."
+        comment: "Added new fields to TransaksiPersediaan model: no_bukti, tgl_dokumen, tgl_buku, jenis_dokumen, no_kontrak, ppk_id, ppk_nama, npwp, nama_pemilik_npwp."
+
+  - task: "Persediaan Bulk Insert Logic"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/persediaan_transaksi.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated stock_in_bulk to handle new fields from payload and save to TransaksiPersediaan."
 
 metadata:
   created_by: "main_agent"
-  version: "2.0"
-  test_sequence: 10
+  version: "3.0"
+  test_sequence: 15
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Persediaan Incoming Form Enhancement"
+    - "Persediaan Transaction Model Update"
+    - "Persediaan Bulk Insert Logic"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "I have fixed the missing UAKPB in AssetIncomingForm payload and improved the Fullscreen Zoom UI in PegawaiList. Please verify: 1. RUH Pembelian form fills and submits correctly with all new fields. 2. Employee photo upload works with cropping (just verify the modal opens and saves). 3. Fullscreen zoom button appears on employee list."
-  - agent: "testing"
-    message: "✅ TESTING COMPLETE - ALL FEATURES WORKING: Both RUH Pembelian form and Employee Photo features have been comprehensively tested and verified working. 1) UAKPB configuration functional in Settings->Instansi and displays correctly in RUH form, 2) All new RUH fields (SPPA Prefix/Number, Periode 13/14, PPK dropdown) working perfectly, 3) Employee photo upload modal opens with crop functionality, 4) Zoom buttons appear on employee list for fullscreen view. Ready for production use."
+    message: "I have updated the Persediaan Incoming Form and backend logic to match the new requirements. Please verify: 1. The form displays all new fields correctly (No Bukti, Tgl Buku, Jenis Dokumen, PPK, etc.). 2. Submit a transaction with these new fields filled. 3. Verify the data is correctly saved in the database (check TransaksiPersediaan collection)."
