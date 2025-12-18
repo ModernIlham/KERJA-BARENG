@@ -15,6 +15,7 @@ import ReferensiKode from './pages/ReferensiKode';
 import TransaksiAset from './pages/TransaksiAset';
 import TransaksiPersediaan from './pages/TransaksiPersediaan';
 import Surat from './pages/Surat';
+import DokumenList from './pages/DokumenList';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -31,7 +32,6 @@ const TransaksiPersediaanWrapper = () => {
 
 export default function App() {
   return (
-import DokumenList from './pages/DokumenList';
     <BrowserRouter>
       <Toaster position="top-right" richColors />
       <AuthProvider>
