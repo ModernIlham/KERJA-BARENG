@@ -1778,13 +1778,13 @@ class APITester:
         # Step 4: Check if Asset status/location updated in db.barang
         print("\n🔍 Step 4: Verifying Asset status/location updated in database...")
         
-        # Check Asset 1 updates
+        # Check Asset 1 updates - search by name instead of ID
         success, response = self.run_test(
             "Get Updated Asset 1 Details",
             "GET",
             f"api/barang",
             200,
-            data={"search": asset1_id, "page": 1, "limit": 1}
+            data={"search": f"Test Asset 1 - Laptop Dell {timestamp}", "page": 1, "limit": 10}
         )
         
         if success:
