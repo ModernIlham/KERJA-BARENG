@@ -362,6 +362,21 @@ agent_communication:
     message: "✅ NAVIGATION RESTRUCTURING BACKEND SUPPORT TESTING COMPLETED SUCCESSFULLY: Comprehensive verification of Navigation restructuring backend support completed as requested in review. All 7 verification steps passed perfectly: 1) ✅ Backend APIs for /transaksi-aset route working correctly - GET /api/transaksi supports transaction history (16 transactions found), GET /api/barang supports asset search (13,566 assets available), 2) ✅ Backend APIs for /transaksi-persediaan route working correctly - GET /api/persediaan-transaksi supports persediaan transaction history (20 transactions found), GET /api/persediaan supports persediaan search (32 items available), 3) ✅ Backend APIs for /barang?tab=aset-tetap working correctly - GET /api/barang with filters supports Aset Tetap tab with proper data structure including NUP field, 4) ✅ Backend APIs for /barang?tab=persediaan working correctly - GET /api/persediaan with filters supports Persediaan tab with proper data structure including stok field, 5) ✅ 'Barang Masuk' separation working correctly - POST /api/barang for Aset Tetap creation functional, POST /api/persediaan for Persediaan creation functional, 6) ✅ Transaction creation separated correctly - POST /api/transaksi for Aset Tetap transactions functional, POST /api/persediaan-transaksi/in for Persediaan transactions functional, 7) ✅ API endpoints properly separated and filtered - /api/barang returns Aset Tetap data with NUP field, /api/persediaan returns Persediaan data with stok field. All backend APIs supporting the navigation restructuring are fully functional and ready for frontend implementation. The separation between 'Aset Tetap' and 'Persediaan' is properly supported at the API level."
 
 backend:
+  - task: "RUH Pembelian Asset Incoming Form"
+    implemented: true
+    working: false
+    file: "/app/backend/routes/barang.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing new 'RUH Pembelian' style Asset Incoming Form as requested in review. Verifying: 1) Frontend renders new fields (jenis_dokumen, tgl_pembukuan, kondisi, jumlah), 2) Submit test transaction with Jenis Dokumen: 'Kuitansi', Tgl Pembukuan different from Tgl Perolehan, Kondisi: 'Baik', Jumlah: 2, 3) Backend receives and stores detail_lainnya fields, 4) Correct NUP increment (Asset 1 = NUP X, Asset 2 = NUP X+1)."
+      - working: false
+        agent: "testing"
+        comment: "❌ PARTIAL SUCCESS WITH CRITICAL ISSUES: Frontend form implementation verified correctly with all required fields. Asset creation and NUP increment working properly (created 2 assets with NUP 13 and 14). Transaction creation successful. However, CRITICAL DATA PERSISTENCE ISSUES: 1) tgl_buku field not being stored (remains None despite being added to BarangCreate model), 2) detail_lainnya fields not being stored (all fields are None), 3) Backend may not be properly handling these fields during asset creation. Fixed BarangCreate model to include tgl_buku field and restarted backend service. Core functionality works but data persistence needs main agent attention."
+
   - task: "Fixed Asset Codification Logic"
     implemented: true
     working: true
