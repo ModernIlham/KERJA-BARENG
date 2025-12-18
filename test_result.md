@@ -142,9 +142,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "RUH Pembelian New Fields & Logic"
-    - "Employee Photo Features (Crop & Fullscreen)"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
