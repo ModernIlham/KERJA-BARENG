@@ -15,7 +15,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "../../lib/utils";
 
-export default function ReferensiSearch({ onSelect, placeholder = "Cari Kode / Nama Barang..." }) {
+export default function ReferensiSearch({ onSelect, placeholder = "Cari Kode / Nama Barang...", type = "all" }) {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState("");
     const [query, setQuery] = useState("");
@@ -42,9 +42,15 @@ export default function ReferensiSearch({ onSelect, placeholder = "Cari Kode / N
                 params: { search: query, limit: 20 } // Removing level constraint to allow broader search if needed, but ideally level 5
             });
             
-            // Filter to show meaningful items (usually level 3, 4, 5)
-            // Or just show what API returns
-            setResults(res.data.data);
+            // Filter based on type
+            let filtered = res.data.data;
+            if (type === 'aset') {
+                filtered = filtered.filter(item => !item.kode.startsWith('1'));
+            } else if (type === 'persediaan') {
+                filtered = filtered.filter(item => item.kode.startsWith('1'));
+            }
+            
+            setResults(filtered);
         } catch (e) {
             console.error(e);
         } finally {

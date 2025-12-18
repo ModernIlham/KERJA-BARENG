@@ -38,6 +38,9 @@ export default function AssetIncomingForm({ onSuccess }) {
     };
 
     const handleAddItem = (data) => {
+    if (data.kode_barang.startsWith('1')) {
+        return toast.error("Kode barang berawalan '1' adalah Persediaan (Aset Lancar). Gunakan menu Transaksi Gudang.");
+    }
         const qty = parseInt(data.jumlah);
         if (qty < 1) return;
 
@@ -193,8 +196,8 @@ export default function AssetIncomingForm({ onSuccess }) {
                     <form onSubmit={handleSubmit(handleAddItem)} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <Label className="text-xs">Referensi Kode Barang (Wajib)</Label>
-                                <ReferensiSearch onSelect={handleReferenceSelect} />
+                                <Label className="text-xs">Referensi Kode Barang (Wajib, Bukan Gol. 1)</Label>
+                                <ReferensiSearch onSelect={handleReferenceSelect} type="aset" />
                                 <input type="hidden" {...register('kode_barang', {required: true})} />
                                 <input type="hidden" {...register('nama_barang', {required: true})} />
                             </div>

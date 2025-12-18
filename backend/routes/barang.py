@@ -354,6 +354,8 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
     if not barang_in.golongan_barang: barang_in.golongan_barang = await get_golongan_uraian(barang_in.kode_barang)
     new_data = barang_in.dict()
     new_data['source'] = 'manual'
+    if (new_data['kode_barang'].startswith('1')):
+        raise HTTPException(status_code=400, detail="Kode Barang berawalan '1' adalah Persediaan (Aset Lancar). Tidak boleh diinput sebagai Aset Tetap.")
     new_barang = Barang(**new_data)
     result = await db.barang.insert_one(new_barang.model_dump(by_alias=True, exclude=["id"]))
     return await db.barang.find_one({"_id": result.inserted_id})
