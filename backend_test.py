@@ -1556,7 +1556,7 @@ class APITester:
         # Create RUH Pembelian payload as specified in review request
         ruh_pembelian_payload = {
             "kode_barang": valid_code,
-            "nama_barang": f"Test RUH Pembelian Item {timestamp}",
+            "nama_barang": "Test RUH Pembelian Equipment",
             "jumlah": 1,
             "tgl_buku": "2024-01-01",
             "detail_lainnya": {
