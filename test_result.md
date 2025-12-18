@@ -121,7 +121,22 @@ frontend:
         comment: "✅ VERIFIED: Frontend form correctly implements all required fields: No. Dokumen, Tgl Dokumen, No. Bukti, Tgl Buku, Jenis Dokumen (Radio buttons: Kontrak, Non Kontrak, Kontrak BLU, Non Kontrak BLU), PPK Dropdown (populated from /api/pegawai/pejabat), Nomor Kontrak (conditional visibility), NPWP fields. Form correctly submits to /api/persediaan-transaksi/in/bulk with all new fields. Backend integration verified working."
 
 backend:
-  - task: "Persediaan Transaction Model Update"
+  - task: "Master Dokumen Sumber API Implementation"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/dokumen.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented complete CRUD API for Master Dokumen Sumber with endpoints: GET /api/dokumen-sumber (list with pagination/search), POST /api/dokumen-sumber (create), GET /api/dokumen-sumber/{id} (detail), PUT /api/dokumen-sumber/{id} (update), DELETE /api/dokumen-sumber/{id} (delete), GET /api/dokumen-sumber/search/lookup (autocomplete)."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: All Master Dokumen Sumber API endpoints working correctly. Successfully created dokumen with all fields (jenis_dokumen, nomor_dokumen, tanggal_dokumen, ppk_id, ppk_nama, nama_penyedia, npwp_penyedia, akun_belanja, uraian, nilai_total). List, search, and lookup endpoints all functional. Unique nomor_dokumen validation works. PPK linking verified."
+
+  - task: "Dokumen Sumber Data Model"
     implemented: true
     working: true
     file: "/app/backend/models.py"
@@ -131,25 +146,25 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Added new fields to TransaksiPersediaan model: no_bukti, tgl_dokumen, tgl_buku, jenis_dokumen, no_kontrak, ppk_id, ppk_nama, npwp, nama_pemilik_npwp."
+        comment: "Added DokumenSumber and DokumenSumberCreate models with fields: jenis_dokumen, nomor_dokumen, tanggal_dokumen, ppk_id, ppk_nama, nama_penyedia, npwp_penyedia, akun_belanja, uraian, nilai_total, file_url, created_by, created_at, updated_at."
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: All new fields (no_bukti, tgl_dokumen, tgl_buku, jenis_dokumen, no_kontrak, ppk_id, ppk_nama, npwp, nama_pemilik_npwp) are correctly defined in TransaksiPersediaan model and TransaksiPersediaanBulkCreate model. Fields are properly saved to database during bulk transactions."
+        comment: "✅ VERIFIED: DokumenSumber model correctly defined and working. All fields persist correctly in database. Created test document with all fields and verified data integrity. Model supports full CRUD operations."
 
-  - task: "Persediaan Bulk Insert Logic"
+  - task: "Dokumen Sumber Server Integration"
     implemented: true
     working: true
-    file: "/app/backend/routes/persediaan_transaksi.py"
+    file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Updated stock_in_bulk to handle new fields from payload and save to TransaksiPersediaan."
+        comment: "Added dokumen router to server.py with prefix /api/dokumen-sumber and included in API routing."
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Bulk insert logic correctly handles all new fields. Test created transactions with no_bukti='BUKTI-1766080413', tgl_dokumen='2024-01-15', tgl_buku='2024-01-16', jenis_dokumen='Kontrak', no_kontrak='KONTRAK-1766080413', PPK fields, and NPWP fields. All data persisted correctly in database. Stock updates work with FIFO batching."
+        comment: "✅ VERIFIED: Dokumen router correctly integrated in server.py. Fixed syntax error in server.py and added dokumen import. All dokumen endpoints accessible at /api/dokumen-sumber/* and working correctly with authentication."
 
   - task: "PPK Employee Management"
     implemented: true
@@ -161,7 +176,7 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: PPK employee creation and filtering works correctly. Created test PPK employee with jabatan_melekat=['PPK']. GET /api/pegawai/pejabat?role=PPK correctly filters and returns PPK employees for dropdown population. PPK data (ppk_id, ppk_nama) correctly saved in transactions."
+        comment: "✅ VERIFIED: PPK employee creation and filtering works correctly. Created test PPK employee with jabatan_melekat=['PPK']. GET /api/pegawai/pejabat?role=PPK correctly filters and returns PPK employees for dropdown population. PPK data (ppk_id, ppk_nama) correctly saved in dokumen and linked properly."
 
 metadata:
   created_by: "main_agent"
