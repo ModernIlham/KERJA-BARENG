@@ -1607,7 +1607,12 @@ class APITester:
             print("❌ Failed to get created asset details")
             return False
             
-        asset_details = response
+        # Extract the asset from the response data
+        assets = response.get('data', [])
+        if not assets:
+            print("❌ Asset not found in search results")
+            return False
+        asset_details = assets[0]
         print(f"📊 Asset details retrieved successfully")
         
         # Step 2a: Verify tgl_buku is saved as '2024-01-01'
