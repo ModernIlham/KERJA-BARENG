@@ -796,3 +796,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TRANSACTION EVIDENCE UPLOAD TEST COMPLETED SUCCESSFULLY: All verification steps passed perfectly. 1) Transaction Evidence Upload: Created test barang and transaction, successfully uploaded evidence photo via POST /api/transaksi/{id}/upload-bukti - returns 200 OK with evidence URL '/api/uploads/bukti_transaksi/aee4b053-9dce-447a-9109-f8cd26ec7cd1.png', 2) Bulk Persediaan Evidence Upload: Created test persediaan item and 2 transactions, successfully uploaded bulk evidence via POST /api/persediaan-transaksi/upload-bukti - returns 200 OK with bulk evidence URL '/api/uploads/bukti_transaksi/a839cb83-74ce-460b-93bb-7edbe12fa87f.png' and updated 2 transactions, 3) Employee Photo Upload with Cropping: Created test employee, successfully uploaded photo via POST /api/pegawai/{id}/upload-foto - returns 200 OK with photo URL '/api/uploads/pegawai/558c718a-a487-4f43-856b-f22f472c6b4c.png' and thumbnail URL, 4) All uploads return proper URLs and success responses, file validation and processing working correctly. Fixed backend syntax errors in persediaan_transaksi.py and transaksi.py during testing to ensure proper response handling."
+
+  - task: "RUH Pembelian Enhancements"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/settings.py, /app/backend/routes/pegawai.py, /app/backend/routes/barang.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Testing RUH Pembelian enhancements as requested in review. Verifying: 1) Kode UAKPB can be saved in settings (PUT /api/settings/instansi), 2) PPK search endpoint (GET /api/pegawai/pejabat?role=PPK) returns correct results, 3) Submit Barang Masuk (Aset Tetap) transaction with new fields: periode='13', no_sppa_2='123', nama_ppk='Test PPK', jenis_dokumen='Non_Kontrak', 4) Verify all fields are persisted in Barang document (detail_lainnya)."
+      - working: true
+        agent: "testing"
+        comment: "✅ RUH PEMBELIAN ENHANCEMENTS TEST COMPLETED SUCCESSFULLY: All 4 verification steps passed perfectly. 1) ✅ Kode UAKPB Settings: Successfully saved and persisted 'UAKPB-1766075810' via PUT /api/settings/instansi, verified persistence via GET /api/settings/instansi, 2) ✅ PPK Search Endpoint: Created test PPK employee with jabatan_melekat=['PPK Pengadaan Barang'], successfully searched via GET /api/pegawai/pejabat?role=PPK returning 4 PPK officers including test employee, 3) ✅ Barang Masuk with RUH Fields: Successfully created Aset Tetap transaction with kode_barang='3010101005810', nama_barang='Test RUH Pembelian Equipment 1766075810', tgl_buku='2024-01-20', and detail_lainnya containing all required RUH fields, 4) ✅ Field Persistence Verification: All RUH fields correctly persisted in Barang document - periode='13', no_sppa_2='123', nama_ppk='Test PPK', jenis_dokumen='Non_Kontrak', tgl_buku='2024-01-20', NUP='1'. Fixed backend pegawai.py to support jabatan_melekat as array and updated search logic for PPK filtering. All RUH Pembelian enhancements are fully functional and ready for production use. Test Results: 8/8 tests passed (100% success rate)."
