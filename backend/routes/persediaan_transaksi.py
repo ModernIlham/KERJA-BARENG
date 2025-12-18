@@ -347,7 +347,8 @@ async def stock_in_bulk(payload: TransaksiPersediaanBulkCreate, current_user: st
             ppk_id=payload.ppk_id,
             ppk_nama=payload.ppk_nama,
             npwp=payload.npwp,
-            nama_pemilik_npwp=payload.nama_pemilik_npwp
+            nama_pemilik_npwp=payload.nama_pemilik_npwp,
+            dokumen_sumber_id=payload.dokumen_sumber_id
         )
         
         res_insert = await db.transaksi_persediaan.insert_one(record.dict(by_alias=True, exclude=["id"]))
