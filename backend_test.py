@@ -1362,7 +1362,7 @@ class APITester:
         success, response = self.run_test(
             "Create Test Aset Item",
             "POST",
-            "api/barang/",
+            "api/barang",
             200,
             data=aset_data
         )
