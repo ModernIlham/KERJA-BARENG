@@ -356,6 +356,13 @@ async def create_barang(barang_in: BarangCreate, current_user: str = Depends(get
     new_data['source'] = 'manual'
     if (new_data['kode_barang'].startswith('1')):
         raise HTTPException(status_code=400, detail="Kode Barang berawalan '1' adalah Persediaan (Aset Lancar). Tidak boleh diinput sebagai Aset Tetap.")
+    
+    # Ensure detail_lainnya and tgl_buku are properly set from Pydantic model
+    if barang_in.tgl_buku:
+        new_data['tgl_buku'] = barang_in.tgl_buku
+    if barang_in.detail_lainnya:
+        new_data['detail_lainnya'] = barang_in.detail_lainnya
+        
     new_barang = Barang(**new_data)
     result = await db.barang.insert_one(new_barang.model_dump(by_alias=True, exclude=["id"]))
     return await db.barang.find_one({"_id": result.inserted_id})
