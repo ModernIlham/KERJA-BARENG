@@ -137,6 +137,7 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
         unit_penerima=unit_penerima,
         keterangan=tx_in.keterangan,
         dokumen_ref=tx_in.dokumen_ref,
+        dokumen_sumber_id=tx_in.dokumen_sumber_id,
         petugas=current_user
     )
     
