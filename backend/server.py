@@ -68,6 +68,7 @@ async def health_check():
 
 app.include_router(api_router)
 
+app.include_router(dokumen.router, prefix="/api/dokumen-sumber", tags=["Dokumen Sumber"])
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
