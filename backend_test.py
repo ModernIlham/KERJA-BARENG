@@ -1350,7 +1350,7 @@ class APITester:
         
         # Create a test aset item to use in transaction
         aset_data = {
-            "kode_barang": f"103010100100{timestamp % 10000:04d}",
+            "kode_barang": f"30301010010{timestamp % 1000:03d}",
             "nama_barang": f"Test Aset for Dokumen Link {timestamp}",
             "merk": "Test Brand",
             "kondisi": "Baik",
