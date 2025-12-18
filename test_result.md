@@ -230,7 +230,11 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Master Dokumen Sumber API Implementation"
+    - "Master Dokumen Sumber Page"
+    - "Aset Tetap Form - Pilih Dokumen Sumber Integration"
+    - "Persediaan Form - Pilih Dokumen Sumber Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
