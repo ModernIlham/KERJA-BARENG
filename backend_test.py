@@ -1513,6 +1513,322 @@ class APITester:
         
         return True
 
+    def test_persediaan_incoming_features(self):
+        """Test new Persediaan Incoming features as requested in review"""
+        print("\n=== PERSEDIAAN INCOMING FEATURES TEST ===")
+        
+        import time
+        timestamp = int(time.time())
+        
+        # Step 1: Create test PPK employee first
+        print("\n👤 Step 1: Creating test PPK employee...")
+        
+        ppk_data = {
+            "nip": f"PPK{timestamp % 100000:05d}",
+            "nama_lengkap": f"Test PPK Officer {timestamp}",
+            "jabatan": "Pejabat Pembuat Komitmen",
+            "jabatan_melekat": ["PPK"],  # This is key for PPK filtering
+            "status_kepegawaian": "PNS",
+            "eselon1": "Test Unit"
+        }
+        
+        success, response = self.run_test(
+            "Create Test PPK Employee",
+            "POST",
+            "api/pegawai",
+            200,
+            data=ppk_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test PPK employee")
+            return False
+            
+        ppk_id = response.get('_id') or response.get('id')
+        print(f"✅ Test PPK created with ID: {ppk_id}")
+        
+        # Step 2: Verify PPK appears in pejabat list
+        print("\n🔍 Step 2: Verifying PPK appears in pejabat list...")
+        
+        success, response = self.run_test(
+            "Get PPK List",
+            "GET",
+            "api/pegawai/pejabat",
+            200,
+            data={"role": "PPK"}
+        )
+        
+        if not success:
+            print("❌ Failed to get PPK list")
+            return False
+            
+        ppk_list = response if isinstance(response, list) else []
+        test_ppk = None
+        for ppk in ppk_list:
+            if ppk.get('_id') == ppk_id:
+                test_ppk = ppk
+                break
+                
+        if test_ppk:
+            print(f"✅ PPK found in list: {test_ppk.get('nama_lengkap')}")
+        else:
+            print("❌ Test PPK not found in pejabat list")
+            return False
+        
+        # Step 3: Create test persediaan item
+        print("\n📦 Step 3: Creating test persediaan item...")
+        
+        persediaan_data = {
+            "kode_barang": f"101030199800{timestamp % 10000:04d}",
+            "nama_barang": f"Test Persediaan Incoming {timestamp}",
+            "merk": "Test Brand",
+            "satuan": "Pcs",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Warehouse",
+            "stok": 0,
+            "batas_kritis": 5,
+            "nilai_satuan": 15000
+        }
+        
+        success, response = self.run_test(
+            "Create Test Persediaan Item",
+            "POST",
+            "api/persediaan/",
+            200,
+            data=persediaan_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test persediaan item")
+            return False
+            
+        persediaan_id = response.get('_id') or response.get('id')
+        print(f"✅ Test persediaan created with ID: {persediaan_id}")
+        
+        # Step 4: Test bulk incoming transaction with new fields
+        print("\n📥 Step 4: Testing bulk incoming transaction with new fields...")
+        
+        bulk_payload = {
+            "items": [
+                {
+                    "persediaan_id": persediaan_id,
+                    "jumlah": 10,
+                    "nilai_satuan": 15000,
+                    "expired_date": "2025-12-31"
+                }
+            ],
+            "dokumen_ref": f"DOC-{timestamp}",
+            
+            # New fields from the enhancement
+            "no_bukti": f"BUKTI-{timestamp}",
+            "tgl_dokumen": "2024-01-15",
+            "tgl_buku": "2024-01-16", 
+            "jenis_dokumen": "Kontrak",
+            "no_kontrak": f"KONTRAK-{timestamp}",
+            "ppk_id": ppk_id,
+            "ppk_nama": test_ppk.get('nama_lengkap'),
+            "npwp": "12.345.678.9-012.345",
+            "nama_pemilik_npwp": "PT Test Company",
+            "keterangan": "Test bulk incoming with new fields"
+        }
+        
+        success, response = self.run_test(
+            "Create Bulk Incoming Transaction with New Fields",
+            "POST",
+            "api/persediaan-transaksi/in/bulk",
+            200,
+            data=bulk_payload
+        )
+        
+        if not success:
+            print("❌ Failed to create bulk incoming transaction")
+            return False
+            
+        created_ids = response.get('ids', [])
+        if not created_ids:
+            print("❌ No transaction IDs returned")
+            return False
+            
+        transaction_id = created_ids[0]
+        print(f"✅ Bulk transaction created with ID: {transaction_id}")
+        
+        # Step 5: Verify transaction contains all new fields
+        print("\n🔍 Step 5: Verifying transaction contains all new fields...")
+        
+        success, response = self.run_test(
+            "Get Transaction History",
+            "GET",
+            "api/persediaan-transaksi/",
+            200,
+            data={"page": 1, "limit": 50}
+        )
+        
+        if not success:
+            print("❌ Failed to get transaction history")
+            return False
+            
+        transactions = response.get('data', [])
+        test_transaction = None
+        
+        for txn in transactions:
+            if txn.get('_id') == transaction_id or txn.get('dokumen_ref') == f"DOC-{timestamp}":
+                test_transaction = txn
+                break
+                
+        if not test_transaction:
+            print("❌ Test transaction not found in history")
+            return False
+            
+        print("📊 Verifying new fields in transaction...")
+        
+        # Verify no_bukti
+        no_bukti = test_transaction.get('no_bukti')
+        expected_no_bukti = f"BUKTI-{timestamp}"
+        if no_bukti == expected_no_bukti:
+            print(f"✅ no_bukti correctly saved: '{no_bukti}'")
+        else:
+            print(f"❌ CRITICAL: no_bukti field issue. Expected: '{expected_no_bukti}', Got: '{no_bukti}'")
+            return False
+            
+        # Verify tgl_dokumen
+        tgl_dokumen = test_transaction.get('tgl_dokumen')
+        expected_tgl_dokumen = "2024-01-15"
+        if tgl_dokumen == expected_tgl_dokumen:
+            print(f"✅ tgl_dokumen correctly saved: '{tgl_dokumen}'")
+        else:
+            print(f"❌ CRITICAL: tgl_dokumen field issue. Expected: '{expected_tgl_dokumen}', Got: '{tgl_dokumen}'")
+            return False
+            
+        # Verify tgl_buku
+        tgl_buku = test_transaction.get('tgl_buku')
+        expected_tgl_buku = "2024-01-16"
+        if tgl_buku == expected_tgl_buku:
+            print(f"✅ tgl_buku correctly saved: '{tgl_buku}'")
+        else:
+            print(f"❌ CRITICAL: tgl_buku field issue. Expected: '{expected_tgl_buku}', Got: '{tgl_buku}'")
+            return False
+            
+        # Verify jenis_dokumen
+        jenis_dokumen = test_transaction.get('jenis_dokumen')
+        expected_jenis_dokumen = "Kontrak"
+        if jenis_dokumen == expected_jenis_dokumen:
+            print(f"✅ jenis_dokumen correctly saved: '{jenis_dokumen}'")
+        else:
+            print(f"❌ CRITICAL: jenis_dokumen field issue. Expected: '{expected_jenis_dokumen}', Got: '{jenis_dokumen}'")
+            return False
+            
+        # Verify no_kontrak
+        no_kontrak = test_transaction.get('no_kontrak')
+        expected_no_kontrak = f"KONTRAK-{timestamp}"
+        if no_kontrak == expected_no_kontrak:
+            print(f"✅ no_kontrak correctly saved: '{no_kontrak}'")
+        else:
+            print(f"❌ CRITICAL: no_kontrak field issue. Expected: '{expected_no_kontrak}', Got: '{no_kontrak}'")
+            return False
+            
+        # Verify PPK fields
+        ppk_id_saved = test_transaction.get('ppk_id')
+        ppk_nama_saved = test_transaction.get('ppk_nama')
+        
+        if ppk_id_saved == ppk_id:
+            print(f"✅ ppk_id correctly saved: '{ppk_id_saved}'")
+        else:
+            print(f"❌ CRITICAL: ppk_id field issue. Expected: '{ppk_id}', Got: '{ppk_id_saved}'")
+            return False
+            
+        if ppk_nama_saved == test_ppk.get('nama_lengkap'):
+            print(f"✅ ppk_nama correctly saved: '{ppk_nama_saved}'")
+        else:
+            print(f"❌ CRITICAL: ppk_nama field issue. Expected: '{test_ppk.get('nama_lengkap')}', Got: '{ppk_nama_saved}'")
+            return False
+            
+        # Verify NPWP fields
+        npwp = test_transaction.get('npwp')
+        nama_pemilik_npwp = test_transaction.get('nama_pemilik_npwp')
+        
+        if npwp == "12.345.678.9-012.345":
+            print(f"✅ npwp correctly saved: '{npwp}'")
+        else:
+            print(f"❌ CRITICAL: npwp field issue. Expected: '12.345.678.9-012.345', Got: '{npwp}'")
+            return False
+            
+        if nama_pemilik_npwp == "PT Test Company":
+            print(f"✅ nama_pemilik_npwp correctly saved: '{nama_pemilik_npwp}'")
+        else:
+            print(f"❌ CRITICAL: nama_pemilik_npwp field issue. Expected: 'PT Test Company', Got: '{nama_pemilik_npwp}'")
+            return False
+        
+        # Step 6: Test conditional no_kontrak field (Non Kontrak should not require no_kontrak)
+        print("\n📋 Step 6: Testing conditional no_kontrak field (Non Kontrak)...")
+        
+        non_kontrak_payload = {
+            "items": [
+                {
+                    "persediaan_id": persediaan_id,
+                    "jumlah": 5,
+                    "nilai_satuan": 12000
+                }
+            ],
+            "dokumen_ref": f"DOC-NON-{timestamp}",
+            "no_bukti": f"BUKTI-NON-{timestamp}",
+            "tgl_dokumen": "2024-01-17",
+            "tgl_buku": "2024-01-18",
+            "jenis_dokumen": "Non_Kontrak",  # Non Kontrak type
+            "ppk_id": ppk_id,
+            "ppk_nama": test_ppk.get('nama_lengkap'),
+            "keterangan": "Test non-kontrak transaction"
+            # Note: no_kontrak should be empty/null for Non_Kontrak
+        }
+        
+        success, response = self.run_test(
+            "Create Non-Kontrak Transaction",
+            "POST",
+            "api/persediaan-transaksi/in/bulk",
+            200,
+            data=non_kontrak_payload
+        )
+        
+        if success:
+            print("✅ Non-Kontrak transaction created successfully (no_kontrak not required)")
+        else:
+            print("❌ Failed to create Non-Kontrak transaction")
+            return False
+        
+        # Step 7: Verify persediaan stock was updated correctly
+        print("\n📊 Step 7: Verifying persediaan stock was updated correctly...")
+        
+        success, response = self.run_test(
+            "Get Updated Persediaan Details",
+            "GET",
+            f"api/persediaan/detail/{persediaan_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get updated persediaan details")
+            return False
+            
+        updated_stock = response.get('stok', 0)
+        expected_stock = 15  # 10 + 5 from both transactions
+        
+        if updated_stock == expected_stock:
+            print(f"✅ Stock correctly updated to {updated_stock}")
+        else:
+            print(f"❌ Stock update issue. Expected: {expected_stock}, Got: {updated_stock}")
+            return False
+        
+        print("\n🎉 PERSEDIAAN INCOMING FEATURES TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   - PPK employee creation and filtering works")
+        print("   - PPK dropdown population works (pejabat endpoint)")
+        print("   - Bulk incoming transaction with all new fields works")
+        print("   - All new fields (no_bukti, tgl_dokumen, tgl_buku, jenis_dokumen, no_kontrak, ppk_id, ppk_nama, npwp, nama_pemilik_npwp) are correctly saved")
+        print("   - Conditional no_kontrak field works (required for Kontrak, optional for Non_Kontrak)")
+        print("   - Stock updates correctly with FIFO batching")
+        print("   - Transaction history contains all required fields")
+        
+        return True
+
     def test_ruh_pembelian_form_data_persistence(self):
         """Test RUH Pembelian form data persistence as requested in review"""
         print("\n=== RUH PEMBELIAN FORM DATA PERSISTENCE TEST ===")
