@@ -5065,7 +5065,7 @@ class APITester:
             "email": f"test.ppk.{timestamp}@example.com",
             "status_kepegawaian": "PNS",
             "jabatan": "Pejabat Pembuat Komitmen",
-            "jabatan_melekat": "PPK Pengadaan Barang",
+            "jabatan_melekat": ["PPK Pengadaan Barang"],
             "eselon1": "Test Unit PPK"
         }
         
