@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Enhance 'Persediaan Masuk' form to match the new screenshot provided by the user. Include No Bukti, Tgl Buku, Jenis Dokumen, PPK, and No Kontrak fields."
+user_problem_statement: "Verify the 'Master Dokumen Sumber' feature implementation including frontend page, backend APIs, and integration with Aset Tetap and Persediaan forms."
 
 frontend:
   - task: "Persediaan Incoming Form Enhancement"
