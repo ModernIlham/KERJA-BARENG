@@ -14,8 +14,6 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-@router.get("", response_model=Dict[str, Any])
-async def get_pegawai_list(
 @router.get("/pejabat")
 async def get_pejabat_list(
     role: str = Query("PPK", description="Role to filter (e.g., PPK)"),
@@ -31,6 +29,8 @@ async def get_pejabat_list(
         
     return items
 
+@router.get("", response_model=Dict[str, Any])
+async def get_pegawai_list(
     page: int = 1,
     limit: int = 20,
     search: Optional[str] = None,
