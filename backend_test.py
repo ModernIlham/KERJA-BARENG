@@ -1423,7 +1423,7 @@ class APITester:
                 dokumen_ref = test_txn.get('dokumen_ref')
                 dokumen_sumber_id = test_txn.get('dokumen_sumber_id')
                 
-                if dokumen_ref == 'DOC-001':
+                if dokumen_ref == f'DOC-{timestamp}':
                     print(f"✅ Nomor Dokumen auto-populated: '{dokumen_ref}'")
                 else:
                     print(f"❌ Nomor Dokumen not auto-populated correctly: '{dokumen_ref}'")
