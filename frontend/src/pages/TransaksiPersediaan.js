@@ -35,9 +35,16 @@ export default function TransaksiPersediaan({ activeTab = 'riwayat' }) {
       setLoading(true);
       try {
           const params = { page: currentPage, limit };
-          const res = await api.get('/api/persediaan-transaksi/', { params });
+          
+          // Use Grouped endpoint for 'riwayat' tab
+          const endpoint = activeTab === 'riwayat' 
+              ? '/api/persediaan-transaksi/grouped' 
+              : '/api/persediaan-transaksi/';
+              
+          const res = await api.get(endpoint, { params });
           
           let items = res.data.data;
+          // Filter logic not needed for grouped endpoint as it returns groups
           if (activeTab !== 'riwayat') {
               const filterType = activeTab === 'masuk' ? 'in' : 'out';
               items = items.filter(i => i.jenis === filterType);
