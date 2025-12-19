@@ -59,6 +59,7 @@ class User(MongoBaseModel):
     email: EmailStr
     full_name: str
     role: str = "user" 
+    pegawai_id: Optional[str] = None
     hashed_password: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -67,6 +68,7 @@ class UserCreate(BaseModel):
     full_name: str
     password: str
     role: str = "user"
+    pegawai_id: Optional[str] = None
 
 # --- Referensi Kodefikasi ---
 class Kodefikasi(MongoBaseModel):
