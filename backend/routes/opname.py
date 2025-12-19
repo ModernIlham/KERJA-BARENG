@@ -20,7 +20,14 @@ async def get_opname_history(
 ):
     query = {"asset_type": asset_type}
     cursor = db.opname.find(query).sort("tanggal", -1).limit(limit)
-    return await cursor.to_list(length=limit)
+    items = await cursor.to_list(length=limit)
+    
+    # Convert ObjectId to string for serialization
+    for item in items:
+        if "_id" in item:
+            item["_id"] = str(item["_id"])
+    
+    return items
 
 @router.post("/", response_model=StockOpname)
 async def submit_opname(
