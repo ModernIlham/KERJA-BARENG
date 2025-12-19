@@ -1214,6 +1214,293 @@ class APITester:
         
         return True
 
+    def test_dokumen_sumber_functionality(self):
+        """Test Dokumen Sumber functionality with new fields and multiple attachments"""
+        print("\n=== DOKUMEN SUMBER FUNCTIONALITY TEST ===")
+        
+        import time
+        import io
+        timestamp = int(time.time())
+        
+        # Step 1: Create a test PPK employee for the document
+        print("\n👤 Step 1: Creating test PPK employee...")
+        
+        ppk_data = {
+            "nip": f"PPK{timestamp % 100000:05d}",
+            "nama_lengkap": f"Test PPK Dokumen Sumber {timestamp}",
+            "jabatan": "Pejabat Pembuat Komitmen",
+            "jabatan_melekat": ["PPK"],
+            "status_kepegawaian": "PNS",
+            "eselon1": "Test Unit"
+        }
+        
+        success, response = self.run_test(
+            "Create Test PPK for Dokumen Sumber",
+            "POST",
+            "api/pegawai",
+            200,
+            data=ppk_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test PPK employee")
+            return False
+            
+        ppk_id = response.get('_id') or response.get('id')
+        ppk_nama = ppk_data['nama_lengkap']
+        print(f"✅ Test PPK created: {ppk_nama} (ID: {ppk_id})")
+        
+        # Step 2: Create a new Dokumen Sumber with new fields (nomor_spm, tanggal_spm)
+        print("\n📄 Step 2: Creating Dokumen Sumber with new fields...")
+        
+        dokumen_data = {
+            "jenis_dokumen": "SPM",
+            "nomor_dokumen": f"DOC-SPM-{timestamp}",
+            "tanggal_dokumen": "2024-01-15",
+            "ppk_id": ppk_id,
+            "ppk_nama": ppk_nama,
+            "nama_penyedia": "CV Test Dokumen Supplier",
+            "npwp_penyedia": "12.345.678.9-012.345",
+            "akun_belanja": "521211",
+            "uraian": "Test dokumen sumber with SPM fields",
+            "nilai_total": 75000000,
+            "nomor_spm": f"SPM-{timestamp}-001",
+            "tanggal_spm": "2024-01-20"
+        }
+        
+        success, response = self.run_test(
+            "Create Dokumen Sumber with SPM Fields",
+            "POST",
+            "api/dokumen-sumber",
+            200,
+            data=dokumen_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Dokumen Sumber")
+            return False
+            
+        dokumen_id = response.get('_id') or response.get('id')
+        print(f"✅ Dokumen Sumber created with ID: {dokumen_id}")
+        print(f"   Nomor Dokumen: {response.get('nomor_dokumen')}")
+        print(f"   Nomor SPM: {response.get('nomor_spm')}")
+        print(f"   Tanggal SPM: {response.get('tanggal_spm')}")
+        print(f"   Penyedia: {response.get('nama_penyedia')}")
+        
+        # Verify new fields are saved correctly
+        if response.get('nomor_spm') != dokumen_data['nomor_spm']:
+            print(f"❌ nomor_spm not saved correctly. Expected: {dokumen_data['nomor_spm']}, Got: {response.get('nomor_spm')}")
+            return False
+        
+        if response.get('tanggal_spm') != dokumen_data['tanggal_spm']:
+            print(f"❌ tanggal_spm not saved correctly. Expected: {dokumen_data['tanggal_spm']}, Got: {response.get('tanggal_spm')}")
+            return False
+        
+        print("✅ New fields (nomor_spm, tanggal_spm) saved correctly")
+        
+        # Step 3: Test multiple file uploads to verify attachments are appended
+        print(f"\n📤 Step 3: Testing multiple file uploads to dokumen_attachments...")
+        
+        # Create mock PDF content
+        pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000010 00000 n \n0000000079 00000 n \n0000000173 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n253\n%%EOF"
+        
+        upload_url = f"{self.base_url}/api/dokumen-sumber/{dokumen_id}/upload"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        # Upload first file
+        print("   Uploading first attachment...")
+        files1 = {'file': ('spm_document.pdf', io.BytesIO(pdf_content), 'application/pdf')}
+        
+        try:
+            import requests
+            response1 = requests.post(upload_url, files=files1, headers=headers)
+            
+            if response1.status_code == 200:
+                response_data1 = response1.json()
+                print(f"✅ First upload successful: {response_data1.get('message')}")
+                attachment1_url = response_data1.get('data', {}).get('url')
+                print(f"   File URL: {attachment1_url}")
+            else:
+                print(f"❌ First upload failed: {response1.status_code} - {response1.text[:200]}")
+                return False
+        except Exception as e:
+            print(f"❌ First upload request failed: {e}")
+            return False
+        
+        # Upload second file
+        print("   Uploading second attachment...")
+        files2 = {'file': ('sp2d_document.pdf', io.BytesIO(pdf_content), 'application/pdf')}
+        
+        try:
+            response2 = requests.post(upload_url, files=files2, headers=headers)
+            
+            if response2.status_code == 200:
+                response_data2 = response2.json()
+                print(f"✅ Second upload successful: {response_data2.get('message')}")
+                attachment2_url = response_data2.get('data', {}).get('url')
+                print(f"   File URL: {attachment2_url}")
+            else:
+                print(f"❌ Second upload failed: {response2.status_code} - {response2.text[:200]}")
+                return False
+        except Exception as e:
+            print(f"❌ Second upload request failed: {e}")
+            return False
+        
+        # Upload third file
+        print("   Uploading third attachment...")
+        files3 = {'file': ('bast_document.pdf', io.BytesIO(pdf_content), 'application/pdf')}
+        
+        try:
+            response3 = requests.post(upload_url, files=files3, headers=headers)
+            
+            if response3.status_code == 200:
+                response_data3 = response3.json()
+                print(f"✅ Third upload successful: {response_data3.get('message')}")
+                attachment3_url = response_data3.get('data', {}).get('url')
+                print(f"   File URL: {attachment3_url}")
+            else:
+                print(f"❌ Third upload failed: {response3.status_code} - {response3.text[:200]}")
+                return False
+        except Exception as e:
+            print(f"❌ Third upload request failed: {e}")
+            return False
+        
+        # Step 4: Verify all attachments are correctly stored in dokumen_attachments array
+        print(f"\n🔍 Step 4: Verifying attachments are appended to dokumen_attachments array...")
+        
+        success, response = self.run_test(
+            "Get Dokumen Details After Multiple Uploads",
+            "GET",
+            f"api/dokumen-sumber/{dokumen_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get dokumen details after uploads")
+            return False
+        
+        # Check dokumen_attachments array
+        attachments = response.get('dokumen_attachments', [])
+        print(f"📊 Found {len(attachments)} attachments in dokumen_attachments array")
+        
+        if len(attachments) != 3:
+            print(f"❌ Expected 3 attachments, found {len(attachments)}")
+            return False
+        
+        # Verify each attachment has required fields
+        for i, attachment in enumerate(attachments, 1):
+            print(f"   Attachment {i}:")
+            print(f"     URL: {attachment.get('url', 'N/A')}")
+            print(f"     Original Name: {attachment.get('original_name', 'N/A')}")
+            print(f"     Uploaded At: {attachment.get('uploaded_at', 'N/A')}")
+            
+            # Verify required fields exist
+            if not attachment.get('url'):
+                print(f"❌ Attachment {i} missing URL")
+                return False
+            if not attachment.get('original_name'):
+                print(f"❌ Attachment {i} missing original_name")
+                return False
+            if not attachment.get('uploaded_at'):
+                print(f"❌ Attachment {i} missing uploaded_at")
+                return False
+        
+        print("✅ All attachments have required fields")
+        
+        # Verify original names match what we uploaded
+        expected_names = ['spm_document.pdf', 'sp2d_document.pdf', 'bast_document.pdf']
+        actual_names = [att.get('original_name') for att in attachments]
+        
+        for expected_name in expected_names:
+            if expected_name not in actual_names:
+                print(f"❌ Expected file {expected_name} not found in attachments")
+                return False
+        
+        print("✅ All uploaded file names correctly stored")
+        
+        # Step 5: Verify legacy file_url field is also updated (for backward compatibility)
+        print(f"\n🔄 Step 5: Verifying legacy file_url field...")
+        
+        legacy_file_url = response.get('file_url')
+        if legacy_file_url:
+            print(f"✅ Legacy file_url field updated: {legacy_file_url}")
+        else:
+            print("⚠️ Legacy file_url field is empty (this may be expected)")
+        
+        # Step 6: Test document retrieval and search functionality
+        print(f"\n🔍 Step 6: Testing document retrieval and search...")
+        
+        # Test search by nomor_spm
+        success, response = self.run_test(
+            "Search Documents by nomor_spm",
+            "GET",
+            "api/dokumen-sumber",
+            200,
+            data={"search": f"SPM-{timestamp}", "page": 1, "limit": 10}
+        )
+        
+        if success:
+            documents = response.get('data', [])
+            found_our_doc = False
+            for doc in documents:
+                if doc.get('_id') == dokumen_id:
+                    found_our_doc = True
+                    print(f"✅ Document found in search results")
+                    print(f"   Nomor SPM: {doc.get('nomor_spm')}")
+                    print(f"   Tanggal SPM: {doc.get('tanggal_spm')}")
+                    break
+            
+            if not found_our_doc:
+                print("❌ Document not found in search results")
+                return False
+        else:
+            print("❌ Failed to search documents")
+            return False
+        
+        # Step 7: Test document list endpoint
+        print(f"\n📋 Step 7: Testing document list endpoint...")
+        
+        success, response = self.run_test(
+            "Get All Documents List",
+            "GET",
+            "api/dokumen-sumber",
+            200,
+            data={"page": 1, "limit": 20}
+        )
+        
+        if success:
+            documents = response.get('data', [])
+            total = response.get('total', 0)
+            print(f"✅ Document list retrieved: {len(documents)} documents, {total} total")
+            
+            # Find our document in the list
+            found_our_doc = False
+            for doc in documents:
+                if doc.get('_id') == dokumen_id:
+                    found_our_doc = True
+                    print(f"✅ Our document found in list")
+                    break
+            
+            if not found_our_doc:
+                print("❌ Our document not found in document list")
+                return False
+        else:
+            print("❌ Failed to get document list")
+            return False
+        
+        print("\n🎉 DOKUMEN SUMBER FUNCTIONALITY TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Document creation with new fields (nomor_spm, tanggal_spm)")
+        print("   2. ✅ Multiple file uploads appended to dokumen_attachments array")
+        print("   3. ✅ All attachment metadata correctly stored")
+        print("   4. ✅ Document retrieval working correctly")
+        print("   5. ✅ Search functionality includes nomor_spm field")
+        print("   6. ✅ Document list endpoint working")
+        
+        return True
+
     def test_document_source_api(self):
         """Test Document Source API as requested in review"""
         print("\n=== DOCUMENT SOURCE API TEST ===")
