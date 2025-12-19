@@ -164,6 +164,18 @@ backend:
         agent: "testing"
         comment: "✅ VERIFIED: Basic surat CRUD operations working correctly. Tested GET /api/surat/ (found 1 document), POST /api/surat/ (created successfully), DELETE /api/surat/{id} (deleted successfully). These endpoints handle basic surat document management but are separate from the template-based generation system."
 
+  - task: "Employee Signature Upload API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Employee signature upload API fully implemented and working. Tested POST /api/pegawai/{id}/signature with PNG image file. Successfully uploads signature image, processes it through image_processor, and stores signature_url in employee record. Signature images properly integrated with TTD fields in surat preview generation. Upload endpoint validates file format (PNG/JPG) and returns accessible signature URL."
+
 metadata:
   created_by: "main_agent"
   version: "9.0"
