@@ -19,7 +19,9 @@ import {
   Book,
   Box,
   Building,
-  Network
+  Network,
+  Clock,
+  Briefcase
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
