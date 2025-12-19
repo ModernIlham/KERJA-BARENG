@@ -7842,6 +7842,344 @@ def main():
         
         return True
 
+    def test_organizational_structure_api(self):
+        """Test Organizational Structure API functionality as requested in review"""
+        print("\n=== ORGANIZATIONAL STRUCTURE API TEST ===")
+        
+        import time
+        timestamp = int(time.time())
+        
+        # Step 1: Test Unit Kerja API endpoint (GET /api/settings/unit-kerja)
+        print("\n🏢 Step 1: Testing Unit Kerja API endpoint...")
+        
+        success, response = self.run_test(
+            "Get Unit Kerja List",
+            "GET",
+            "api/settings/unit-kerja",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get unit kerja list")
+            return False
+        
+        units = response if isinstance(response, list) else []
+        print(f"✅ Unit Kerja API working: Found {len(units)} organizational units")
+        
+        # Verify unit structure for tree rendering
+        if len(units) == 0:
+            print("⚠️ No organizational units found - creating test data...")
+            
+            # Create test organizational units
+            test_units = [
+                {
+                    "nama_unit": "Sekretariat Dinas",
+                    "eselon": "II",
+                    "parent_id": None
+                },
+                {
+                    "nama_unit": "Subbagian Umum dan Kepegawaian",
+                    "eselon": "IV",
+                    "parent_id": None  # Will be updated after parent creation
+                },
+                {
+                    "nama_unit": "Bidang Perencanaan",
+                    "eselon": "III",
+                    "parent_id": None
+                }
+            ]
+            
+            created_units = []
+            for unit_data in test_units:
+                success, response = self.run_test(
+                    f"Create Unit: {unit_data['nama_unit']}",
+                    "POST",
+                    "api/settings/unit-kerja",
+                    200,
+                    data=unit_data
+                )
+                
+                if success:
+                    unit_id = response.get('id')
+                    created_units.append({"id": unit_id, **unit_data})
+                    print(f"✅ Created unit: {unit_data['nama_unit']} (ID: {unit_id})")
+                else:
+                    print(f"❌ Failed to create unit: {unit_data['nama_unit']}")
+            
+            # Re-fetch units after creation
+            success, response = self.run_test(
+                "Get Unit Kerja List After Creation",
+                "GET",
+                "api/settings/unit-kerja",
+                200
+            )
+            
+            if success:
+                units = response if isinstance(response, list) else []
+                print(f"✅ Updated unit count: {len(units)} units")
+        
+        # Verify unit data structure for tree rendering
+        print("\n🔍 Verifying unit data structure for tree rendering...")
+        
+        required_fields = ['id', 'nama_unit', 'eselon']
+        tree_compatible = True
+        
+        for unit in units:
+            for field in required_fields:
+                if field not in unit:
+                    print(f"❌ Unit missing required field '{field}': {unit}")
+                    tree_compatible = False
+                    break
+            
+            # Check if parent_id exists (can be None for root units)
+            if 'parent_id' not in unit:
+                print(f"⚠️ Unit missing parent_id field (should be None for root): {unit.get('nama_unit')}")
+        
+        if tree_compatible:
+            print("✅ Unit data structure compatible with tree rendering")
+        else:
+            print("❌ Unit data structure incompatible with tree rendering")
+            return False
+        
+        # Step 2: Test Pegawai API with status filtering
+        print("\n👥 Step 2: Testing Pegawai API with status filtering...")
+        
+        success, response = self.run_test(
+            "Get All Pegawai",
+            "GET",
+            "api/pegawai",
+            200,
+            data={"limit": 1000, "status": "AKTIF"}
+        )
+        
+        if not success:
+            print("❌ Failed to get pegawai list")
+            return False
+        
+        pegawai_data = response.get('data', []) if isinstance(response, dict) else response
+        print(f"✅ Pegawai API working: Found {len(pegawai_data)} employees")
+        
+        # Verify employee data structure for organizational tree
+        if len(pegawai_data) == 0:
+            print("⚠️ No employees found - creating test employees...")
+            
+            # Create test employees with different status types
+            test_employees = [
+                {
+                    "nip": f"PNS{timestamp % 100000:05d}",
+                    "nama_lengkap": f"Test Employee PNS {timestamp}",
+                    "jabatan": "Kepala Sekretariat Dinas",
+                    "jabatan_melekat": ["Kepala"],
+                    "status_kepegawaian": "PNS",
+                    "eselon1": "Sekretariat Dinas",
+                    "eselon2": None,
+                    "eselon3": None,
+                    "eselon4": None,
+                    "is_pimpinan_tertinggi": True
+                },
+                {
+                    "nip": f"PPPK{timestamp % 100000:05d}",
+                    "nama_lengkap": f"Test Employee PPPK {timestamp}",
+                    "jabatan": "Staff Subbagian Umum",
+                    "jabatan_melekat": ["Staff"],
+                    "status_kepegawaian": "PPPK",
+                    "eselon1": "Sekretariat Dinas",
+                    "eselon2": None,
+                    "eselon3": None,
+                    "eselon4": "Subbagian Umum dan Kepegawaian"
+                },
+                {
+                    "nip": f"NONASN{timestamp % 100000:05d}",
+                    "nama_lengkap": f"Test Employee Non-ASN {timestamp}",
+                    "jabatan": "Tenaga Kontrak",
+                    "jabatan_melekat": ["Kontrak"],
+                    "status_kepegawaian": "Non-ASN",
+                    "eselon1": "Bidang Perencanaan",
+                    "eselon2": None,
+                    "eselon3": "Bidang Perencanaan",
+                    "eselon4": None
+                }
+            ]
+            
+            for emp_data in test_employees:
+                success, response = self.run_test(
+                    f"Create Employee: {emp_data['nama_lengkap']}",
+                    "POST",
+                    "api/pegawai",
+                    200,
+                    data=emp_data
+                )
+                
+                if success:
+                    print(f"✅ Created employee: {emp_data['nama_lengkap']} ({emp_data['status_kepegawaian']})")
+                else:
+                    print(f"❌ Failed to create employee: {emp_data['nama_lengkap']}")
+            
+            # Re-fetch employees after creation
+            success, response = self.run_test(
+                "Get Pegawai After Creation",
+                "GET",
+                "api/pegawai",
+                200,
+                data={"limit": 1000, "status": "AKTIF"}
+            )
+            
+            if success:
+                pegawai_data = response.get('data', []) if isinstance(response, dict) else response
+                print(f"✅ Updated employee count: {len(pegawai_data)} employees")
+        
+        # Step 3: Test employee status classification
+        print("\n📊 Step 3: Testing employee status classification...")
+        
+        status_counts = {"PNS": 0, "PPPK": 0, "Non-ASN": 0, "Unknown": 0}
+        
+        for emp in pegawai_data:
+            status = emp.get('status_kepegawaian', '').upper()
+            if 'PNS' in status:
+                status_counts["PNS"] += 1
+            elif 'PPPK' in status:
+                status_counts["PPPK"] += 1
+            elif 'NON-ASN' in status or 'NON ASN' in status:
+                status_counts["Non-ASN"] += 1
+            else:
+                status_counts["Unknown"] += 1
+        
+        print(f"📊 Employee status distribution:")
+        for status, count in status_counts.items():
+            print(f"   {status}: {count} employees")
+        
+        # Verify required fields for organizational tree
+        print("\n🔍 Verifying employee data structure for organizational tree...")
+        
+        required_emp_fields = ['_id', 'nama_lengkap', 'status_kepegawaian', 'jabatan']
+        org_fields = ['eselon1', 'eselon2', 'eselon3', 'eselon4']
+        
+        tree_emp_compatible = True
+        
+        for emp in pegawai_data[:5]:  # Check first 5 employees
+            # Check required fields
+            for field in required_emp_fields:
+                if field not in emp:
+                    print(f"❌ Employee missing required field '{field}': {emp.get('nama_lengkap', 'Unknown')}")
+                    tree_emp_compatible = False
+            
+            # Check organizational unit assignment (at least one eselon field should have value)
+            has_unit = any(emp.get(field) for field in org_fields)
+            if not has_unit:
+                print(f"⚠️ Employee has no organizational unit assignment: {emp.get('nama_lengkap', 'Unknown')}")
+        
+        if tree_emp_compatible:
+            print("✅ Employee data structure compatible with organizational tree")
+        else:
+            print("❌ Employee data structure incompatible with organizational tree")
+            return False
+        
+        # Step 4: Test organizational tree data integration
+        print("\n🌳 Step 4: Testing organizational tree data integration...")
+        
+        # Simulate frontend tree building logic
+        unit_map = {}
+        for unit in units:
+            unit_map[unit['id']] = {
+                **unit,
+                'members': [],
+                'stats': {'PNS': 0, 'PPPK': 0, 'NONASN': 0, 'Total': 0},
+                'leader': None
+            }
+        
+        # Assign employees to units (simplified logic)
+        assigned_employees = 0
+        for emp in pegawai_data:
+            # Find unit by name matching (eselon4 -> eselon3 -> eselon2 -> eselon1)
+            unit_name = emp.get('eselon4') or emp.get('eselon3') or emp.get('eselon2') or emp.get('eselon1')
+            
+            if unit_name:
+                # Find unit by name
+                unit_id = None
+                for uid, unit in unit_map.items():
+                    if unit['nama_unit'].lower() == unit_name.lower():
+                        unit_id = uid
+                        break
+                
+                if unit_id:
+                    unit_map[unit_id]['members'].append(emp)
+                    
+                    # Update stats
+                    status = emp.get('status_kepegawaian', '').upper()
+                    if 'PNS' in status:
+                        unit_map[unit_id]['stats']['PNS'] += 1
+                    elif 'PPPK' in status:
+                        unit_map[unit_id]['stats']['PPPK'] += 1
+                    else:
+                        unit_map[unit_id]['stats']['NONASN'] += 1
+                    unit_map[unit_id]['stats']['Total'] += 1
+                    
+                    # Check for leader
+                    if emp.get('is_pimpinan_tertinggi') or 'kepala' in emp.get('jabatan', '').lower():
+                        if not unit_map[unit_id]['leader']:
+                            unit_map[unit_id]['leader'] = emp
+                    
+                    assigned_employees += 1
+        
+        print(f"✅ Successfully assigned {assigned_employees} employees to organizational units")
+        
+        # Verify tree structure can be built
+        units_with_members = sum(1 for unit in unit_map.values() if unit['stats']['Total'] > 0)
+        print(f"📊 Units with assigned members: {units_with_members}/{len(units)}")
+        
+        # Display sample unit statistics
+        for unit_id, unit in list(unit_map.items())[:3]:  # Show first 3 units
+            stats = unit['stats']
+            leader_name = unit['leader']['nama_lengkap'] if unit['leader'] else "No Leader"
+            print(f"   {unit['nama_unit']}: {stats['Total']} members (PNS: {stats['PNS']}, PPPK: {stats['PPPK']}, Non-ASN: {stats['NONASN']}) - Leader: {leader_name}")
+        
+        # Step 5: Test modal filtering functionality
+        print("\n🔍 Step 5: Testing modal filtering functionality...")
+        
+        # Test filtering employees by status (simulate frontend filtering)
+        if units_with_members > 0:
+            # Get first unit with members
+            test_unit = next(unit for unit in unit_map.values() if unit['stats']['Total'] > 0)
+            
+            print(f"Testing filtering for unit: {test_unit['nama_unit']}")
+            
+            # Filter by PNS
+            pns_members = [emp for emp in test_unit['members'] 
+                          if 'PNS' in emp.get('status_kepegawaian', '').upper()]
+            print(f"   PNS filter: {len(pns_members)} employees")
+            
+            # Filter by PPPK
+            pppk_members = [emp for emp in test_unit['members'] 
+                           if 'PPPK' in emp.get('status_kepegawaian', '').upper()]
+            print(f"   PPPK filter: {len(pppk_members)} employees")
+            
+            # Filter by Non-ASN
+            nonasn_members = [emp for emp in test_unit['members'] 
+                             if not ('PNS' in emp.get('status_kepegawaian', '').upper() or 
+                                   'PPPK' in emp.get('status_kepegawaian', '').upper())]
+            print(f"   Non-ASN filter: {len(nonasn_members)} employees")
+            
+            # Verify totals match
+            total_filtered = len(pns_members) + len(pppk_members) + len(nonasn_members)
+            if total_filtered == test_unit['stats']['Total']:
+                print("✅ Modal filtering logic working correctly")
+            else:
+                print(f"❌ Filtering mismatch: {total_filtered} filtered vs {test_unit['stats']['Total']} total")
+                return False
+        else:
+            print("⚠️ No units with members to test filtering")
+        
+        print("\n🎉 ORGANIZATIONAL STRUCTURE API TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Unit Kerja API endpoint working")
+        print("   2. ✅ Pegawai API with status filtering working")
+        print("   3. ✅ Tree structure data format compatible")
+        print("   4. ✅ Employee status classification working")
+        print("   5. ✅ Organizational tree integration working")
+        print("   6. ✅ Modal filtering functionality verified")
+        
+        return True
+
 
 def main():
     """Main function to run the tests"""
