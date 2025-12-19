@@ -223,6 +223,30 @@ backend:
         agent: "testing"
         comment: "✅ VERIFIED: PPK employee creation and filtering works correctly. Created test PPK employee with jabatan_melekat=['PPK']. GET /api/pegawai/pejabat?role=PPK correctly filters and returns PPK employees for dropdown population. PPK data (ppk_id, ppk_nama) correctly saved in dokumen and linked properly."
 
+  - task: "Document Source File Upload API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/dokumen.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Document upload endpoint (POST /api/dokumen-sumber/{id}/upload) working correctly. Successfully tested with mock PDF file (content-type: application/pdf). File upload processes correctly, file_url is saved in document record and persists properly. Upload returns success response with file URL."
+
+  - task: "Stock Opname API Implementation"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/opname.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Stock opname endpoint (POST /api/opname/) working correctly with asset_type='persediaan'. Automatic stock adjustment applied, opname transaction recorded, history retrieval functional. Fixed ObjectId serialization issue in GET /api/opname/ endpoint. All opname calculations and data persistence verified."
+
 metadata:
   created_by: "main_agent"
   version: "4.0"
