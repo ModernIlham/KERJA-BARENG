@@ -173,38 +173,43 @@ frontend:
 
   - task: "Transaction Grouping"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/transaksi/TransactionTable.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented backend aggregation and frontend grouping logic for Transaction History."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Transaction grouping functionality working perfectly. Created bulk transaction with TEST-GROUP-001 containing 2 items. Verified: 1) Flat list (Barang Masuk/Keluar tabs) shows individual transactions, 2) Grouped list (Riwayat Transaksi tab) shows single group with 'Total Item: 2', 3) Group expansion displays both items correctly with all required fields, 4) Group calculations accurate (total_nilai: 250,000), 5) Search functionality works in grouped endpoint, 6) Backend /grouped API endpoint working correctly with MongoDB aggregation."
 
 backend:
   - task: "Grouped History API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/persediaan_transaksi.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added /grouped endpoint with MongoDB aggregation."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: /api/persediaan-transaksi/grouped endpoint working correctly. MongoDB aggregation pipeline groups transactions by dokumen_ref, no_bukti, jenis, and date. Returns proper group structure with total_items count, total_nilai calculation, and items array containing individual transaction details. Search functionality implemented and working. All API responses match expected format."
 
 metadata:
   created_by: "main_agent"
-  version: "14.0"
-  test_sequence: 26
+  version: "15.0"
+  test_sequence: 27
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Transaction Grouping"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -212,3 +217,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Please test: 1. Go to 'Transaksi Gudang (Persediaan)'. 2. Create a 'Barang Masuk' transaction with 2 items and a unique No Dokumen (e.g. TEST-GROUP-001). 3. Go to 'Riwayat Transaksi' tab. 4. Verify that you see ONE entry for 'TEST-GROUP-001' with 'Total Item: 2'. 5. Click the row to expand and verify the 2 items are listed."
+  - agent: "testing"
+    message: "✅ TRANSACTION GROUPING TESTING COMPLETED SUCCESSFULLY! All functionality verified: Backend /grouped API endpoint working with proper MongoDB aggregation, Frontend TransactionTable component correctly displays grouped vs flat views, Bulk transaction creation working, Group expansion and item details display correctly, Search functionality operational. No issues found - feature is ready for production use."
