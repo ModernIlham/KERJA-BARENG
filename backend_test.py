@@ -2069,8 +2069,8 @@ class APITester:
         """Test specific features requested in the review"""
         print("\n=== REVIEW REQUEST FEATURES TEST ===")
         
-        # Test Pegawai Import functionality
-        if not self.test_pegawai_import_functionality():
+        # Test Pegawai Document Upload and Delete functionality
+        if not self.test_pegawai_document_upload_delete():
             return False
         
         print("\n🎉 ALL REVIEW REQUEST FEATURES COMPLETED SUCCESSFULLY!")
