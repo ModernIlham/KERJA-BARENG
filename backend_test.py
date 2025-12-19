@@ -1563,16 +1563,314 @@ class APITester:
         
         return True
 
+    def test_pegawai_import_functionality(self):
+        """Test Pegawai Import functionality as requested in review"""
+        print("\n=== PEGAWAI IMPORT FUNCTIONALITY TEST ===")
+        
+        import time
+        import io
+        import pandas as pd
+        timestamp = int(time.time())
+        
+        # Step 1: Test Import Template endpoint (GET /api/pegawai/import/template)
+        print("\n📄 Step 1: Testing Import Template Download...")
+        
+        url = f"{self.base_url}/api/pegawai/import/template"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        try:
+            import requests
+            response = requests.get(url, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Template download response status: {response.status_code}")
+            
+            if success:
+                # Check if response is Excel file
+                content_type = response.headers.get('content-type', '')
+                if 'spreadsheet' in content_type or 'excel' in content_type:
+                    print("✅ Template download successful - Excel file received")
+                    print(f"   Content-Type: {content_type}")
+                    print(f"   Content-Length: {len(response.content)} bytes")
+                    
+                    # Try to read the Excel file to verify structure
+                    try:
+                        df = pd.read_excel(io.BytesIO(response.content))
+                        print(f"   Template columns: {list(df.columns)}")
+                        
+                        # Verify expected columns are present
+                        expected_columns = {
+                            "NIP", "Nama Lengkap", "NIK", "NPWP", "Jabatan", 
+                            "Eselon 1", "Eselon 2", "Eselon 3", "Eselon 4", 
+                            "Pangkat/Golongan", "Status Kepegawaian", 
+                            "No Telp", "Email", "Nama Bank", "No Rekening",
+                            "Gelar Depan", "Gelar Belakang"
+                        }
+                        
+                        file_cols = set(df.columns)
+                        if expected_columns.issubset(file_cols):
+                            print("✅ All expected columns present in template")
+                        else:
+                            missing = expected_columns - file_cols
+                            print(f"❌ Missing columns in template: {missing}")
+                            return False
+                            
+                    except Exception as e:
+                        print(f"❌ Failed to read template Excel file: {e}")
+                        return False
+                else:
+                    print(f"❌ Expected Excel file, got content-type: {content_type}")
+                    return False
+            else:
+                print(f"❌ Template download failed: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Template download request failed: {e}")
+            return False
+        
+        # Step 2: Create test Excel file with valid and duplicate data
+        print("\n📊 Step 2: Creating test Excel file with valid and duplicate data...")
+        
+        # Create test data with valid entries and duplicates
+        test_data = {
+            "NIP": [
+                f"TEST{timestamp}001",  # Valid entry 1
+                f"TEST{timestamp}002",  # Valid entry 2  
+                f"TEST{timestamp}001",  # Duplicate NIP
+                f"TEST{timestamp}003",  # Valid entry 3 but duplicate NIK
+                f"TEST{timestamp}004",  # Valid entry 4 but duplicate NPWP
+                f"TEST{timestamp}005",  # Valid entry 5
+            ],
+            "Nama Lengkap": [
+                f"Test Employee {timestamp} One",
+                f"Test Employee {timestamp} Two", 
+                f"Test Employee {timestamp} Duplicate",
+                f"Test Employee {timestamp} Three",
+                f"Test Employee {timestamp} Four",
+                f"Test Employee {timestamp} Five",
+            ],
+            "NIK": [
+                f"32010101{timestamp % 100000:05d}01",  # Valid NIK 1
+                f"32010101{timestamp % 100000:05d}02",  # Valid NIK 2
+                f"32010101{timestamp % 100000:05d}03",  # Valid NIK 3
+                f"32010101{timestamp % 100000:05d}01",  # Duplicate NIK (same as first)
+                f"32010101{timestamp % 100000:05d}04",  # Valid NIK 4
+                f"32010101{timestamp % 100000:05d}05",  # Valid NIK 5
+            ],
+            "NPWP": [
+                f"12.345.{timestamp % 1000:03d}.1-012.001",  # Valid NPWP 1
+                f"12.345.{timestamp % 1000:03d}.2-012.002",  # Valid NPWP 2
+                f"12.345.{timestamp % 1000:03d}.3-012.003",  # Valid NPWP 3
+                f"12.345.{timestamp % 1000:03d}.4-012.004",  # Valid NPWP 4
+                f"12.345.{timestamp % 1000:03d}.1-012.001",  # Duplicate NPWP (same as first)
+                f"12.345.{timestamp % 1000:03d}.5-012.005",  # Valid NPWP 5
+            ],
+            "Jabatan": ["Kepala Seksi"] * 6,
+            "Eselon 1": ["Sekretariat Jenderal"] * 6,
+            "Eselon 2": ["Biro Keuangan"] * 6,
+            "Eselon 3": ["Bagian Perbendaharaan"] * 6,
+            "Eselon 4": ["Subbagian Verifikasi"] * 6,
+            "Pangkat/Golongan": ["Penata (III/c)"] * 6,
+            "Status Kepegawaian": ["PNS"] * 6,
+            "No Telp": [f"0812345678{i}" for i in range(6)],
+            "Email": [f"test{timestamp}{i}@example.com" for i in range(6)],
+            "Nama Bank": ["BRI"] * 6,
+            "No Rekening": [f"123456789{i}" for i in range(6)],
+            "Gelar Depan": [""] * 6,
+            "Gelar Belakang": ["S.E."] * 6
+        }
+        
+        df_test = pd.DataFrame(test_data)
+        
+        # Save to Excel in memory
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+            df_test.to_excel(writer, index=False, sheet_name='Data Import')
+        excel_buffer.seek(0)
+        
+        print(f"✅ Test Excel file created with {len(df_test)} rows")
+        print("   Expected results:")
+        print("   - Row 1: Valid (should be inserted)")
+        print("   - Row 2: Valid (should be inserted)")  
+        print("   - Row 3: Duplicate NIP (should be skipped)")
+        print("   - Row 4: Duplicate NIK (should be skipped)")
+        print("   - Row 5: Duplicate NPWP (should be skipped)")
+        print("   - Row 6: Valid (should be inserted)")
+        
+        # Step 3: Test Import Data endpoint (POST /api/pegawai/import)
+        print("\n📤 Step 3: Testing Import Data with valid and duplicate data...")
+        
+        url = f"{self.base_url}/api/pegawai/import"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        files = {'file': ('test_import.xlsx', excel_buffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}
+        
+        try:
+            response = requests.post(url, files=files, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Import response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Import completed successfully!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    print(f"   Success: {response_data.get('success', 0)} records")
+                    print(f"   Skipped: {response_data.get('skipped', 0)} records (duplicates)")
+                    print(f"   Failed: {response_data.get('failed', 0)} records")
+                    
+                    if response_data.get('errors'):
+                        print(f"   Errors: {response_data['errors']}")
+                    
+                    # Verify expected results
+                    expected_success = 3  # Rows 1, 2, 6 should succeed
+                    expected_skipped = 3  # Rows 3, 4, 5 should be skipped (duplicates)
+                    
+                    actual_success = response_data.get('success', 0)
+                    actual_skipped = response_data.get('skipped', 0)
+                    
+                    if actual_success == expected_success:
+                        print(f"✅ Success count correct: {actual_success}")
+                    else:
+                        print(f"❌ Expected {expected_success} success, got {actual_success}")
+                        return False
+                    
+                    if actual_skipped == expected_skipped:
+                        print(f"✅ Skipped count correct: {actual_skipped}")
+                    else:
+                        print(f"❌ Expected {expected_skipped} skipped, got {actual_skipped}")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse import response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Import failed: {error_data}")
+                except:
+                    print(f"❌ Import failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Import request failed: {e}")
+            return False
+        
+        # Step 4: Test validation for missing columns
+        print("\n🔍 Step 4: Testing validation for missing columns...")
+        
+        # Create Excel file with missing required columns
+        invalid_data = {
+            "NIP": [f"INVALID{timestamp}001"],
+            "Nama Lengkap": [f"Invalid Test {timestamp}"],
+            # Missing other required columns intentionally
+        }
+        
+        df_invalid = pd.DataFrame(invalid_data)
+        excel_invalid_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_invalid_buffer, engine='openpyxl') as writer:
+            df_invalid.to_excel(writer, index=False, sheet_name='Invalid Data')
+        excel_invalid_buffer.seek(0)
+        
+        files_invalid = {'file': ('test_invalid.xlsx', excel_invalid_buffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}
+        
+        try:
+            response = requests.post(url, files=files_invalid, headers=headers)
+            
+            # Should return 400 for missing columns
+            if response.status_code == 400:
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', '')
+                    if 'Struktur kolom tidak sesuai' in error_detail or 'Kolom hilang' in error_detail:
+                        print("✅ Missing columns validation working correctly")
+                        print(f"   Error message: {error_detail}")
+                    else:
+                        print(f"❌ Unexpected error message: {error_detail}")
+                        return False
+                except:
+                    print(f"❌ Failed to parse error response: {response.text[:200]}")
+                    return False
+            else:
+                print(f"❌ Expected 400 status for missing columns, got {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Missing columns validation request failed: {e}")
+            return False
+        
+        # Step 5: Verify duplicate check works for NIP, NIK, and NPWP
+        print("\n🔍 Step 5: Verifying duplicate check works for NIP, NIK, and NPWP...")
+        
+        # Get the imported employees to verify they exist
+        success, response = self.run_test(
+            "Get Pegawai List After Import",
+            "GET",
+            "api/pegawai",
+            200,
+            data={"page": 1, "limit": 50, "search": f"TEST{timestamp}"}
+        )
+        
+        if success:
+            employees = response.get('data', [])
+            imported_employees = [emp for emp in employees if f"TEST{timestamp}" in emp.get('nip', '')]
+            
+            print(f"✅ Found {len(imported_employees)} imported employees")
+            
+            # Verify only the expected employees were imported (not the duplicates)
+            expected_nips = [f"TEST{timestamp}001", f"TEST{timestamp}002", f"TEST{timestamp}005"]
+            actual_nips = [emp.get('nip') for emp in imported_employees]
+            
+            for expected_nip in expected_nips:
+                if expected_nip in actual_nips:
+                    print(f"✅ Expected employee found: {expected_nip}")
+                else:
+                    print(f"❌ Expected employee not found: {expected_nip}")
+                    return False
+            
+            # Verify duplicates were not imported
+            duplicate_nips = [f"TEST{timestamp}001", f"TEST{timestamp}003", f"TEST{timestamp}004"]  # These should not appear as duplicates
+            
+            # Count occurrences of each NIP
+            nip_counts = {}
+            for emp in imported_employees:
+                nip = emp.get('nip')
+                nip_counts[nip] = nip_counts.get(nip, 0) + 1
+            
+            for nip, count in nip_counts.items():
+                if count == 1:
+                    print(f"✅ NIP {nip} appears only once (no duplicates)")
+                else:
+                    print(f"❌ NIP {nip} appears {count} times (duplicate found)")
+                    return False
+                    
+        else:
+            print("❌ Failed to get pegawai list after import")
+            return False
+        
+        print("\n🎉 PEGAWAI IMPORT FUNCTIONALITY TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Import template download (GET /api/pegawai/import/template)")
+        print("   2. ✅ Import data with valid and duplicate entries")
+        print("   3. ✅ Duplicates correctly skipped (NIP, NIK, NPWP)")
+        print("   4. ✅ Valid data correctly inserted")
+        print("   5. ✅ Missing columns validation working")
+        print("   6. ✅ Duplicate check verified for NIP, NIK, and NPWP")
+        
+        return True
+
     def test_review_request_features(self):
         """Test specific features requested in the review"""
         print("\n=== REVIEW REQUEST FEATURES TEST ===")
         
-        # Test Document Source API
-        if not self.test_document_source_api():
-            return False
-        
-        # Test Stock Opname Endpoint
-        if not self.test_stock_opname_endpoint():
+        # Test Pegawai Import functionality
+        if not self.test_pegawai_import_functionality():
             return False
         
         print("\n🎉 ALL REVIEW REQUEST FEATURES COMPLETED SUCCESSFULLY!")
