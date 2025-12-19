@@ -145,19 +145,19 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "5.0"
-  test_sequence: 17
+  version: "6.0"
+  test_sequence: 18
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Pegawai Import Template Endpoint"
-    - "Pegawai Import Data Endpoint"
-    - "Pegawai Import Validation"
+    - "Pegawai Document Upload Endpoint"
+    - "Pegawai Document Delete Endpoint"
+    - "Pegawai Document Validation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "testing"
-    message: "✅ PEGAWAI IMPORT FUNCTIONALITY TESTING COMPLETED: Successfully tested all three requested components: 1) Import Template Endpoint (GET /api/pegawai/import/template) - Returns proper Excel file with all required columns, verified structure and content. 2) Import Data Endpoint (POST /api/pegawai/import) - Tested with 6-row Excel file containing valid and duplicate data. Results: 3 records successfully inserted, 3 records correctly skipped as duplicates (NIP, NIK, NPWP), 0 failed records. 3) Duplicate Check Verification - Confirmed duplicate detection works for NIP, NIK, and NPWP fields. Fixed backend NaN value handling for optional fields. Missing columns validation working correctly with detailed error messages. All functionality verified and working as expected."
+    message: "✅ PEGAWAI DOCUMENT UPLOAD & DELETE FUNCTIONALITY TESTING COMPLETED: Successfully tested all requested components: 1) Document Upload Endpoint (POST /api/pegawai/{id}/upload-dokumen) - Verified with mock PDF file, file size limit (1MB) enforcement, and metadata persistence in 'dokumen' array. 2) Document Delete Endpoint (DELETE /api/pegawai/{id}/dokumen/{doc_id}) - Confirmed document removal from array. 3) Document Validation - File size and type validation working correctly. Fixed missing GET endpoint for pegawai details during testing. All functionality verified and working as expected. Tests passed: 5/5 (100% success rate)."
