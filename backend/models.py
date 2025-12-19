@@ -276,6 +276,16 @@ class RiwayatKarir(BaseModel):
     pangkat_baru: Optional[str] = None
     sk_ref: Optional[str] = None
 
+# --- Document Management (NEW) ---
+class PegawaiDocument(BaseModel):
+    id: str = Field(default_factory=lambda: str(ObjectId()))
+    filename: str
+    original_name: str
+    file_url: str
+    keterangan: str
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    file_type: str = "document" # pdf, image, etc.
+
 class Pegawai(MongoBaseModel):
     # Informasi Utama
     nip: str
@@ -288,16 +298,6 @@ class Pegawai(MongoBaseModel):
     
     # Kontak
     no_telp: Optional[str] = None
-    # --- Document Management (NEW) ---
-    
-class PegawaiDocument(BaseModel):
-    id: str = Field(default_factory=lambda: str(ObjectId()))
-    filename: str
-    original_name: str
-    file_url: str
-    keterangan: str
-    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    file_type: str = "document" # pdf, image, etc.
     email: Optional[str] = None
     
     # Bank
@@ -307,6 +307,12 @@ class PegawaiDocument(BaseModel):
     # Jabatan & Unit Kerja
     jabatan: str # Jabatan Struktural Utama
     eselon1: Optional[str] = None
+    eselon2: Optional[str] = None
+    eselon3: Optional[str] = None
+    eselon4: Optional[str] = None
+    eselon5: Optional[str] = None
+    jabatan_melekat: List[str] = [] # Jabatan Fungsional Melekat
+    
     # Leadership
     is_pimpinan_tertinggi: bool = False # Kepala / Wakil Kepala
     jenis_pimpinan: Optional[str] = None # "Kepala", "Wakil"
@@ -314,11 +320,6 @@ class PegawaiDocument(BaseModel):
     # Photo
     foto_url: Optional[str] = None
     foto_thumbnail_url: Optional[str] = None
-    eselon2: Optional[str] = None
-    eselon3: Optional[str] = None
-    eselon4: Optional[str] = None
-    jabatan_melekat: List[str] = [] # Jabatan Fungsional Melekat
-    eselon5: Optional[str] = None
     
     # Atribut & Status
     status_kepegawaian: Optional[str] = None # PNS, PPPK, Non-ASN
