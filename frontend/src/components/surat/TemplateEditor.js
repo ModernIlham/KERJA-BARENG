@@ -5,12 +5,13 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { 
     Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, 
-    Table, Code, Type, FileText, Variable, Save, LayoutTemplate, Palette, Eye 
+    Table, Code, Type, FileText, Variable, Save, LayoutTemplate, Palette, Eye, Scissors 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../../api/axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { KOP_STYLES, EXAMPLE_TEMPLATES } from './KopSuratDesigns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const VARIABLES = [
     { code: '{{ nomor_surat }}', label: 'Nomor Surat' },
@@ -35,6 +36,7 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
         nama_template: '',
         jenis: 'UMUM',
         kop_style: 'standard', // Default
+        custom_kop_html: '', // For Custom Kop
         css_style: '', // CSS Custom
         konten: '' // HTML Content
     });
@@ -57,7 +59,7 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
         setFormData({
             ...formData,
             nama_template: ex.name,
-            jenis: ex.jenis,
+            jenis: ex.jenis || 'UMUM',
             css_style: ex.css,
             konten: ex.html
         });
@@ -99,9 +101,13 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
 
     // Render Preview
     const renderPreview = () => {
-        const selectedKop = KOP_STYLES[formData.kop_style] || KOP_STYLES.standard;
-        const kopHtml = selectedKop.render(instansi);
-        const kopCss = selectedKop.css;
+        const kopConfig = KOP_STYLES[formData.kop_style] || KOP_STYLES.standard;
+        // If Custom, use custom_kop_html from state, else use render func
+        const kopHtml = formData.kop_style === 'custom' 
+            ? kopConfig.render(instansi, formData.custom_kop_html) 
+            : kopConfig.render(instansi);
+            
+        const kopCss = kopConfig.css;
         
         const fullHtml = `
             <style>
@@ -111,7 +117,7 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
             <div class="document-root">
                 ${kopHtml}
                 <div class="content-body">
-                    ${formData.konten
+                    ${(formData.konten || '')
                         .replace(/{{ ttd_image }}/g, '<div style="border:1px dashed #ccc; padding:5px; color:#aaa; font-size:10px; display:inline-block; width:100px; text-align:center;">[TTD DIGITAL]</div>')
                         .replace(/{{ nama_instansi }}/g, instansi.nama_instansi || 'NAMA INSTANSI')
                         .replace(/{{ alamat_instansi }}/g, instansi.alamat || 'Alamat Instansi')
@@ -164,13 +170,15 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
                         </select>
                     </div>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center bg-slate-50 p-2 rounded">
                     <div className="text-xs text-slate-500">
-                        Tips: Gunakan CSS tab untuk styling lanjutan agar dokumen lebih profesional.
+                        Pilih template awal untuk mempercepat pembuatan:
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => loadExample('surat_tugas')} className="h-8 text-xs bg-purple-50 text-purple-700 border-purple-200">
-                        <LayoutTemplate size={14} className="mr-2"/> Muat Contoh Professional
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => loadExample('sppb')} className="h-7 text-xs border-purple-200 text-purple-700">SPPB</Button>
+                        <Button variant="outline" size="sm" onClick={() => loadExample('lpb')} className="h-7 text-xs border-blue-200 text-blue-700">LPB</Button>
+                        <Button variant="outline" size="sm" onClick={() => loadExample('bast_full')} className="h-7 text-xs border-green-200 text-green-700">BAST</Button>
+                    </div>
                 </div>
             </div>
 
@@ -185,6 +193,11 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
                             <TabsTrigger value="css" className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-pink-600 rounded-none h-10 px-6">
                                 <Palette size={14} className="mr-2"/> CSS Style
                             </TabsTrigger>
+                            {formData.kop_style === 'custom' && (
+                                <TabsTrigger value="kop" className="data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-600 rounded-none h-10 px-6">
+                                    <LayoutTemplate size={14} className="mr-2"/> Custom Kop
+                                </TabsTrigger>
+                            )}
                         </TabsList>
 
                         <TabsContent value="editor" className="flex-1 flex flex-col gap-2 mt-2 data-[state=inactive]:hidden">
@@ -194,10 +207,11 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => insertVariable('<i></i>')} title="Italic"><Italic size={14}/></Button>
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => insertVariable('<u></u>')} title="Underline"><Underline size={14}/></Button>
                                 <div className="w-px h-4 bg-slate-300 mx-1"></div>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => insertVariable('<div style="text-align: center;"></div>')} title="Center"><AlignCenter size={14}/></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => insertVariable('<div class="text-center"></div>')} title="Center"><AlignCenter size={14}/></Button>
                                 <div className="w-px h-4 bg-slate-300 mx-1"></div>
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => insertVariable('<br/>')} title="Enter / Baris Baru"><Type size={14}/></Button>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => insertVariable('<table class="tabel-data"><tr><td>Cell</td></tr></table>')} title="Insert Table"><Table size={14}/></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => insertVariable('<table class="data-table"><thead><tr><th>No</th><th>Item</th></tr></thead><tbody><tr><td>1</td><td>...</td></tr></tbody></table>')} title="Insert Data Table"><Table size={14}/></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-red-600" onClick={() => insertVariable('<div class="page-break"></div>')} title="Insert Page Break"><Scissors size={14}/></Button>
                             </div>
 
                             <Textarea 
@@ -228,7 +242,7 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
 
                         <TabsContent value="css" className="flex-1 flex flex-col gap-2 mt-2 data-[state=inactive]:hidden">
                             <div className="bg-pink-50 p-3 rounded border border-pink-100 text-xs text-pink-800 mb-2">
-                                Masukkan kode CSS standar disini. Gunakan class selector untuk mengatur layout yang lebih kompleks.
+                                Gunakan CSS untuk mengatur layout halaman, tabel, dan font. Class <code>.page-break</code> sudah tersedia untuk memisahkan halaman.
                             </div>
                             <Textarea 
                                 className="flex-1 font-mono text-xs leading-relaxed resize-none p-4 border-pink-200 bg-slate-50"
@@ -236,6 +250,19 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
                                 onChange={(e) => setFormData({...formData, css_style: e.target.value})}
                                 spellCheck="false"
                                 placeholder=".my-class { font-size: 12px; color: black; }"
+                            />
+                        </TabsContent>
+
+                        <TabsContent value="kop" className="flex-1 flex flex-col gap-2 mt-2 data-[state=inactive]:hidden">
+                            <div className="bg-orange-50 p-3 rounded border border-orange-100 text-xs text-orange-800 mb-2">
+                                Desain Kop Surat Custom. Anda bisa menggunakan HTML & CSS bebas disini.
+                            </div>
+                            <Textarea 
+                                className="flex-1 font-mono text-xs leading-relaxed resize-none p-4 border-orange-200 bg-slate-50"
+                                value={formData.custom_kop_html || ''}
+                                onChange={(e) => setFormData({...formData, custom_kop_html: e.target.value})}
+                                spellCheck="false"
+                                placeholder="<div>HTML KOP SURAT CUSTOM...</div>"
                             />
                         </TabsContent>
                     </Tabs>
@@ -246,7 +273,7 @@ export default function TemplateEditor({ template, onClose, onSuccess }) {
                     <Label className="flex items-center gap-2"><Eye size={16}/> Live Preview (A4)</Label>
                     <div className="flex-1 bg-slate-200 rounded overflow-y-auto p-4 flex justify-center">
                         <div 
-                            className="bg-white shadow-lg w-[210mm] min-h-[297mm] p-[20mm] origin-top transform scale-75 sm:scale-90 lg:scale-100 transition-transform text-black"
+                            className="bg-white shadow-lg w-[210mm] min-h-[297mm] p-[10mm] origin-top transform scale-75 sm:scale-90 lg:scale-100 transition-transform text-black"
                             dangerouslySetInnerHTML={renderPreview()}
                         />
                     </div>
