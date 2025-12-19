@@ -174,8 +174,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Employee Photo Cropping"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
