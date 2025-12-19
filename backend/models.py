@@ -116,6 +116,7 @@ class SuratTemplate(BaseModel):
     konten: str # HTML Content with {{placeholders}}
     kop_active: bool = True
     css_style: Optional[str] = ""
+    custom_kop_html: Optional[str] = ""
     kop_style: str = "standard"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
