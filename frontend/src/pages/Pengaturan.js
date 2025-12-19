@@ -9,6 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download, PackageX } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Label } from '../components/ui/label';
 import DeleteTransactionDialog from '../components/DeleteTransactionDialog';
 import UnitKerjaManager from '../components/pegawai/UnitKerjaManager';
 import InstansiSettings from '../components/pegawai/InstansiSettings';
@@ -16,6 +19,12 @@ import DeleteMasterDataDialog from '../components/DeleteMasterDataDialog';
 export default function Pengaturan() {
   const [users, setUsers] = useState([]);
   const [units, setUnits] = useState([]);
+  const [activePegawai, setActivePegawai] = useState([]);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  
+  // User Form
+  const { register: registerUser, handleSubmit: handleUserSubmit, reset: resetUser, setValue: setValueUser, watch: watchUser } = useForm();
+  
   const [loading, setLoading] = useState(true);
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
   
@@ -36,6 +45,16 @@ export default function Pengaturan() {
         setUsers(uRes.data);
         setUnits(unitRes.data);
         setConfig(configRes.data);
+        
+        // Fetch Active Pegawai for User Creation
+        const pRes = await api.get('/api/pegawai', { params: { limit: 1000, status: 'AKTIF' } }); // Assuming default filter or we need to filter client side if API doesn't support status param on list endpoint yet.
+        // Wait, the /api/pegawai endpoint doesn't explicitly support 'status' filter in the code I read earlier.
+        // It supports 'search'. Let's check get_pegawai_list in routes/pegawai.py again.
+        // It does NOT support status filter. It just paginates.
+        // I should probably add a filter or just fetch all and filter client side (if not too many).
+        // For now, let's fetch all (limit 1000) and filter in JS.
+        setActivePegawai(pRes.data.data.filter(p => p.status === 'AKTIF'));
+        
     } catch (e) {
         toast.error("Gagal memuat pengaturan");
     } finally {
@@ -57,6 +76,27 @@ export default function Pengaturan() {
   const onDeleteUnit = async (id) => {
       if(!window.confirm("Hapus unit kerja ini?")) return;
       try {
+  const onAddUser = async (data) => {
+      try {
+          await api.post('/api/auth/register', data);
+          toast.success("User berhasil dibuat");
+          setIsUserModalOpen(false);
+          resetUser();
+          fetchData(); // Reload users
+      } catch (e) {
+          console.error(e);
+          toast.error(e.response?.data?.detail || "Gagal membuat user");
+      }
+  };
+
+  const handlePegawaiSelect = (pegawaiId) => {
+      setValueUser('pegawai_id', pegawaiId);
+      const selected = activePegawai.find(p => p._id === pegawaiId);
+      if (selected) {
+          setValueUser('full_name', selected.nama_lengkap);
+          if (selected.email) setValueUser('email', selected.email);
+      }
+  };
           await api.delete(`/api/settings/unit-kerja/${id}`);
           toast.success("Unit Kerja dihapus");
           fetchData();
@@ -284,11 +324,15 @@ export default function Pengaturan() {
             </TabsContent>
 
             <TabsContent value="users" className="mt-4">
-                {/* ... (Existing Users Content) ... */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Daftar Pengguna</CardTitle>
-                        <CardDescription>Kelola akses pengguna aplikasi</CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Daftar Pengguna</CardTitle>
+                            <CardDescription>Kelola akses pengguna aplikasi (Role Based)</CardDescription>
+                        </div>
+                        <Button onClick={() => setIsUserModalOpen(true)} className="bg-blue-600">
+                            <Plus size={16} className="mr-2"/> Tambah User
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -303,9 +347,21 @@ export default function Pengaturan() {
                             <TableBody>
                                 {users.map((u, i) => (
                                     <TableRow key={i}>
-                                        <TableCell className="font-medium">{u.full_name}</TableCell>
+                                        <TableCell className="font-medium">
+                                            {u.full_name}
+                                            {u.pegawai_id && <span className="ml-2 text-[10px] bg-blue-100 text-blue-800 px-1 rounded">Pegawai</span>}
+                                        </TableCell>
                                         <TableCell>{u.email}</TableCell>
-                                        <TableCell><span className="bg-slate-100 px-2 py-1 rounded text-xs">{u.role}</span></TableCell>
+                                        <TableCell>
+                                            <span className={`px-2 py-1 rounded text-xs font-bold
+                                                ${u.role === 'super_admin' ? 'bg-purple-100 text-purple-800' : 
+                                                  u.role === 'kepala_satker' ? 'bg-red-100 text-red-800' :
+                                                  u.role === 'validator' ? 'bg-orange-100 text-orange-800' :
+                                                  u.role === 'operator' ? 'bg-green-100 text-green-800' :
+                                                  'bg-slate-100 text-slate-800'}`}>
+                                                {u.role.replace('_', ' ').toUpperCase()}
+                                            </span>
+                                        </TableCell>
                                         <TableCell><span className="text-green-600 text-xs font-bold">Aktif</span></TableCell>
                                     </TableRow>
                                 ))}
@@ -313,6 +369,73 @@ export default function Pengaturan() {
                         </Table>
                     </CardContent>
                 </Card>
+
+                {/* Add User Modal */}
+                <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Tambah User Baru</DialogTitle>
+                            <DialogDescription>
+                                Buat akun baru untuk pegawai aktif.
+                            </DialogDescription>
+                        </DialogHeader>
+                        
+                        <form onSubmit={handleUserSubmit(onAddUser)} className="space-y-4">
+                            <div className="space-y-1">
+                                <Label>Pilih Pegawai (Aktif)</Label>
+                                <Select onValueChange={handlePegawaiSelect}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih Pegawai..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {activePegawai.map(p => (
+                                            <SelectItem key={p._id} value={p._id}>
+                                                {p.nama_lengkap} - {p.nip}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <input type="hidden" {...registerUser('pegawai_id', { required: "Pegawai wajib dipilih" })} />
+                            </div>
+                            
+                            <div className="space-y-1">
+                                <Label>Role Aplikasi</Label>
+                                <Select onValueChange={(v) => setValueUser('role', v)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih Role..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="operator">Operator</SelectItem>
+                                        <SelectItem value="validator">Validator</SelectItem>
+                                        <SelectItem value="kepala_satker">Kepala Satker</SelectItem>
+                                        <SelectItem value="monitoring_pusat">Monitoring Pusat</SelectItem>
+                                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <input type="hidden" {...registerUser('role', { required: true })} />
+                            </div>
+
+                            <div className="space-y-1">
+                                <Label>Email Login</Label>
+                                <Input {...registerUser('email', { required: true })} placeholder="email@instansi.go.id" />
+                            </div>
+                            
+                            <div className="space-y-1">
+                                <Label>Password</Label>
+                                <Input type="password" {...registerUser('password', { required: true })} placeholder="******" />
+                            </div>
+
+                            <div className="space-y-1">
+                                <Label>Nama Lengkap (Otomatis)</Label>
+                                <Input {...registerUser('full_name')} readOnly className="bg-slate-50" />
+                            </div>
+
+                            <DialogFooter>
+                                <Button type="submit" className="bg-blue-600 text-white w-full">Buat Akun</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </TabsContent>
             
             <TabsContent value="unit" className="mt-4">
