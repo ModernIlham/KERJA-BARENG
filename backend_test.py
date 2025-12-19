@@ -1563,6 +1563,206 @@ class APITester:
         
         return True
 
+    def test_pegawai_document_upload_delete(self):
+        """Test Pegawai Document Upload and Delete functionality as requested in review"""
+        print("\n=== PEGAWAI DOCUMENT UPLOAD & DELETE TEST ===")
+        
+        import time
+        import io
+        timestamp = int(time.time())
+        
+        # Step 1: Create a test pegawai for document upload
+        print("\n👤 Step 1: Creating test pegawai for document testing...")
+        
+        pegawai_data = {
+            "nip": f"DOC{timestamp % 100000:05d}",
+            "nama_lengkap": f"Test Employee Document {timestamp}",
+            "jabatan": "Staff Testing",
+            "eselon1": "Test Unit",
+            "status_kepegawaian": "PNS"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Pegawai for Document",
+            "POST",
+            "api/pegawai",
+            200,
+            data=pegawai_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test pegawai")
+            return False
+            
+        pegawai_id = response.get('_id') or response.get('id')
+        print(f"✅ Test pegawai created with ID: {pegawai_id}")
+        
+        # Step 2: Test Document Upload with PDF file (POST /api/pegawai/{id}/upload-dokumen)
+        print(f"\n📤 Step 2: Testing document upload with PDF file...")
+        
+        # Create a mock PDF file content (minimal valid PDF)
+        pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000010 00000 n \n0000000079 00000 n \n0000000173 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n253\n%%EOF"
+        
+        # Test the upload endpoint
+        url = f"{self.base_url}/api/pegawai/{pegawai_id}/upload-dokumen"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        files = {'file': ('test_document.pdf', io.BytesIO(pdf_content), 'application/pdf')}
+        data = {'keterangan': 'Test document upload for pegawai'}
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, data=data, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Document upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    
+                    uploaded_doc = response_data.get('data', {})
+                    doc_id = uploaded_doc.get('id')
+                    if not doc_id:
+                        print("❌ No document ID returned from upload")
+                        return False
+                    print(f"   Document ID: {doc_id}")
+                    print(f"   File URL: {uploaded_doc.get('file_url', 'N/A')}")
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Upload failed: {error_data}")
+                except:
+                    print(f"❌ Upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Upload request failed: {e}")
+            return False
+        
+        # Step 3: Test file size limit (1MB)
+        print(f"\n📏 Step 3: Testing file size limit (1MB)...")
+        
+        # Create a file larger than 1MB
+        large_content = b"A" * (1024 * 1024 + 1)  # 1MB + 1 byte
+        
+        files_large = {'file': ('large_file.pdf', io.BytesIO(large_content), 'application/pdf')}
+        data_large = {'keterangan': 'Test large file upload'}
+        
+        try:
+            response = requests.post(url, files=files_large, data=data_large, headers=headers)
+            
+            if response.status_code == 400:
+                try:
+                    error_data = response.json()
+                    if "1MB" in error_data.get('detail', ''):
+                        print("✅ File size limit (1MB) correctly enforced")
+                    else:
+                        print(f"❌ Expected 1MB limit error, got: {error_data}")
+                        return False
+                except:
+                    print(f"❌ Failed to parse size limit error response")
+                    return False
+            else:
+                print(f"❌ Expected 400 status for large file, got {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Size limit test failed: {e}")
+            return False
+        
+        # Step 4: Verify document is saved in pegawai record
+        print(f"\n🔍 Step 4: Verifying document is saved in pegawai record...")
+        
+        success, response = self.run_test(
+            "Get Pegawai Details After Upload",
+            "GET",
+            f"api/pegawai/{pegawai_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get pegawai details")
+            return False
+        
+        # Check if dokumen array contains our uploaded document
+        dokumen_list = response.get('dokumen', [])
+        if len(dokumen_list) > 0:
+            uploaded_doc_in_db = dokumen_list[0]
+            print(f"✅ Document found in pegawai record:")
+            print(f"   Document ID: {uploaded_doc_in_db.get('id')}")
+            print(f"   Original Name: {uploaded_doc_in_db.get('original_name')}")
+            print(f"   File URL: {uploaded_doc_in_db.get('file_url')}")
+            print(f"   Keterangan: {uploaded_doc_in_db.get('keterangan')}")
+            
+            # Verify it matches our upload
+            if uploaded_doc_in_db.get('id') == doc_id:
+                print("✅ Document ID matches upload response")
+            else:
+                print(f"❌ Document ID mismatch: DB={uploaded_doc_in_db.get('id')}, Upload={doc_id}")
+                return False
+        else:
+            print("❌ No documents found in pegawai record")
+            return False
+        
+        # Step 5: Test Document Delete (DELETE /api/pegawai/{id}/dokumen/{doc_id})
+        print(f"\n🗑️ Step 5: Testing document deletion...")
+        
+        success, response = self.run_test(
+            "Delete Pegawai Document",
+            "DELETE",
+            f"api/pegawai/{pegawai_id}/dokumen/{doc_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to delete document")
+            return False
+        
+        print(f"✅ Delete response: {response.get('message', 'Success')}")
+        
+        # Step 6: Verify document is removed from pegawai record
+        print(f"\n🔍 Step 6: Verifying document is removed from pegawai record...")
+        
+        success, response = self.run_test(
+            "Get Pegawai Details After Delete",
+            "GET",
+            f"api/pegawai/{pegawai_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get pegawai details after delete")
+            return False
+        
+        # Check if dokumen array is empty or doesn't contain our document
+        dokumen_list_after = response.get('dokumen', [])
+        doc_still_exists = any(doc.get('id') == doc_id for doc in dokumen_list_after)
+        
+        if not doc_still_exists:
+            print("✅ Document successfully removed from pegawai record")
+        else:
+            print("❌ Document still exists in pegawai record after deletion")
+            return False
+        
+        print("\n🎉 PEGAWAI DOCUMENT UPLOAD & DELETE TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Document upload (POST /api/pegawai/{id}/upload-dokumen)")
+        print("   2. ✅ File size limit (1MB) enforcement")
+        print("   3. ✅ Document metadata saved in 'dokumen' array")
+        print("   4. ✅ Document deletion (DELETE /api/pegawai/{id}/dokumen/{doc_id})")
+        print("   5. ✅ Document removed from array after deletion")
+        
+        return True
+
     def test_pegawai_import_functionality(self):
         """Test Pegawai Import functionality as requested in review"""
         print("\n=== PEGAWAI IMPORT FUNCTIONALITY TEST ===")
