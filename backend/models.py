@@ -207,6 +207,10 @@ class Barang(MongoBaseModel):
     # Link to Source Document (NEW)
     dokumen_sumber_id: Optional[str] = None
     
+    # Supplier Info
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
+    
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class BarangCreate(BaseModel):
@@ -254,6 +258,10 @@ class BarangCreate(BaseModel):
     
     # Link to Source Document (NEW)
     dokumen_sumber_id: Optional[str] = None
+    
+    # Supplier Info
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
 
 # --- Pegawai (Employee) Models ---
 class RiwayatKarir(BaseModel):
@@ -384,6 +392,10 @@ class Transaksi(MongoBaseModel):
     
     # Link to Source Document (NEW)
     dokumen_sumber_id: Optional[str] = None
+    
+    # Supplier Info
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
 
 class TransaksiCreate(BaseModel):
     jenis: str
@@ -394,6 +406,10 @@ class TransaksiCreate(BaseModel):
     keterangan: Optional[str] = None
     dokumen_ref: Optional[str] = None
     dokumen_sumber_id: Optional[str] = None
+    
+    # Supplier Info
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
 
 # --- Stock Opname Model ---
 class StockOpname(MongoBaseModel):
@@ -532,6 +548,10 @@ class TransaksiPersediaan(MongoBaseModel):
     
     # Link to Source Document (NEW)
     dokumen_sumber_id: Optional[str] = None
+    
+    # Supplier Info
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
 
 class TransaksiPersediaanCreate(BaseModel):
     jenis: str
@@ -545,6 +565,10 @@ class TransaksiPersediaanCreate(BaseModel):
     keterangan: Optional[str] = None
     dokumen_ref: Optional[str] = None 
     dokumen_sumber_id: Optional[str] = None
+    
+    # Supplier Info
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
 
 class TransaksiPersediaanBulkItem(BaseModel):
     persediaan_id: str
@@ -573,3 +597,7 @@ class TransaksiPersediaanBulkCreate(BaseModel):
     
     # Link to Source Document (NEW)
     dokumen_sumber_id: Optional[str] = None
+    
+    # Supplier Info
+    nama_penyedia: Optional[str] = None
+    npwp_penyedia: Optional[str] = None
