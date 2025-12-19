@@ -400,11 +400,6 @@ export default function AssetIncomingForm({ onSuccess }) {
                                         <Input type="date" {...register('tgl_dokumen')} className="bg-white" readOnly={!!selectedDokumen}/>
                                     </div>
                                 </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-semibold">Tanggal Dokumen</Label>
-                                        <Input type="date" {...register('tgl_dokumen')} className="bg-white" readOnly={!!selectedDokumen}/>
-                                    </div>
-                                </div>
 
                                 {/* SPM Readonly Info */}
                                 {selectedDokumen && (selectedDokumen.nomor_spm || selectedDokumen.tanggal_spm) && (
