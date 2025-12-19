@@ -270,9 +270,9 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "4.0"
-  test_sequence: 16
-  run_ui: true
+  version: "5.0"
+  test_sequence: 17
+  run_ui: false
 
 test_plan:
   current_focus:
