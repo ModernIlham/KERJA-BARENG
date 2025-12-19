@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Verify the 'Master Dokumen Sumber' feature implementation including frontend page, backend APIs, and integration with Aset Tetap and Persediaan forms."
+user_problem_statement: "Test the Import Template endpoint (GET /api/pegawai/import/template), Import Data endpoint (POST /api/pegawai/import) with valid and duplicate data verification, and duplicate check functionality for NIP, NIK, and NPWP."
 
 frontend:
   - task: "Master Dokumen Sumber Page"
