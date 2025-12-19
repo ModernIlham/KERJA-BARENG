@@ -169,8 +169,8 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "7.0"
-  test_sequence: 19
+  version: "8.0"
+  test_sequence: 20
   run_ui: false
 
 test_plan:
