@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
 import { Button } from '../components/ui/button';
@@ -7,7 +7,7 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Loader2, Plus, Search, FileText, Edit, Trash, Save, X } from 'lucide-react';
+import { Loader2, Plus, Search, FileText, Edit, Trash, Save, X, Upload, File } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Textarea } from '../components/ui/textarea';
@@ -163,16 +163,19 @@ export default function DokumenList() {
 function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
     const { register, handleSubmit, reset, setValue, watch } = useForm();
     const [loading, setLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
 
     useEffect(() => {
         if (initialData) {
             reset(initialData);
+            setSelectedFile(null);
         } else {
             reset({
                 jenis_dokumen: 'Kontrak',
                 tanggal_dokumen: new Date().toISOString().split('T')[0],
                 nilai_total: 0
             });
+            setSelectedFile(null);
         }
     }, [initialData, isOpen, reset]);
 
@@ -185,13 +188,34 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                 if (ppk) data.ppk_nama = ppk.nama_lengkap;
             }
 
+            let docId = initialData?._id;
+
+            // 1. Create or Update Data
             if (initialData) {
                 await api.put(`/api/dokumen-sumber/${initialData._id}`, data);
-                toast.success("Dokumen diperbarui");
+                toast.success("Data dokumen diperbarui");
             } else {
-                await api.post('/api/dokumen-sumber', data);
-                toast.success("Dokumen dibuat");
+                const res = await api.post('/api/dokumen-sumber', data);
+                docId = res.data._id || res.data.id;
+                toast.success("Data dokumen dibuat");
             }
+
+            // 2. Upload File if selected
+            if (selectedFile && docId) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                
+                const tUpload = toast.loading("Mengupload file dokumen...");
+                try {
+                    await api.post(`/api/dokumen-sumber/${docId}/upload`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    toast.success("File berhasil diupload", { id: tUpload });
+                } catch (e) {
+                    toast.error("Gagal upload file, tapi data tersimpan", { id: tUpload });
+                }
+            }
+
             onSuccess();
         } catch (e) {
             toast.error(e.response?.data?.detail || "Gagal menyimpan");
@@ -202,7 +226,7 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{initialData ? 'Edit Dokumen Sumber' : 'Tambah Dokumen Sumber Baru'}</DialogTitle>
                 </DialogHeader>
@@ -281,6 +305,28 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                     <div className="space-y-1">
                         <Label>Uraian / Keterangan</Label>
                         <Textarea {...register('uraian')} placeholder="Keterangan singkat tentang dokumen ini..." />
+                    </div>
+
+                    {/* File Upload Section */}
+                    <div className="space-y-2 border-t pt-4">
+                        <Label className="flex items-center gap-2">
+                            <Upload size={16}/> Upload Scan Dokumen (PDF/JPG)
+                        </Label>
+                        <div className="flex gap-2 items-center">
+                            <Input 
+                                type="file" 
+                                accept="application/pdf,image/*"
+                                onChange={(e) => setSelectedFile(e.target.files[0])}
+                                className="cursor-pointer"
+                            />
+                        </div>
+                        {initialData?.file_url && (
+                            <div className="text-xs text-blue-600 flex items-center gap-1 bg-blue-50 p-2 rounded">
+                                <FileText size={12}/>
+                                <a href={initialData.file_url} target="_blank" rel="noreferrer" className="underline">Lihat File Tersimpan</a>
+                            </div>
+                        )}
+                        <p className="text-[10px] text-slate-500">Mendukung format PDF, JPG, PNG. Maksimal 10MB.</p>
                     </div>
 
                     <DialogFooter>

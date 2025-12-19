@@ -310,6 +310,14 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                         <RadioGroupItem value="Non_Kontrak" id="r2" className="h-3 w-3"/>
                                         <Label htmlFor="r2" className="text-[10px]">Non-Kontrak</Label>
                                     </div>
+                                    <div className="flex items-center space-x-1">
+                                        <RadioGroupItem value="Kontrak_BLU" id="r3" className="h-3 w-3"/>
+                                        <Label htmlFor="r3" className="text-[10px]">Kontrak BLU</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                        <RadioGroupItem value="Non_Kontrak_BLU" id="r4" className="h-3 w-3"/>
+                                        <Label htmlFor="r4" className="text-[10px]">Non-Kontrak BLU</Label>
+                                    </div>
                                 </RadioGroup>
                             </div>
                         </div>

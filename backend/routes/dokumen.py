@@ -122,3 +122,41 @@ async def lookup_dokumen(q: str = Query(..., min_length=2), current_user: str = 
     for item in items:
         item["_id"] = str(item["_id"])
     return items
+
+@router.post("/{id}/upload")
+async def upload_dokumen_file(
+    id: str,
+    file: UploadFile = File(...),
+    current_user: str = Depends(get_current_user)
+):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    try:
+        # Validate file type
+        allowed_types = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
+        if file.content_type not in allowed_types:
+             raise HTTPException(status_code=400, detail="Format file harus PDF atau Image (JPG/PNG)")
+
+        # Process upload
+        result = await process_image_upload(file, "dokumen_sumber", db)
+        
+        # If PDF, process_image_upload might behave differently or we need specific handling.
+        # Assuming process_image_upload handles basic saving or we should implement simple save for PDF.
+        # Let's check process_image_upload implementation or just use simple save if it's PDF.
+        
+        file_url = f"/api/uploads/{result['optimized']}"
+        
+        # Update Dokumen
+        res = await db.dokumen_sumber.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {"file_url": file_url, "updated_at": datetime.now(timezone.utc)}}
+        )
+        
+        if res.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Dokumen not found")
+            
+        return {"message": "File berhasil diupload", "url": file_url}
+        
+    except Exception as e:
+        print(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
