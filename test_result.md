@@ -157,17 +157,19 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "8.0"
-  test_sequence: 20
+  version: "9.0"
+  test_sequence: 21
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Unit Kerja API Endpoint"
-    - "Pegawai API with Status Filter"
-    - "Organizational Tree Structure Data"
-    - "Employee Status Classification"
-  stuck_tasks: []
+    - "Surat Template API Endpoints"
+    - "Surat Preview Generation API"
+    - "Surat Archive Saving API"
+  stuck_tasks:
+    - "Surat Template API Endpoints"
+    - "Surat Preview Generation API"
+    - "Surat Archive Saving API"
   test_all: false
   test_priority: "high_first"
 
