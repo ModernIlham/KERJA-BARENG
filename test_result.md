@@ -102,46 +102,58 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the Dokumen Sumber functionality: Create a document with the new fields (nomor_spm, tanggal_spm). Test the upload endpoint (POST /api/dokumen-sumber/{id}/upload) multiple times to verify attachments are appended to 'dokumen_attachments' list. Verify that the details are correctly retrieved."
+user_problem_statement: "Test the new route /organisasi functionality: 1. Test the new route /organisasi 2. Test if the tree structure renders correctly 3. Test if clicking a node opens the details modal 4. Test if the details modal filters employees correctly by status (PNS/PPPK/Non-ASN)"
 
 frontend: []
 
 backend:
-  - task: "Dokumen Sumber Creation with New Fields"
+  - task: "Unit Kerja API Endpoint"
     implemented: true
-    working: true
-    file: "/app/backend/routes/dokumen.py"
+    working: "NA"
+    file: "/app/backend/routes/settings.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Dokumen Sumber creation (POST /api/dokumen-sumber) working correctly with new fields nomor_spm and tanggal_spm. Successfully created document with all required fields including PPK info, penyedia details, and new SPM fields. Document creation validates unique nomor_dokumen and saves all metadata correctly to database."
+      - working: "NA"
+        agent: "main"
+        comment: "Unit Kerja API endpoint (GET /api/settings/unit-kerja) exists in settings.py. Need to test if it returns proper organizational structure data for tree rendering."
 
-  - task: "Dokumen Sumber Multiple File Upload"
+  - task: "Pegawai API with Status Filter"
     implemented: true
-    working: true
-    file: "/app/backend/routes/dokumen.py"
+    working: "NA"
+    file: "/app/backend/routes/pegawai.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Multiple file upload endpoint (POST /api/dokumen-sumber/{id}/upload) working correctly. Successfully tested uploading 3 PDF files sequentially. Each upload appends to 'dokumen_attachments' array with proper metadata: url, original_name, uploaded_at. All attachments correctly stored and retrievable. Legacy file_url field also updated for backward compatibility."
+      - working: "NA"
+        agent: "main"
+        comment: "Pegawai API endpoint (GET /api/pegawai) exists. Need to test if it properly returns employee data with status filtering (PNS/PPPK/Non-ASN) and organizational unit assignments."
 
-  - task: "Dokumen Sumber Retrieval and Search"
+  - task: "Organizational Tree Structure Data"
     implemented: true
-    working: true
-    file: "/app/backend/routes/dokumen.py"
+    working: "NA"
+    file: "/app/backend/routes/settings.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Document retrieval (GET /api/dokumen-sumber/{id}) and search functionality working correctly. Document details endpoint returns all fields including new nomor_spm and tanggal_spm fields. Search functionality (GET /api/dokumen-sumber?search=) includes nomor_spm in search criteria. Document list endpoint returns paginated results with proper metadata."
+      - working: "NA"
+        agent: "main"
+        comment: "Backend should provide hierarchical unit data with parent_id relationships for tree structure. Need to verify data format supports frontend tree rendering requirements."
+
+  - task: "Employee Status Classification"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/pegawai.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Employee data should include status_kepegawaian field for PNS/PPPK/Non-ASN classification. Need to test if filtering and counting by status works correctly."
 
 metadata:
   created_by: "main_agent"
