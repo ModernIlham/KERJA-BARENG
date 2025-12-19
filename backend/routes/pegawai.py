@@ -9,6 +9,10 @@ from datetime import datetime, timezone
 import os
 import math
 
+import pandas as pd
+from io import BytesIO
+from fastapi.responses import StreamingResponse
+from fastapi import UploadFile, File, Form
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
@@ -137,4 +141,159 @@ async def mutasi_pegawai(id: str, mutasi: MutasiPegawai, current_user: str = Dep
         return_document=True
     )
     
+@router.get("/import/template")
+async def get_import_template(current_user: str = Depends(get_current_user)):
+    # Create DataFrame for template
+    data = {
+        "NIP": ["198001012005011001 (Wajib)"],
+        "Nama Lengkap": ["Budi Santoso (Wajib)"],
+        "NIK": ["3201010101010001"],
+        "NPWP": ["12.345.678.9-012.000"],
+        "Jabatan": ["Kepala Seksi Umum"],
+        "Eselon 1": ["Sekretariat Jenderal"],
+        "Eselon 2": ["Biro Keuangan"],
+        "Eselon 3": ["Bagian Perbendaharaan"],
+        "Eselon 4": ["Subbagian Verifikasi"],
+        "Pangkat/Golongan": ["Penata (III/c)"],
+        "Status Kepegawaian": ["PNS"],
+        "No Telp": ["08123456789"],
+        "Email": ["budi@example.com"],
+        "Nama Bank": ["BRI"],
+        "No Rekening": ["1234567890"],
+        "Gelar Depan": ["Dr."],
+        "Gelar Belakang": ["S.E., M.M."]
+    }
+    df = pd.DataFrame(data)
+    
+    # Save to Excel in memory
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Template Import')
+        
+        # Adjust column width
+        worksheet = writer.sheets['Template Import']
+        for column in df:
+            column_width = max(df[column].astype(str).map(len).max(), len(column)) + 2
+            col_idx = df.columns.get_loc(column) + 1
+            worksheet.column_dimensions[chr(64 + col_idx)].width = column_width
+            
+    output.seek(0)
+    
+    return StreamingResponse(
+        output, 
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=template_import_pegawai.xlsx"}
+    )
+
+@router.post("/import")
+async def import_pegawai(
+    file: UploadFile = File(...), 
+    current_user: str = Depends(get_current_user)
+):
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Format file harus Excel (.xlsx, .xls)")
+        
+    try:
+        contents = await file.read()
+        df = pd.read_excel(BytesIO(contents))
+        
+        # 1. Validate Columns
+        expected_columns = {
+            "NIP", "Nama Lengkap", "NIK", "NPWP", "Jabatan", 
+            "Eselon 1", "Eselon 2", "Eselon 3", "Eselon 4", 
+            "Pangkat/Golongan", "Status Kepegawaian", 
+            "No Telp", "Email", "Nama Bank", "No Rekening",
+            "Gelar Depan", "Gelar Belakang"
+        }
+        
+        # Check if all expected columns are present (case insensitive check)
+        file_cols = [c.strip() for c in df.columns]
+        missing = [c for c in expected_columns if c not in file_cols]
+        
+        if missing:
+            raise HTTPException(status_code=400, detail=f"Struktur kolom tidak sesuai. Kolom hilang: {', '.join(missing)}")
+            
+        # 2. Process Data
+        success_count = 0
+        skipped_count = 0
+        failed_count = 0
+        errors = []
+        
+        # Clean data: Trim whitespace from all string columns
+        df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+        
+        # Iterate rows
+        for index, row in df.iterrows():
+            try:
+                # Basic Validation
+                nip = str(row.get("NIP", "")).strip()
+                if not nip or nip == "nan" or "Wajib" in nip: # Skip example row
+                    continue
+                    
+                nama = row.get("Nama Lengkap", "")
+                if not nama or str(nama) == "nan": 
+                    failed_count += 1
+                    errors.append(f"Baris {index+2}: Nama Lengkap kosong")
+                    continue
+
+                # Uniqueness Check (Trim System)
+                # Check NIP, NIK, NPWP
+                nik = str(row.get("NIK", "")).strip() if pd.notna(row.get("NIK")) else None
+                npwp = str(row.get("NPWP", "")).strip() if pd.notna(row.get("NPWP")) else None
+                
+                # Check DB for existing
+                query = {"$or": [{"nip": nip}]}
+                if nik: query["$or"].append({"nik": nik})
+                if npwp: query["$or"].append({"npwp": npwp})
+                
+                existing = await db.pegawai.find_one(query)
+                
+                if existing:
+                    skipped_count += 1
+                    # errors.append(f"Baris {index+2}: Dilewati (Duplikat NIP/NIK/NPWP)") # Optional: Don't treat as error
+                    continue
+                    
+                # Construct Object
+                new_pegawai = Pegawai(
+                    nip=nip,
+                    nama_lengkap=nama,
+                    nik=nik,
+                    npwp=npwp,
+                    jabatan=row.get("Jabatan"),
+                    eselon1=row.get("Eselon 1"),
+                    eselon2=row.get("Eselon 2"),
+                    eselon3=row.get("Eselon 3"),
+                    eselon4=row.get("Eselon 4"),
+                    pangkat_golongan=row.get("Pangkat/Golongan"),
+                    status_kepegawaian=row.get("Status Kepegawaian"),
+                    no_telp=str(row.get("No Telp")) if pd.notna(row.get("No Telp")) else None,
+                    email=row.get("Email"),
+                    nama_bank=row.get("Nama Bank"),
+                    no_rekening=str(row.get("No Rekening")) if pd.notna(row.get("No Rekening")) else None,
+                    gelar_depan=row.get("Gelar Depan"),
+                    gelar_belakang=row.get("Gelar Belakang"),
+                    status="AKTIF"
+                )
+                
+                # Insert
+                await db.pegawai.insert_one(new_pegawai.model_dump(by_alias=True, exclude=["id"]))
+                success_count += 1
+                
+            except Exception as row_err:
+                failed_count += 1
+                errors.append(f"Baris {index+2}: {str(row_err)}")
+                
+        return {
+            "message": "Import selesai",
+            "success": success_count,
+            "skipped": skipped_count,
+            "failed": failed_count,
+            "errors": errors
+        }
+        
+    except Exception as e:
+        # Catch file reading errors
+        if isinstance(e, HTTPException): raise e
+        print(e)
+        raise HTTPException(status_code=400, detail=f"Error membaca file: {str(e)}")
     return res
