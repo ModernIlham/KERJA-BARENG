@@ -56,6 +56,93 @@ async def get_all_history(
         "total_pages": math.ceil(total / limit) if total > 0 else 0
     }
 
+
+@router.get("/grouped", response_model=Dict)
+async def get_grouped_history(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    search: Optional[str] = None,
+    current_user: str = Depends(get_current_user)
+):
+    # 1. Build Query
+    query = {}
+    if search:
+        query["$or"] = [
+            {"nama_barang": {"$regex": search, "$options": "i"}},
+            {"dokumen_ref": {"$regex": search, "$options": "i"}},
+            {"no_bukti": {"$regex": search, "$options": "i"}},
+            {"keterangan": {"$regex": search, "$options": "i"}}
+        ]
+
+    # 2. Aggregation Pipeline
+    pipeline = [
+        { "$match": query },
+        { "$addFields": {
+            "group_key": {
+                "$cond": {
+                    "if": { "$and": [
+                        { "$ne": ["$dokumen_ref", None] },
+                        { "$ne": ["$dokumen_ref", ""] }
+                    ]},
+                    "then": { 
+                        "doc": "$dokumen_ref", 
+                        "bukti": "$no_bukti",
+                        "jenis": "$jenis",
+                        # Add date to key to split same doc ref used on different days
+                        "day": { "$dateToString": { "format": "%Y-%m-%d", "date": "$timestamp" } }
+                    },
+                    "else": "$_id" # Unique Group for single items without doc
+                }
+            }
+        }},
+        { "$sort": { "timestamp": -1 } },
+        { "$group": {
+            "_id": "$group_key",
+            "timestamp": { "$first": "$timestamp" },
+            "dokumen_ref": { "$first": "$dokumen_ref" },
+            "no_bukti": { "$first": "$no_bukti" },
+            "jenis": { "$first": "$jenis" },
+            "total_items": { "$sum": 1 },
+            "total_nilai": { "$sum": "$total_nilai" },
+            "keterangan": { "$first": "$keterangan" },
+            "petugas": { "$first": "$petugas" },
+            "unit_penerima": { "$first": "$unit_penerima" },
+            "bukti_fotos": { "$first": "$bukti_fotos" },
+            "items": { "$push": {
+                "_id": "$_id",
+                "nama_barang": "$nama_barang",
+                "kode_barang": "$kode_barang",
+                "jumlah": "$jumlah",
+                "nilai_satuan": "$nilai_satuan",
+                "total_nilai": "$total_nilai",
+                "stok_sebelum": "$stok_sebelum",
+                "stok_sesudah": "$stok_sesudah",
+                "batch_number": "$batch_number",
+                "expired_date": "$expired_date",
+                "unit_penerima": "$unit_penerima"
+            }}
+        }},
+        { "$sort": { "timestamp": -1 } },
+        { "$facet": {
+            "metadata": [ { "$count": "total" } ],
+            "data": [ { "$skip": (page - 1) * limit }, { "$limit": limit } ]
+        }}
+    ]
+
+    result = await db.transaksi_persediaan.aggregate(pipeline).to_list(length=1)
+    
+    metadata = result[0]['metadata']
+    total = metadata[0]['total'] if metadata else 0
+    data = result[0]['data']
+    
+    return {
+        "data": sanitize_json(data),
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": math.ceil(total / limit) if total > 0 else 0
+    }
+
 # ... (Existing endpoints: /in, /out, /history/{id} remain below) ...
 
 @router.post("/in")
