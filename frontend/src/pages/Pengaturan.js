@@ -76,6 +76,14 @@ export default function Pengaturan() {
   const onDeleteUnit = async (id) => {
       if(!window.confirm("Hapus unit kerja ini?")) return;
       try {
+          await api.delete(`/api/settings/unit-kerja/${id}`);
+          toast.success("Unit Kerja dihapus");
+          fetchData();
+      } catch (e) {
+          toast.error("Gagal menghapus unit kerja");
+      }
+  };
+
   const onAddUser = async (data) => {
       try {
           await api.post('/api/auth/register', data);
@@ -95,13 +103,6 @@ export default function Pengaturan() {
       if (selected) {
           setValueUser('full_name', selected.nama_lengkap);
           if (selected.email) setValueUser('email', selected.email);
-      }
-  };
-          await api.delete(`/api/settings/unit-kerja/${id}`);
-          toast.success("Unit Kerja dihapus");
-          fetchData();
-      } catch (e) {
-          toast.error("Gagal menghapus unit kerja");
       }
   };
 
