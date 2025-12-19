@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { FileText, Plus, Edit, Trash, Printer, Settings, Save, Eye } from 'lucide-react';
+import { FileText, Plus, Edit, Trash, Printer, Settings, Save, Eye, Upload, Loader2, ExternalLink, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 // --- MAIN PAGE ---
