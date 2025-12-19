@@ -31,6 +31,7 @@ async def get_dokumen_list(
             {"uraian": {"$regex": search, "$options": "i"}},
             {"nama_penyedia": {"$regex": search, "$options": "i"}}
         ]
+            {"nomor_spm": {"$regex": search, "$options": "i"}},
         
     if jenis and jenis != "All":
         query["jenis_dokumen"] = jenis
@@ -140,22 +141,26 @@ async def upload_dokumen_file(
         # Process upload
         result = await process_image_upload(file, "dokumen_sumber", db)
         
-        # If PDF, process_image_upload might behave differently or we need specific handling.
-        # Assuming process_image_upload handles basic saving or we should implement simple save for PDF.
-        # Let's check process_image_upload implementation or just use simple save if it's PDF.
-        
         file_url = f"/api/uploads/{result['optimized']}"
+        attachment = {
+            "url": file_url,
+            "original_name": file.filename,
+            "uploaded_at": datetime.now(timezone.utc)
+        }
         
-        # Update Dokumen
+        # Update Dokumen (Append to attachments list)
         res = await db.dokumen_sumber.update_one(
             {"_id": ObjectId(id)},
-            {"$set": {"file_url": file_url, "updated_at": datetime.now(timezone.utc)}}
+            {
+                "$set": {"file_url": file_url, "updated_at": datetime.now(timezone.utc)}, # Legacy single file support
+                "$push": {"dokumen_attachments": attachment}
+            }
         )
         
         if res.modified_count == 0:
             raise HTTPException(status_code=404, detail="Dokumen not found")
             
-        return {"message": "File berhasil diupload", "url": file_url}
+        return {"message": "File berhasil diupload", "data": attachment}
         
     except Exception as e:
         print(f"Upload error: {e}")

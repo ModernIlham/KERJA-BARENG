@@ -164,6 +164,12 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
     const { register, handleSubmit, reset, setValue, watch } = useForm();
     const [loading, setLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    
+    // Multi-file state could be added here if we want drag-and-drop multiple, 
+    // but for now we stick to simple single file input that can be used multiple times.
+    // Actually, user asked for "dokumen upload multi dokumen". 
+    // Let's rely on the backend appending to the list. 
+    // In UI, we show the list of already uploaded files.
 
     useEffect(() => {
         if (initialData) {
@@ -268,6 +274,18 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                         </div>
                     </div>
 
+                    {/* New Fields for SPM */}
+                    <div className="grid grid-cols-2 gap-4 bg-yellow-50 p-3 rounded border border-yellow-100">
+                        <div className="space-y-1">
+                            <Label>Nomor SPM/SPBY</Label>
+                            <Input {...register('nomor_spm')} placeholder="Nomor SPM..." />
+                        </div>
+                        <div className="space-y-1">
+                            <Label>Tanggal SPM/SPBY</Label>
+                            <Input type="date" {...register('tanggal_spm')} />
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <Label>PPK (Pejabat Pembuat Komitmen)</Label>
@@ -310,7 +328,7 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                     {/* File Upload Section */}
                     <div className="space-y-2 border-t pt-4">
                         <Label className="flex items-center gap-2">
-                            <Upload size={16}/> Upload Scan Dokumen (PDF/JPG)
+                            <Upload size={16}/> Upload Dokumen (Multi Upload)
                         </Label>
                         <div className="flex gap-2 items-center">
                             <Input 
@@ -320,13 +338,35 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                                 className="cursor-pointer"
                             />
                         </div>
-                        {initialData?.file_url && (
-                            <div className="text-xs text-blue-600 flex items-center gap-1 bg-blue-50 p-2 rounded">
-                                <FileText size={12}/>
-                                <a href={initialData.file_url} target="_blank" rel="noreferrer" className="underline">Lihat File Tersimpan</a>
+                        <p className="text-[10px] text-slate-500">
+                            Pilih file baru untuk menambah dokumen. (PDF/JPG/PNG, Max 10MB)
+                        </p>
+
+                        {/* List of existing attachments */}
+                        {initialData?.dokumen_attachments && initialData.dokumen_attachments.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                                <Label className="text-xs font-semibold">File Tersimpan:</Label>
+                                {initialData.dokumen_attachments.map((file, idx) => (
+                                    <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded border border-slate-200">
+                                        <div className="flex items-center gap-2">
+                                            <FileText size={12} className="text-blue-600"/>
+                                            <span className="truncate max-w-[200px]">{file.original_name || 'Dokumen'}</span>
+                                        </div>
+                                        <a href={file.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-[10px]">
+                                            Lihat
+                                        </a>
+                                    </div>
+                                ))}
                             </div>
                         )}
-                        <p className="text-[10px] text-slate-500">Mendukung format PDF, JPG, PNG. Maksimal 10MB.</p>
+                        
+                        {/* Fallback for legacy single file */}
+                        {!initialData?.dokumen_attachments?.length && initialData?.file_url && (
+                            <div className="text-xs text-blue-600 flex items-center gap-1 bg-blue-50 p-2 rounded mt-2">
+                                <FileText size={12}/>
+                                <a href={initialData.file_url} target="_blank" rel="noreferrer" className="underline">Lihat File Utama</a>
+                            </div>
+                        )}
                     </div>
 
                     <DialogFooter>

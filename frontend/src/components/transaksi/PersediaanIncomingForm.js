@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FileText } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import api from '../../api/axios';
 import { Button } from '../ui/button';
@@ -296,6 +297,49 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                 />
                             </div>
                             <div className="space-y-1 pt-1">
+                            <div className="space-y-1">
+                                <Label className="text-[10px] font-semibold text-slate-600">Tgl Dokumen *</Label>
+                                <Input 
+                                    type="date"
+                                    value={header.tgl_dokumen} 
+                                    onChange={(e) => setHeader({...header, tgl_dokumen: e.target.value})}
+                                    className="bg-white h-8 text-xs"
+                                    readOnly={!!selectedDokumen}
+                                />
+                            </div>
+
+                            {/* SPM Info (Read Only) */}
+                            {selectedDokumen && (selectedDokumen.nomor_spm || selectedDokumen.tanggal_spm) && (
+                                <div className="p-2 bg-yellow-50 rounded border border-yellow-100 space-y-1">
+                                    <div className="flex justify-between">
+                                        <span className="text-[9px] text-slate-500 uppercase font-bold">No SPM/SPBY</span>
+                                        <span className="text-[10px] font-mono font-bold">{selectedDokumen.nomor_spm || '-'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-[9px] text-slate-500 uppercase font-bold">Tgl SPM</span>
+                                        <span className="text-[10px] font-mono font-bold">{selectedDokumen.tanggal_spm || '-'}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Document Links */}
+                            {selectedDokumen && (selectedDokumen.dokumen_attachments?.length > 0 || selectedDokumen.file_url) && (
+                                <div className="space-y-1">
+                                    <Label className="text-[10px] font-semibold text-blue-800">File Dokumen:</Label>
+                                    <div className="flex flex-wrap gap-1">
+                                        {selectedDokumen.dokumen_attachments?.map((doc, idx) => (
+                                            <a key={idx} href={doc.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 bg-white border border-blue-200 px-2 py-0.5 rounded text-[9px] text-blue-600 hover:bg-blue-50">
+                                                <FileText size={8}/> {doc.original_name?.substring(0,10) || 'Doc'}...
+                                            </a>
+                                        ))}
+                                        {!selectedDokumen.dokumen_attachments?.length && selectedDokumen.file_url && (
+                                            <a href={selectedDokumen.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 bg-white border border-blue-200 px-2 py-0.5 rounded text-[9px] text-blue-600 hover:bg-blue-50">
+                                                <FileText size={8}/> File
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                                 <Label className="text-[10px] font-semibold text-slate-600">Jenis Dokumen</Label>
                                 <RadioGroup 
                                     value={header.jenis_dokumen} 

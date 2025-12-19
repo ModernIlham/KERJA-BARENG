@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FileText } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import api from '../../api/axios';
 import { Button } from '../ui/button';
@@ -399,6 +400,44 @@ export default function AssetIncomingForm({ onSuccess }) {
                                         <Input type="date" {...register('tgl_dokumen')} className="bg-white" readOnly={!!selectedDokumen}/>
                                     </div>
                                 </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-semibold">Tanggal Dokumen</Label>
+                                        <Input type="date" {...register('tgl_dokumen')} className="bg-white" readOnly={!!selectedDokumen}/>
+                                    </div>
+                                </div>
+
+                                {/* SPM Readonly Info */}
+                                {selectedDokumen && (selectedDokumen.nomor_spm || selectedDokumen.tanggal_spm) && (
+                                    <div className="grid grid-cols-2 gap-4 bg-yellow-50 p-2 rounded border border-yellow-100">
+                                        <div className="space-y-1">
+                                            <Label className="text-[10px] font-semibold text-slate-600">Nomor SPM/SPBY</Label>
+                                            <div className="text-xs font-mono font-bold text-slate-800">{selectedDokumen.nomor_spm || '-'}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-[10px] font-semibold text-slate-600">Tanggal SPM/SPBY</Label>
+                                            <div className="text-xs font-mono font-bold text-slate-800">{selectedDokumen.tanggal_spm || '-'}</div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Document Attachments Link */}
+                                {selectedDokumen && (selectedDokumen.dokumen_attachments?.length > 0 || selectedDokumen.file_url) && (
+                                    <div className="bg-blue-50 p-2 rounded border border-blue-100">
+                                        <Label className="text-[10px] font-semibold text-blue-800 mb-1 block">Dokumen Pendukung:</Label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedDokumen.dokumen_attachments?.map((doc, idx) => (
+                                                <a key={idx} href={doc.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 bg-white border border-blue-200 px-2 py-1 rounded text-[10px] text-blue-600 hover:bg-blue-50">
+                                                    <FileText size={10}/> {doc.original_name || 'Dokumen'}
+                                                </a>
+                                            ))}
+                                            {!selectedDokumen.dokumen_attachments?.length && selectedDokumen.file_url && (
+                                                <a href={selectedDokumen.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 bg-white border border-blue-200 px-2 py-1 rounded text-[10px] text-blue-600 hover:bg-blue-50">
+                                                    <FileText size={10}/> File Utama
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="space-y-2">
                                     <Label className="text-xs font-semibold">No. Kontrak (Jika ada)</Label>

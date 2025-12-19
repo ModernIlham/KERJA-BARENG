@@ -101,6 +101,9 @@ class DokumenSumber(MongoBaseModel):
     uraian: Optional[str] = None # Keterangan singkat
     nilai_total: float = 0
     file_url: Optional[str] = None
+    nomor_spm: Optional[str] = None
+    tanggal_spm: Optional[str] = None
+    dokumen_attachments: List[Dict[str, Any]] = [] # [{"url": "/uploads/...", "original_name": "SPM.pdf"}]
     
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -117,6 +120,8 @@ class DokumenSumberCreate(BaseModel):
     nama_penyedia: Optional[str] = None
     npwp_penyedia: Optional[str] = None
     
+    nomor_spm: Optional[str] = None
+    tanggal_spm: Optional[str] = None
     akun_belanja: Optional[str] = None
     uraian: Optional[str] = None
     nilai_total: Optional[float] = 0
