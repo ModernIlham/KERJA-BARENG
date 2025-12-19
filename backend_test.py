@@ -1581,18 +1581,30 @@ class APITester:
                     print(f"   URL: {response_data.get('url', 'N/A')}")
                     print(f"   Thumbnail: {response_data.get('thumbnail', 'N/A')}")
                     
-                    # Verify the photo URL is saved in employee record
+                    # Verify the photo URL is saved in employee record by checking employee list
                     success, emp_response = self.run_test(
-                        "Get Employee with Photo",
+                        "Get Employee List to Verify Photo",
                         "GET",
-                        f"api/pegawai/{employee_id}",
-                        200
+                        "api/pegawai",
+                        200,
+                        data={"page": 1, "limit": 50}
                     )
                     
-                    if success and emp_response.get('foto_url'):
-                        print(f"✅ Photo URL saved in employee record: {emp_response.get('foto_url')}")
+                    if success:
+                        employees = emp_response.get('data', [])
+                        test_employee = None
+                        for emp in employees:
+                            if emp.get('_id') == employee_id:
+                                test_employee = emp
+                                break
+                        
+                        if test_employee and test_employee.get('foto_url'):
+                            print(f"✅ Photo URL saved in employee record: {test_employee.get('foto_url')}")
+                        else:
+                            print("❌ Photo URL not saved in employee record")
+                            return False
                     else:
-                        print("❌ Photo URL not saved in employee record")
+                        print("❌ Failed to get employee list")
                         return False
                         
                 except Exception as e:
