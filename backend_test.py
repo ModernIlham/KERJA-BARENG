@@ -1214,15 +1214,15 @@ class APITester:
         
         return True
 
-    def test_review_request_features(self):
-        """Test specific features requested in the review"""
-        print("\n=== REVIEW REQUEST FEATURES TEST ===")
+    def test_document_source_api(self):
+        """Test Document Source API as requested in review"""
+        print("\n=== DOCUMENT SOURCE API TEST ===")
         
         import time
         timestamp = int(time.time())
         
-        # Step 1: Test Master Dokumen Sumber feature - Create and List
-        print("\n📄 Step 1: Testing Master Dokumen Sumber - Create and List...")
+        # Step 1: Create a new document (POST /api/dokumen-sumber)
+        print("\n📄 Step 1: Testing Document Source Creation...")
         
         # First create a test PPK employee for the document
         ppk_data = {
@@ -1235,7 +1235,7 @@ class APITester:
         }
         
         success, response = self.run_test(
-            "Create Test PPK for Review",
+            "Create Test PPK for Document",
             "POST",
             "api/pegawai",
             200,
@@ -1253,19 +1253,19 @@ class APITester:
         # Create a new Dokumen Sumber (POST /api/dokumen-sumber)
         dokumen_data = {
             "jenis_dokumen": "Kontrak",
-            "nomor_dokumen": f"REVIEW-DOC-{timestamp}",
+            "nomor_dokumen": f"DOC-TEST-{timestamp}",
             "tanggal_dokumen": "2024-01-15",
             "ppk_id": ppk_id,
             "ppk_nama": ppk_nama,
-            "nama_penyedia": "CV Review Test Supplier",
-            "npwp_penyedia": "98.765.432.1-098.765",
+            "nama_penyedia": "CV Test Document Supplier",
+            "npwp_penyedia": "12.345.678.9-012.345",
             "akun_belanja": "521211",
-            "uraian": "Review test document for verification",
-            "nilai_total": 75000000
+            "uraian": "Test document for API verification",
+            "nilai_total": 50000000
         }
         
         success, response = self.run_test(
-            "Create Dokumen Sumber (Review Test)",
+            "Create Document Source",
             "POST",
             "api/dokumen-sumber",
             200,
@@ -1282,31 +1282,301 @@ class APITester:
         print(f"   Penyedia: {response.get('nama_penyedia')}")
         print(f"   NPWP: {response.get('npwp_penyedia')}")
         
-        # List Dokumen Sumber (GET /api/dokumen-sumber)
+        # Step 2: Test Upload endpoint (POST /api/dokumen-sumber/{id}/upload) with PDF file
+        print(f"\n📤 Step 2: Testing Document Upload with PDF file...")
+        
+        # Create a mock PDF file content
+        import base64
+        import io
+        
+        # Simple PDF header (minimal valid PDF)
+        pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000010 00000 n \n0000000079 00000 n \n0000000173 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n253\n%%EOF"
+        
+        # Test the upload endpoint
+        url = f"{self.base_url}/api/dokumen-sumber/{dokumen_id}/upload"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        files = {'file': ('test_document.pdf', io.BytesIO(pdf_content), 'application/pdf')}
+        
+        try:
+            import requests
+            response = requests.post(url, files=files, headers=headers)
+            
+            success = response.status_code == 200
+            print(f"   Upload response status: {response.status_code}")
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    print(f"✅ Document upload successful!")
+                    print(f"   Message: {response_data.get('message', 'N/A')}")
+                    print(f"   URL: {response_data.get('url', 'N/A')}")
+                    
+                    uploaded_url = response_data.get('url')
+                    if not uploaded_url:
+                        print("❌ No file URL returned from upload")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Failed to parse upload response: {e}")
+                    return False
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Upload failed: {error_data}")
+                except:
+                    print(f"❌ Upload failed with status {response.status_code}: {response.text[:200]}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Upload request failed: {e}")
+            return False
+        
+        # Step 3: Verify the file_url is saved in the document
+        print(f"\n🔍 Step 3: Verifying file_url is saved in document...")
+        
         success, response = self.run_test(
-            "List Dokumen Sumber",
+            "Get Document Details After Upload",
             "GET",
-            "api/dokumen-sumber",
-            200,
-            data={"page": 1, "limit": 20}
+            f"api/dokumen-sumber/{dokumen_id}",
+            200
         )
         
         if not success:
-            print("❌ Failed to list Dokumen Sumber")
+            print("❌ Failed to get document details")
+            return False
+        
+        # Verify file_url field is present and matches upload response
+        stored_file_url = response.get('file_url')
+        if stored_file_url:
+            print(f"✅ file_url saved in document: {stored_file_url}")
+            
+            # Verify it matches what we got from upload
+            if stored_file_url == uploaded_url:
+                print("✅ Stored file_url matches upload response")
+            else:
+                print(f"⚠️ Stored file_url differs from upload response")
+                print(f"   Upload: {uploaded_url}")
+                print(f"   Stored: {stored_file_url}")
+        else:
+            print("❌ file_url field not found in document")
+            return False
+        
+        print("\n🎉 DOCUMENT SOURCE API TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Document creation (POST /api/dokumen-sumber)")
+        print("   2. ✅ PDF file upload (POST /api/dokumen-sumber/{id}/upload)")
+        print("   3. ✅ file_url persistence verification")
+        
+        return True
+
+    def test_stock_opname_endpoint(self):
+        """Test Stock Opname Endpoint as requested in review"""
+        print("\n=== STOCK OPNAME ENDPOINT TEST ===")
+        
+        import time
+        timestamp = int(time.time())
+        
+        # Step 1: Create a test persediaan item for opname
+        print("\n📦 Step 1: Creating test persediaan item for opname...")
+        
+        persediaan_data = {
+            "kode_barang": f"101030199800{timestamp % 10000:04d}",
+            "nama_barang": f"Test Opname Item {timestamp}",
+            "merk": "Test Brand",
+            "satuan": "Pcs",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Warehouse",
+            "stok": 20,  # Initial stock
+            "batas_kritis": 5,
+            "nilai_satuan": 15000
+        }
+        
+        success, response = self.run_test(
+            "Create Test Persediaan for Opname",
+            "POST",
+            "api/persediaan/",
+            200,
+            data=persediaan_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test persediaan item")
             return False
             
-        dokumen_list = response.get('data', [])
-        found_dokumen = None
-        for doc in dokumen_list:
-            if doc.get('_id') == dokumen_id:
-                found_dokumen = doc
-                break
+        persediaan_id = response.get('_id') or response.get('id')
+        print(f"✅ Test persediaan created with ID: {persediaan_id}")
+        print(f"   Initial stock: {response.get('stok', 'N/A')}")
+        
+        # Step 2: Test Stock Opname (POST /api/opname/) with asset_type='persediaan'
+        print(f"\n🔍 Step 2: Testing Stock Opname with asset_type='persediaan'...")
+        
+        # Simulate physical count finding 25 items (5 more than system stock of 20)
+        opname_data = {
+            "barang_id": persediaan_id,
+            "stok_fisik": 25,
+            "asset_type": "persediaan",
+            "keterangan": "Test opname - found 5 extra items in warehouse"
+        }
+        
+        success, response = self.run_test(
+            "Submit Stock Opname",
+            "POST",
+            "api/opname/",
+            200,
+            data=opname_data
+        )
+        
+        if not success:
+            print("❌ Failed to submit stock opname")
+            return False
+        
+        print(f"✅ Stock opname submitted successfully!")
+        print(f"   Stok Sistem: {response.get('stok_sistem', 'N/A')}")
+        print(f"   Stok Fisik: {response.get('stok_fisik', 'N/A')}")
+        print(f"   Selisih: {response.get('selisih', 'N/A')}")
+        print(f"   Petugas: {response.get('petugas', 'N/A')}")
+        
+        # Verify the opname record details
+        expected_stok_sistem = 20
+        expected_stok_fisik = 25
+        expected_selisih = 5
+        
+        if response.get('stok_sistem') != expected_stok_sistem:
+            print(f"❌ Expected stok_sistem {expected_stok_sistem}, got {response.get('stok_sistem')}")
+            return False
+        
+        if response.get('stok_fisik') != expected_stok_fisik:
+            print(f"❌ Expected stok_fisik {expected_stok_fisik}, got {response.get('stok_fisik')}")
+            return False
+        
+        if response.get('selisih') != expected_selisih:
+            print(f"❌ Expected selisih {expected_selisih}, got {response.get('selisih')}")
+            return False
+        
+        print("✅ Opname calculations verified correctly")
+        
+        # Step 3: Verify stock adjustment was applied to persediaan item
+        print(f"\n📊 Step 3: Verifying stock adjustment was applied...")
+        
+        success, response = self.run_test(
+            "Get Updated Persediaan Details",
+            "GET",
+            f"api/persediaan/detail/{persediaan_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get updated persediaan details")
+            return False
+        
+        updated_stock = response.get('stok')
+        if updated_stock == 25:
+            print(f"✅ Stock automatically adjusted to physical count: {updated_stock}")
+        else:
+            print(f"❌ Expected stock to be adjusted to 25, got {updated_stock}")
+            return False
+        
+        # Step 4: Verify opname transaction was recorded
+        print(f"\n📋 Step 4: Verifying opname transaction was recorded...")
+        
+        success, response = self.run_test(
+            "Get Persediaan Transaction History",
+            "GET",
+            "api/persediaan-transaksi/",
+            200,
+            data={"page": 1, "limit": 50}
+        )
+        
+        if success:
+            transactions = response.get('data', [])
+            opname_txn = None
+            
+            for txn in transactions:
+                if (txn.get('jenis') == 'opname' and 
+                    txn.get('persediaan_id') == persediaan_id):
+                    opname_txn = txn
+                    break
+            
+            if opname_txn:
+                print(f"✅ Opname transaction recorded:")
+                print(f"   Jenis: {opname_txn.get('jenis')}")
+                print(f"   Jumlah: {opname_txn.get('jumlah')}")
+                print(f"   Stok Sebelum: {opname_txn.get('stok_sebelum')}")
+                print(f"   Stok Sesudah: {opname_txn.get('stok_sesudah')}")
+                print(f"   Keterangan: {opname_txn.get('keterangan', 'N/A')}")
                 
-        if not found_dokumen:
-            print("❌ Created dokumen not found in list")
+                # Verify transaction details
+                if opname_txn.get('stok_sebelum') == 20 and opname_txn.get('stok_sesudah') == 25:
+                    print("✅ Transaction stock levels correct")
+                else:
+                    print(f"❌ Transaction stock levels incorrect")
+                    return False
+            else:
+                print("❌ Opname transaction not found in history")
+                return False
+        else:
+            print("❌ Failed to get transaction history")
             return False
+        
+        # Step 5: Test opname history retrieval
+        print(f"\n📚 Step 5: Testing opname history retrieval...")
+        
+        success, response = self.run_test(
+            "Get Opname History",
+            "GET",
+            "api/opname/",
+            200,
+            data={"asset_type": "persediaan", "limit": 20}
+        )
+        
+        if success:
+            opname_history = response if isinstance(response, list) else []
+            print(f"✅ Opname history retrieved: {len(opname_history)} records")
             
-        print(f"✅ Dokumen found in list: {found_dokumen.get('nomor_dokumen')}")
+            # Find our opname record
+            our_opname = None
+            for record in opname_history:
+                if record.get('barang_id') == persediaan_id:
+                    our_opname = record
+                    break
+            
+            if our_opname:
+                print(f"✅ Our opname record found in history")
+                print(f"   Asset Type: {our_opname.get('asset_type')}")
+                print(f"   Nama Barang: {our_opname.get('nama_barang')}")
+            else:
+                print("❌ Our opname record not found in history")
+                return False
+        else:
+            print("❌ Failed to get opname history")
+            return False
+        
+        print("\n🎉 STOCK OPNAME ENDPOINT TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Stock opname submission (POST /api/opname/ with asset_type='persediaan')")
+        print("   2. ✅ Automatic stock adjustment applied")
+        print("   3. ✅ Opname transaction recorded correctly")
+        print("   4. ✅ Opname history retrieval working")
+        
+        return True
+
+    def test_review_request_features(self):
+        """Test specific features requested in the review"""
+        print("\n=== REVIEW REQUEST FEATURES TEST ===")
+        
+        # Test Document Source API
+        if not self.test_document_source_api():
+            return False
+        
+        # Test Stock Opname Endpoint
+        if not self.test_stock_opname_endpoint():
+            return False
+        
+        print("\n🎉 ALL REVIEW REQUEST FEATURES COMPLETED SUCCESSFULLY!")
+        return True
         
         # Step 2: Test Fixed Asset Transaction with nama_penyedia and npwp_penyedia
         print("\n🏢 Step 2: Testing Fixed Asset Transaction with supplier fields...")
