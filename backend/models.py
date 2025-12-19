@@ -105,6 +105,31 @@ class DokumenSumber(MongoBaseModel):
     tanggal_spm: Optional[str] = None
     dokumen_attachments: List[Dict[str, Any]] = [] # [{"url": "/uploads/...", "original_name": "SPM.pdf"}]
     
+    # Template
+    template_name: Optional[str] = None
+    template_content: Optional[str] = None
+    
+class SuratTemplate(BaseModel):
+    id: str = Field(default_factory=lambda: str(ObjectId()))
+    nama_template: str # "Berita Acara Serah Terima", "Surat Permintaan Barang"
+    jenis: str # "MASUK", "KELUAR", "BAST", "SBB", "LAINNYA"
+    konten: str # HTML Content with {{placeholders}}
+    kop_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SuratArsip(BaseModel):
+    id: str = Field(default_factory=lambda: str(ObjectId()))
+    nomor_surat: str
+    tanggal_surat: str # YYYY-MM-DD
+    jenis_surat: str # "BAST", "SBB", etc.
+    template_id: str
+    transaksi_ids: List[str] = [] # Linked Transactions
+    konten_final: str # Generated HTML snapshot
+    file_path: Optional[str] = None # PDF path
+    created_by: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

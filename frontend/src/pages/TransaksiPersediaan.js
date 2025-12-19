@@ -10,10 +10,16 @@ import TransactionTable from '../components/transaksi/TransactionTable';
 import PersediaanIncomingForm from '../components/transaksi/PersediaanIncomingForm';
 import PersediaanOutgoingForm from '../components/transaksi/PersediaanOutgoingForm';
 
+import SuratGeneratorModal from '../components/transaksi/SuratGeneratorModal';
+import { Printer } from 'lucide-react';
 export default function TransaksiPersediaan({ activeTab = 'riwayat' }) {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Printing State
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [printTxIds, setPrintTxIds] = useState([]); // IDs to print
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,11 +57,27 @@ export default function TransaksiPersediaan({ activeTab = 'riwayat' }) {
   const isDirectIncomingMode = activeTab === 'masuk';
   const isDirectOutgoingMode = activeTab === 'keluar';
 
+    const handlePrintClick = () => {
+        // Collect IDs from visible data (or allow selection)
+        // For now, let's just print visible items for "BAST Harian" scenario
+        // Or better, filter by active tab if 'masuk'/'keluar'
+        if (data.length === 0) return;
+        const ids = data.map(i => i._id);
+        setPrintTxIds(ids);
+        setIsPrintModalOpen(true);
+    };
+
   return (
     <div className="space-y-6">
-        <div>
-            <h1 className="text-2xl font-bold text-slate-900">Transaksi Gudang (Persediaan)</h1>
-            <p className="text-slate-500 text-sm">Kelola barang masuk dan keluar untuk persediaan / barang habis pakai</p>
+        <div className="flex justify-between items-start">
+            <div>
+                <h1 className="text-2xl font-bold text-slate-900">Transaksi Gudang (Persediaan)</h1>
+                <p className="text-slate-500 text-sm">Kelola barang masuk dan keluar untuk persediaan / barang habis pakai</p>
+            </div>
+            {/* Global Print Button for current view */}
+            <Button variant="outline" className="bg-white border-blue-200 text-blue-700 hover:bg-blue-50" onClick={handlePrintClick}>
+                <Printer className="mr-2 h-4 w-4"/> Buat Surat / BA
+            </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={(val) => navigate(`/transaksi-persediaan/${val}`)} className="w-full">
@@ -74,6 +96,12 @@ export default function TransaksiPersediaan({ activeTab = 'riwayat' }) {
                         <CardTitle className="text-base flex justify-between items-center">
                             <span>
                                 {activeTab === 'riwayat' ? 'Semua Riwayat' : `Daftar Barang ${activeTab === 'masuk' ? 'Masuk' : 'Keluar'}`} 
+        <SuratGeneratorModal 
+            isOpen={isPrintModalOpen} 
+            onClose={() => setIsPrintModalOpen(false)} 
+            transactionIds={printTxIds}
+            defaultType={activeTab === 'masuk' ? 'BAST' : 'SBB'}
+        />
                             </span>
                         </CardTitle>
                     </CardHeader>
