@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix Stock Opname (Printing, Signatures, Aset Tetap) and Dokumen Sumber CRUD. Verify Photo Cropping."
+user_problem_statement: "Fix Stock Opname, Dokumen Sumber CRUD, Surat Page, and Group Transactions."
 
 frontend: 
   - task: "Stock Opname Overhaul"
@@ -154,7 +154,7 @@ frontend:
         comment: "❌ CRITICAL ISSUE FOUND: 'TemplateEditor is not defined' error when clicking 'Buat Template Baru' button. Missing import for TemplateEditor component in Surat.js."
       - working: true
         agent: "testing"
-        comment: "✅ FIXED AND VERIFIED: Added missing import 'import TemplateEditor from '../components/surat/TemplateEditor';' to Surat.js. DialogDescription now renders correctly in template modal. All functionality working: page loads without errors, Template Editor tab functional, 'Buat Template Baru' opens modal successfully, DialogDescription displays 'Gunakan editor di bawah untuk menyusun format surat standar.', all modal elements (title, description, input fields, textarea) are interactive and working properly."
+        comment: "✅ FIXED AND VERIFIED: Added missing import 'import TemplateEditor from '../components/surat/TemplateEditor';' to Surat.js. DialogDescription now renders correctly in template modal. All functionality working."
 
   - task: "Employee Photo Cropping"
     implemented: true
@@ -171,26 +171,44 @@ frontend:
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: Employee Photo Cropping feature is properly implemented. Code analysis shows: 1) PegawaiList page loads with clickable photo areas, 2) PegawaiPhotoModal opens when photo is clicked, 3) PegawaiPhotoUpload component uses react-easy-crop library, 4) Crop modal 'Sesuaikan Foto Profil' is implemented with zoom slider and draggable crop area, 5) Save functionality uploads cropped image via API, 6) Backend API endpoints working correctly. All required dependencies (react-easy-crop, cropImage helper) are present. Feature is fully functional."
 
-backend: []
+  - task: "Transaction Grouping"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/transaksi/TransactionTable.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented backend aggregation and frontend grouping logic for Transaction History."
+
+backend:
+  - task: "Grouped History API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/persediaan_transaksi.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added /grouped endpoint with MongoDB aggregation."
 
 metadata:
   created_by: "main_agent"
-  version: "13.0"
-  test_sequence: 25
+  version: "14.0"
+  test_sequence: 26
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Transaction Grouping"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Please test Employee Photo Cropping: 1. Go to Pegawai List. 2. Edit a Pegawai. 3. Click Upload Foto/Ganti Foto. 4. Select an image. 5. Verify Crop Modal appears. 6. Verify Crop and Zoom work. 7. Click Simpan and verify upload."
-  - agent: "testing"
-    message: "✅ ALL TESTS COMPLETED SUCCESSFULLY: Fixed missing react-to-print dependency. All three pages (Stock Opname, Dokumen Sumber, Surat) are working correctly. Stock Opname has functional tabs and print modal with signatory inputs. Dokumen Sumber has working CRUD with Kontrak BLU/Non Kontrak BLU options. Surat page loads without crashes. Login credentials: admin@kemenkeu.go.id / admin123"
-  - agent: "testing"
-    message: "✅ EMPLOYEE PHOTO CROPPING VERIFIED: Code analysis confirms full implementation. PegawaiPhotoUpload component properly uses react-easy-crop with 'Sesuaikan Foto Profil' modal, zoom slider, draggable crop area, and save functionality. All dependencies present and backend APIs working. Feature is ready for production use."
-  - agent: "testing"
-    message: "🔧 SURAT PAGE DIALOGDESCRIPTION ISSUE FIXED: Found and resolved critical 'TemplateEditor is not defined' error. Added missing import statement to Surat.js. Verified DialogDescription component now renders correctly in template modal. All functionality tested and working: page loads without errors, template editor modal opens successfully, DialogDescription displays proper text, all form elements are interactive. Issue resolved completely."
+    message: "Please test: 1. Go to 'Transaksi Gudang (Persediaan)'. 2. Create a 'Barang Masuk' transaction with 2 items and a unique No Dokumen (e.g. TEST-GROUP-001). 3. Go to 'Riwayat Transaksi' tab. 4. Verify that you see ONE entry for 'TEST-GROUP-001' with 'Total Item: 2'. 5. Click the row to expand and verify the 2 items are listed."
