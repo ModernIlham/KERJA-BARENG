@@ -8567,6 +8567,41 @@ def main():
         
         return True
 
+    def test_surat_functionality_complete(self):
+        """Complete test suite for Surat functionality as requested in review"""
+        print("\n" + "="*60)
+        print("SURAT FUNCTIONALITY COMPLETE TEST SUITE")
+        print("="*60)
+        
+        # Test all surat-related functionality
+        results = []
+        
+        # 1. Test Template API (GET, POST, PUT, DELETE /api/surat/templates)
+        print("\n🔧 Testing Template API endpoints...")
+        results.append(self.test_surat_template_api())
+        
+        # 2. Test Preview Generation (POST /api/surat/generate-preview)
+        print("\n🔧 Testing Preview Generation...")
+        results.append(self.test_surat_preview_generation())
+        
+        # 3. Test Archive Saving (POST /api/surat/save-generated)
+        print("\n🔧 Testing Archive Saving...")
+        results.append(self.test_surat_archive_saving())
+        
+        # Summary of surat tests
+        passed_tests = sum(results)
+        total_tests = len(results)
+        
+        print(f"\n{'='*60}")
+        print(f"SURAT FUNCTIONALITY TEST SUMMARY")
+        print(f"{'='*60}")
+        print(f"Template API Tests: {'✅ PASS' if results[0] else '❌ FAIL'}")
+        print(f"Preview Generation Tests: {'✅ PASS' if results[1] else '❌ FAIL'}")
+        print(f"Archive Saving Tests: {'✅ PASS' if results[2] else '❌ FAIL'}")
+        print(f"\nOverall: {passed_tests}/{total_tests} tests passed ({passed_tests/total_tests*100:.1f}%)")
+        
+        return all(results)
+
 
 def main():
     """Main function to run the tests"""
