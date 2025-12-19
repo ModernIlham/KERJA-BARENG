@@ -115,6 +115,8 @@ class SuratTemplate(BaseModel):
     jenis: str # "MASUK", "KELUAR", "BAST", "SBB", "LAINNYA"
     konten: str # HTML Content with {{placeholders}}
     kop_active: bool = True
+    css_style: Optional[str] = ""
+    kop_style: str = "standard"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SuratArsip(BaseModel):
