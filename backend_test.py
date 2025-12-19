@@ -8185,7 +8185,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Dokumen Sumber Functionality Backend API Testing...")
+    print("🚀 Starting Organizational Structure Backend API Testing...")
     print("=" * 60)
     
     # Test login first
@@ -8193,9 +8193,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Dokumen Sumber functionality test
-    if not tester.test_dokumen_sumber_functionality():
-        print("❌ Dokumen Sumber functionality test failed")
+    # Run the Organizational Structure functionality test
+    if not tester.test_organizational_structure_api():
+        print("❌ Organizational Structure functionality test failed")
         return 1
     
     # Print summary
