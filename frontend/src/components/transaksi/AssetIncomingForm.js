@@ -274,6 +274,16 @@ export default function AssetIncomingForm({ onSuccess }) {
                                     <RadioGroupItem value="13" id="p13" />
                                     <Label htmlFor="p13" className="text-xs">Periode 13 (Unaudited)</Label>
                                 </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 bg-slate-50 p-3 rounded border border-slate-100">
+                        <div className="space-y-1">
+                            <Label className="text-xs font-semibold text-slate-600">Nama Rekanan / Penyedia</Label>
+                            <Input {...register('nama_penyedia')} className="bg-white h-9" placeholder="Nama PT/CV/Toko..."/>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs font-semibold text-slate-600">NPWP Rekanan</Label>
+                            <Input {...register('npwp_penyedia')} className="bg-white h-9" placeholder="00.000.000.0-000.000"/>
+                        </div>
+                    </div>
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="14" id="p14" />
                                     <Label htmlFor="p14" className="text-xs">Periode 14 (Audited)</Label>
