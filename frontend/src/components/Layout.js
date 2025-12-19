@@ -18,9 +18,9 @@ import {
   ChevronRight,
   Book,
   Box,
-  Building
+  Building,
+  Network
 } from 'lucide-react';
-  Network,
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
