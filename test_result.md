@@ -145,19 +145,19 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "6.0"
-  test_sequence: 18
+  version: "7.0"
+  test_sequence: 19
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Pegawai Document Upload Endpoint"
-    - "Pegawai Document Delete Endpoint"
-    - "Pegawai Document Validation"
+    - "Dokumen Sumber Creation with New Fields"
+    - "Dokumen Sumber Multiple File Upload"
+    - "Dokumen Sumber Retrieval and Search"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "testing"
-    message: "✅ PEGAWAI DOCUMENT UPLOAD & DELETE FUNCTIONALITY TESTING COMPLETED: Successfully tested all requested components: 1) Document Upload Endpoint (POST /api/pegawai/{id}/upload-dokumen) - Verified with mock PDF file, file size limit (1MB) enforcement, and metadata persistence in 'dokumen' array. 2) Document Delete Endpoint (DELETE /api/pegawai/{id}/dokumen/{doc_id}) - Confirmed document removal from array. 3) Document Validation - File size and type validation working correctly. Fixed missing GET endpoint for pegawai details during testing. All functionality verified and working as expected. Tests passed: 5/5 (100% success rate)."
+    message: "✅ DOKUMEN SUMBER FUNCTIONALITY TESTING COMPLETED: Successfully tested all requested components: 1) Document Creation with New Fields - Verified nomor_spm and tanggal_spm fields are properly saved and retrieved. 2) Multiple File Upload - Tested POST /api/dokumen-sumber/{id}/upload endpoint multiple times, confirmed attachments are appended to 'dokumen_attachments' array with proper metadata (url, original_name, uploaded_at). 3) Document Retrieval - Verified GET endpoints work correctly and search includes nomor_spm field. Fixed syntax error in dokumen.py search query during testing. All functionality verified and working as expected. Tests passed: 7/7 (100% success rate)."
