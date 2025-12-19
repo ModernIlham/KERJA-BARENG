@@ -172,5 +172,5 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
-  - agent: "testing"
-    message: "✅ DOKUMEN SUMBER FUNCTIONALITY TESTING COMPLETED: Successfully tested all requested components: 1) Document Creation with New Fields - Verified nomor_spm and tanggal_spm fields are properly saved and retrieved. 2) Multiple File Upload - Tested POST /api/dokumen-sumber/{id}/upload endpoint multiple times, confirmed attachments are appended to 'dokumen_attachments' array with proper metadata (url, original_name, uploaded_at). 3) Document Retrieval - Verified GET endpoints work correctly and search includes nomor_spm field. Fixed syntax error in dokumen.py search query during testing. All functionality verified and working as expected. Tests passed: 7/7 (100% success rate)."
+  - agent: "main"
+    message: "Updated test_result.md for new organizational structure testing requirements. Need to test: 1) Unit Kerja API endpoint for organizational tree data, 2) Pegawai API with status filtering, 3) Tree structure data format, 4) Employee status classification (PNS/PPPK/Non-ASN). Frontend expects data from /api/settings/unit-kerja and /api/pegawai endpoints."
