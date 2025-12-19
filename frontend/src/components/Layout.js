@@ -31,7 +31,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const [openSubmenus, setOpenSubmenus] = useState({
       aset: true,
       persediaan: true,
-      laporan: false
+      laporan: false,
+      kepegawaian: true
   });
   
   const toggleSubmenu = (key) => {
