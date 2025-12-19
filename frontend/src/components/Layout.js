@@ -99,6 +99,24 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   </NavLink>
                   <NavLink to="/transaksi-persediaan/riwayat" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
                       Riwayat Transaksi
+          {/* Group: Kepegawaian (New) */}
+          <Collapsible open={openSubmenus.kepegawaian} onOpenChange={() => toggleSubmenu('kepegawaian')}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
+                  <div className="flex items-center gap-3">
+                      <Briefcase size={18} /> Kepegawaian (Baru)
+                  </div>
+                  {openSubmenus.kepegawaian ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                  <NavLink to="/kepegawaian" end className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                      Dashboard
+                  </NavLink>
+                  <NavLink to="/kepegawaian/lembur" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
+                      Manajemen Lembur
+                  </NavLink>
+              </CollapsibleContent>
+          </Collapsible>
+
                   </NavLink>
               </CollapsibleContent>
           </Collapsible>
