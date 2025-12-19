@@ -102,12 +102,12 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the Import Template endpoint (GET /api/pegawai/import/template), Import Data endpoint (POST /api/pegawai/import) with valid and duplicate data verification, and duplicate check functionality for NIP, NIK, and NPWP."
+user_problem_statement: "Test the Upload Document endpoint (POST /api/pegawai/{id}/upload-dokumen) with mock PDF file, verify size limit (1MB), and verify file is saved and metadata is added to 'dokumen' array in DB. Test the Delete Document endpoint (DELETE /api/pegawai/{id}/dokumen/{doc_id}) and verify document is removed from the array."
 
 frontend: []
 
 backend:
-  - task: "Pegawai Import Template Endpoint"
+  - task: "Pegawai Document Upload Endpoint"
     implemented: true
     working: true
     file: "/app/backend/routes/pegawai.py"
@@ -117,9 +117,9 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Import template endpoint (GET /api/pegawai/import/template) working correctly. Returns Excel file with all required columns: NIP, Nama Lengkap, NIK, NPWP, Jabatan, Eselon 1-4, Pangkat/Golongan, Status Kepegawaian, No Telp, Email, Nama Bank, No Rekening, Gelar Depan, Gelar Belakang. File format and structure verified."
+        comment: "✅ VERIFIED: Document upload endpoint (POST /api/pegawai/{id}/upload-dokumen) working correctly. Successfully tested with mock PDF file. File size limit (1MB) properly enforced - returns 400 error for files exceeding limit. Document metadata correctly saved to 'dokumen' array in pegawai record with all required fields: id, filename, original_name, file_url, keterangan, uploaded_at, file_type. Fixed missing GET endpoint for pegawai details."
 
-  - task: "Pegawai Import Data Endpoint"
+  - task: "Pegawai Document Delete Endpoint"
     implemented: true
     working: true
     file: "/app/backend/routes/pegawai.py"
@@ -129,9 +129,9 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Import data endpoint (POST /api/pegawai/import) working correctly. Successfully tested with Excel file containing 6 rows (3 valid, 3 duplicates). Results: 3 records inserted, 3 records skipped (duplicates), 0 failed. Duplicate detection works for NIP, NIK, and NPWP fields. Fixed NaN value handling for optional fields like gelar_depan and gelar_belakang."
+        comment: "✅ VERIFIED: Document delete endpoint (DELETE /api/pegawai/{id}/dokumen/{doc_id}) working correctly. Successfully removes document from 'dokumen' array in pegawai record. Verified document is completely removed after deletion - no longer appears in pegawai details. Returns proper success message 'Dokumen dihapus'."
 
-  - task: "Pegawai Import Validation"
+  - task: "Pegawai Document Validation"
     implemented: true
     working: true
     file: "/app/backend/routes/pegawai.py"
@@ -141,9 +141,7 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Import validation working correctly. Missing columns validation returns 400 error with detailed message listing missing columns. Duplicate check verified for NIP, NIK, and NPWP - duplicates are correctly skipped without errors. Column structure validation enforced properly."
-
-  # Previous tasks removed for clarity - focusing on current review request
+        comment: "✅ VERIFIED: Document validation working correctly. File size limit (1MB) properly enforced with appropriate error message. File type validation ensures only PDF and image files are accepted. Document metadata persistence verified - all fields correctly saved and retrievable from database."
 
 metadata:
   created_by: "main_agent"
