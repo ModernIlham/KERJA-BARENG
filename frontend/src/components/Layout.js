@@ -20,6 +20,7 @@ import {
   Box,
   Building
 } from 'lucide-react';
+  Network,
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
@@ -135,6 +136,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <Users size={18} /> Kepegawaian
           </NavLink>
 
+          <NavLink to="/organisasi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+            <Network size={18} /> Struktur Organisasi
+          </NavLink>
           <NavLink to="/referensi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
             <Book size={18} /> Referensi Kode
           </NavLink>
