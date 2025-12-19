@@ -118,6 +118,7 @@ export default function TransaksiPersediaan({ activeTab = 'riwayat' }) {
                             loading={loading} 
                             assetType="persediaan"
                             type={activeTab} 
+                            isGrouped={activeTab === 'riwayat'}
                         />
                         <Pagination 
                             currentPage={currentPage}
