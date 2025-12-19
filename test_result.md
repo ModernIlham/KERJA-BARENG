@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the new route /organisasi functionality: 1. Test the new route /organisasi 2. Test if the tree structure renders correctly 3. Test if clicking a node opens the details modal 4. Test if the details modal filters employees correctly by status (PNS/PPPK/Non-ASN)"
+user_problem_statement: "Test the Template API (GET, POST, PUT, DELETE /api/surat/templates). Test the Preview Generation (POST /api/surat/generate-preview) with dummy transaction data. Test the Archive Saving (POST /api/surat/save-generated)."
 
 frontend: []
 
