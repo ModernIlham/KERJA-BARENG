@@ -14,6 +14,7 @@ import uuid
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 from fastapi import UploadFile, File, Form
+from lib.image_processor import process_image_upload
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
