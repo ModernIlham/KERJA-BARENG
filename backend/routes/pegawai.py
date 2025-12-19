@@ -94,6 +94,13 @@ async def update_pegawai(id: str, pegawai_in: PegawaiCreate, current_user: str =
     if not res: raise HTTPException(status_code=404)
     return res
 
+@router.get("/{id}", response_model=Pegawai)
+async def get_pegawai_detail(id: str, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    if not pegawai: raise HTTPException(status_code=404)
+    return pegawai
+
 @router.delete("/{id}")
 async def delete_pegawai(id: str, current_user: str = Depends(get_current_user)):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
