@@ -1501,129 +1501,281 @@ class APITester:
         
         return True
 
-    def test_surat_template_api(self):
-        """Test Surat Template API functionality as requested in review"""
-        print("\n=== SURAT TEMPLATE API TEST ===")
+    def test_surat_template_seeding_and_ttd_preview(self):
+        """Test Surat Template Seeding and TTD Preview Generation as requested in review"""
+        print("\n=== SURAT TEMPLATE SEEDING AND TTD PREVIEW TEST ===")
         
         import time
+        import io
+        import base64
         timestamp = int(time.time())
         
-        # Step 1: Test GET /api/surat/templates (should return templates)
-        print("\n📋 Step 1: Testing Template API - GET /api/surat/templates...")
+        # Step 1: Trigger template seeding endpoint
+        print("\n🌱 Step 1: Triggering template seeding - POST /api/surat/templates/seed...")
         
         success, response = self.run_test(
-            "Get Surat Templates",
+            "Seed Surat Templates",
+            "POST",
+            "api/surat/templates/seed",
+            200
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Template seeding endpoint failed")
+            return False
+        
+        seeded_count = response.get('message', '')
+        print(f"✅ Template seeding successful: {seeded_count}")
+        
+        # Step 2: Verify templates were seeded
+        print("\n📋 Step 2: Verifying seeded templates...")
+        
+        success, response = self.run_test(
+            "Get Seeded Templates",
             "GET",
             "api/surat/templates",
             200
         )
         
         if not success:
-            print("❌ CRITICAL: GET /api/surat/templates endpoint not implemented or failing")
-            print("   This endpoint is required by frontend SuratGeneratorModal.js")
+            print("❌ Failed to get templates after seeding")
             return False
         
         templates = response if isinstance(response, list) else response.get('data', [])
-        print(f"✅ Templates endpoint working - Found {len(templates)} templates")
+        print(f"✅ Found {len(templates)} templates after seeding")
         
-        if len(templates) == 0:
-            print("⚠️ No templates found in database - creating test template")
-            # We would need to create a template, but the POST endpoint might not exist
-            # Let's continue with testing other endpoints
+        # Find BAST template for testing
+        bast_template = None
+        for template in templates:
+            if template.get('jenis') == 'BAST':
+                bast_template = template
+                break
         
-        # Step 2: Test POST /api/surat/templates (create template)
-        print("\n📝 Step 2: Testing Template Creation - POST /api/surat/templates...")
+        if not bast_template:
+            print("❌ No BAST template found after seeding")
+            return False
         
-        template_data = {
-            "nama_template": f"Test Template BAST {timestamp}",
-            "jenis": "BAST",
-            "konten": "<h1>BERITA ACARA SERAH TERIMA</h1><p>Nomor: {{nomor_surat}}</p><p>Tanggal: {{tanggal_surat}}</p><p>Barang yang diserahkan:</p><ul>{{#transaksi}}<li>{{nama_barang}} - {{jumlah}} {{satuan}}</li>{{/transaksi}}</ul>",
-            "kop_active": True
+        template_id = bast_template.get('_id') or bast_template.get('id')
+        print(f"✅ Found BAST template for testing: {template_id}")
+        
+        # Step 3: Create test employee with signature
+        print("\n👤 Step 3: Creating test employee with signature...")
+        
+        # Create test employee
+        employee_data = {
+            "nip": f"TTD{timestamp % 100000:05d}",
+            "nama_lengkap": f"Test Employee TTD {timestamp}",
+            "jabatan": "Kepala Bagian Pengadaan",
+            "jabatan_melekat": ["PPK", "Kepala Bagian"],
+            "status_kepegawaian": "PNS",
+            "eselon1": "Test Unit"
         }
         
         success, response = self.run_test(
-            "Create Surat Template",
+            "Create Test Employee for TTD",
             "POST",
-            "api/surat/templates",
+            "api/pegawai",
             200,
-            data=template_data
+            data=employee_data
         )
         
-        template_id = None
-        if success:
-            template_id = response.get('_id') or response.get('id')
-            print(f"✅ Template created successfully with ID: {template_id}")
-        else:
-            print("❌ CRITICAL: POST /api/surat/templates endpoint not implemented")
-            print("   This endpoint is needed to create templates")
-            # Try to use existing template if available
-            if len(templates) > 0:
-                template_id = templates[0].get('_id') or templates[0].get('id')
-                print(f"   Using existing template ID: {template_id}")
+        if not success:
+            print("❌ Failed to create test employee")
+            return False
+        
+        employee_id = response.get('_id') or response.get('id')
+        employee_name = employee_data['nama_lengkap']
+        employee_nip = employee_data['nip']
+        print(f"✅ Test employee created: {employee_name} (ID: {employee_id})")
+        
+        # Step 4: Upload signature for the employee
+        print("\n✍️ Step 4: Uploading signature for test employee...")
+        
+        # Create a simple test signature image (transparent PNG)
+        signature_png_data = base64.b64decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU8'
+            'lAAAAAElFTkSuQmCC'
+        )
+        
+        # Upload signature
+        upload_url = f"{self.base_url}/api/pegawai/{employee_id}/signature"
+        headers = {}
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token}'
+        
+        files = {'file': ('signature.png', io.BytesIO(signature_png_data), 'image/png')}
+        
+        try:
+            import requests
+            response_upload = requests.post(upload_url, files=files, headers=headers)
+            
+            if response_upload.status_code == 200:
+                signature_data = response_upload.json()
+                signature_url = signature_data.get('url')
+                print(f"✅ Signature uploaded successfully: {signature_url}")
             else:
-                print("   No existing templates available for testing")
+                print(f"❌ Signature upload failed: {response_upload.status_code} - {response_upload.text[:200]}")
                 return False
+        except Exception as e:
+            print(f"❌ Signature upload request failed: {e}")
+            return False
         
-        # Step 3: Test PUT /api/surat/templates/{id} (update template)
-        print(f"\n✏️ Step 3: Testing Template Update - PUT /api/surat/templates/{template_id}...")
+        # Step 5: Create test transaction data for preview
+        print("\n📦 Step 5: Creating test transaction data...")
         
-        update_data = {
-            "nama_template": f"Updated Test Template BAST {timestamp}",
-            "jenis": "BAST",
-            "konten": "<h1>BERITA ACARA SERAH TERIMA (UPDATED)</h1><p>Nomor: {{nomor_surat}}</p><p>Tanggal: {{tanggal_surat}}</p><p>Barang yang diserahkan:</p><ul>{{#transaksi}}<li>{{nama_barang}} - {{jumlah}} {{satuan}} - Nilai: {{nilai_satuan}}</li>{{/transaksi}}</ul>",
-            "kop_active": False
+        # Create test persediaan item
+        test_item_data = {
+            "kode_barang": f"1010301999{timestamp % 1000000:06d}",
+            "nama_barang": f"Test Item TTD Preview {timestamp}",
+            "merk": "Test Brand",
+            "satuan": "Pcs",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Warehouse",
+            "stok": 0,
+            "batas_kritis": 5,
+            "nilai_satuan": 0
         }
         
         success, response = self.run_test(
-            "Update Surat Template",
-            "PUT",
-            f"api/surat/templates/{template_id}",
-            200,
-            data=update_data
-        )
-        
-        if success:
-            print("✅ Template updated successfully")
-        else:
-            print("❌ CRITICAL: PUT /api/surat/templates/{id} endpoint not implemented")
-        
-        # Step 4: Test DELETE /api/surat/templates/{id}
-        print(f"\n🗑️ Step 4: Testing Template Deletion - DELETE /api/surat/templates/{template_id}...")
-        
-        # First create a template specifically for deletion test
-        delete_template_data = {
-            "nama_template": f"Delete Test Template {timestamp}",
-            "jenis": "SBB",
-            "konten": "<h1>SURAT BUKTI BARANG</h1><p>To be deleted</p>",
-            "kop_active": True
-        }
-        
-        success, response = self.run_test(
-            "Create Template for Deletion Test",
+            "Create Test Item for TTD Preview",
             "POST",
-            "api/surat/templates",
+            "api/persediaan/",
             200,
-            data=delete_template_data
+            data=test_item_data
         )
         
-        delete_template_id = None
-        if success:
-            delete_template_id = response.get('_id') or response.get('id')
-            
-            # Now test deletion
-            success, response = self.run_test(
-                "Delete Surat Template",
-                "DELETE",
-                f"api/surat/templates/{delete_template_id}",
-                200
-            )
-            
-            if success:
-                print("✅ Template deleted successfully")
+        if not success:
+            print("❌ Failed to create test item")
+            return False
+        
+        item_id = response.get('_id') or response.get('id')
+        print(f"✅ Test item created: {item_id}")
+        
+        # Create transaction
+        transaction_data = {
+            "jenis": "in",
+            "persediaan_id": item_id,
+            "jumlah": 10,
+            "nilai_satuan": 25000,
+            "dokumen_ref": f"TTD-TEST-{timestamp}",
+            "keterangan": "Test transaction for TTD preview generation"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Transaction for TTD Preview",
+            "POST",
+            "api/persediaan-transaksi/in",
+            200,
+            data=transaction_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test transaction")
+            return False
+        
+        transaction_id = response.get('transaction_id') or response.get('_id') or response.get('id')
+        print(f"✅ Test transaction created: {transaction_id}")
+        
+        # Step 6: Test preview generation with TTD fields
+        print("\n🖼️ Step 6: Testing preview generation with TTD fields...")
+        
+        # Prepare preview data with TTD fields
+        preview_data = {
+            "template_id": template_id,
+            "transaksi_ids": [transaction_id] if transaction_id else [],
+            "custom_data": {
+                "nomor_surat": f"BAST-TTD-{timestamp}/2024",
+                "tanggal_surat": "15 Januari 2024",
+                "ttd_nama": employee_name,
+                "ttd_nip": employee_nip,
+                "ttd_jabatan": employee_data['jabatan'],
+                "ttd_image": f'<img src="{signature_url}" style="max-height: 60px; max-width: 150px;" alt="Signature">',
+                "kepada": "CV Test Supplier"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Generate Preview with TTD Fields",
+            "POST",
+            "api/surat/generate-preview",
+            200,
+            data=preview_data
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Preview generation with TTD fields failed")
+            return False
+        
+        generated_html = response.get('html', '')
+        if not generated_html:
+            print("❌ No HTML content in preview response")
+            return False
+        
+        print("✅ Preview generation successful")
+        
+        # Step 7: Verify TTD fields in generated HTML
+        print("\n🔍 Step 7: Verifying TTD fields in generated HTML...")
+        
+        # Check if TTD fields are properly rendered
+        ttd_checks = [
+            (employee_name, "TTD Name"),
+            (employee_nip, "TTD NIP"),
+            (employee_data['jabatan'], "TTD Jabatan"),
+            (signature_url, "Signature URL"),
+            (f"BAST-TTD-{timestamp}/2024", "Nomor Surat"),
+            ("15 Januari 2024", "Tanggal Surat")
+        ]
+        
+        all_checks_passed = True
+        for check_value, check_name in ttd_checks:
+            if check_value in generated_html:
+                print(f"✅ {check_name} found in generated HTML")
             else:
-                print("❌ CRITICAL: DELETE /api/surat/templates/{id} endpoint not implemented")
-        else:
-            print("⚠️ Cannot test deletion - template creation failed")
+                print(f"❌ {check_name} NOT found in generated HTML")
+                all_checks_passed = False
+        
+        if not all_checks_passed:
+            print("❌ Some TTD fields missing in generated HTML")
+            print(f"Generated HTML preview (first 500 chars): {generated_html[:500]}...")
+            return False
+        
+        # Step 8: Test archive saving with TTD data
+        print("\n💾 Step 8: Testing archive saving with TTD data...")
+        
+        archive_data = {
+            "nomor_surat": f"BAST-TTD-{timestamp}/2024",
+            "tanggal_surat": "2024-01-15",
+            "jenis_surat": "BAST",
+            "template_id": template_id,
+            "transaksi_ids": [transaction_id] if transaction_id else [],
+            "html_content": generated_html
+        }
+        
+        success, response = self.run_test(
+            "Save Generated Surat with TTD",
+            "POST",
+            "api/surat/save-generated",
+            200,
+            data=archive_data
+        )
+        
+        if not success:
+            print("❌ Failed to save generated surat to archive")
+            return False
+        
+        archive_id = response.get('id')
+        print(f"✅ Surat saved to archive: {archive_id}")
+        
+        print("\n🎉 SURAT TEMPLATE SEEDING AND TTD PREVIEW TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Template seeding endpoint working")
+        print("   2. ✅ Templates successfully seeded")
+        print("   3. ✅ Test employee created")
+        print("   4. ✅ Employee signature uploaded")
+        print("   5. ✅ Test transaction data created")
+        print("   6. ✅ Preview generation with TTD fields working")
+        print("   7. ✅ TTD fields properly rendered in HTML")
+        print("   8. ✅ Archive saving with TTD data working")
         
         return True
 
