@@ -15,6 +15,9 @@ import PegawaiForm from '../components/pegawai/PegawaiForm';
 import MutasiModal from '../components/pegawai/MutasiModal';
 
 import PegawaiPhotoModal from '../components/pegawai/PegawaiPhotoModal';
+import ImportPegawaiModal from '../components/pegawai/ImportPegawaiModal';
+import RiwayatKarirModal from '../components/pegawai/RiwayatKarirModal';
+import { Upload, History } from 'lucide-react';
 export default function PegawaiList() {
   const [pegawai, setPegawai] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +28,8 @@ export default function PegawaiList() {
   const [isMutasiOpen, setIsMutasiOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   
   // State for selected item
   const [selectedItem, setSelectedItem] = useState(null);
@@ -85,6 +90,11 @@ export default function PegawaiList() {
       setIsPhotoOpen(true);
   };
 
+  const openHistory = (item) => {
+      setSelectedItem(item);
+      setIsHistoryOpen(true);
+  };
+
   const handleDelete = async () => {
       try {
           await api.delete(`/api/pegawai/${deleteId}`);
@@ -105,9 +115,14 @@ export default function PegawaiList() {
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Manajemen SDM</h1>
             <p className="text-sm text-slate-500">Kelola data pegawai, mutasi, dan struktur organisasi</p>
         </div>
-        <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={openAdd}>
-            <Plus className="mr-2 h-4 w-4" /> Tambah Pegawai Baru
-        </Button>
+        <div className="flex gap-2">
+            <Button variant="outline" className="bg-white border-slate-300" onClick={() => setIsImportOpen(true)}>
+                <Upload className="mr-2 h-4 w-4" /> Import Excel
+            </Button>
+            <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={openAdd}>
+                <Plus className="mr-2 h-4 w-4" /> Tambah Pegawai Baru
+            </Button>
+        </div>
         
         {/* Pegawai Form Modal (Add/Edit) */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -140,6 +155,20 @@ export default function PegawaiList() {
             onClose={() => setIsPhotoOpen(false)}
             pegawai={selectedItem}
             onSuccess={fetchPegawai}
+        />
+
+        {/* Import Modal */}
+        <ImportPegawaiModal
+            isOpen={isImportOpen}
+            onClose={() => setIsImportOpen(false)}
+            onSuccess={fetchPegawai}
+        />
+
+        {/* History Modal */}
+        <RiwayatKarirModal 
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+            pegawai={selectedItem}
         />
 
         {/* Delete Confirmation Dialog */}
@@ -266,6 +295,9 @@ export default function PegawaiList() {
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="sm" onClick={() => openMutasi(item)} title="Mutasi/Promosi" className="text-blue-600 h-8 w-8 p-0 hover:bg-blue-50">
                               <ArrowRightLeft className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => openHistory(item)} title="Riwayat Karir" className="text-purple-600 h-8 w-8 p-0 hover:bg-purple-50">
+                              <History className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => openEdit(item)} title="Edit Profil" className="text-slate-500 h-8 w-8 p-0 hover:bg-slate-100">
                               <Edit className="h-4 w-4" />
