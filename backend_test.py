@@ -8759,7 +8759,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Surat Template API Backend Testing...")
+    print("🚀 Starting Surat Template Seeding and TTD Preview Testing...")
     print("=" * 60)
     
     # Test login first
@@ -8767,9 +8767,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Surat functionality test as requested in review
-    if not tester.test_surat_functionality_complete():
-        print("❌ Surat functionality test failed")
+    # Run the specific test requested in review
+    if not tester.test_surat_template_seeding_and_ttd_preview():
+        print("❌ Surat template seeding and TTD preview test failed")
         return 1
     
     # Print summary
