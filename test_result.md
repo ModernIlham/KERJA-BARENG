@@ -159,9 +159,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Stock Opname Overhaul"
-    - "Dokumen Sumber CRUD Fix"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -169,3 +167,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Please test: 1. Stock Opname page loading, tab switching, and 'Cetak Berita Acara' modal. 2. Dokumen Sumber creation using the new 'Kontrak BLU' type. 3. Verify Surat page loads without error."
+  - agent: "testing"
+    message: "✅ ALL TESTS COMPLETED SUCCESSFULLY: Fixed missing react-to-print dependency. All three pages (Stock Opname, Dokumen Sumber, Surat) are working correctly. Stock Opname has functional tabs and print modal with signatory inputs. Dokumen Sumber has working CRUD with Kontrak BLU/Non Kontrak BLU options. Surat page loads without crashes. Login credentials: admin@kemenkeu.go.id / admin123"
