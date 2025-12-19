@@ -31,6 +31,7 @@ class UserSettings(BaseModel):
     full_name: str
     role: str
     is_active: bool
+    pegawai_id: Optional[str] = None
 
 # --- Helpers ---
 def clean_number(val):
@@ -65,7 +66,8 @@ async def get_users(current_user: str = Depends(get_current_user)):
             email=u['email'], 
             full_name=u['full_name'], 
             role=u.get('role', 'user'),
-            is_active=True 
+            is_active=True,
+            pegawai_id=u.get('pegawai_id')
         ) for u in users
     ]
 
