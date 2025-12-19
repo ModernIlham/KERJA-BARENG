@@ -288,6 +288,16 @@ class Pegawai(MongoBaseModel):
     
     # Kontak
     no_telp: Optional[str] = None
+    # --- Document Management (NEW) ---
+    
+class PegawaiDocument(BaseModel):
+    id: str = Field(default_factory=lambda: str(ObjectId()))
+    filename: str
+    original_name: str
+    file_url: str
+    keterangan: str
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    file_type: str = "document" # pdf, image, etc.
     email: Optional[str] = None
     
     # Bank
@@ -323,6 +333,7 @@ class Pegawai(MongoBaseModel):
     
     # History
     riwayat_karir: List[RiwayatKarir] = []
+    dokumen: List[PegawaiDocument] = []
     
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

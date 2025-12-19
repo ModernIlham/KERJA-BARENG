@@ -16,6 +16,8 @@ import MutasiModal from '../components/pegawai/MutasiModal';
 
 import PegawaiPhotoModal from '../components/pegawai/PegawaiPhotoModal';
 import ImportPegawaiModal from '../components/pegawai/ImportPegawaiModal';
+import PegawaiDocumentModal from '../components/pegawai/PegawaiDocumentModal';
+import { FileText } from 'lucide-react';
 import RiwayatKarirModal from '../components/pegawai/RiwayatKarirModal';
 import { Upload, History } from 'lucide-react';
 export default function PegawaiList() {
@@ -30,6 +32,7 @@ export default function PegawaiList() {
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isDocOpen, setIsDocOpen] = useState(false);
   
   // State for selected item
   const [selectedItem, setSelectedItem] = useState(null);
@@ -93,6 +96,11 @@ export default function PegawaiList() {
   const openHistory = (item) => {
       setSelectedItem(item);
       setIsHistoryOpen(true);
+  };
+
+  const openDocuments = (item) => {
+      setSelectedItem(item);
+      setIsDocOpen(true);
   };
 
   const handleDelete = async () => {
@@ -169,6 +177,14 @@ export default function PegawaiList() {
             isOpen={isHistoryOpen}
             onClose={() => setIsHistoryOpen(false)}
             pegawai={selectedItem}
+        />
+
+        {/* Document Modal */}
+        <PegawaiDocumentModal
+            isOpen={isDocOpen}
+            onClose={() => setIsDocOpen(false)}
+            pegawai={selectedItem}
+            onSuccess={fetchPegawai}
         />
 
         {/* Delete Confirmation Dialog */}
@@ -298,6 +314,9 @@ export default function PegawaiList() {
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => openHistory(item)} title="Riwayat Karir" className="text-purple-600 h-8 w-8 p-0 hover:bg-purple-50">
                               <History className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => openDocuments(item)} title="Dokumen Pendukung" className="text-orange-600 h-8 w-8 p-0 hover:bg-orange-50">
+                              <FileText className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => openEdit(item)} title="Edit Profil" className="text-slate-500 h-8 w-8 p-0 hover:bg-slate-100">
                               <Edit className="h-4 w-4" />

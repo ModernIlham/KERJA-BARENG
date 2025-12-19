@@ -10,6 +10,7 @@ import os
 import math
 
 import pandas as pd
+import uuid
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 from fastapi import UploadFile, File, Form
@@ -297,3 +298,80 @@ async def import_pegawai(
         print(e)
         raise HTTPException(status_code=400, detail=f"Error membaca file: {str(e)}")
     return res
+
+
+@router.post("/{id}/upload-dokumen")
+async def upload_pegawai_dokumen(
+    id: str,
+    file: UploadFile = File(...),
+    keterangan: str = Form(...),
+    current_user: str = Depends(get_current_user)
+):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    # Check File Size (Approximate via content-length header if available, or read)
+    # UploadFile.file is a SpooledTemporaryFile
+    file.file.seek(0, 2)
+    file_size = file.file.tell()
+    file.file.seek(0)
+    
+    if file_size > 1 * 1024 * 1024: # 1MB Limit
+        raise HTTPException(status_code=400, detail="Ukuran file maksimal 1MB")
+        
+    allowed_types = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Format file harus PDF atau Gambar (JPG/PNG)")
+
+    try:
+        # Save File
+        upload_dir = "/app/uploads/pegawai_docs"
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        filename = f"{uuid.uuid4()}{os.path.splitext(file.filename)[1]}"
+        file_path = os.path.join(upload_dir, filename)
+        
+        contents = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(contents)
+            
+        file_url = f"/api/uploads/pegawai_docs/{filename}"
+        
+        # Create Document Object
+        from models import PegawaiDocument
+        new_doc = PegawaiDocument(
+            filename=filename,
+            original_name=file.filename,
+            file_url=file_url,
+            keterangan=keterangan,
+            file_type="pdf" if "pdf" in file.content_type else "image"
+        )
+        
+        # Update DB
+        await db.pegawai.update_one(
+            {"_id": ObjectId(id)},
+            {"$push": {"dokumen": new_doc.dict()}}
+        )
+        
+        return {"message": "Dokumen berhasil diupload", "data": new_doc.dict()}
+        
+    except Exception as e:
+        print(f"Upload Error: {e}")
+        raise HTTPException(status_code=500, detail="Gagal mengupload dokumen")
+
+@router.delete("/{id}/dokumen/{doc_id}")
+async def delete_pegawai_dokumen(id: str, doc_id: str, current_user: str = Depends(get_current_user)):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    # Pull from array
+    res = await db.pegawai.update_one(
+        {"_id": ObjectId(id)},
+        {"$pull": {"dokumen": {"id": doc_id}}}
+    )
+    
+    if res.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Dokumen tidak ditemukan")
+        
+    # Optional: Delete physical file (Needs logic to find filename from DB before pull, or accept orphan files)
+    # For now, we just remove reference to keep it simple and safe.
+    
+    return {"message": "Dokumen dihapus"}
