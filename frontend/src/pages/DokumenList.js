@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../api/axios';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Loader2, Plus, Search, FileText, Edit, Trash, Save, X, Upload, File } from 'lucide-react';
+import { Loader2, Plus, Search, FileText, Edit, Trash, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Textarea } from '../components/ui/textarea';
@@ -161,29 +161,33 @@ export default function DokumenList() {
 }
 
 function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
-    const { register, handleSubmit, reset, setValue, watch } = useForm();
+    const { register, handleSubmit, reset, setValue } = useForm();
     const [loading, setLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
-    
-    // Multi-file state could be added here if we want drag-and-drop multiple, 
-    // but for now we stick to simple single file input that can be used multiple times.
-    // Actually, user asked for "dokumen upload multi dokumen". 
-    // Let's rely on the backend appending to the list. 
-    // In UI, we show the list of already uploaded files.
+
+    // Register fields handled by custom components (Select)
+    useEffect(() => {
+        register('jenis_dokumen', { required: true });
+        register('ppk_id');
+    }, [register]);
 
     useEffect(() => {
         if (initialData) {
             reset(initialData);
             setSelectedFile(null);
+            // Manually set values for Select components if needed, though reset usually handles it if names match
+            if (initialData.jenis_dokumen) setValue('jenis_dokumen', initialData.jenis_dokumen);
+            if (initialData.ppk_id) setValue('ppk_id', initialData.ppk_id);
         } else {
             reset({
                 jenis_dokumen: 'Kontrak',
                 tanggal_dokumen: new Date().toISOString().split('T')[0],
                 nilai_total: 0
             });
+            setValue('jenis_dokumen', 'Kontrak'); // Default
             setSelectedFile(null);
         }
-    }, [initialData, isOpen, reset]);
+    }, [initialData, isOpen, reset, setValue]);
 
     const onSubmit = async (data) => {
         setLoading(true);
@@ -249,6 +253,8 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="Kontrak">Kontrak</SelectItem>
+                                    <SelectItem value="Kontrak BLU">Kontrak BLU</SelectItem>
+                                    <SelectItem value="Non Kontrak BLU">Non Kontrak BLU</SelectItem>
                                     <SelectItem value="SPM">SPM</SelectItem>
                                     <SelectItem value="SP2D">SP2D</SelectItem>
                                     <SelectItem value="BAST">BAST</SelectItem>
