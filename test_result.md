@@ -149,6 +149,12 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: Page loads without crashing. Search icons are present and functional. No runtime errors detected. Page renders correctly with proper navigation and content."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE FOUND: 'TemplateEditor is not defined' error when clicking 'Buat Template Baru' button. Missing import for TemplateEditor component in Surat.js."
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED AND VERIFIED: Added missing import 'import TemplateEditor from '../components/surat/TemplateEditor';' to Surat.js. DialogDescription now renders correctly in template modal. All functionality working: page loads without errors, Template Editor tab functional, 'Buat Template Baru' opens modal successfully, DialogDescription displays 'Gunakan editor di bawah untuk menyusun format surat standar.', all modal elements (title, description, input fields, textarea) are interactive and working properly."
 
   - task: "Employee Photo Cropping"
     implemented: true
