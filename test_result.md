@@ -163,9 +163,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Dokumen Sumber Creation with New Fields"
-    - "Dokumen Sumber Multiple File Upload"
-    - "Dokumen Sumber Retrieval and Search"
+    - "Unit Kerja API Endpoint"
+    - "Pegawai API with Status Filter"
+    - "Organizational Tree Structure Data"
+    - "Employee Status Classification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
