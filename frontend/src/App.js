@@ -18,6 +18,8 @@ import Surat from './pages/Surat';
 import DokumenList from './pages/DokumenList';
 import StrukturOrganisasi from './pages/StrukturOrganisasi';
 
+import DashboardKepegawaian from './modules/kepegawaian/pages/DashboardKepegawaian';
+import ManajemenLembur from './modules/kepegawaian/pages/ManajemenLembur';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
