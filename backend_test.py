@@ -8607,7 +8607,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Organizational Structure Backend API Testing...")
+    print("🚀 Starting Surat Template API Backend Testing...")
     print("=" * 60)
     
     # Test login first
@@ -8615,9 +8615,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Organizational Structure functionality test
-    if not tester.test_organizational_structure_api():
-        print("❌ Organizational Structure functionality test failed")
+    # Run the Surat functionality test as requested in review
+    if not tester.test_surat_functionality_complete():
+        print("❌ Surat functionality test failed")
         return 1
     
     # Print summary
