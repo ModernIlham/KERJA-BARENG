@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix Stock Opname (Printing, Signatures, Aset Tetap) and Dokumen Sumber CRUD."
+user_problem_statement: "Fix Stock Opname (Printing, Signatures, Aset Tetap) and Dokumen Sumber CRUD. Verify Photo Cropping."
 
 frontend: 
   - task: "Stock Opname Overhaul"
@@ -150,22 +150,35 @@ frontend:
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: Page loads without crashing. Search icons are present and functional. No runtime errors detected. Page renders correctly with proper navigation and content."
 
+  - task: "Employee Photo Cropping"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/pegawai/PegawaiPhotoUpload.js"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Code appears to be implemented with react-easy-crop. Need to verify functionality."
+
 backend: []
 
 metadata:
   created_by: "main_agent"
-  version: "12.0"
-  test_sequence: 24
+  version: "13.0"
+  test_sequence: 25
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Employee Photo Cropping"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Please test: 1. Stock Opname page loading, tab switching, and 'Cetak Berita Acara' modal. 2. Dokumen Sumber creation using the new 'Kontrak BLU' type. 3. Verify Surat page loads without error."
+    message: "Please test Employee Photo Cropping: 1. Go to Pegawai List. 2. Edit a Pegawai. 3. Click Upload Foto/Ganti Foto. 4. Select an image. 5. Verify Crop Modal appears. 6. Verify Crop and Zoom work. 7. Click Simpan and verify upload."
   - agent: "testing"
     message: "✅ ALL TESTS COMPLETED SUCCESSFULLY: Fixed missing react-to-print dependency. All three pages (Stock Opname, Dokumen Sumber, Surat) are working correctly. Stock Opname has functional tabs and print modal with signatory inputs. Dokumen Sumber has working CRUD with Kontrak BLU/Non Kontrak BLU options. Surat page loads without crashes. Login credentials: admin@kemenkeu.go.id / admin123"
