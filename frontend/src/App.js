@@ -53,6 +53,10 @@ export default function App() {
             <Route path="pegawai" element={<PegawaiList />} />
             <Route path="referensi" element={<ReferensiKode />} />
             <Route path="referensi/dokumen" element={<DokumenList />} />
+            {/* New Workforce Management Module */}
+            <Route path="kepegawaian" element={<DashboardKepegawaian />} />
+            <Route path="kepegawaian/lembur" element={<ManajemenLembur />} />
+            
             <Route path="organisasi" element={<StrukturOrganisasi />} />
             
             {/* New Simplified Transaction Routes */}
