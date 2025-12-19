@@ -109,10 +109,6 @@ export default function AssetIncomingForm({ onSuccess }) {
         
         // Match PPK
         if (doc.ppk_id) {
-            // Find PPK Name if needed or just ID? 
-            // The form uses nama_ppk value mostly, let's try to match it
-            // Or better, use ID if backend supports it. The current form uses name?
-            // Let's check original form: it sends "nama_ppk" string.
             if (doc.ppk_nama) setValue('nama_ppk', doc.ppk_nama);
         }
         
@@ -275,16 +271,6 @@ export default function AssetIncomingForm({ onSuccess }) {
                                     <RadioGroupItem value="13" id="p13" />
                                     <Label htmlFor="p13" className="text-xs">Periode 13 (Unaudited)</Label>
                                 </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 bg-slate-50 p-3 rounded border border-slate-100">
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-slate-600">Nama Rekanan / Penyedia</Label>
-                            <Input {...register('nama_penyedia')} className="bg-white h-9" placeholder="Nama PT/CV/Toko..."/>
-                        </div>
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-slate-600">NPWP Rekanan</Label>
-                            <Input {...register('npwp_penyedia')} className="bg-white h-9" placeholder="00.000.000.0-000.000"/>
-                        </div>
-                    </div>
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="14" id="p14" />
                                     <Label htmlFor="p14" className="text-xs">Periode 14 (Audited)</Label>
@@ -311,7 +297,7 @@ export default function AssetIncomingForm({ onSuccess }) {
 
                                 <div className="space-y-2">
                                     <Label className="text-xs font-semibold">Deskripsi Barang</Label>
-                                    <Input {...register('nama_barang')} readOnly className="bg-slate-50 text-slate-600" />
+                                    <Input {...register('nama_barang')} readOnly className="bg-slate-50 h-9 text-slate-600" />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -321,12 +307,12 @@ export default function AssetIncomingForm({ onSuccess }) {
                                             type="number" 
                                             min="1"
                                             {...register('jumlah', {required: true, min: 1})} 
-                                            className="bg-white font-bold"
+                                            className="bg-white h-9 font-bold"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Estimasi NUP</Label>
-                                        <div className="h-10 px-3 py-2 bg-slate-100 border rounded text-sm font-mono flex items-center justify-between text-slate-600">
+                                        <div className="h-9 px-3 py-2 bg-slate-100 border rounded text-sm font-mono flex items-center justify-between text-slate-600">
                                             <span>Awal: {nextNup || '-'}</span>
                                             <span className="text-slate-400">➜</span>
                                             <span>Akhir: {nextNup ? (nextNup + parseInt(jumlah) - 1) : '-'}</span>
@@ -337,11 +323,11 @@ export default function AssetIncomingForm({ onSuccess }) {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Tgl. Pembukuan</Label>
-                                        <Input type="date" {...register('tgl_pembukuan')} className="bg-white" />
+                                        <Input type="date" {...register('tgl_pembukuan')} className="bg-white h-9" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Tgl. Awal Pemakaian</Label>
-                                        <Input type="date" {...register('tgl_perolehan')} className="bg-white" />
+                                        <Input type="date" {...register('tgl_perolehan')} className="bg-white h-9" />
                                     </div>
                                 </div>
                             </div>
@@ -351,11 +337,11 @@ export default function AssetIncomingForm({ onSuccess }) {
                                 <h3 className="text-sm font-bold text-slate-800 border-b pb-2">RINCIAN LAIN ASET</h3>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-semibold">Merk / Tipe</Label>
-                                    <Input {...register('merk')} placeholder="Contoh: Toyota Avanza Type G..." className="bg-white"/>
+                                    <Input {...register('merk')} placeholder="Contoh: Toyota Avanza Type G..." className="bg-white h-9"/>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-semibold">Keterangan</Label>
-                                    <Input {...register('keterangan')} placeholder="Keterangan tambahan..." className="bg-white"/>
+                                    <Input {...register('keterangan')} placeholder="Keterangan tambahan..." className="bg-white h-9"/>
                                 </div>
                             </div>
                         </div>
@@ -393,11 +379,11 @@ export default function AssetIncomingForm({ onSuccess }) {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Nomor Dokumen</Label>
-                                        <Input {...register('nomor_dokumen', {required: true})} className="bg-white" placeholder="No. Dokumen..." readOnly={!!selectedDokumen}/>
+                                        <Input {...register('nomor_dokumen', {required: true})} className="bg-white h-9" placeholder="No. Dokumen..." readOnly={!!selectedDokumen}/>
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Tanggal Dokumen</Label>
-                                        <Input type="date" {...register('tgl_dokumen')} className="bg-white" readOnly={!!selectedDokumen}/>
+                                        <Input type="date" {...register('tgl_dokumen')} className="bg-white h-9" readOnly={!!selectedDokumen}/>
                                     </div>
                                 </div>
 
@@ -436,17 +422,17 @@ export default function AssetIncomingForm({ onSuccess }) {
 
                                 <div className="space-y-2">
                                     <Label className="text-xs font-semibold">No. Kontrak (Jika ada)</Label>
-                                    <Input {...register('no_kontrak')} className="bg-white"/>
+                                    <Input {...register('no_kontrak')} className="bg-white h-9"/>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Nama Rekanan / Penyedia</Label>
-                                        <Input {...register('nama_penyedia')} className="bg-white" placeholder="CV/PT..." readOnly={!!selectedDokumen}/>
+                                        <Input {...register('nama_penyedia')} className="bg-white h-9" placeholder="CV/PT..." readOnly={!!selectedDokumen}/>
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">NPWP Rekanan</Label>
-                                        <Input {...register('npwp_penyedia')} className="bg-white" placeholder="NPWP..." readOnly={!!selectedDokumen}/>
+                                        <Input {...register('npwp_penyedia')} className="bg-white h-9" placeholder="NPWP..." readOnly={!!selectedDokumen}/>
                                     </div>
                                 </div>
 
@@ -458,12 +444,12 @@ export default function AssetIncomingForm({ onSuccess }) {
                                         <Input 
                                             type="number" 
                                             {...register('nilai_satuan', {required: true})} 
-                                            className="bg-white font-bold text-right"
+                                            className="bg-white h-9 font-bold text-right"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs font-semibold">Harga Total (Rp)</Label>
-                                        <div className="h-10 flex items-center justify-end px-3 font-bold text-blue-700 bg-white border rounded">
+                                        <div className="h-9 flex items-center justify-end px-3 font-bold text-blue-700 bg-white border rounded">
                                             {formatCurrency(totalNilai)}
                                         </div>
                                     </div>
