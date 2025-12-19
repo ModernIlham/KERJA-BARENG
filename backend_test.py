@@ -9100,7 +9100,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Surat Template Seeding and TTD Preview Testing...")
+    print("🚀 Starting Transaction Grouping Testing...")
     print("=" * 60)
     
     # Test login first
@@ -9109,8 +9109,8 @@ def main():
         return 1
     
     # Run the specific test requested in review
-    if not tester.test_surat_template_seeding_and_ttd_preview():
-        print("❌ Surat template seeding and TTD preview test failed")
+    if not tester.test_transaction_grouping():
+        print("❌ Transaction grouping test failed")
         return 1
     
     # Print summary
