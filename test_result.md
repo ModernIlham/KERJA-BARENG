@@ -102,46 +102,46 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the Upload Document endpoint (POST /api/pegawai/{id}/upload-dokumen) with mock PDF file, verify size limit (1MB), and verify file is saved and metadata is added to 'dokumen' array in DB. Test the Delete Document endpoint (DELETE /api/pegawai/{id}/dokumen/{doc_id}) and verify document is removed from the array."
+user_problem_statement: "Test the Dokumen Sumber functionality: Create a document with the new fields (nomor_spm, tanggal_spm). Test the upload endpoint (POST /api/dokumen-sumber/{id}/upload) multiple times to verify attachments are appended to 'dokumen_attachments' list. Verify that the details are correctly retrieved."
 
 frontend: []
 
 backend:
-  - task: "Pegawai Document Upload Endpoint"
+  - task: "Dokumen Sumber Creation with New Fields"
     implemented: true
     working: true
-    file: "/app/backend/routes/pegawai.py"
+    file: "/app/backend/routes/dokumen.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Document upload endpoint (POST /api/pegawai/{id}/upload-dokumen) working correctly. Successfully tested with mock PDF file. File size limit (1MB) properly enforced - returns 400 error for files exceeding limit. Document metadata correctly saved to 'dokumen' array in pegawai record with all required fields: id, filename, original_name, file_url, keterangan, uploaded_at, file_type. Fixed missing GET endpoint for pegawai details."
+        comment: "✅ VERIFIED: Dokumen Sumber creation (POST /api/dokumen-sumber) working correctly with new fields nomor_spm and tanggal_spm. Successfully created document with all required fields including PPK info, penyedia details, and new SPM fields. Document creation validates unique nomor_dokumen and saves all metadata correctly to database."
 
-  - task: "Pegawai Document Delete Endpoint"
+  - task: "Dokumen Sumber Multiple File Upload"
     implemented: true
     working: true
-    file: "/app/backend/routes/pegawai.py"
+    file: "/app/backend/routes/dokumen.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Document delete endpoint (DELETE /api/pegawai/{id}/dokumen/{doc_id}) working correctly. Successfully removes document from 'dokumen' array in pegawai record. Verified document is completely removed after deletion - no longer appears in pegawai details. Returns proper success message 'Dokumen dihapus'."
+        comment: "✅ VERIFIED: Multiple file upload endpoint (POST /api/dokumen-sumber/{id}/upload) working correctly. Successfully tested uploading 3 PDF files sequentially. Each upload appends to 'dokumen_attachments' array with proper metadata: url, original_name, uploaded_at. All attachments correctly stored and retrievable. Legacy file_url field also updated for backward compatibility."
 
-  - task: "Pegawai Document Validation"
+  - task: "Dokumen Sumber Retrieval and Search"
     implemented: true
     working: true
-    file: "/app/backend/routes/pegawai.py"
+    file: "/app/backend/routes/dokumen.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Document validation working correctly. File size limit (1MB) properly enforced with appropriate error message. File type validation ensures only PDF and image files are accepted. Document metadata persistence verified - all fields correctly saved and retrievable from database."
+        comment: "✅ VERIFIED: Document retrieval (GET /api/dokumen-sumber/{id}) and search functionality working correctly. Document details endpoint returns all fields including new nomor_spm and tanggal_spm fields. Search functionality (GET /api/dokumen-sumber?search=) includes nomor_spm in search criteria. Document list endpoint returns paginated results with proper metadata."
 
 metadata:
   created_by: "main_agent"
