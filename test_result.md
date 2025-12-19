@@ -143,71 +143,7 @@ backend:
         agent: "testing"
         comment: "✅ VERIFIED: Import validation working correctly. Missing columns validation returns 400 error with detailed message listing missing columns. Duplicate check verified for NIP, NIK, and NPWP - duplicates are correctly skipped without errors. Column structure validation enforced properly."
 
-  - task: "Dokumen Sumber Data Model"
-    implemented: true
-    working: true
-    file: "/app/backend/models.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Added DokumenSumber and DokumenSumberCreate models with fields: jenis_dokumen, nomor_dokumen, tanggal_dokumen, ppk_id, ppk_nama, nama_penyedia, npwp_penyedia, akun_belanja, uraian, nilai_total, file_url, created_by, created_at, updated_at."
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: DokumenSumber model correctly defined and working. All fields persist correctly in database. Created test document with all fields and verified data integrity. Model supports full CRUD operations."
-
-  - task: "Dokumen Sumber Server Integration"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Added dokumen router to server.py with prefix /api/dokumen-sumber and included in API routing."
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Dokumen router correctly integrated in server.py. Fixed syntax error in server.py and added dokumen import. All dokumen endpoints accessible at /api/dokumen-sumber/* and working correctly with authentication."
-
-  - task: "PPK Employee Management"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/pegawai.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: PPK employee creation and filtering works correctly. Created test PPK employee with jabatan_melekat=['PPK']. GET /api/pegawai/pejabat?role=PPK correctly filters and returns PPK employees for dropdown population. PPK data (ppk_id, ppk_nama) correctly saved in dokumen and linked properly."
-
-  - task: "Document Source File Upload API"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/dokumen.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Document upload endpoint (POST /api/dokumen-sumber/{id}/upload) working correctly. Successfully tested with mock PDF file (content-type: application/pdf). File upload processes correctly, file_url is saved in document record and persists properly. Upload returns success response with file URL."
-
-  - task: "Stock Opname API Implementation"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/opname.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Stock opname endpoint (POST /api/opname/) working correctly with asset_type='persediaan'. Automatic stock adjustment applied, opname transaction recorded, history retrieval functional. Fixed ObjectId serialization issue in GET /api/opname/ endpoint. All opname calculations and data persistence verified."
+  # Previous tasks removed for clarity - focusing on current review request
 
 metadata:
   created_by: "main_agent"
