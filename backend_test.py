@@ -1679,7 +1679,7 @@ class APITester:
             "Email": [f"test{timestamp}{i}@example.com" for i in range(6)],
             "Nama Bank": ["BRI"] * 6,
             "No Rekening": [f"123456789{i}" for i in range(6)],
-            "Gelar Depan": [None, None, None, None, None, None],
+            "Gelar Depan": ["", "", "", "", "", ""],  # Empty strings instead of None
             "Gelar Belakang": ["S.E.", "S.E.", "S.E.", "S.E.", "S.E.", "S.E."]
         }
         
