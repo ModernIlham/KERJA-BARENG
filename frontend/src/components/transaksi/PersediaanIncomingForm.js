@@ -282,7 +282,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     value={header.dokumen_ref} 
                                     onChange={(e) => setHeader({...header, dokumen_ref: e.target.value})}
                                     placeholder="No. Dok..."
-                                    className="bg-white h-8 text-xs"
+                                    className="bg-white h-9 text-xs"
                                     readOnly={!!selectedDokumen}
                                 />
                             </div>
@@ -292,22 +292,11 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     type="date"
                                     value={header.tgl_dokumen} 
                                     onChange={(e) => setHeader({...header, tgl_dokumen: e.target.value})}
-                                    className="bg-white h-8 text-xs"
+                                    className="bg-white h-9 text-xs"
                                     readOnly={!!selectedDokumen}
                                 />
                             </div>
-                            <div className="space-y-1 pt-1">
-                            <div className="space-y-1">
-                                <Label className="text-[10px] font-semibold text-slate-600">Tgl Dokumen *</Label>
-                                <Input 
-                                    type="date"
-                                    value={header.tgl_dokumen} 
-                                    onChange={(e) => setHeader({...header, tgl_dokumen: e.target.value})}
-                                    className="bg-white h-8 text-xs"
-                                    readOnly={!!selectedDokumen}
-                                />
-                            </div>
-
+                            
                             {/* SPM Info (Read Only) */}
                             {selectedDokumen && (selectedDokumen.nomor_spm || selectedDokumen.tanggal_spm) && (
                                 <div className="p-2 bg-yellow-50 rounded border border-yellow-100 space-y-1">
@@ -340,11 +329,13 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     </div>
                                 </div>
                             )}
+                            
+                            <div className="space-y-1 pt-1">
                                 <Label className="text-[10px] font-semibold text-slate-600">Jenis Dokumen</Label>
                                 <RadioGroup 
                                     value={header.jenis_dokumen} 
                                     onValueChange={(v) => setHeader({...header, jenis_dokumen: v})} 
-                                    className="flex gap-4"
+                                    className="flex gap-4 flex-wrap"
                                 >
                                     <div className="flex items-center space-x-1">
                                         <RadioGroupItem value="Kontrak" id="r1" className="h-3 w-3"/>
@@ -374,7 +365,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                 <Input 
                                     value={header.no_bukti} 
                                     onChange={(e) => setHeader({...header, no_bukti: e.target.value})}
-                                    className="bg-white h-8 text-xs"
+                                    className="bg-white h-9 text-xs"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -383,7 +374,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     type="date"
                                     value={header.tgl_buku} 
                                     onChange={(e) => setHeader({...header, tgl_buku: e.target.value})}
-                                    className="bg-white h-8 text-xs"
+                                    className="bg-white h-9 text-xs"
                                 />
                             </div>
                             {(header.jenis_dokumen.includes('Kontrak')) && (
@@ -392,7 +383,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     <Input 
                                         value={header.no_kontrak} 
                                         onChange={(e) => setHeader({...header, no_kontrak: e.target.value})}
-                                        className="bg-white h-8 text-xs"
+                                        className="bg-white h-9 text-xs"
                                     />
                                 </div>
                             )}
@@ -408,7 +399,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     value={header.ppk_id}
                                     disabled={!!selectedDokumen && !!header.ppk_id}
                                 >
-                                    <SelectTrigger className="h-8 bg-white text-xs">
+                                    <SelectTrigger className="h-9 bg-white text-xs">
                                         <SelectValue placeholder="Pilih PPK..." />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -424,7 +415,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     <Input 
                                         value={header.npwp} 
                                         onChange={(e) => setHeader({...header, npwp: e.target.value})}
-                                        className="bg-white h-8 text-xs"
+                                        className="bg-white h-9 text-xs"
                                         readOnly={!!selectedDokumen}
                                     />
                                 </div>
@@ -433,7 +424,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     <Input 
                                         value={header.nama_pemilik_npwp} 
                                         onChange={(e) => setHeader({...header, nama_pemilik_npwp: e.target.value})}
-                                        className="bg-white h-8 text-xs"
+                                        className="bg-white h-9 text-xs"
                                         readOnly={!!selectedDokumen}
                                     />
                                 </div>
@@ -445,14 +436,14 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                         value={header.keterangan} 
                                         onChange={(e) => setHeader({...header, keterangan: e.target.value})}
                                         placeholder="Ket..."
-                                        className="bg-white h-8 text-xs flex-1"
+                                        className="bg-white h-9 text-xs flex-1"
                                     />
                                     <div className="relative">
                                         <Input 
                                             type="file" 
                                             accept="image/*"
                                             onChange={(e) => setBuktiFile(e.target.files[0])}
-                                            className="w-[80px] h-8 text-[10px] p-1"
+                                            className="w-[80px] h-9 text-[10px] p-1"
                                         />
                                     </div>
                                 </div>
@@ -488,7 +479,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                         type="number" 
                                         {...register('jumlah', {required: true, min: 1})} 
                                         placeholder="Qty"
-                                        className="bg-white font-semibold"
+                                        className="bg-white h-9 font-semibold"
                                         onKeyDown={preventDecimal}
                                         step="1"
                                     />
@@ -499,7 +490,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     <Input 
                                         type="number" 
                                         {...register('nilai_satuan', {required: true})} 
-                                        className="bg-white"
+                                        className="bg-white h-9"
                                         onKeyDown={preventDecimal}
                                         step="1"
                                     />
@@ -510,7 +501,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                     <Input 
                                         type="date" 
                                         {...register('expired_date')} 
-                                        className="bg-white"
+                                        className="bg-white h-9"
                                     />
                                 </div>
 
