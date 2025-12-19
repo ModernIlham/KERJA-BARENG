@@ -298,6 +298,10 @@ async def import_pegawai(
             "failed": failed_count,
             "errors": errors
         }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+
 @router.post("/{id}/signature")
 async def upload_signature(
     id: str,
