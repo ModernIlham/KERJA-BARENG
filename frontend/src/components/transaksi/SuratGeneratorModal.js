@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Printer, Loader2, FileText } from 'lucide-react';
+import { Printer, Loader2, FileText, PenTool } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SuratGeneratorModal({ isOpen, onClose, transactionIds, defaultType = 'BAST' }) {
@@ -17,12 +17,21 @@ export default function SuratGeneratorModal({ isOpen, onClose, transactionIds, d
     const [nomorSurat, setNomorSurat] = useState('');
     const [tanggalSurat, setTanggalSurat] = useState(new Date().toISOString().split('T')[0]);
     
+    // Tanda Tangan
+    const [pegawaiList, setPegawaiList] = useState([]);
+    const [ttdId, setTtdId] = useState('');
+    const [ttdName, setTtdName] = useState('');
+    const [ttdNip, setTtdNip] = useState('');
+    const [ttdJabatan, setTtdJabatan] = useState('');
+    const [ttdImage, setTtdImage] = useState(''); // URL of signature
+
     // Preview
     const [previewHtml, setPreviewHtml] = useState(null);
 
     useEffect(() => {
         if (isOpen) {
             fetchTemplates();
+            fetchPegawai();
             setPreviewHtml(null);
             setNomorSurat(`.../${defaultType}/${new Date().getFullYear()}`);
         }
@@ -31,10 +40,27 @@ export default function SuratGeneratorModal({ isOpen, onClose, transactionIds, d
     const fetchTemplates = async () => {
         try {
             const res = await api.get('/api/surat/templates');
-            // Filter relevant templates if possible, or show all
             setTemplates(res.data);
             if (res.data.length > 0) setSelectedTemplate(res.data[0].id);
         } catch (e) { console.error(e); }
+    };
+
+    const fetchPegawai = async () => {
+        try {
+            const res = await api.get('/api/pegawai', { params: { limit: 1000 } });
+            setPegawaiList(res.data.data);
+        } catch (e) { console.error(e); }
+    };
+
+    const handlePegawaiChange = (id) => {
+        setTtdId(id);
+        const p = pegawaiList.find(i => i._id === id);
+        if (p) {
+            setTtdName(p.nama_lengkap);
+            setTtdNip(p.nip);
+            setTtdJabatan(p.jabatan);
+            setTtdImage(p.signature_url || '');
+        }
     };
 
     const handlePreview = async () => {
@@ -46,7 +72,12 @@ export default function SuratGeneratorModal({ isOpen, onClose, transactionIds, d
                 transaksi_ids: transactionIds,
                 custom_data: {
                     nomor_surat: nomorSurat,
-                    tanggal_surat: tanggalSurat
+                    tanggal_surat: tanggalSurat,
+                    // TTD Fields
+                    ttd_nama: ttdName,
+                    ttd_nip: ttdNip,
+                    ttd_jabatan: ttdJabatan,
+                    ttd_image: ttdImage ? `<img src="http://localhost:8001${ttdImage}" height="80" />` : '' 
                 }
             };
             const res = await api.post('/api/surat/generate-preview', payload);
@@ -90,7 +121,7 @@ export default function SuratGeneratorModal({ isOpen, onClose, transactionIds, d
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+            <DialogContent className="max-w-5xl h-[95vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Printer className="h-5 w-5"/> Cetak Surat / Berita Acara
@@ -124,6 +155,47 @@ export default function SuratGeneratorModal({ isOpen, onClose, transactionIds, d
                         <div className="space-y-1">
                             <Label>Tanggal Surat</Label>
                             <Input type="date" value={tanggalSurat} onChange={(e) => setTanggalSurat(e.target.value)} />
+                        </div>
+
+                        {/* Tanda Tangan Section */}
+                        <div className="bg-slate-50 p-3 rounded border border-slate-200 space-y-3">
+                            <div className="flex items-center gap-2 font-bold text-xs text-slate-700">
+                                <PenTool size={12}/> Penandatangan
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs">Pilih Pegawai</Label>
+                                <select 
+                                    className="w-full border rounded p-1 text-xs"
+                                    value={ttdId}
+                                    onChange={(e) => handlePegawaiChange(e.target.value)}
+                                >
+                                    <option value="">-- Pilih Pegawai --</option>
+                                    {pegawaiList.map(p => (
+                                        <option key={p._id} value={p._id}>{p.nama_lengkap}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {ttdId && (
+                                <>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Nama (di Dokumen)</Label>
+                                        <Input className="h-7 text-xs" value={ttdName} onChange={(e) => setTtdName(e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Jabatan</Label>
+                                        <Input className="h-7 text-xs" value={ttdJabatan} onChange={(e) => setTtdJabatan(e.target.value)} />
+                                    </div>
+                                    {ttdImage ? (
+                                        <div className="text-xs text-green-600 flex items-center gap-1">
+                                            <PenTool size={10}/> Tanda tangan digital tersedia
+                                        </div>
+                                    ) : (
+                                        <div className="text-xs text-red-500 italic">
+                                            Pegawai ini belum memiliki Tanda Tangan Digital.
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
 
                         <Button onClick={handlePreview} disabled={loading} className="w-full bg-blue-600">

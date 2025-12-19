@@ -15,6 +15,8 @@ import PegawaiForm from '../components/pegawai/PegawaiForm';
 import MutasiModal from '../components/pegawai/MutasiModal';
 
 import PegawaiPhotoModal from '../components/pegawai/PegawaiPhotoModal';
+import SignaturePad from '../components/pegawai/SignaturePad';
+import { PenTool } from 'lucide-react';
 import ImportPegawaiModal from '../components/pegawai/ImportPegawaiModal';
 import PegawaiDocumentModal from '../components/pegawai/PegawaiDocumentModal';
 import { FileText } from 'lucide-react';
@@ -33,6 +35,7 @@ export default function PegawaiList() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDocOpen, setIsDocOpen] = useState(false);
+  const [isSigOpen, setIsSigOpen] = useState(false);
   
   // State for selected item
   const [selectedItem, setSelectedItem] = useState(null);
@@ -101,6 +104,11 @@ export default function PegawaiList() {
   const openDocuments = (item) => {
       setSelectedItem(item);
       setIsDocOpen(true);
+  };
+
+  const openSignature = (item) => {
+      setSelectedItem(item);
+      setIsSigOpen(true);
   };
 
   const handleDelete = async () => {
@@ -186,6 +194,28 @@ export default function PegawaiList() {
             pegawai={selectedItem}
             onSuccess={fetchPegawai}
         />
+
+        {/* Signature Modal */}
+        <Dialog open={isSigOpen} onOpenChange={setIsSigOpen}>
+            <DialogContent className="max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Tanda Tangan Digital</DialogTitle>
+                    <DialogDescription>
+                        Atur tanda tangan untuk {selectedItem?.nama_lengkap}. Digunakan untuk pengesahan dokumen digital.
+                    </DialogDescription>
+                </DialogHeader>
+                {selectedItem && (
+                    <SignaturePad 
+                        pegawaiId={selectedItem._id} 
+                        existingSignature={selectedItem.signature_url}
+                        onSuccess={() => {
+                            setIsSigOpen(false);
+                            fetchPegawai();
+                        }}
+                    />
+                )}
+            </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
@@ -317,6 +347,9 @@ export default function PegawaiList() {
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => openDocuments(item)} title="Dokumen Pendukung" className="text-orange-600 h-8 w-8 p-0 hover:bg-orange-50">
                               <FileText className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => openSignature(item)} title="Tanda Tangan Digital" className="text-emerald-600 h-8 w-8 p-0 hover:bg-emerald-50">
+                              <PenTool className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => openEdit(item)} title="Edit Profil" className="text-slate-500 h-8 w-8 p-0 hover:bg-slate-100">
                               <Edit className="h-4 w-4" />

@@ -298,6 +298,36 @@ async def import_pegawai(
             "failed": failed_count,
             "errors": errors
         }
+@router.post("/{id}/signature")
+async def upload_signature(
+    id: str,
+    file: UploadFile = File(...),
+    current_user: str = Depends(get_current_user)
+):
+    if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    try:
+        # Validate
+        if file.content_type not in ["image/png", "image/jpeg"]:
+             raise HTTPException(status_code=400, detail="Format signature harus PNG/JPG (Transparan direkomendasikan)")
+
+        # Process upload
+        # We assume the file is already a processed image (cropped) or raw signature
+        # Just save it.
+        result = await process_image_upload(file, "signatures", db)
+        
+        signature_url = f"/api/uploads/{result['optimized']}"
+        
+        await db.pegawai.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {"signature_url": signature_url, "updated_at": datetime.now(timezone.utc)}}
+        )
+        
+        return {"message": "Tanda tangan berhasil disimpan", "url": signature_url}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
         
     except Exception as e:
         # Catch file reading errors

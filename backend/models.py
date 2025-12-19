@@ -321,6 +321,9 @@ class Pegawai(MongoBaseModel):
     nip: str
     nik: Optional[str] = None
     npwp: Optional[str] = None
+    # Signature
+    signature_url: Optional[str] = None # URL to signature image
+    
     nama_lengkap: str
     gelar_depan: Optional[str] = None
     gelar_belakang: Optional[str] = None
