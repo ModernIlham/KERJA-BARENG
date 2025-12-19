@@ -10,6 +10,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { FileText, Plus, Edit, Trash, Printer, Settings, Save, Eye, Upload, Loader2, ExternalLink, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import TemplateEditor from '../components/surat/TemplateEditor';
 
 // --- MAIN PAGE ---
 
