@@ -16,6 +16,7 @@ import TransaksiAset from './pages/TransaksiAset';
 import TransaksiPersediaan from './pages/TransaksiPersediaan';
 import Surat from './pages/Surat';
 import DokumenList from './pages/DokumenList';
+import StrukturOrganisasi from './pages/StrukturOrganisasi';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="pegawai" element={<PegawaiList />} />
             <Route path="referensi" element={<ReferensiKode />} />
             <Route path="referensi/dokumen" element={<DokumenList />} />
+            <Route path="organisasi" element={<StrukturOrganisasi />} />
             
             {/* New Simplified Transaction Routes */}
             <Route path="transaksi-aset" element={<TransaksiAset />} />
