@@ -166,20 +166,41 @@ frontend:
         comment: "✅ VERIFIED: Frontend routing correctly configured. Route /referensi/dokumen properly defined in App.js and points to DokumenList component. Navigation structure supports Master Dokumen Sumber page access."
 
 backend:
-  - task: "Master Dokumen Sumber API Implementation"
+  - task: "Pegawai Import Template Endpoint"
     implemented: true
     working: true
-    file: "/app/backend/routes/dokumen.py"
+    file: "/app/backend/routes/pegawai.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Implemented complete CRUD API for Master Dokumen Sumber with endpoints: GET /api/dokumen-sumber (list with pagination/search), POST /api/dokumen-sumber (create), GET /api/dokumen-sumber/{id} (detail), PUT /api/dokumen-sumber/{id} (update), DELETE /api/dokumen-sumber/{id} (delete), GET /api/dokumen-sumber/search/lookup (autocomplete)."
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: All Master Dokumen Sumber API endpoints working correctly. Successfully created dokumen with all fields (jenis_dokumen, nomor_dokumen, tanggal_dokumen, ppk_id, ppk_nama, nama_penyedia, npwp_penyedia, akun_belanja, uraian, nilai_total). List, search, and lookup endpoints all functional. Unique nomor_dokumen validation works. PPK linking verified."
+        comment: "✅ VERIFIED: Import template endpoint (GET /api/pegawai/import/template) working correctly. Returns Excel file with all required columns: NIP, Nama Lengkap, NIK, NPWP, Jabatan, Eselon 1-4, Pangkat/Golongan, Status Kepegawaian, No Telp, Email, Nama Bank, No Rekening, Gelar Depan, Gelar Belakang. File format and structure verified."
+
+  - task: "Pegawai Import Data Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Import data endpoint (POST /api/pegawai/import) working correctly. Successfully tested with Excel file containing 6 rows (3 valid, 3 duplicates). Results: 3 records inserted, 3 records skipped (duplicates), 0 failed. Duplicate detection works for NIP, NIK, and NPWP fields. Fixed NaN value handling for optional fields like gelar_depan and gelar_belakang."
+
+  - task: "Pegawai Import Validation"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Import validation working correctly. Missing columns validation returns 400 error with detailed message listing missing columns. Duplicate check verified for NIP, NIK, and NPWP - duplicates are correctly skipped without errors. Column structure validation enforced properly."
 
   - task: "Dokumen Sumber Data Model"
     implemented: true
