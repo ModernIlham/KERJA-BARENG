@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import api from '../../api/axios';
 import { Button } from '../ui/button';
-import { Input } from '../components/ui/input'; // Assuming this import path exists
+import { Input } from '../ui/input'; // Assuming this import path exists
 import { Label } from '../ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 import { Upload, FileDown, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
