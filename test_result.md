@@ -59,7 +59,7 @@
 ## agent_communication:
 ##     -agent: "main"  # or "testing" or "user"
 ##     -message: "Communication message between agents"
-
+##
 # Protocol Guidelines for Main agent
 #
 # 1. Update Test Result File Before Testing:
@@ -102,96 +102,61 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the Template API (GET, POST, PUT, DELETE /api/surat/templates). Test the Preview Generation (POST /api/surat/generate-preview) with dummy transaction data. Test the Archive Saving (POST /api/surat/save-generated)."
+user_problem_statement: "Fix Stock Opname (Printing, Signatures, Aset Tetap) and Dokumen Sumber CRUD."
 
-frontend: []
-
-backend:
-  - task: "Surat Template API Endpoints"
+frontend: 
+  - task: "Stock Opname Overhaul"
     implemented: true
-    working: true
-    file: "/app/backend/routes/surat.py"
+    working: "NA"
+    file: "/app/frontend/src/pages/StockOpname.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: false
-        agent: "testing"
-        comment: "❌ CRITICAL: Template API endpoints NOT IMPLEMENTED. Tested GET /api/surat/templates - returns 405 Method Not Allowed. Frontend SuratGeneratorModal.js expects these endpoints but they don't exist in surat.py. Missing: GET/POST/PUT/DELETE /api/surat/templates. Current surat.py only has basic CRUD for surat documents, not templates."
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Template API endpoints now fully implemented and working. Tested GET /api/surat/templates (returns template list), POST /api/surat/templates/seed (seeds default templates), POST /api/surat/templates (creates templates), PUT /api/surat/templates/{id} (updates templates), DELETE /api/surat/templates/{id} (deletes templates). All CRUD operations working correctly. Template seeding successfully created 2 default templates (SPMK and BAST)."
+      - working: "NA"
+        agent: "main"
+        comment: "Overhauled StockOpname.js and added StockOpnamePrintView.js. Added print feature with signatures and Aset Tetap Opname/Inventarisasi tabs."
 
-  - task: "Surat Preview Generation API"
+  - task: "Dokumen Sumber CRUD Fix"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/DokumenList.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed DokumenList.js: Added form registration for Select components, added Kontrak BLU types."
+
+  - task: "Surat Page Crash Fix"
     implemented: true
     working: true
-    file: "/app/backend/routes/surat.py"
+    file: "/app/frontend/src/pages/Surat.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: false
-        agent: "testing"
-        comment: "❌ CRITICAL: Preview Generation API NOT IMPLEMENTED. Tested POST /api/surat/generate-preview - returns 405 Method Not Allowed. Frontend expects this endpoint to generate HTML preview from templates and transaction data. Expected payload: {template_id, transaksi_ids, custom_data}. This endpoint is essential for the surat generation workflow."
       - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Preview Generation API fully implemented and working. Tested POST /api/surat/generate-preview with template_id, transaksi_ids, and custom_data including TTD fields (ttd_nama, ttd_nip, ttd_jabatan, ttd_image). Successfully generates HTML preview using Jinja2 templating. TTD fields properly rendered in generated HTML including employee signature images. Template variables correctly substituted with transaction data and custom fields."
+        agent: "main"
+        comment: "Verified import of Search icon. Screenshot confirmed page loads."
 
-  - task: "Surat Archive Saving API"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/surat.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: false
-        agent: "testing"
-        comment: "❌ CRITICAL: Archive Saving API NOT IMPLEMENTED. Tested POST /api/surat/save-generated - returns 405 Method Not Allowed. Frontend expects this endpoint to save generated surat to archives. Expected payload: {nomor_surat, tanggal_surat, jenis_surat, template_id, transaksi_ids, html_content}. This completes the surat generation and archival workflow."
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Archive Saving API fully implemented and working. Tested POST /api/surat/save-generated with complete payload including nomor_surat, tanggal_surat, jenis_surat, template_id, transaksi_ids, and html_content. Successfully saves generated surat to surat_arsip collection. Archive record created with proper metadata and HTML content preservation."
-
-  - task: "Basic Surat CRUD Operations"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/surat.py"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Basic surat CRUD operations working correctly. Tested GET /api/surat/ (found 1 document), POST /api/surat/ (created successfully), DELETE /api/surat/{id} (deleted successfully). These endpoints handle basic surat document management but are separate from the template-based generation system."
-
-  - task: "Employee Signature Upload API"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/pegawai.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ VERIFIED: Employee signature upload API fully implemented and working. Tested POST /api/pegawai/{id}/signature with PNG image file. Successfully uploads signature image, processes it through image_processor, and stores signature_url in employee record. Signature images properly integrated with TTD fields in surat preview generation. Upload endpoint validates file format (PNG/JPG) and returns accessible signature URL."
+backend: []
 
 metadata:
   created_by: "main_agent"
-  version: "10.0"
-  test_sequence: 22
-  run_ui: false
+  version: "11.0"
+  test_sequence: 23
+  run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Stock Opname Overhaul"
+    - "Dokumen Sumber CRUD Fix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Updated test_result.md for surat template API testing requirements. Need to test: 1) Template API endpoints (GET, POST, PUT, DELETE /api/surat/templates), 2) Preview Generation (POST /api/surat/generate-preview), 3) Archive Saving (POST /api/surat/save-generated). Frontend SuratGeneratorModal.js expects these endpoints for template-based surat generation workflow."
-  - agent: "testing"
-    message: "❌ SURAT TEMPLATE API TESTING FAILED: CRITICAL MISSING IMPLEMENTATION. All requested template endpoints return 405 Method Not Allowed - they are NOT IMPLEMENTED in backend. Missing endpoints: 1) GET/POST/PUT/DELETE /api/surat/templates (template management), 2) POST /api/surat/generate-preview (HTML generation from templates), 3) POST /api/surat/save-generated (archive saving). Current surat.py only has basic CRUD operations. Frontend expects complete template-based workflow but backend lacks the core functionality. Tests failed: 3/3 (0% success rate). Basic surat CRUD works but template system is missing entirely."
-  - agent: "testing"
-    message: "✅ SURAT TEMPLATE SEEDING AND TTD PREVIEW TESTING SUCCESSFUL: All requested functionality now fully implemented and working. Comprehensive test completed: 1) Template seeding endpoint (POST /api/surat/templates/seed) - seeded 2 default templates, 2) Employee signature upload (POST /api/pegawai/{id}/signature) - successfully uploaded and stored signature, 3) Preview generation with TTD fields - generated HTML with proper TTD field substitution including signature images, 4) Archive saving - successfully saved generated surat to archive. All 8 test steps passed (100% success rate). The surat template system with TTD (signature) integration is fully functional."
+    message: "Please test: 1. Stock Opname page loading, tab switching, and 'Cetak Berita Acara' modal. 2. Dokumen Sumber creation using the new 'Kontrak BLU' type. 3. Verify Surat page loads without error."
