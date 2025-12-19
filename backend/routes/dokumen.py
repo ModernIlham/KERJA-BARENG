@@ -29,9 +29,9 @@ async def get_dokumen_list(
         query["$or"] = [
             {"nomor_dokumen": {"$regex": search, "$options": "i"}},
             {"uraian": {"$regex": search, "$options": "i"}},
-            {"nama_penyedia": {"$regex": search, "$options": "i"}}
+            {"nama_penyedia": {"$regex": search, "$options": "i"}},
+            {"nomor_spm": {"$regex": search, "$options": "i"}}
         ]
-            {"nomor_spm": {"$regex": search, "$options": "i"}},
         
     if jenis and jenis != "All":
         query["jenis_dokumen"] = jenis
