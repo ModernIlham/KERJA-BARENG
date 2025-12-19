@@ -107,65 +107,53 @@ user_problem_statement: "Test the Template API (GET, POST, PUT, DELETE /api/sura
 frontend: []
 
 backend:
-  - task: "Unit Kerja API Endpoint"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/settings.py"
+  - task: "Surat Template API Endpoints"
+    implemented: false
+    working: false
+    file: "/app/backend/routes/surat.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Unit Kerja API endpoint (GET /api/settings/unit-kerja) exists in settings.py. Need to test if it returns proper organizational structure data for tree rendering."
-      - working: true
+      - working: false
         agent: "testing"
-        comment: "✅ VERIFIED: Unit Kerja API endpoint (GET /api/settings/unit-kerja) working correctly. Found 15 organizational units with proper data structure including required fields: id, nama_unit, eselon, parent_id. Data format is compatible with frontend tree rendering requirements."
+        comment: "❌ CRITICAL: Template API endpoints NOT IMPLEMENTED. Tested GET /api/surat/templates - returns 405 Method Not Allowed. Frontend SuratGeneratorModal.js expects these endpoints but they don't exist in surat.py. Missing: GET/POST/PUT/DELETE /api/surat/templates. Current surat.py only has basic CRUD for surat documents, not templates."
 
-  - task: "Pegawai API with Status Filter"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/pegawai.py"
+  - task: "Surat Preview Generation API"
+    implemented: false
+    working: false
+    file: "/app/backend/routes/surat.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Pegawai API endpoint (GET /api/pegawai) exists. Need to test if it properly returns employee data with status filtering (PNS/PPPK/Non-ASN) and organizational unit assignments."
-      - working: true
+      - working: false
         agent: "testing"
-        comment: "✅ VERIFIED: Pegawai API (GET /api/pegawai) working correctly with status filtering. Found 55 employees with proper status classification: 46 PNS, 0 PPPK, 6 Non-ASN, 3 Unknown. Employee data includes all required fields (_id, nama_lengkap, status_kepegawaian, jabatan) and organizational unit assignments (eselon1-4 fields)."
+        comment: "❌ CRITICAL: Preview Generation API NOT IMPLEMENTED. Tested POST /api/surat/generate-preview - returns 405 Method Not Allowed. Frontend expects this endpoint to generate HTML preview from templates and transaction data. Expected payload: {template_id, transaksi_ids, custom_data}. This endpoint is essential for the surat generation workflow."
 
-  - task: "Organizational Tree Structure Data"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/settings.py"
+  - task: "Surat Archive Saving API"
+    implemented: false
+    working: false
+    file: "/app/backend/routes/surat.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Backend should provide hierarchical unit data with parent_id relationships for tree structure. Need to verify data format supports frontend tree rendering requirements."
-      - working: true
+      - working: false
         agent: "testing"
-        comment: "✅ VERIFIED: Organizational tree structure data working correctly. Successfully assigned 3 employees to organizational units using eselon field matching. Tree building logic works with 2/15 units having assigned members. Data format supports hierarchical tree rendering with parent_id relationships."
+        comment: "❌ CRITICAL: Archive Saving API NOT IMPLEMENTED. Tested POST /api/surat/save-generated - returns 405 Method Not Allowed. Frontend expects this endpoint to save generated surat to archives. Expected payload: {nomor_surat, tanggal_surat, jenis_surat, template_id, transaksi_ids, html_content}. This completes the surat generation and archival workflow."
 
-  - task: "Employee Status Classification"
+  - task: "Basic Surat CRUD Operations"
     implemented: true
     working: true
-    file: "/app/backend/routes/pegawai.py"
+    file: "/app/backend/routes/surat.py"
     stuck_count: 0
-    priority: "high"
+    priority: "medium"
     needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Employee data should include status_kepegawaian field for PNS/PPPK/Non-ASN classification. Need to test if filtering and counting by status works correctly."
       - working: true
         agent: "testing"
-        comment: "✅ VERIFIED: Employee status classification working correctly. Modal filtering functionality tested and verified - employees can be filtered by PNS/PPPK/Non-ASN status. Status distribution: PNS (46), PPPK (0), Non-ASN (6), Unknown (3). Filtering logic matches expected totals for organizational units."
+        comment: "✅ VERIFIED: Basic surat CRUD operations working correctly. Tested GET /api/surat/ (found 1 document), POST /api/surat/ (created successfully), DELETE /api/surat/{id} (deleted successfully). These endpoints handle basic surat document management but are separate from the template-based generation system."
 
 metadata:
   created_by: "main_agent"
