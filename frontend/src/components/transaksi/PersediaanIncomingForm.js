@@ -270,149 +270,139 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                     </div>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    {/* Header Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        {/* Left Column: Document Info */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-slate-800 border-b pb-1">Informasi Dokumen</h3>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <Label className="text-xs">No. Dokumen *</Label>
-                                    <Input 
-                                        value={header.dokumen_ref} 
-                                        onChange={(e) => setHeader({...header, dokumen_ref: e.target.value})}
-                                        placeholder="No. Dok..."
-                                        className="bg-white h-8"
-                                        readOnly={!!selectedDokumen}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label className="text-xs">Tgl Dokumen *</Label>
-                                    <Input 
-                                        type="date"
-                                        value={header.tgl_dokumen} 
-                                        onChange={(e) => setHeader({...header, tgl_dokumen: e.target.value})}
-                                        className="bg-white h-8"
-                                        readOnly={!!selectedDokumen}
-                                    />
-                                </div>
+                    {/* Header Section - Compact Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        {/* Column 1: Document Basics */}
+                        <div className="space-y-3">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b pb-1">Dokumen</h3>
+                            <div className="space-y-1">
+                                <Label className="text-[10px] font-semibold text-slate-600">No. Dokumen *</Label>
+                                <Input 
+                                    value={header.dokumen_ref} 
+                                    onChange={(e) => setHeader({...header, dokumen_ref: e.target.value})}
+                                    placeholder="No. Dok..."
+                                    className="bg-white h-8 text-xs"
+                                    readOnly={!!selectedDokumen}
+                                />
                             </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <Label className="text-xs">No. Bukti *</Label>
-                                    <Input 
-                                        value={header.no_bukti} 
-                                        onChange={(e) => setHeader({...header, no_bukti: e.target.value})}
-                                        placeholder="No. Bukti..."
-                                        className="bg-white h-8"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label className="text-xs">Tgl Buku *</Label>
-                                    <Input 
-                                        type="date"
-                                        value={header.tgl_buku} 
-                                        onChange={(e) => setHeader({...header, tgl_buku: e.target.value})}
-                                        className="bg-white h-8"
-                                    />
-                                </div>
+                            <div className="space-y-1">
+                                <Label className="text-[10px] font-semibold text-slate-600">Tgl Dokumen *</Label>
+                                <Input 
+                                    type="date"
+                                    value={header.tgl_dokumen} 
+                                    onChange={(e) => setHeader({...header, tgl_dokumen: e.target.value})}
+                                    className="bg-white h-8 text-xs"
+                                    readOnly={!!selectedDokumen}
+                                />
                             </div>
-
-                            <div className="space-y-2 pt-2">
-                                <Label className="text-xs font-semibold">Jenis Dokumen</Label>
+                            <div className="space-y-1 pt-1">
+                                <Label className="text-[10px] font-semibold text-slate-600">Jenis Dokumen</Label>
                                 <RadioGroup 
                                     value={header.jenis_dokumen} 
                                     onValueChange={(v) => setHeader({...header, jenis_dokumen: v})} 
-                                    className="grid grid-cols-1 gap-2"
+                                    className="flex gap-4"
                                 >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Kontrak" id="r1" />
-                                        <Label htmlFor="r1" className="text-xs font-normal">Kontrak Penerimaan Barang</Label>
+                                    <div className="flex items-center space-x-1">
+                                        <RadioGroupItem value="Kontrak" id="r1" className="h-3 w-3"/>
+                                        <Label htmlFor="r1" className="text-[10px]">Kontrak</Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Non_Kontrak" id="r2" />
-                                        <Label htmlFor="r2" className="text-xs font-normal">Non Kontrak / Penerimaan Barang</Label>
+                                    <div className="flex items-center space-x-1">
+                                        <RadioGroupItem value="Non_Kontrak" id="r2" className="h-3 w-3"/>
+                                        <Label htmlFor="r2" className="text-[10px]">Non-Kontrak</Label>
                                     </div>
                                 </RadioGroup>
                             </div>
                         </div>
 
-                        {/* Right Column: Additional Info */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-slate-800 border-b pb-1">Detail Tambahan</h3>
-                            
+                        {/* Column 2: Evidence & Contract */}
+                        <div className="space-y-3">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b pb-1">Bukti & Kontrak</h3>
                             <div className="space-y-1">
-                                <Label className="text-xs">Pejabat Pembuat Komitmen (PPK)</Label>
+                                <Label className="text-[10px] font-semibold text-slate-600">No. Bukti / Kuitansi *</Label>
+                                <Input 
+                                    value={header.no_bukti} 
+                                    onChange={(e) => setHeader({...header, no_bukti: e.target.value})}
+                                    className="bg-white h-8 text-xs"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-[10px] font-semibold text-slate-600">Tgl Pembukuan *</Label>
+                                <Input 
+                                    type="date"
+                                    value={header.tgl_buku} 
+                                    onChange={(e) => setHeader({...header, tgl_buku: e.target.value})}
+                                    className="bg-white h-8 text-xs"
+                                />
+                            </div>
+                            {(header.jenis_dokumen.includes('Kontrak')) && (
+                                <div className="space-y-1">
+                                    <Label className="text-[10px] font-semibold text-slate-600">Nomor Kontrak</Label>
+                                    <Input 
+                                        value={header.no_kontrak} 
+                                        onChange={(e) => setHeader({...header, no_kontrak: e.target.value})}
+                                        className="bg-white h-8 text-xs"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Column 3: Supplier & PPK */}
+                        <div className="space-y-3">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b pb-1">Pihak Terkait</h3>
+                            <div className="space-y-1">
+                                <Label className="text-[10px] font-semibold text-slate-600">Pejabat Pembuat Komitmen (PPK)</Label>
                                 <Select 
                                     onValueChange={handlePpkChange} 
                                     value={header.ppk_id}
                                     disabled={!!selectedDokumen && !!header.ppk_id}
                                 >
-                                    <SelectTrigger className="h-8 bg-white">
+                                    <SelectTrigger className="h-8 bg-white text-xs">
                                         <SelectValue placeholder="Pilih PPK..." />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {ppkList.map(ppk => (
-                                            <SelectItem key={ppk._id} value={ppk._id}>{ppk.nama_lengkap}</SelectItem>
+                                            <SelectItem key={ppk._id} value={ppk._id} className="text-xs">{ppk.nama_lengkap}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
-
-                            {(header.jenis_dokumen.includes('Kontrak')) && (
+                            <div className="grid grid-cols-2 gap-2">
                                 <div className="space-y-1">
-                                    <Label className="text-xs">Nomor Kontrak</Label>
-                                    <Input 
-                                        value={header.no_kontrak} 
-                                        onChange={(e) => setHeader({...header, no_kontrak: e.target.value})}
-                                        className="bg-white h-8"
-                                    />
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <Label className="text-xs">NPWP</Label>
+                                    <Label className="text-[10px] font-semibold text-slate-600">NPWP</Label>
                                     <Input 
                                         value={header.npwp} 
                                         onChange={(e) => setHeader({...header, npwp: e.target.value})}
-                                        className="bg-white h-8"
+                                        className="bg-white h-8 text-xs"
                                         readOnly={!!selectedDokumen}
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <Label className="text-xs">Nama Rekanan</Label>
+                                    <Label className="text-[10px] font-semibold text-slate-600">Rekanan</Label>
                                     <Input 
                                         value={header.nama_pemilik_npwp} 
                                         onChange={(e) => setHeader({...header, nama_pemilik_npwp: e.target.value})}
-                                        className="bg-white h-8"
+                                        className="bg-white h-8 text-xs"
                                         readOnly={!!selectedDokumen}
                                     />
                                 </div>
                             </div>
-                            
                             <div className="space-y-1">
-                                <Label className="text-xs">Keterangan</Label>
-                                <Input 
-                                    value={header.keterangan} 
-                                    onChange={(e) => setHeader({...header, keterangan: e.target.value})}
-                                    placeholder="Keterangan transaksi..."
-                                    className="bg-white h-8"
-                                />
-                            </div>
-
-                            <div className="space-y-1 pt-2">
-                                <Label className="text-xs">Bukti Foto (Opsional)</Label>
-                                <div className="flex gap-2 items-center">
+                                <Label className="text-[10px] font-semibold text-slate-600">Keterangan / Bukti Foto</Label>
+                                <div className="flex gap-2">
                                     <Input 
-                                        type="file" 
-                                        accept="image/*"
-                                        onChange={(e) => setBuktiFile(e.target.files[0])}
-                                        className="bg-white h-9 text-xs"
+                                        value={header.keterangan} 
+                                        onChange={(e) => setHeader({...header, keterangan: e.target.value})}
+                                        placeholder="Ket..."
+                                        className="bg-white h-8 text-xs flex-1"
                                     />
-                                    {buktiFile && <Upload size={16} className="text-green-600"/>}
+                                    <div className="relative">
+                                        <Input 
+                                            type="file" 
+                                            accept="image/*"
+                                            onChange={(e) => setBuktiFile(e.target.files[0])}
+                                            className="w-[80px] h-8 text-[10px] p-1"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
