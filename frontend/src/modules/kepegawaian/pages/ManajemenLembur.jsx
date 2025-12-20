@@ -102,6 +102,8 @@ const ManajemenLembur = () => {
 
           const payload = {
               ...formData,
+              start_time: formData.startTime,
+              end_time: formData.endTime,
               spl_file: splUrl,
               evidence_files: evidenceUrls
           };
