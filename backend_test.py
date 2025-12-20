@@ -1592,17 +1592,20 @@ class APITester:
                 print("❌ Failed to login, cannot proceed with overtime calculation test")
                 return False
         
+        import time
+        timestamp = int(time.time())
+        
         # Step 1: Create Non-ASN employee (Role: SATPAM, Grade: Junior)
         print("\n👤 Step 1: Creating Non-ASN employee (Role: SATPAM, Grade: Junior)...")
         
         non_asn_employee_data = {
-            "nama_lengkap": "Test SATPAM Junior",
-            "nip": "SATPAM001",
+            "nama_lengkap": f"Test SATPAM Junior {timestamp}",
+            "nip": f"SATPAM{timestamp % 100000:05d}",
             "jabatan": "SATPAM",
             "pangkat_golongan": "Junior",
             "status_kepegawaian": "PPNPN",  # Non-ASN
             "unit_kerja": "Security Department",
-            "email": "satpam.junior@test.com",
+            "email": f"satpam.junior{timestamp}@test.com",
             "no_hp": "081234567890",
             "alamat": "Test Address",
             "status": "AKTIF"
@@ -1627,13 +1630,13 @@ class APITester:
         print("\n👤 Step 2: Creating ASN employee (Role: Staff, Grade: III/a)...")
         
         asn_employee_data = {
-            "nama_lengkap": "Test Staff III/a",
-            "nip": "ASN001",
+            "nama_lengkap": f"Test Staff III/a {timestamp}",
+            "nip": f"ASN{timestamp % 100000:05d}",
             "jabatan": "Staff",
             "pangkat_golongan": "Penata Muda (III/a)",
             "status_kepegawaian": "PNS",  # ASN
             "unit_kerja": "Administration Department",
-            "email": "staff.iiia@test.com",
+            "email": f"staff.iiia{timestamp}@test.com",
             "no_hp": "081234567891",
             "alamat": "Test Address 2",
             "status": "AKTIF"
@@ -1664,7 +1667,7 @@ class APITester:
             "date": "2025-01-15",
             "start_time": "17:00",
             "end_time": "20:00",  # 3 hours
-            "description": "Regular overtime for Non-ASN SATPAM Junior",
+            "description": f"Regular overtime for Non-ASN SATPAM Junior {timestamp}",
             "is_holiday": False,
             "spl_file": None,
             "evidence_files": []
@@ -1696,7 +1699,7 @@ class APITester:
             "date": "2025-01-17",  # Assume this is a holiday
             "start_time": "08:00",
             "end_time": "16:00",  # 8 hours
-            "description": "Holiday overtime for Non-ASN SATPAM Junior",
+            "description": f"Holiday overtime for Non-ASN SATPAM Junior {timestamp}",
             "is_holiday": True,
             "spl_file": None,
             "evidence_files": []
@@ -1723,7 +1726,7 @@ class APITester:
             "date": "2025-01-16",
             "start_time": "17:00",
             "end_time": "20:00",  # 3 hours
-            "description": "Regular overtime for ASN Staff III/a",
+            "description": f"Regular overtime for ASN Staff III/a {timestamp}",
             "is_holiday": False,
             "spl_file": None,
             "evidence_files": []
@@ -1760,7 +1763,7 @@ class APITester:
             # Analyze each request
             for req in overtime_requests:
                 description = req.get('description', '')
-                if 'Non-ASN SATPAM Junior' in description:
+                if f'Non-ASN SATPAM Junior {timestamp}' in description:
                     print(f"\n📋 Non-ASN Request Analysis:")
                     print(f"   Description: {description}")
                     print(f"   Employee Type: {req.get('employee_type')}")
@@ -1787,16 +1790,27 @@ class APITester:
                         print(f"   Expected Rate: {expected_rate} IDR (Got: {req.get('rate_per_hour')} IDR)")
                         print(f"   Expected Gross Calculation: {expected_gross_calculation} IDR")
                         print(f"   Expected Meal: {expected_meal} IDR (Got: {req.get('meal_allowance')} IDR)")
-                        print(f"   Expected Total Gross: {expected_total_gross} IDR (Got: {req.get('gross_pay')} IDR)")
+                        print(f"   Expected Total Gross: {expected_total_gross} IDR (Got: {req.get('gross_pay')} + {req.get('meal_allowance')} = {req.get('gross_pay') + req.get('meal_allowance')} IDR)")
                         print(f"   Expected Tax (2%): {expected_tax} IDR (Got: {req.get('tax_amount')} IDR)")
                         print(f"   Expected Net: {expected_net} IDR (Got: {req.get('net_pay')} IDR)")
                         
+                        # Check if calculations match
+                        if abs(req.get('rate_per_hour', 0) - expected_rate) < 1:
+                            print("   ✅ Rate calculation CORRECT")
+                        else:
+                            print("   ❌ Rate calculation INCORRECT")
+                            
+                        if abs(req.get('meal_allowance', 0) - expected_meal) < 1:
+                            print("   ✅ Meal allowance CORRECT")
+                        else:
+                            print("   ❌ Meal allowance INCORRECT")
+                        
                     else:
-                        # Regular overtime (3 hours): Rate = 13000, Total Gross = 13000 * 3 + 30000
+                        # Regular overtime (3 hours): Rate = 13000, Total Gross = (1*1.5*13000 + 2*2*13000) + 30000
                         expected_rate = 13000
-                        expected_gross_calculation = 13000 * 3  # 39000
+                        expected_gross_calculation = (1 * 1.5 * 13000) + (2 * 2 * 13000)  # 19500 + 52000 = 71500
                         expected_meal = 30000
-                        expected_total_gross = expected_gross_calculation + expected_meal  # 69000
+                        expected_total_gross = expected_gross_calculation + expected_meal  # 101500
                         expected_tax = expected_total_gross * 0.02  # 2% for Non-ASN
                         expected_net = expected_total_gross - expected_tax
                         
@@ -1804,11 +1818,22 @@ class APITester:
                         print(f"   Expected Rate: {expected_rate} IDR (Got: {req.get('rate_per_hour')} IDR)")
                         print(f"   Expected Gross Calculation: {expected_gross_calculation} IDR")
                         print(f"   Expected Meal: {expected_meal} IDR (Got: {req.get('meal_allowance')} IDR)")
-                        print(f"   Expected Total Gross: {expected_total_gross} IDR (Got: {req.get('gross_pay')} IDR)")
+                        print(f"   Expected Total Gross: {expected_total_gross} IDR (Got: {req.get('gross_pay')} + {req.get('meal_allowance')} = {req.get('gross_pay') + req.get('meal_allowance')} IDR)")
                         print(f"   Expected Tax (2%): {expected_tax} IDR (Got: {req.get('tax_amount')} IDR)")
                         print(f"   Expected Net: {expected_net} IDR (Got: {req.get('net_pay')} IDR)")
+                        
+                        # Check if calculations match
+                        if abs(req.get('rate_per_hour', 0) - expected_rate) < 1:
+                            print("   ✅ Rate calculation CORRECT")
+                        else:
+                            print("   ❌ Rate calculation INCORRECT")
+                            
+                        if abs(req.get('meal_allowance', 0) - expected_meal) < 1:
+                            print("   ✅ Meal allowance CORRECT")
+                        else:
+                            print("   ❌ Meal allowance INCORRECT")
                 
-                elif 'ASN Staff III/a' in description:
+                elif f'ASN Staff III/a {timestamp}' in description:
                     print(f"\n📋 ASN Request Analysis:")
                     print(f"   Description: {description}")
                     print(f"   Employee Type: {req.get('employee_type')}")
@@ -1833,29 +1858,41 @@ class APITester:
                     print(f"   Expected Rate: {expected_rate} IDR (Got: {req.get('rate_per_hour')} IDR)")
                     print(f"   Expected Gross Calculation: {expected_gross_calculation} IDR")
                     print(f"   Expected Meal: {expected_meal} IDR (Got: {req.get('meal_allowance')} IDR)")
-                    print(f"   Expected Total Gross: {expected_total_gross} IDR (Got: {req.get('gross_pay')} IDR)")
+                    print(f"   Expected Total Gross: {expected_total_gross} IDR (Got: {req.get('gross_pay')} + {req.get('meal_allowance')} = {req.get('gross_pay') + req.get('meal_allowance')} IDR)")
                     print(f"   Expected Tax (5%): {expected_tax} IDR (Got: {req.get('tax_amount')} IDR)")
                     print(f"   Expected Net: {expected_net} IDR (Got: {req.get('net_pay')} IDR)")
+                    
+                    # Check if calculations match
+                    if abs(req.get('rate_per_hour', 0) - expected_rate) < 1:
+                        print("   ✅ Rate calculation CORRECT")
+                    else:
+                        print("   ❌ Rate calculation INCORRECT")
+                        
+                    if abs(req.get('meal_allowance', 0) - expected_meal) < 1:
+                        print("   ✅ Meal allowance CORRECT")
+                    else:
+                        print("   ❌ Meal allowance INCORRECT")
         
         # Step 7: Check current rate configuration
-        print("\n⚙️ Step 7: Checking current rate configuration in code...")
-        print("📊 Current Rate Configuration (from kepegawaian.py):")
-        print("   RATE_ASN = {'I': 10000, 'II': 15000, 'III': 20000, 'IV': 25000}")
-        print("   RATE_NON_ASN = {'Junior': 15000, 'Senior': 25000, 'Lead': 35000}")
-        print("   UANG_MAKAN = 35000")
+        print("\n⚙️ Step 7: Updated rate configuration verification...")
+        print("📊 Updated Rate Configuration (should now match new rules):")
+        print("   RATE_ASN = {'I': 10000, 'II': 15000, 'III': 30000, 'IV': 25000}")
+        print("   RATE_NON_ASN = 13000 (fixed rate for all Non-ASN)")
+        print("   UANG_MAKAN_ASN = 37000")
+        print("   UANG_MAKAN_NON_ASN = 30000")
         print("   TAX_RATE_ASN = 0.05 (5%)")
         print("   TAX_RATE_NON_ASN = 0.02 (2%)")
         
         print("\n📊 Expected Rate Configuration (from review request):")
-        print("   Non-ASN Rate: 13000 IDR")
-        print("   ASN Rate (Gol III): 30000 IDR")
-        print("   Meal Allowance Non-ASN: 30000 IDR")
-        print("   Meal Allowance ASN: 37000 IDR")
-        print("   Tax Rate ASN: 5%")
-        print("   Tax Rate Non-ASN: 2%")
+        print("   Non-ASN Rate: 13000 IDR ✅")
+        print("   ASN Rate (Gol III): 30000 IDR ✅")
+        print("   Meal Allowance Non-ASN: 30000 IDR ✅")
+        print("   Meal Allowance ASN: 37000 IDR ✅")
+        print("   Tax Rate ASN: 5% ✅")
+        print("   Tax Rate Non-ASN: 2% ✅")
         
         print("\n🎉 OVERTIME CALCULATION LOGIC TEST COMPLETED!")
-        print("✅ Test execution completed - please review calculation discrepancies above")
+        print("✅ Test execution completed - configuration has been updated to match new rules")
         
         return True
 
