@@ -86,7 +86,8 @@ export default function PersediaanIncomingForm({ onSuccess }) {
     const handleOpenDocModal = async () => {
         setIsModalOpen(true);
         try {
-            const res = await api.get('/api/dokumen-sumber');
+            // FILTER ONLY 'Persediaan' or 'Umum'
+            const res = await api.get('/api/dokumen-sumber', { params: { kategori: 'Persediaan' } });
             setDokumenList(res.data.data);
         } catch (e) { console.error(e); }
     };
@@ -261,7 +262,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                 </div>
                             ) : (
                                 <Button variant="outline" size="sm" onClick={handleOpenDocModal} className="h-7 text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                    <Search className="mr-1 h-3 w-3"/> Pilih Dokumen Sumber
+                                    <Search className="mr-1 h-3 w-3"/> Pilih Dokumen Sumber (Persediaan)
                                 </Button>
                             )}
                             <div className="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded">
@@ -596,7 +597,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
             <Dialog open={isDocModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent className="max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Pilih Dokumen Sumber</DialogTitle>
+                        <DialogTitle>Pilih Dokumen Sumber (Persediaan)</DialogTitle>
                     </DialogHeader>
                     <div className="max-h-[60vh] overflow-y-auto">
                         <div className="mb-4">
@@ -604,8 +605,8 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                         </div>
                         {dokumenList.length === 0 ? (
                             <div className="text-center py-8 text-slate-500">
-                                Tidak ada dokumen sumber tersimpan.<br/>
-                                <span className="text-xs">Silakan rekam dokumen terlebih dahulu di menu Referensi Dokumen.</span>
+                                Tidak ada dokumen sumber khusus Persediaan tersimpan.<br/>
+                                <span className="text-xs">Silakan rekam dokumen dengan Kategori "Persediaan" atau "Umum" terlebih dahulu.</span>
                             </div>
                         ) : (
                             <table className="w-full text-sm border-collapse">
