@@ -1294,7 +1294,7 @@ class APITester:
         
         doc2_data = {
             "jenis_dokumen": "Kontrak",
-            "nomor_dokumen": "KONTRAK-ASET",
+            "nomor_dokumen": f"KONTRAK-ASET-{timestamp}",
             "tanggal_dokumen": today,
             "ppk_id": ppk_id,
             "ppk_nama": ppk_nama,
