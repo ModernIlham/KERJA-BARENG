@@ -101,6 +101,18 @@ backend:
         agent: "testing"
         comment: "FIXED: Overtime calculation logic has been successfully updated to match the new rules. All issues resolved: (1) Updated RATE_ASN Gol III from 20000 to 30000 IDR, (2) Changed RATE_NON_ASN from grade-based (15000-35000) to fixed rate of 13000 IDR, (3) Implemented separate meal allowances: UANG_MAKAN_ASN = 37000 IDR and UANG_MAKAN_NON_ASN = 30000 IDR, (4) Updated calculate_overtime_pay() function to use correct meal allowance based on employee type. Unit tests confirm all calculations are now correct: Non-ASN regular (3h): 99470 IDR net, Non-ASN holiday (8h): 245980 IDR net, ASN regular (3h): 120650 IDR net. Complex holiday overtime formula working correctly: (7×2×rate + 1×3×rate) for 8-hour shifts."
 
+  - task: "Overtime Settings and Dafnom Features"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/kepegawaian.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "NEW FEATURES VERIFIED: Overtime Settings and Dafnom features are fully functional. ✅ Default Overtime Settings are automatically created on first access with correct default values (ASN Gol III: 30000 IDR, Non-ASN: 13000 IDR, ASN Meal: 37000 IDR, Non-ASN Meal: 30000 IDR). ✅ Overtime Settings can be updated successfully - tested changing ASN Gol III rate from 30000 to 35000 IDR and meal allowance from 37000 to 40000 IDR. ✅ New overtime requests use UPDATED settings instead of old hardcoded constants - verified calculation uses new rates (35000 IDR rate, 40000 IDR meal allowance). ✅ 'nip' field is now properly saved in OvertimeRequest documents (required for Dafnom reporting). ✅ Overtime Recap API returns comprehensive data structure supporting all Dafnom report fields including: nip, name, employee type, grade, total hours, rates, meal allowances, gross pay, tax amounts, and net pay. ✅ All calculations are accurate and use the dynamic settings from database instead of hardcoded constants. The system is ready for production use with configurable overtime rates and full Dafnom compliance."
+
 frontend:
   - task: "Frontend UI Integration"
     implemented: false
