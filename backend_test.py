@@ -9771,7 +9771,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Kepegawaian (HR) Overtime Management Testing...")
+    print("🚀 Starting Kanban Task Management Testing...")
     print("=" * 60)
     
     # Test login first
@@ -9779,9 +9779,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Kepegawaian overtime management test
-    if not tester.test_kepegawaian_overtime_management():
-        print("❌ Kepegawaian overtime management test failed")
+    # Run the Kanban task management test
+    if not tester.test_kanban_task_management():
+        print("❌ Kanban task management test failed")
         return 1
     
     # Print summary
