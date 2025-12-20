@@ -1459,7 +1459,7 @@ class APITester:
         
         # First, let's create a test asset to search for
         test_asset_data = {
-            "kode_barang": "1030101001000001",
+            "kode_barang": "1030101001000001",  # Proper asset code format
             "nama_barang": "Test Asset for Search",
             "merk": "Test Brand",
             "kondisi": "Baik",
