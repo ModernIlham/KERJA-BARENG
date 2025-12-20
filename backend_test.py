@@ -1782,17 +1782,45 @@ class APITester:
             print("❌ Failed to submit Satpam overtime request")
             return False
         
-        satpam_overtime_id = response.get('id')
-        print(f"✅ Satpam overtime request submitted with ID: {satpam_overtime_id}")
-        print(f"   Duration: {response.get('duration_hours')} hours")
-        print(f"   Rate per hour: {response.get('rate_per_hour')} IDR")
-        print(f"   Meal allowance: {response.get('meal_allowance')} IDR")
-        print(f"   Gross pay: {response.get('gross_pay')} IDR")
-        print(f"   Net pay: {response.get('net_pay')} IDR")
+        print(f"✅ Satpam overtime request submitted successfully")
+        print(f"   Response: {response}")
+        
+        # Get the overtime request from the list to verify calculations
+        success, response = self.run_test(
+            "Get Overtime Requests to Find Satpam Request",
+            "GET",
+            "api/kepegawaian/overtime",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get overtime requests list")
+            return False
+        
+        overtime_requests = response if isinstance(response, list) else []
+        satpam_request = None
+        
+        # Find the Satpam request
+        for req in overtime_requests:
+            if req.get('description') == "Satpam overtime test - 3 hours":
+                satpam_request = req
+                break
+        
+        if not satpam_request:
+            print("❌ Satpam overtime request not found in list")
+            return False
+        
+        satpam_overtime_id = satpam_request.get('id')
+        print(f"✅ Satpam overtime request found with ID: {satpam_overtime_id}")
+        print(f"   Duration: {satpam_request.get('duration_hours')} hours")
+        print(f"   Rate per hour: {satpam_request.get('rate_per_hour')} IDR")
+        print(f"   Meal allowance: {satpam_request.get('meal_allowance')} IDR")
+        print(f"   Gross pay: {satpam_request.get('gross_pay')} IDR")
+        print(f"   Net pay: {satpam_request.get('net_pay')} IDR")
         
         # Verify Satpam rate is 15000
-        satpam_rate = response.get('rate_per_hour', 0)
-        satpam_meal = response.get('meal_allowance', 0)
+        satpam_rate = satpam_request.get('rate_per_hour', 0)
+        satpam_meal = satpam_request.get('meal_allowance', 0)
         if satpam_rate == 15000:
             print("✅ Satpam rate verification PASSED: 15000 IDR")
         else:
