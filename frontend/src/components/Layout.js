@@ -106,6 +106,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               <SidebarItem to="/kepegawaian" icon={Briefcase} label="Dashboard HR" end />
               <SidebarItem to="/kepegawaian/lembur" icon={Clock} label="Manajemen Lembur" />
               <SidebarItem to="/pegawai" icon={Users} label="Data Pegawai" />
+              <SidebarItem to="/kepegawaian/tugas" icon={ClipboardList} label="Tugas Tim" />
           </div>
 
           {/* Aset & Inventaris */}

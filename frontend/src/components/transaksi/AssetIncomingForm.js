@@ -562,10 +562,10 @@ export default function AssetIncomingForm({ onSuccess }) {
                                             <td className="p-2 border">
                                                 <div className="font-bold">{doc.jenis_dokumen}</div>
                                                 <div className="text-xs text-blue-600">{doc.nomor_dokumen}</div>
-                                            </td>
                                                 <div className="text-xs font-semibold text-green-700 mt-1">
                                                     Nilai: {formatCurrency(doc.nilai_total)}
                                                 </div>
+                                            </td>
                                             <td className="p-2 border">{doc.tanggal_dokumen}</td>
                                             <td className="p-2 border">
                                                 <div className="text-xs font-semibold">{doc.nama_penyedia || '-'}</div>
