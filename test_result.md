@@ -113,6 +113,18 @@ backend:
         agent: "testing"
         comment: "NEW FEATURES VERIFIED: Overtime Settings and Dafnom features are fully functional. ✅ Default Overtime Settings are automatically created on first access with correct default values (ASN Gol III: 30000 IDR, Non-ASN: 13000 IDR, ASN Meal: 37000 IDR, Non-ASN Meal: 30000 IDR). ✅ Overtime Settings can be updated successfully - tested changing ASN Gol III rate from 30000 to 35000 IDR and meal allowance from 37000 to 40000 IDR. ✅ New overtime requests use UPDATED settings instead of old hardcoded constants - verified calculation uses new rates (35000 IDR rate, 40000 IDR meal allowance). ✅ 'nip' field is now properly saved in OvertimeRequest documents (required for Dafnom reporting). ✅ Overtime Recap API returns comprehensive data structure supporting all Dafnom report fields including: nip, name, employee type, grade, total hours, rates, meal allowances, gross pay, tax amounts, and net pay. ✅ All calculations are accurate and use the dynamic settings from database instead of hardcoded constants. The system is ready for production use with configurable overtime rates and full Dafnom compliance."
 
+  - task: "Independent Non-ASN Overtime Rates Verification"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/kepegawaian.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "INDEPENDENT NON-ASN OVERTIME RATES VERIFIED: Successfully tested independent overtime rates for different Non-ASN employee categories. ✅ Updated overtime settings: Satpam rate set to 15000 IDR/hour, Pramubakti rate set to 12000 IDR/hour with different meal allowances (Satpam: 32000 IDR, Pramubakti: 28000 IDR). ✅ Created dummy employees: Test Satpam employee with sub_kategori='Satpam' and Test Pramubakti employee with sub_kategori='Pramubakti'. ✅ Submitted overtime requests: Both 3-hour overtime requests submitted successfully. ✅ Rate verification: Satpam overtime calculated at 15000 IDR/hour (gross: 82500 IDR, net: 114500 IDR), Pramubakti overtime calculated at 12000 IDR/hour (gross: 66000 IDR, net: 94000 IDR). ✅ Meal allowance verification: Different meal allowances applied correctly based on sub_kategori. ✅ Calculation accuracy: Overtime calculations use correct rates based on employee sub_kategori field. The system fully supports independent rates for different Non-ASN categories as requested in the review."
+
 frontend:
   - task: "Frontend UI Integration"
     implemented: false
