@@ -22,7 +22,8 @@ export default function BarangSearch({ type, onSelect, className }) {
         setLoading(true);
         try {
             const endpoint = type === 'persediaan' ? '/api/persediaan/' : '/api/barang';
-            const res = await api.get(endpoint, { params: { search, limit: 100 } });
+            // Increased limit to 1000 to resolve "limited to 50 rows" issue
+            const res = await api.get(endpoint, { params: { search, limit: 1000 } });
             setResults(res.data.data || []);
             setShowResults(true);
         } catch(e) { console.error(e); }

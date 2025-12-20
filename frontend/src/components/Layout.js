@@ -37,7 +37,6 @@ const SidebarItem = ({ to, icon: Icon, label, end = false, collapsed = false }) 
 // Helper for Sidebar Groups (Collapsible)
 const SidebarGroup = ({ icon: Icon, label, children, activePaths = [], collapsed = false }) => {
     const location = useLocation();
-    // Improved matching logic: Check if current path starts with one of the active paths
     const isOpenDefault = activePaths.some(path => location.pathname.startsWith(path));
     const [isOpen, setIsOpen] = useState(isOpenDefault);
 
@@ -163,7 +162,6 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                     </div>
                 )}
                 <SidebarItem to="/organisasi" icon={Network} label="Struktur Organisasi" collapsed={collapsed} />
-                {/* Fix Active State Bug: Use exact end for referensi if needed, or distinct paths */}
                 <SidebarItem to="/referensi" icon={Book} label="Referensi Kode" end collapsed={collapsed} />
                 <SidebarItem to="/banding" icon={ArrowRightLeft} label="Banding Data" collapsed={collapsed} />
                 <SidebarItem to="/pengaturan" icon={Settings} label="Pengaturan" collapsed={collapsed} />

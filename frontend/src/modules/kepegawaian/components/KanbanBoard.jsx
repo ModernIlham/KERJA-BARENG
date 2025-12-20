@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, MoreHorizontal, Calendar, User, MessageSquare, Search, Box, Trash2, Edit } from 'lucide-react';
+import { Plus, MoreHorizontal, Calendar, User, MessageSquare, Search, Box, Trash2, Edit, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,79 +15,126 @@ import { id } from 'date-fns/locale';
 import api from '../../../api/axios';
 import { toast } from 'sonner';
 
-const KanbanColumn = ({ title, tasks, status, color, onStatusChange, onTaskClick, onAddClick }) => (
-  <div className="flex-1 min-w-[280px] bg-slate-50/50 rounded-lg p-3 border border-slate-200 flex flex-col h-full">
-    <div className={`flex items-center justify-between mb-3 px-1 border-l-4 ${color} pl-2 shrink-0`}>
-      <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-700">{title}</h3>
-      <Badge variant="secondary" className="bg-white">{tasks.length}</Badge>
-    </div>
-    <ScrollArea className="flex-1">
-      <div className="space-y-3 pr-2 pb-2">
-        {tasks.map(task => (
-          <Card key={task.id} className="cursor-pointer hover:shadow-md transition-all border-slate-200 group" onClick={() => onTaskClick(task)}>
-            <CardContent className="p-3">
-              <div className="flex justify-between items-start mb-2">
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                  task.priority === 'high' || task.priority === 'urgent' ? 'bg-red-100 text-red-700' :
-                  task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-blue-100 text-blue-700'
-                }`}>
-                  {task.priority.toUpperCase()}
-                </span>
-                
-                {/* Move Actions - Only show relevant arrows */}
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {status !== 'todo' && (
-                        <Button size="icon" variant="ghost" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); onStatusChange(task.id, 'prev'); }} title="Move Back">
-                            ←
-                        </Button>
-                    )}
-                    {status !== 'done' && (
-                        <Button size="icon" variant="ghost" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); onStatusChange(task.id, 'next'); }} title="Move Next">
-                            →
-                        </Button>
-                    )}
-                </div>
-              </div>
-              <p className="font-medium text-sm mb-2 line-clamp-2">{task.title}</p>
-              
-              {task.related_asset_name && (
-                  <div className="text-xs text-slate-500 mb-2 bg-slate-100 p-1 rounded truncate flex items-center gap-1">
-                      <Box size={10} /> {task.related_asset_name}
-                  </div>
-              )}
+// DnD Kit Imports
+import {
+  DndContext,
+  closestCorners,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragOverlay
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
-              <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-slate-100">
-                <div className="flex items-center gap-1">
-                    <User size={12}/> {task.assignee_name ? task.assignee_name.split(' ')[0] : 'Unassigned'}
+// --- Components ---
+
+const TaskCard = ({ task, onClick, style, isOverlay }) => {
+    return (
+        <Card 
+            className={`cursor-pointer transition-all border-slate-200 group bg-white ${isOverlay ? 'shadow-xl rotate-2' : 'hover:shadow-md'}`} 
+            style={style}
+            onClick={onClick}
+        >
+            <CardContent className="p-3">
+                <div className="flex justify-between items-start mb-2">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                        task.priority === 'high' || task.priority === 'urgent' ? 'bg-red-100 text-red-700' :
+                        task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-blue-100 text-blue-700'
+                    }`}>
+                        {task.priority.toUpperCase()}
+                    </span>
                 </div>
-                <div className="flex items-center gap-2">
-                    {task.comments && task.comments.length > 0 && (
-                        <span className="flex items-center gap-1 text-slate-400">
-                            <MessageSquare size={12}/> {task.comments.length}
-                        </span>
-                    )}
-                    {task.due_date && (
-                        <div className="flex items-center gap-1 text-orange-600">
-                            <Calendar size={12}/> {format(new Date(task.due_date), 'd MMM', {locale: id})}
-                        </div>
-                    )}
+                <p className="font-medium text-sm mb-2 line-clamp-2">{task.title}</p>
+                
+                {task.related_asset_name && (
+                    <div className="text-xs text-slate-500 mb-2 bg-slate-100 p-1 rounded truncate flex items-center gap-1">
+                        <Box size={10} /> {task.related_asset_name}
+                    </div>
+                )}
+
+                <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-1">
+                        <User size={12}/> {task.assignee_name ? task.assignee_name.split(' ')[0] : 'Unassigned'}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {task.comments && task.comments.length > 0 && (
+                            <span className="flex items-center gap-1 text-slate-400">
+                                <MessageSquare size={12}/> {task.comments.length}
+                            </span>
+                        )}
+                        {task.due_date && (
+                            <div className="flex items-center gap-1 text-orange-600">
+                                <Calendar size={12}/> {format(new Date(task.due_date), 'd MMM', {locale: id})}
+                            </div>
+                        )}
+                    </div>
                 </div>
-              </div>
             </CardContent>
-          </Card>
-        ))}
-        <Button variant="ghost" onClick={() => onAddClick(status)} className="w-full text-gray-500 text-sm border-2 border-dashed border-gray-200 hover:border-blue-300 hover:text-blue-600">
-            <Plus className="w-4 h-4 mr-2" /> Tambah Tugas
-        </Button>
-      </div>
-    </ScrollArea>
-  </div>
-);
+        </Card>
+    );
+};
+
+const SortableTaskItem = ({ task, onClick }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: task.id, data: { ...task } });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-3">
+            <TaskCard task={task} onClick={() => onClick(task)} />
+        </div>
+    );
+};
+
+const KanbanColumn = ({ id, title, tasks, color, onAddClick, onTaskClick }) => {
+    const { setNodeRef } = useSortable({ id: id, data: { type: 'container' } });
+
+    return (
+        <div className="flex-1 min-w-[280px] bg-slate-50/50 rounded-lg p-3 border border-slate-200 flex flex-col h-full">
+            <div className={`flex items-center justify-between mb-3 px-1 border-l-4 ${color} pl-2 shrink-0`}>
+                <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-700">{title}</h3>
+                <Badge variant="secondary" className="bg-white">{tasks.length}</Badge>
+            </div>
+            
+            <ScrollArea className="flex-1">
+                <div ref={setNodeRef} className="pr-2 pb-2 min-h-[100px]">
+                    <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                        {tasks.map(task => (
+                            <SortableTaskItem key={task.id} task={task} onClick={onTaskClick} />
+                        ))}
+                    </SortableContext>
+                    
+                    <Button variant="ghost" onClick={() => onAddClick(id)} className="w-full text-gray-500 text-sm border-2 border-dashed border-gray-200 hover:border-blue-300 hover:text-blue-600 mt-2">
+                        <Plus className="w-4 h-4 mr-2" /> Tambah Tugas
+                    </Button>
+                </div>
+            </ScrollArea>
+        </div>
+    );
+};
 
 const KanbanBoard = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeId, setActiveId] = useState(null);
   
   // Modal States
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -106,6 +153,11 @@ const KanbanBoard = () => {
   const [assets, setAssets] = useState([]);
   const [assetSearch, setAssetSearch] = useState('');
   const [searchingAssets, setSearchingAssets] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
+  );
 
   useEffect(() => {
       fetchTasks();
@@ -126,7 +178,12 @@ const KanbanBoard = () => {
   const fetchEmployees = async () => {
       try {
           const res = await api.get('/api/pegawai?limit=1000'); 
-          if(res.data.data) setEmployees(res.data.data);
+          // Fix: Handle paginated response { data: [...], total: ... }
+          if(res.data.data && Array.isArray(res.data.data)) {
+            setEmployees(res.data.data);
+          } else if (Array.isArray(res.data)) {
+            setEmployees(res.data);
+          }
       } catch (e) {
           console.error("Fetch employees failed", e);
       }
@@ -139,7 +196,9 @@ const KanbanBoard = () => {
               setSearchingAssets(true);
               try {
                   const res = await api.get('/api/barang', { params: { search: assetSearch, limit: 10 } });
-                  setAssets(res.data.data);
+                  // Handle paginated response
+                  const items = res.data.data || (Array.isArray(res.data) ? res.data : []);
+                  setAssets(items);
               } catch (e) {
                   console.error("Search assets failed", e);
               } finally {
@@ -152,43 +211,56 @@ const KanbanBoard = () => {
       }
   }, [assetSearch]);
 
-  const handleStatusChange = async (taskId, direction) => {
-      const task = tasks.find(t => t.id === taskId);
-      const statuses = ['todo', 'in-progress', 'review', 'done'];
-      const currentIndex = statuses.indexOf(task.status);
-      let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
-      
-      if (newIndex >= 0 && newIndex < statuses.length) {
-          const newStatus = statuses[newIndex];
-          // Optimistic update
-          setTasks(prev => prev.map(t => t.id === taskId ? {...t, status: newStatus} : t));
-          
-          try {
-              await api.patch(`/api/tasks/${taskId}`, { status: newStatus });
-          } catch (e) {
-              toast.error("Gagal update status");
-              fetchTasks(); // Revert
-          }
-      }
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    const activeTask = tasks.find(t => t.id === active.id);
+    const overContainerId = over.id; // 'todo', 'in-progress' etc OR a task ID
+
+    // Determine target column
+    let newStatus = overContainerId;
+    
+    // If dropped over a task, find that task's status
+    if (!['todo', 'in-progress', 'review', 'done'].includes(overContainerId)) {
+        const overTask = tasks.find(t => t.id === overContainerId);
+        if (overTask) newStatus = overTask.status;
+    }
+
+    if (activeTask && activeTask.status !== newStatus && ['todo', 'in-progress', 'review', 'done'].includes(newStatus)) {
+        // Optimistic Update
+        setTasks(prev => prev.map(t => t.id === active.id ? {...t, status: newStatus} : t));
+        
+        try {
+            await api.patch(`/api/tasks/${active.id}`, { status: newStatus });
+            toast.success("Status diperbarui");
+        } catch (e) {
+            toast.error("Gagal update status");
+            fetchTasks(); // Revert
+        }
+    }
   };
 
   const handleFormSubmit = async (e) => {
       e.preventDefault();
       try {
           if (isEditMode && selectedTask) {
-              // Edit Mode
               await api.patch(`/api/tasks/${selectedTask.id}`, formData);
               toast.success("Tugas diperbarui");
               setIsDetailOpen(false);
               setSelectedTask(null);
           } else {
-              // Add Mode
               await api.post('/api/tasks/', { ...formData, status: initialStatus });
               toast.success("Tugas dibuat");
               setIsAddOpen(false);
           }
           
-          // Reset form
           setFormData({ title: '', description: '', priority: 'medium', due_date: '', assignee_id: '', related_asset_id: '' });
           setAssetSearch('');
           fetchTasks();
@@ -223,7 +295,7 @@ const KanbanBoard = () => {
   const openDetailModal = (task) => {
       setSelectedTask(task);
       setIsDetailOpen(true);
-      setIsEditMode(false); // View mode initially
+      setIsEditMode(false);
   };
 
   const startEditMode = () => {
@@ -240,30 +312,43 @@ const KanbanBoard = () => {
           setAssetSearch(selectedTask.related_asset_name);
       }
       setIsEditMode(true);
-      setIsAddOpen(true); // Reuse the Add Modal for editing
+      setIsAddOpen(true);
       setIsDetailOpen(false);
   };
 
+  const columns = [
+      { id: 'todo', title: 'To Do', color: 'border-blue-500' },
+      { id: 'in-progress', title: 'In Progress', color: 'border-yellow-500' },
+      { id: 'review', title: 'Review', color: 'border-purple-500' },
+      { id: 'done', title: 'Done', color: 'border-green-500' }
+  ];
+
   return (
-    <>
+    <DndContext 
+        sensors={sensors} 
+        collisionDetection={closestCorners} 
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+    >
         <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)]">
-        {['todo', 'in-progress', 'review', 'done'].map(status => (
-            <KanbanColumn 
-                key={status}
-                title={status.replace('-', ' ')} 
-                tasks={tasks.filter(t => t.status === status)} 
-                status={status} 
-                color={
-                    status === 'todo' ? 'border-blue-500' :
-                    status === 'in-progress' ? 'border-yellow-500' :
-                    status === 'review' ? 'border-purple-500' : 'border-green-500'
-                }
-                onStatusChange={handleStatusChange}
-                onTaskClick={openDetailModal}
-                onAddClick={openAddModal}
-            />
-        ))}
+            {columns.map(col => (
+                <KanbanColumn 
+                    key={col.id}
+                    id={col.id}
+                    title={col.title}
+                    color={col.color}
+                    tasks={tasks.filter(t => t.status === col.id)}
+                    onAddClick={openAddModal}
+                    onTaskClick={openDetailModal}
+                />
+            ))}
         </div>
+        
+        <DragOverlay>
+            {activeId ? (
+                <TaskCard task={tasks.find(t => t.id === activeId)} isOverlay />
+            ) : null}
+        </DragOverlay>
 
         {/* Add/Edit Task Modal */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -344,7 +429,7 @@ const KanbanBoard = () => {
                         <Label>Assignee (Pegawai)</Label>
                         <Select value={formData.assignee_id} onValueChange={v => setFormData({...formData, assignee_id: v})}>
                             <SelectTrigger><SelectValue placeholder="Pilih Pegawai" /></SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="max-h-60">
                                 {employees.map(emp => (
                                     <SelectItem key={emp._id} value={emp._id}>{emp.nama_lengkap}</SelectItem>
                                 ))}
@@ -434,18 +519,15 @@ const KanbanBoard = () => {
                                     await api.post(`/api/tasks/${selectedTask.id}/comments`, { text: input.value });
                                     toast.success("Komentar ditambahkan");
                                     input.value = '';
-                                    fetchTasks(); // Refresh list to get updated data
-                                    
-                                    // Update modal local state
+                                    fetchTasks(); 
                                     const updatedTask = {...selectedTask};
                                     if(!updatedTask.comments) updatedTask.comments = [];
                                     updatedTask.comments.push({
-                                        user_name: "Saya", // Optimistic
+                                        user_name: "Saya",
                                         text: input.value,
                                         created_at: new Date().toISOString()
                                     });
                                     setSelectedTask(updatedTask);
-                                    
                                 } catch(e) {
                                     toast.error("Gagal");
                                 }
@@ -455,7 +537,7 @@ const KanbanBoard = () => {
                 </div>
             </DialogContent>
         </Dialog>
-    </>
+    </DndContext>
   );
 };
 
