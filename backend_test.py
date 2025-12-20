@@ -1701,7 +1701,7 @@ class APITester:
         success, response = self.run_test(
             "Verify TODO Column After Move",
             "GET",
-            "api/tasks",
+            "api/tasks/",
             200,
             data={"status": "todo"}
         )
