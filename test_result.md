@@ -126,7 +126,9 @@ test_plan:
     - "Approve Overtime Request (as Admin)"
     - "Check Overtime Recap"
     - "Verify Differential Pay calculation"
-  stuck_tasks: []
+    - "Verify Overtime Calculation Logic against new rules"
+  stuck_tasks:
+    - "Verify Overtime Calculation Logic against new rules"
   test_all: false
   test_priority: "high_first"
 
@@ -135,3 +137,5 @@ agent_communication:
     message: "Comprehensive testing of overtime and attendance features completed successfully. All 7 core functionalities are working correctly with only one minor issue in file upload endpoint (expects multipart form data). Key achievements: (1) Clock in/out with photo and location tracking, (2) Monthly attendance history retrieval, (3) Overtime request submission with differential pay calculations, (4) Admin approval workflow, (5) Financial recap with tax calculations. The backend is fully functional and ready for production use."
   - agent: "testing"
     message: "Frontend Integration Test for Overtime Module completed. ✅ All critical backend APIs ready for frontend integration. ✅ Overtime request submission works via API. ✅ Requests appear in list correctly. ✅ File upload endpoint properly expects multipart form data (frontend should use FormData). ✅ Error handling returns appropriate HTTP status codes. ✅ Validation system working. No major issues found that would cause frontend problems."
+  - agent: "testing"
+    message: "CRITICAL FINDING: Overtime Calculation Logic Testing completed - MAJOR DISCREPANCIES FOUND. The current implementation does NOT match the new rules specified in the review request. Key issues: (1) Employee type classification is incorrect - Non-ASN employees (PPNPN) are being classified as ASN, (2) Rate configuration mismatch - Current rates differ significantly from expected rates, (3) Meal allowance amounts are incorrect for both ASN and Non-ASN employees. The calculate_overtime_pay() function in kepegawaian.py needs immediate updates to implement the correct rates: Non-ASN rate should be 13000 IDR (currently 15000-35000), ASN Gol III rate should be 30000 IDR (currently 20000), Non-ASN meal allowance should be 30000 IDR (currently 35000), ASN meal allowance should be 37000 IDR (currently 35000). This is a high-priority issue that affects payroll accuracy."
