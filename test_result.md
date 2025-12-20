@@ -252,7 +252,7 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Kepegawaian (HR) Backend APIs"
+    - "Kanban Task Management (Tasks API)"
   stuck_tasks: 
     - "Kepegawaian (HR) Backend APIs"
   test_all: false
