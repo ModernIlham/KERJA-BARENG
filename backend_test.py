@@ -1307,7 +1307,7 @@ class APITester:
         }
         
         success, response = self.run_test(
-            "Create Document 2 - KONTRAK-ASET",
+            f"Create Document 2 - KONTRAK-ASET-{timestamp}",
             "POST",
             "api/dokumen-sumber",
             200,
