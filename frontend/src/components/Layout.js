@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
@@ -7,10 +7,8 @@ import {
   Users, 
   LogOut, 
   Menu,
-  ArrowRightLeft,
   X,
   FileSpreadsheet,
-  ClipboardCheck,
   FileText,
   Settings,
   Mail,
@@ -21,167 +19,151 @@ import {
   Building,
   Network,
   Clock,
-  Briefcase
+  Briefcase,
+  FileCheck,
+  ClipboardList
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { cn } from '../lib/utils';
+
+// Helper Component for Sidebar Links
+const SidebarItem = ({ to, icon: Icon, label, end = false }) => (
+  <NavLink 
+    to={to} 
+    end={end}
+    className={({ isActive }) => cn(
+      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
+      isActive 
+        ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" 
+        : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
+    )}
+  >
+    <Icon size={18} strokeWidth={2} />
+    <span>{label}</span>
+  </NavLink>
+);
+
+// Helper for Sidebar Groups (Collapsible)
+const SidebarGroup = ({ icon: Icon, label, children, activePaths = [] }) => {
+    const location = useLocation();
+    const isOpenDefault = activePaths.some(path => location.pathname.includes(path));
+    const [isOpen, setIsOpen] = useState(isOpenDefault);
+
+    return (
+        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-1">
+            <CollapsibleTrigger className={cn(
+                "flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                isOpen ? "text-slate-200 bg-slate-800/30" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
+            )}>
+                <div className="flex items-center gap-3">
+                    <Icon size={18} strokeWidth={2} />
+                    <span>{label}</span>
+                </div>
+                {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-9 space-y-1 pt-1 animate-in slide-in-from-top-2 fade-in duration-200">
+                {children}
+            </CollapsibleContent>
+        </Collapsible>
+    );
+};
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { logout } = useAuth();
-  const [openSubmenus, setOpenSubmenus] = useState({
-      aset: true,
-      persediaan: true,
-      laporan: false,
-      kepegawaian: true
-  });
-  
-  const toggleSubmenu = (key) => {
-      setOpenSubmenus(prev => ({...prev, [key]: !prev[key]}));
-  };
 
   return (
-    <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-100 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 border-r border-slate-800 flex flex-col`}>
-      <div className="h-16 flex items-center px-6 border-b border-slate-800 shrink-0">
-        <h1 className="text-xl font-bold tracking-tight font-display text-white">SIMAN-G</h1>
-        <button className="md:hidden ml-auto" onClick={toggleSidebar}>
+    <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-slate-950 text-slate-100 transition-transform duration-300 ease-in-out border-r border-slate-800 flex flex-col shadow-2xl",
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+    )}>
+      {/* Header */}
+      <div className="h-16 flex items-center px-6 border-b border-slate-800/50 shrink-0 bg-slate-950">
+        <div className="flex items-center gap-2 text-white">
+            <div className="bg-blue-600 p-1.5 rounded-lg">
+                <Building size={20} className="text-white" />
+            </div>
+            <h1 className="text-lg font-bold tracking-tight font-display">SIMAN-G</h1>
+        </div>
+        <button className="md:hidden ml-auto text-slate-400 hover:text-white" onClick={toggleSidebar}>
           <X size={20} />
         </button>
       </div>
         
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {/* Dashboard */}
-          <NavLink to="/" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <LayoutDashboard size={18} /> Dashboard
-          </NavLink>
-
-          <div className="pt-4 pb-2 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Modul Utama
-          </div>
-
-          {/* Group: Aset Tetap */}
-          <Collapsible open={openSubmenus.aset} onOpenChange={() => toggleSubmenu('aset')}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
-                  <div className="flex items-center gap-3">
-                      <Building size={18} /> Aset Tetap (BMN)
-                  </div>
-                  {openSubmenus.aset ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 space-y-1 mt-1">
-                  <NavLink to="/barang?tab=aset-tetap" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Daftar Aset
-                  </NavLink>
-                  <NavLink to="/transaksi-aset" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Transaksi (Masuk/Keluar)
-                  </NavLink>
-                  <NavLink to="/opname" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Stock Opname
-                  </NavLink>
-              </CollapsibleContent>
-          </Collapsible>
-
-          {/* Group: Persediaan */}
-          <Collapsible open={openSubmenus.persediaan} onOpenChange={() => toggleSubmenu('persediaan')}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
-                  <div className="flex items-center gap-3">
-                      <Box size={18} /> Persediaan (Gudang)
-                  </div>
-                  {openSubmenus.persediaan ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 space-y-1 mt-1">
-                  <NavLink to="/barang?tab=persediaan" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Daftar Barang
-                  </NavLink>
-                  <NavLink to="/transaksi-persediaan/masuk" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Barang Masuk
-                  </NavLink>
-                  <NavLink to="/transaksi-persediaan/keluar" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Barang Keluar
-                  </NavLink>
-                  <NavLink to="/transaksi-persediaan/riwayat" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Riwayat Transaksi
-          {/* Group: Kepegawaian (New) */}
-          <Collapsible open={openSubmenus.kepegawaian} onOpenChange={() => toggleSubmenu('kepegawaian')}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
-                  <div className="flex items-center gap-3">
-                      <Briefcase size={18} /> Kepegawaian (Baru)
-                  </div>
-                  {openSubmenus.kepegawaian ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 space-y-1 mt-1">
-                  <NavLink to="/kepegawaian" end className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Dashboard
-                  </NavLink>
-                  <NavLink to="/kepegawaian/lembur" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Manajemen Lembur
-                  </NavLink>
-              </CollapsibleContent>
-          </Collapsible>
-
-                  </NavLink>
-              </CollapsibleContent>
-          </Collapsible>
-
-          <div className="pt-4 pb-2 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Pendukung
-          </div>
-
-          {/* Laporan */}
-          <Collapsible open={openSubmenus.laporan} onOpenChange={() => toggleSubmenu('laporan')}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-md">
-                  <div className="flex items-center gap-3">
-                      <FileText size={18} /> Laporan
-                  </div>
-                  {openSubmenus.laporan ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 space-y-1 mt-1">
-                  <NavLink to="/laporan/bmn" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Laporan Inti (BMN)
-                  </NavLink>
-                  <NavLink to="/laporan/posisi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Posisi Stok
-                  </NavLink>
-                  <NavLink to="/laporan/mutasi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Mutasi Barang
-                  </NavLink>
-                  <NavLink to="/laporan/kartu" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-md text-xs font-medium ${isActive ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}>
-                      Kartu Gudang
-                  </NavLink>
-              </CollapsibleContent>
-          </Collapsible>
-
-          <NavLink to="/surat" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Mail size={18} /> Persuratan
-          </NavLink>
+      <nav className="flex-1 px-3 py-6 space-y-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
           
-          <NavLink to="/pegawai" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Users size={18} /> Kepegawaian
-          </NavLink>
+          {/* Main */}
+          <div className="space-y-1">
+            <SidebarItem to="/" icon={LayoutDashboard} label="Dashboard Utama" end />
+          </div>
 
-          <NavLink to="/organisasi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Network size={18} /> Struktur Organisasi
-          </NavLink>
-          <NavLink to="/referensi" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Book size={18} /> Referensi Kode
-          </NavLink>
+          {/* Kepegawaian (HR) */}
+          <div className="space-y-1">
+              <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                  Kepegawaian
+              </div>
+              <SidebarItem to="/kepegawaian" icon={Briefcase} label="Dashboard HR" end />
+              <SidebarItem to="/kepegawaian/lembur" icon={Clock} label="Manajemen Lembur" />
+              <SidebarItem to="/pegawai" icon={Users} label="Data Pegawai" />
+          </div>
 
-          <NavLink to="/banding" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <FileSpreadsheet size={18} /> Banding Data
-          </NavLink>
+          {/* Aset & Inventaris */}
+          <div className="space-y-1">
+              <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                  Aset & Logistik
+              </div>
+              
+              <SidebarGroup icon={Package} label="Aset Tetap (BMN)" activePaths={['/barang', '/transaksi-aset', '/opname']}>
+                  <SidebarItem to="/barang?tab=aset-tetap" icon={ClipboardList} label="Daftar Aset" />
+                  <SidebarItem to="/transaksi-aset" icon={ArrowRightLeft} label="Transaksi Aset" />
+                  <SidebarItem to="/opname" icon={FileCheck} label="Stock Opname" />
+              </SidebarGroup>
 
-          <NavLink to="/pengaturan" className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-slate-800 text-white border-l-4 border-amber-600' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
-            <Settings size={18} /> Pengaturan
-          </NavLink>
+              <SidebarGroup icon={Box} label="Persediaan (Gudang)" activePaths={['/barang', '/transaksi-persediaan']}>
+                  <SidebarItem to="/barang?tab=persediaan" icon={ClipboardList} label="Daftar Barang" />
+                  <SidebarItem to="/transaksi-persediaan/masuk" icon={ArrowRightLeft} label="Barang Masuk" />
+                  <SidebarItem to="/transaksi-persediaan/keluar" icon={ArrowRightLeft} label="Barang Keluar" />
+                  <SidebarItem to="/transaksi-persediaan/riwayat" icon={FileText} label="Riwayat Transaksi" />
+              </SidebarGroup>
+          </div>
+
+          {/* Administrasi */}
+          <div className="space-y-1">
+              <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                  Administrasi
+              </div>
+              <SidebarItem to="/surat" icon={Mail} label="Persuratan" />
+              <SidebarItem to="/referensi/dokumen" icon={FileSpreadsheet} label="Dokumen Sumber" />
+              
+              <SidebarGroup icon={FileText} label="Laporan" activePaths={['/laporan']}>
+                  <SidebarItem to="/laporan/bmn" icon={FileText} label="Laporan Inti" />
+                  <SidebarItem to="/laporan/posisi" icon={FileText} label="Posisi Stok" />
+                  <SidebarItem to="/laporan/mutasi" icon={FileText} label="Mutasi Barang" />
+                  <SidebarItem to="/laporan/kartu" icon={FileText} label="Kartu Gudang" />
+              </SidebarGroup>
+          </div>
+
+          {/* Pengaturan */}
+          <div className="space-y-1">
+              <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                  Sistem
+              </div>
+              <SidebarItem to="/organisasi" icon={Network} label="Struktur Organisasi" />
+              <SidebarItem to="/referensi" icon={Book} label="Referensi Kode" />
+              <SidebarItem to="/banding" icon={ArrowRightLeft} label="Banding Data" />
+              <SidebarItem to="/pengaturan" icon={Settings} label="Pengaturan" />
+          </div>
 
       </nav>
 
-      <div className="p-4 border-t border-slate-800 mt-auto">
+      <div className="p-4 border-t border-slate-800/50 mt-auto bg-slate-950">
         <Button 
           variant="ghost" 
-          className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-950/20"
+          className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-950/30 transition-colors"
           onClick={logout}
         >
           <LogOut size={18} className="mr-2" />
-          Logout
+          Keluar Aplikasi
         </Button>
       </div>
     </aside>
@@ -196,34 +178,49 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 font-sans">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 md:hidden transition-opacity" 
           onClick={toggleSidebar}
         />
       )}
       
       {/* Main content */}
-      <div className="md:ml-64">
+      <div className="md:ml-64 min-h-screen flex flex-col">
         {/* Top bar */}
-        <header className="bg-white border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center">
-            <button 
-              className="md:hidden mr-4"
-              onClick={toggleSidebar}
-            >
-              <Menu size={20} />
-            </button>
-            <h2 className="text-lg font-semibold text-slate-900">SIMAN-G Dashboard</h2>
+        <header className="bg-white border-b border-slate-200 px-6 py-3 sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+                <button 
+                className="md:hidden mr-4 text-slate-500 hover:text-slate-700"
+                onClick={toggleSidebar}
+                >
+                <Menu size={24} />
+                </button>
+                {/* Breadcrumb or Title placeholder - Dynamic based on page? */}
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                    Sistem Informasi Manajemen Aset Negara & Kepegawaian
+                </h2>
+            </div>
+            
+            <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
+                    A
+                </div>
+                <div className="hidden md:block text-xs text-right">
+                    <p className="font-semibold text-slate-800">Admin System</p>
+                    <p className="text-slate-500">Administrator</p>
+                </div>
+            </div>
           </div>
         </header>
         
         {/* Page content */}
-        <main className="p-6">
+        <main className="p-6 flex-1 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
