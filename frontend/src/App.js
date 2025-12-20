@@ -20,6 +20,7 @@ import StrukturOrganisasi from './pages/StrukturOrganisasi';
 
 import DashboardKepegawaian from './modules/kepegawaian/pages/DashboardKepegawaian';
 import ManajemenLembur from './modules/kepegawaian/pages/ManajemenLembur';
+import ManajemenTugas from './modules/kepegawaian/pages/ManajemenTugas';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -55,6 +56,7 @@ export default function App() {
             <Route path="referensi/dokumen" element={<DokumenList />} />
             {/* New Workforce Management Module */}
             <Route path="kepegawaian" element={<DashboardKepegawaian />} />
+            <Route path="kepegawaian/tugas" element={<ManajemenTugas />} />
             <Route path="kepegawaian/lembur" element={<ManajemenLembur />} />
             
             <Route path="organisasi" element={<StrukturOrganisasi />} />
