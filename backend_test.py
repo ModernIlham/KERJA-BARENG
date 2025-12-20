@@ -10990,10 +10990,10 @@ def main():
 
 
 def main():
-    """Main function to run the overtime and attendance features test"""
+    """Main function to run the frontend overtime integration test"""
     tester = APITester()
     
-    print("🚀 Starting Overtime and Attendance Features Testing...")
+    print("🚀 Starting Frontend Overtime Integration Testing...")
     print("=" * 60)
     
     # Test login first
@@ -11001,9 +11001,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Overtime and Attendance Features test as requested in review
-    if not tester.test_overtime_and_attendance_features():
-        print("❌ Overtime and Attendance Features test failed")
+    # Run the Frontend Overtime Integration test as requested in review
+    if not tester.test_frontend_overtime_integration():
+        print("❌ Frontend Overtime Integration test failed")
         return 1
     
     # Print summary
