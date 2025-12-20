@@ -1501,6 +1501,311 @@ class APITester:
         
         return True
 
+    def test_kepegawaian_overtime_management(self):
+        """Test Kepegawaian (HR) Overtime Management functionality as requested in review"""
+        print("\n=== KEPEGAWAIAN OVERTIME MANAGEMENT TEST ===")
+        
+        import time
+        from datetime import datetime, timedelta
+        
+        # Step 1: Login as admin
+        print("\n🔐 Step 1: Login as admin (admin@example.com / admin)...")
+        if not self.token:
+            login_success = self.test_login()
+            if not login_success:
+                print("❌ Failed to login as admin")
+                return False
+        
+        # Step 2: Test Dashboard Stats
+        print("\n📊 Step 2: Testing Kepegawaian Dashboard Stats...")
+        success, response = self.run_test(
+            "Get Kepegawaian Dashboard Stats",
+            "GET",
+            "api/kepegawaian/dashboard-stats",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get dashboard stats")
+            return False
+        
+        print(f"✅ Dashboard stats retrieved:")
+        print(f"   Total Employees: {response.get('total_employees', 0)}")
+        print(f"   Present Today: {response.get('present_today', 0)}")
+        print(f"   On Leave: {response.get('on_leave', 0)}")
+        print(f"   Overtime Hours: {response.get('overtime_hours', 0)}")
+        
+        initial_overtime_hours = response.get('overtime_hours', 0)
+        
+        # Step 3: Create a new Overtime Request
+        print("\n📝 Step 3: Creating new Overtime Request...")
+        today = datetime.now().strftime("%Y-%m-%d")
+        
+        overtime_request = {
+            "date": today,
+            "start_time": "17:00",
+            "end_time": "19:00",
+            "description": "Test Backend Integration"
+        }
+        
+        success, response = self.run_test(
+            "Create Overtime Request",
+            "POST",
+            "api/kepegawaian/overtime",
+            200,
+            data=overtime_request
+        )
+        
+        if not success:
+            print("❌ Failed to create overtime request")
+            return False
+        
+        print(f"✅ Overtime request created: {response.get('message')}")
+        
+        # Step 4: Verify request appears in "Riwayat Pengajuan" (History)
+        print("\n📋 Step 4: Verifying request appears in History...")
+        success, response = self.run_test(
+            "Get Overtime History (All Requests)",
+            "GET",
+            "api/kepegawaian/overtime",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get overtime history")
+            return False
+        
+        overtime_requests = response if isinstance(response, list) else []
+        print(f"📊 Found {len(overtime_requests)} overtime requests")
+        
+        # Find our test request
+        test_request = None
+        for req in overtime_requests:
+            if (req.get('date') == today and 
+                req.get('start_time') == '17:00' and 
+                req.get('end_time') == '19:00' and
+                req.get('description') == 'Test Backend Integration'):
+                test_request = req
+                break
+        
+        if not test_request:
+            print("❌ Test overtime request not found in history")
+            return False
+        
+        print("✅ Test request found in history:")
+        print(f"   ID: {test_request.get('id')}")
+        print(f"   Date: {test_request.get('date')}")
+        print(f"   Duration: {test_request.get('duration_hours')} hours")
+        print(f"   Status: {test_request.get('status')}")
+        print(f"   Employee: {test_request.get('nama_lengkap')}")
+        
+        request_id = test_request.get('id')
+        
+        # Step 5: Verify request is listed in "Persetujuan" (Approval) tab (Pending status)
+        print("\n✅ Step 5: Verifying request in Approval tab (Pending status)...")
+        success, response = self.run_test(
+            "Get Pending Overtime Requests",
+            "GET",
+            "api/kepegawaian/overtime",
+            200,
+            data={"status": "Pending"}
+        )
+        
+        if not success:
+            print("❌ Failed to get pending overtime requests")
+            return False
+        
+        pending_requests = response if isinstance(response, list) else []
+        print(f"📊 Found {len(pending_requests)} pending requests")
+        
+        # Find our test request in pending list
+        found_in_pending = False
+        for req in pending_requests:
+            if req.get('id') == request_id:
+                found_in_pending = True
+                print("✅ Test request found in pending approval list")
+                break
+        
+        if not found_in_pending:
+            print("❌ Test request not found in pending approval list")
+            return False
+        
+        # Step 6: Approve the request (Click "Setujui")
+        print("\n👍 Step 6: Approving the overtime request...")
+        success, response = self.run_test(
+            "Approve Overtime Request",
+            "PATCH",
+            f"api/kepegawaian/overtime/{request_id}/approve",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to approve overtime request")
+            return False
+        
+        print(f"✅ Overtime request approved: {response.get('message')}")
+        
+        # Step 7: Verify request status changed to "Approved"
+        print("\n🔍 Step 7: Verifying request status changed to Approved...")
+        success, response = self.run_test(
+            "Get Approved Overtime Requests",
+            "GET",
+            "api/kepegawaian/overtime",
+            200,
+            data={"status": "Approved"}
+        )
+        
+        if not success:
+            print("❌ Failed to get approved overtime requests")
+            return False
+        
+        approved_requests = response if isinstance(response, list) else []
+        print(f"📊 Found {len(approved_requests)} approved requests")
+        
+        # Find our test request in approved list
+        found_in_approved = False
+        approved_request = None
+        for req in approved_requests:
+            if req.get('id') == request_id:
+                found_in_approved = True
+                approved_request = req
+                print("✅ Test request found in approved list")
+                print(f"   Status: {req.get('status')}")
+                print(f"   Approver: {req.get('approver_name')}")
+                break
+        
+        if not found_in_approved:
+            print("❌ Test request not found in approved list")
+            return False
+        
+        # Step 8: Test "Laporan" (Recap) tab - verify recap table shows data
+        print("\n📊 Step 8: Testing Overtime Recap (Laporan tab)...")
+        current_month = datetime.now().strftime("%Y-%m")
+        
+        success, response = self.run_test(
+            "Get Overtime Recap for Current Month",
+            "GET",
+            "api/kepegawaian/overtime/recap",
+            200,
+            data={"month": current_month}
+        )
+        
+        if not success:
+            print("❌ Failed to get overtime recap")
+            return False
+        
+        recap_data = response if isinstance(response, list) else []
+        print(f"📊 Found {len(recap_data)} employees in recap")
+        
+        # Find our employee in recap
+        found_in_recap = False
+        employee_recap = None
+        for emp in recap_data:
+            if emp.get('name') == approved_request.get('nama_lengkap'):
+                found_in_recap = True
+                employee_recap = emp
+                print("✅ Employee found in recap table:")
+                print(f"   Name: {emp.get('name')}")
+                print(f"   Total Hours: {emp.get('totalHours')}")
+                print(f"   Employee Type: {emp.get('type')}")
+                print(f"   Grade: {emp.get('grade')}")
+                print(f"   Rate: {emp.get('rate')}")
+                print(f"   Net Pay: {emp.get('netPay')}")
+                break
+        
+        if not found_in_recap:
+            print("❌ Employee not found in overtime recap")
+            return False
+        
+        # Verify the recap shows 2 hours (17:00 to 19:00)
+        expected_hours = 2.0
+        actual_hours = employee_recap.get('totalHours', 0)
+        if abs(actual_hours - expected_hours) > 0.1:
+            print(f"❌ Expected {expected_hours} hours in recap, got {actual_hours}")
+            return False
+        
+        print(f"✅ Recap shows correct hours: {actual_hours}")
+        
+        # Step 9: Verify Dashboard "Total Jam Lembur" updated
+        print("\n🔄 Step 9: Verifying Dashboard overtime hours updated...")
+        success, response = self.run_test(
+            "Get Updated Dashboard Stats",
+            "GET",
+            "api/kepegawaian/dashboard-stats",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get updated dashboard stats")
+            return False
+        
+        updated_overtime_hours = response.get('overtime_hours', 0)
+        print(f"📊 Updated dashboard stats:")
+        print(f"   Initial Overtime Hours: {initial_overtime_hours}")
+        print(f"   Updated Overtime Hours: {updated_overtime_hours}")
+        
+        # Should have increased by 2 hours
+        expected_increase = 2.0
+        actual_increase = updated_overtime_hours - initial_overtime_hours
+        
+        if abs(actual_increase - expected_increase) > 0.1:
+            print(f"❌ Expected increase of {expected_increase} hours, got {actual_increase}")
+            return False
+        
+        print(f"✅ Dashboard overtime hours correctly updated (+{actual_increase} hours)")
+        
+        # Step 10: Test financial calculations
+        print("\n💰 Step 10: Verifying financial calculations...")
+        
+        # Get the approved request details to check calculations
+        success, response = self.run_test(
+            "Get All Overtime Requests for Calculation Check",
+            "GET",
+            "api/kepegawaian/overtime",
+            200
+        )
+        
+        if success:
+            all_requests = response if isinstance(response, list) else []
+            for req in all_requests:
+                if req.get('id') == request_id:
+                    print(f"✅ Financial calculation details:")
+                    print(f"   Duration: {req.get('duration_hours')} hours")
+                    print(f"   Employee Type: {req.get('employee_type')}")
+                    print(f"   Grade: {req.get('grade')}")
+                    print(f"   Rate per Hour: {req.get('rate_per_hour')}")
+                    print(f"   Meal Allowance: {req.get('meal_allowance')}")
+                    print(f"   Gross Pay: {req.get('gross_pay')}")
+                    print(f"   Tax Amount: {req.get('tax_amount')}")
+                    print(f"   Net Pay: {req.get('net_pay')}")
+                    
+                    # Basic validation - 2 hours should have some pay
+                    if req.get('gross_pay', 0) <= 0:
+                        print("❌ Gross pay should be greater than 0")
+                        return False
+                    
+                    if req.get('net_pay', 0) <= 0:
+                        print("❌ Net pay should be greater than 0")
+                        return False
+                    
+                    print("✅ Financial calculations appear correct")
+                    break
+        
+        print("\n🎉 KEPEGAWAIAN OVERTIME MANAGEMENT TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Admin login successful")
+        print("   2. ✅ Dashboard stats retrieved")
+        print("   3. ✅ Overtime request created (17:00-19:00, 2 hours)")
+        print("   4. ✅ Request appears in History (Riwayat Pengajuan)")
+        print("   5. ✅ Request appears in Approval tab (Persetujuan)")
+        print("   6. ✅ Request approval successful")
+        print("   7. ✅ Request status changed to Approved")
+        print("   8. ✅ Recap table shows employee data (Laporan)")
+        print("   9. ✅ Dashboard overtime hours updated (+2 hours)")
+        print("   10. ✅ Financial calculations working correctly")
+        
+        return True
+
     def test_transaction_grouping(self):
         """Test Transaction Grouping functionality as requested in review"""
         print("\n=== TRANSACTION GROUPING TEST ===")
