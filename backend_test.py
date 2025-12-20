@@ -9834,7 +9834,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Dokumen Sumber CRUD Testing...")
+    print("🚀 Starting Dokumen Sumber Filtering Testing...")
     print("=" * 60)
     
     # Test login first
@@ -9842,9 +9842,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Dokumen Sumber CRUD test
-    if not tester.test_dokumen_sumber_crud_functionality():
-        print("❌ Dokumen Sumber CRUD test failed")
+    # Run the Dokumen Sumber Filtering test
+    if not tester.test_dokumen_sumber_filtering_functionality():
+        print("❌ Dokumen Sumber Filtering test failed")
         return 1
     
     # Print summary
