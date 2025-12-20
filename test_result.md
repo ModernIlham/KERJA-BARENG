@@ -234,13 +234,15 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "16.0"
-  test_sequence: 28
+  version: "17.0"
+  test_sequence: 29
   run_ui: true
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus: 
+    - "Kepegawaian (HR) Backend APIs"
+  stuck_tasks: 
+    - "Kepegawaian (HR) Backend APIs"
   test_all: false
   test_priority: "high_first"
 
