@@ -228,3 +228,7 @@ agent_communication:
     message: "UI/UX Overhaul: 1. Login page updated to Blue/White theme. 2. Main Dashboard now shows HR stats. 3. BarangList layout cleaned up. 4. Kepegawaian pages standardized."
   - agent: "testing"
     message: "✅ UI/UX OVERHAUL TESTING COMPLETED SUCCESSFULLY! Verified: 1) Login page has white background with Blue SIMAN-G branding and blue-themed elements, 2) Main Dashboard shows 'Executive Dashboard' title with 3 summary cards (Total Aset Tetap, Nilai Persediaan, Total Pegawai), 3) Kepegawaian tab displays HR stats (Total Lembur Bulan Ini, Cuti/Izin), 4) BarangList page shows 'Master Data Barang' PageHeader, 5) Kepegawaian Dashboard has standardized layout with proper title, 6) Manajemen Lembur page has correct title, subtitle, and tabs (Pengajuan, Persetujuan, Laporan). All screenshots captured successfully. All UI/UX overhaul requirements verified and working correctly."
+  - agent: "user"
+    message: "Implement Backend APIs for Kepegawaian (HR) & Connect Frontend. 1. Created models_kepegawaian.py. 2. Created routes/kepegawaian.py. 3. Updated Server, AuthContext, AbsensiWidget, ManajemenLembur, DashboardKepegawaian. 4. Installed react-webcam. 5. Seeded Admin Pegawai data."
+  - agent: "testing"
+    message: "Pending verification."
