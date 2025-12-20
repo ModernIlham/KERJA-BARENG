@@ -1802,7 +1802,7 @@ class APITester:
         success, response = self.run_test(
             "Get Final Task Details",
             "GET",
-            "api/tasks",
+            "api/tasks/",
             200,
             data={"status": "in-progress"}
         )
