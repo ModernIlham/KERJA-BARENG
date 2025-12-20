@@ -30,7 +30,8 @@ async def get_dokumen_list(
             {"nomor_dokumen": {"$regex": search, "$options": "i"}},
             {"uraian": {"$regex": search, "$options": "i"}},
             {"nama_penyedia": {"$regex": search, "$options": "i"}},
-            {"nomor_spm": {"$regex": search, "$options": "i"}}
+            {"nomor_spm": {"$regex": search, "$options": "i"}},
+            {"nomor_bast": {"$regex": search, "$options": "i"}}
         ]
         
     if jenis and jenis != "All":
@@ -128,6 +129,7 @@ async def lookup_dokumen(q: str = Query(..., min_length=2), current_user: str = 
 async def upload_dokumen_file(
     id: str,
     file: UploadFile = File(...),
+    type: str = Query("general", enum=["general", "spm", "bast"]),
     current_user: str = Depends(get_current_user)
 ):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
@@ -145,22 +147,33 @@ async def upload_dokumen_file(
         attachment = {
             "url": file_url,
             "original_name": file.filename,
-            "uploaded_at": datetime.now(timezone.utc)
+            "uploaded_at": datetime.now(timezone.utc),
+            "type": type
         }
         
-        # Update Dokumen (Append to attachments list)
+        update_query = {
+            "$set": {"updated_at": datetime.now(timezone.utc)},
+            "$push": {"dokumen_attachments": attachment}
+        }
+        
+        # If type is spm or bast, also update the specific field
+        if type == "spm":
+            update_query["$set"]["file_spm_url"] = file_url
+        elif type == "bast":
+            update_query["$set"]["file_bast_url"] = file_url
+        else:
+            update_query["$set"]["file_url"] = file_url # Legacy/General fallback
+            
+        # Update Dokumen
         res = await db.dokumen_sumber.update_one(
             {"_id": ObjectId(id)},
-            {
-                "$set": {"file_url": file_url, "updated_at": datetime.now(timezone.utc)}, # Legacy single file support
-                "$push": {"dokumen_attachments": attachment}
-            }
+            update_query
         )
         
         if res.modified_count == 0:
             raise HTTPException(status_code=404, detail="Dokumen not found")
             
-        return {"message": "File berhasil diupload", "data": attachment}
+        return {"message": "File berhasil diupload", "data": attachment, "url": file_url}
         
     except Exception as e:
         print(f"Upload error: {e}")
