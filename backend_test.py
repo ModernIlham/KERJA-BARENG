@@ -9405,7 +9405,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Transaction Grouping Testing...")
+    print("🚀 Starting Kepegawaian (HR) Overtime Management Testing...")
     print("=" * 60)
     
     # Test login first
@@ -9413,9 +9413,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the specific test requested in review
-    if not tester.test_transaction_grouping():
-        print("❌ Transaction grouping test failed")
+    # Run the Kepegawaian overtime management test
+    if not tester.test_kepegawaian_overtime_management():
+        print("❌ Kepegawaian overtime management test failed")
         return 1
     
     # Print summary
