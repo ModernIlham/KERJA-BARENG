@@ -48,8 +48,18 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise credentials_exception
     
-    # We need to access the DB here. Since this is a dependency, 
-    # we'll assume the db client is available globally or injected.
-    # For simplicity in this architecture, we will return the email
-    # and let the route handler fetch the user if needed, or inject DB here.
-    return email
+    # Connect to database and fetch user
+    mongo_url = os.environ['MONGO_URL']
+    client = AsyncIOMotorClient(mongo_url)
+    db = client[os.environ['DB_NAME']]
+    
+    user_doc = await db.users.find_one({"email": email})
+    if user_doc is None:
+        raise credentials_exception
+    
+    # Convert to User object
+    from models import User
+    user_doc['id'] = str(user_doc['_id'])
+    del user_doc['_id']
+    
+    return User(**user_doc)
