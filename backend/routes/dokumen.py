@@ -20,6 +20,7 @@ async def get_dokumen_list(
     limit: int = 20,
     search: str = None,
     jenis: str = None,
+    kategori: str = None, # New filter
     current_user: str = Depends(get_current_user)
 ):
     skip = (page - 1) * limit
@@ -36,6 +37,14 @@ async def get_dokumen_list(
         
     if jenis and jenis != "All":
         query["jenis_dokumen"] = jenis
+        
+    # If category is provided, filter by it.
+    # Note: If category is 'Umum' (default), it might apply to both?
+    # Or strict filtering. Let's do strict if provided.
+    # If kategori is 'Persediaan', we want documents marked 'Persediaan' OR 'Umum' maybe?
+    # For now strict to respect "bedakan" request.
+    if kategori:
+        query["kategori"] = kategori
         
     total = await db.dokumen_sumber.count_documents(query)
     cursor = db.dokumen_sumber.find(query).sort("tanggal_dokumen", -1).skip(skip).limit(limit)
@@ -111,7 +120,11 @@ async def delete_dokumen(id: str, current_user: str = Depends(get_current_user))
     return {"message": "Dokumen dihapus"}
 
 @router.get("/search/lookup")
-async def lookup_dokumen(q: str = Query(..., min_length=2), current_user: str = Depends(get_current_user)):
+async def lookup_dokumen(
+    q: str = Query(..., min_length=2),
+    kategori: str = None, # New param
+    current_user: str = Depends(get_current_user)
+):
     """Search for dropdown/autocomplete"""
     query = {
         "$or": [
@@ -119,6 +132,10 @@ async def lookup_dokumen(q: str = Query(..., min_length=2), current_user: str = 
             {"uraian": {"$regex": q, "$options": "i"}}
         ]
     }
+    
+    if kategori:
+        query["kategori"] = kategori
+        
     cursor = db.dokumen_sumber.find(query).limit(10)
     items = await cursor.to_list(length=10)
     for item in items:
