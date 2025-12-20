@@ -76,7 +76,11 @@ class APITester:
                     result["raw_response"] = response.text[:200]
 
             self.results.append(result)
-            return success, response.json() if success and response else {}
+            # Return response data for both success and error cases
+            try:
+                return success, response.json() if response else {}
+            except:
+                return success, {}
 
         except Exception as e:
             print(f"❌ Failed - Error: {str(e)}")
