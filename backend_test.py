@@ -1581,6 +1581,341 @@ class APITester:
         
         return True  # Mark as successful since core functionality works
 
+    def test_overtime_settings_and_dafnom(self):
+        """Test new Overtime Settings and Dafnom features as requested in review"""
+        print("\n=== OVERTIME SETTINGS AND DAFNOM FEATURES TEST ===")
+        
+        # Ensure we have a valid token
+        if not self.token:
+            login_success = self.test_login()
+            if not login_success:
+                print("❌ Failed to login, cannot proceed with overtime settings test")
+                return False
+        
+        import time
+        timestamp = int(time.time())
+        
+        # Step 1: Check if default Overtime Settings are created on first access
+        print("\n⚙️ Step 1: Check if default Overtime Settings are created on first access...")
+        
+        success, response = self.run_test(
+            "Get Overtime Settings (First Access)",
+            "GET",
+            "api/kepegawaian/settings",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get overtime settings")
+            return False
+        
+        print("✅ Default Overtime Settings retrieved successfully")
+        print(f"   ASN Gol III Rate: {response.get('rate_asn_gol_3', 'N/A')} IDR")
+        print(f"   Non-ASN Rate: {response.get('rate_non_asn', 'N/A')} IDR")
+        print(f"   ASN Gol III Meal: {response.get('meal_asn_gol_3', 'N/A')} IDR")
+        print(f"   Non-ASN Meal: {response.get('meal_non_asn', 'N/A')} IDR")
+        
+        original_settings = response
+        
+        # Step 2: Update Overtime Settings (change a rate)
+        print("\n🔧 Step 2: Update Overtime Settings (change ASN Gol III rate)...")
+        
+        # Modify the ASN Gol III rate from 30000 to 35000
+        updated_settings = original_settings.copy()
+        updated_settings['rate_asn_gol_3'] = 35000
+        updated_settings['meal_asn_gol_3'] = 40000  # Also change meal allowance
+        
+        success, response = self.run_test(
+            "Update Overtime Settings",
+            "PUT",
+            "api/kepegawaian/settings",
+            200,
+            data=updated_settings
+        )
+        
+        if not success:
+            print("❌ Failed to update overtime settings")
+            return False
+        
+        print("✅ Overtime Settings updated successfully")
+        print(f"   New ASN Gol III Rate: {response.get('rate_asn_gol_3', 'N/A')} IDR")
+        print(f"   New ASN Gol III Meal: {response.get('meal_asn_gol_3', 'N/A')} IDR")
+        
+        # Verify the settings were actually updated
+        if response.get('rate_asn_gol_3') != 35000:
+            print(f"❌ Rate update failed: Expected 35000, got {response.get('rate_asn_gol_3')}")
+            return False
+        
+        if response.get('meal_asn_gol_3') != 40000:
+            print(f"❌ Meal allowance update failed: Expected 40000, got {response.get('meal_asn_gol_3')}")
+            return False
+        
+        print("✅ Settings update verification passed")
+        
+        # Step 3: Create ASN employee for testing
+        print("\n👤 Step 3: Creating ASN employee (Grade: III/a) for testing...")
+        
+        asn_employee_data = {
+            "nama_lengkap": f"Test ASN III/a {timestamp}",
+            "nip": f"ASN{timestamp % 100000:05d}",
+            "jabatan": "Staff Analyst",
+            "pangkat_golongan": "Penata Muda (III/a)",
+            "status_kepegawaian": "PNS",  # ASN
+            "unit_kerja": "Finance Department",
+            "email": f"asn.staff{timestamp}@test.com",
+            "no_hp": "081234567891",
+            "alamat": "Test Address ASN",
+            "status": "AKTIF"
+        }
+        
+        success, response = self.run_test(
+            "Create ASN Employee (III/a)",
+            "POST",
+            "api/pegawai",
+            200,
+            data=asn_employee_data
+        )
+        
+        if not success:
+            print("❌ Failed to create ASN employee")
+            return False
+        
+        asn_pegawai_id = response.get('_id') or response.get('id')
+        print(f"✅ ASN employee created with ID: {asn_pegawai_id}")
+        
+        # Step 4: Create user account for ASN employee
+        print("\n👤 Step 4: Creating user account for ASN employee...")
+        
+        asn_user_data = {
+            "email": f"asn.staff{timestamp}@test.com",
+            "password": "test123",
+            "full_name": f"Test ASN III/a {timestamp}",
+            "role": "employee",
+            "pegawai_id": asn_pegawai_id
+        }
+        
+        success, response = self.run_test(
+            "Create ASN User Account",
+            "POST",
+            "api/auth/register",
+            200,
+            data=asn_user_data
+        )
+        
+        if success and 'access_token' in response:
+            asn_token = response['access_token']
+            print(f"✅ ASN user account created with token: {asn_token[:20]}...")
+        else:
+            print("⚠️ Failed to create ASN user account, using admin token for testing")
+            asn_token = self.token
+        
+        # Step 5: Submit overtime request using NEW settings
+        print("\n📝 Step 5: Submit overtime request to test NEW calculation...")
+        
+        from datetime import datetime, timedelta
+        current_date = datetime.now()
+        
+        overtime_request_data = {
+            "date": current_date.strftime("%Y-%m-%d"),
+            "start_time": "18:00",
+            "end_time": "21:00",  # 3 hours
+            "description": "Testing new overtime settings calculation",
+            "is_holiday": False,
+            "spl_file": None,
+            "evidence_files": []
+        }
+        
+        # Temporarily use ASN token for this request
+        original_token = self.token
+        self.token = asn_token
+        
+        success, response = self.run_test(
+            "Submit Overtime Request (New Settings)",
+            "POST",
+            "api/kepegawaian/overtime",
+            200,
+            data=overtime_request_data
+        )
+        
+        # Restore original token
+        self.token = original_token
+        
+        if not success:
+            print("❌ Failed to submit overtime request")
+            return False
+        
+        print("✅ Overtime request submitted successfully")
+        
+        # Step 6: Verify the calculation uses NEW settings (not old constants)
+        print("\n🧮 Step 6: Verify calculation uses NEW settings...")
+        
+        success, response = self.run_test(
+            "List Overtime Requests",
+            "GET",
+            "api/kepegawaian/overtime",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to retrieve overtime requests")
+            return False
+        
+        # Find our test request
+        test_request = None
+        for req in response:
+            if req.get('description') == "Testing new overtime settings calculation":
+                test_request = req
+                break
+        
+        if not test_request:
+            print("❌ Test overtime request not found")
+            return False
+        
+        print("✅ Test overtime request found")
+        print(f"   Employee Type: {test_request.get('employee_type')}")
+        print(f"   Grade: {test_request.get('grade')}")
+        print(f"   Duration: {test_request.get('duration_hours')} hours")
+        print(f"   Rate per Hour: {test_request.get('rate_per_hour', 0):,} IDR")
+        print(f"   Meal Allowance: {test_request.get('meal_allowance', 0):,} IDR")
+        print(f"   Gross Pay: {test_request.get('gross_pay', 0):,} IDR")
+        print(f"   Net Pay: {test_request.get('net_pay', 0):,} IDR")
+        
+        # Verify calculations use NEW settings (35000 rate, 40000 meal)
+        expected_rate = 35000  # New rate we set
+        expected_meal = 40000  # New meal allowance we set
+        expected_gross = 3 * expected_rate  # 3 hours * 35000 = 105000
+        expected_total_gross = expected_gross + expected_meal  # 105000 + 40000 = 145000
+        expected_tax = expected_total_gross * 0.05  # 5% tax for Gol III
+        expected_net = expected_total_gross - expected_tax
+        
+        if test_request.get('rate_per_hour') != expected_rate:
+            print(f"❌ Rate calculation error: Expected {expected_rate}, got {test_request.get('rate_per_hour')}")
+            return False
+        
+        if test_request.get('meal_allowance') != expected_meal:
+            print(f"❌ Meal allowance error: Expected {expected_meal}, got {test_request.get('meal_allowance')}")
+            return False
+        
+        if abs(test_request.get('gross_pay', 0) - expected_gross) > 0.01:
+            print(f"❌ Gross pay error: Expected {expected_gross}, got {test_request.get('gross_pay')}")
+            return False
+        
+        if abs(test_request.get('net_pay', 0) - expected_net) > 0.01:
+            print(f"❌ Net pay error: Expected {expected_net:.2f}, got {test_request.get('net_pay')}")
+            return False
+        
+        print("✅ Calculation verification passed - uses NEW settings!")
+        
+        # Step 7: Verify 'nip' field is saved in OvertimeRequest (for Dafnom)
+        print("\n🆔 Step 7: Verify 'nip' field is saved in OvertimeRequest...")
+        
+        nip_value = test_request.get('nip')
+        if not nip_value:
+            print("❌ NIP field is missing from overtime request")
+            return False
+        
+        print(f"✅ NIP field is present: {nip_value}")
+        
+        # Step 8: Approve the overtime request for recap testing
+        print("\n✅ Step 8: Approve overtime request for recap testing...")
+        
+        request_id = test_request.get('id')
+        success, response = self.run_test(
+            "Approve Overtime Request",
+            "PATCH",
+            f"api/kepegawaian/overtime/{request_id}/approve",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to approve overtime request")
+            return False
+        
+        print("✅ Overtime request approved")
+        
+        # Step 9: Fetch Recap and verify Dafnom report fields
+        print("\n📊 Step 9: Fetch Recap and verify Dafnom report fields...")
+        
+        current_month = current_date.strftime("%Y-%m")
+        success, response = self.run_test(
+            "Get Overtime Recap (Dafnom)",
+            "GET",
+            "api/kepegawaian/overtime/recap",
+            200,
+            data={"month": current_month}
+        )
+        
+        if not success:
+            print("❌ Failed to fetch overtime recap")
+            return False
+        
+        print(f"✅ Overtime recap retrieved with {len(response)} employee records")
+        
+        # Find our test employee in the recap
+        test_recap = None
+        for recap in response:
+            if recap.get('nip') == nip_value:
+                test_recap = recap
+                break
+        
+        if not test_recap:
+            print("❌ Test employee not found in recap")
+            return False
+        
+        print("✅ Test employee found in recap")
+        print(f"   Name: {test_recap.get('name')}")
+        print(f"   NIP: {test_recap.get('nip')}")
+        print(f"   Type: {test_recap.get('type')}")
+        print(f"   Grade: {test_recap.get('grade')}")
+        print(f"   Total Hours: {test_recap.get('totalHours')}")
+        print(f"   Rate: {test_recap.get('rate', 0):,} IDR")
+        print(f"   Meal Allowance: {test_recap.get('mealAllowance', 0):,} IDR")
+        print(f"   Total Gross: {test_recap.get('totalGross', 0):,} IDR")
+        print(f"   Tax: {test_recap.get('tax', 0):,} IDR")
+        print(f"   Net Pay: {test_recap.get('netPay', 0):,} IDR")
+        print(f"   Count: {test_recap.get('count')}")
+        
+        # Verify Dafnom required fields are present
+        required_dafnom_fields = ['nip', 'name', 'type', 'grade', 'totalHours', 'rate', 'mealAllowance', 'totalGross', 'tax', 'netPay']
+        missing_fields = []
+        
+        for field in required_dafnom_fields:
+            if field not in test_recap or test_recap[field] is None:
+                missing_fields.append(field)
+        
+        if missing_fields:
+            print(f"❌ Missing Dafnom fields: {missing_fields}")
+            return False
+        
+        print("✅ All Dafnom required fields are present")
+        
+        # Step 10: Restore original settings for cleanup
+        print("\n🔄 Step 10: Restore original settings for cleanup...")
+        
+        success, response = self.run_test(
+            "Restore Original Settings",
+            "PUT",
+            "api/kepegawaian/settings",
+            200,
+            data=original_settings
+        )
+        
+        if success:
+            print("✅ Original settings restored")
+        else:
+            print("⚠️ Failed to restore original settings")
+        
+        print("\n🎉 OVERTIME SETTINGS AND DAFNOM FEATURES TEST COMPLETED!")
+        print("✅ All verification steps completed:")
+        print("   1. ✅ Default Overtime Settings created on first access")
+        print("   2. ✅ Overtime Settings can be updated (rate changed)")
+        print("   3. ✅ New overtime request uses UPDATED settings (not old constants)")
+        print("   4. ✅ 'nip' field is saved in OvertimeRequest (Dafnom requirement)")
+        print("   5. ✅ Recap data structure supports Dafnom report fields")
+        print("   6. ✅ Detailed breakdown includes: nip, name, type, grade, hours, rates, taxes")
+        
+        return True
+
     def test_overtime_calculation_logic(self):
         """Test Overtime Calculation Logic against new rules as requested in review"""
         print("\n=== OVERTIME CALCULATION LOGIC TEST ===")
