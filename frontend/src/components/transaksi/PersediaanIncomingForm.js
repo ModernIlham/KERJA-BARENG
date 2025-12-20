@@ -626,7 +626,7 @@ export default function PersediaanIncomingForm({ onSuccess }) {
                                                 <div className="text-xs text-blue-600">{doc.nomor_dokumen}</div>
                                             </td>
                                                 <div className="text-xs font-semibold text-green-700 mt-1">
-                                                    {formatCurrency(doc.nilai_total)}
+                                                    Nilai: {formatCurrency(doc.nilai_total)}
                                                 </div>
                                             <td className="p-2 border">{doc.tanggal_dokumen}</td>
                                             <td className="p-2 border">
