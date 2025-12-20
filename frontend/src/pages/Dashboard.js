@@ -206,10 +206,10 @@ const SummaryCard = ({ title, value, subtext, icon: Icon, color, bg }) => (
             <div className={`p-4 rounded-full ${bg} ${color}`}>
                 <Icon className="w-6 h-6" />
             </div>
-            <div>
-                <p className="text-sm font-medium text-slate-500">{title}</p>
-                <h3 className="text-2xl font-bold text-slate-900">{value}</h3>
-                <p className="text-xs text-slate-400 mt-1">{subtext}</p>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-500 truncate">{title}</p>
+                <h3 className="text-2xl font-bold text-slate-900 truncate" title={value}>{value}</h3>
+                <p className="text-xs text-slate-400 mt-1 truncate">{subtext}</p>
             </div>
         </CardContent>
     </Card>
