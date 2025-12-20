@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Body
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Body, Query
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 import os
 import base64
@@ -8,6 +8,7 @@ import uuid
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from models_kepegawaian import Attendance, OvertimeRequest, OvertimeCreate, ClockInRequest, ClockOutRequest
+from models_activity import ActivityLog
 from auth import get_current_user
 from models import User
 from lib.activity_logger import log_activity
@@ -322,3 +323,46 @@ async def recap_overtime(month: str = None): # YYYY-MM
         formatted.append(r)
         
     return formatted
+
+# --- ACTIVITY LOGS (SMART RESUME) ---
+
+@router.get("/activities", response_model=List[dict])
+async def get_activity_logs(
+    start_date: Optional[str] = None, 
+    end_date: Optional[str] = None,
+    limit: int = 50,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Fetch activity logs for Smart Resume.
+    Admin sees all, User sees own.
+    """
+    query = {}
+    if current_user.role != 'admin':
+        query["user_id"] = str(current_user.id)
+        
+    if start_date or end_date:
+        query["timestamp"] = {}
+        if start_date:
+            try:
+                sd = datetime.strptime(start_date, "%Y-%m-%d")
+                query["timestamp"]["$gte"] = sd
+            except: pass
+        if end_date:
+            try:
+                ed = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)
+                query["timestamp"]["$lt"] = ed
+            except: pass
+    
+    cursor = db.activity_logs.find(query).sort("timestamp", -1).limit(limit)
+    logs = await cursor.to_list(length=limit)
+    
+    # Format
+    for log in logs:
+        log['id'] = str(log['_id'])
+        del log['_id']
+        # Serialize timestamp
+        if isinstance(log.get('timestamp'), datetime):
+            log['timestamp'] = log['timestamp'].isoformat()
+            
+    return logs

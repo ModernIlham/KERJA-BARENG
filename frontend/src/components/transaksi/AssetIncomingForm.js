@@ -549,7 +549,7 @@ export default function AssetIncomingForm({ onSuccess }) {
                             <table className="w-full text-sm border-collapse">
                                 <thead>
                                     <tr className="bg-slate-100 text-left">
-                                        <th className="p-2 border">Jenis & No</th>
+                                        <th className="p-2 border">Jenis, No & Nilai</th>
                                         <th className="p-2 border">Tanggal</th>
                                         <th className="p-2 border">Penyedia / PPK</th>
                                         <th className="p-2 border">SPM & BAST</th>
