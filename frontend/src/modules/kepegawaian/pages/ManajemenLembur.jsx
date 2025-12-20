@@ -114,7 +114,11 @@ const ManajemenLembur = () => {
           });
           if(activeTab === 'pengajuan') fetchRequests(); 
       } catch (e) {
-          toast.error(e.response?.data?.detail || "Gagal mengajukan lembur", { id: t });
+          console.error(e);
+          const errorMsg = e.response?.data?.detail 
+            ? (typeof e.response.data.detail === 'object' ? JSON.stringify(e.response.data.detail) : e.response.data.detail)
+            : "Gagal mengajukan lembur";
+          toast.error(errorMsg, { id: t });
       } finally {
           setLoading(false);
       }
