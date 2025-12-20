@@ -1598,7 +1598,7 @@ class APITester:
         success, response = self.run_test(
             "Create Task - Test Task Integration",
             "POST",
-            "api/tasks",
+            "api/tasks/",
             200,
             data=task_data
         )
