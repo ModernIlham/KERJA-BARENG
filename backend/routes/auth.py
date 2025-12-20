@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from models import UserLogin, Token, User, UserCreate
-from auth import verify_password, create_access_token, get_password_hash
+from auth import verify_password, create_access_token, get_password_hash, get_current_user
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
