@@ -40,38 +40,37 @@ def calculate_overtime_pay(emp_type, grade, duration, is_holiday=False):
         grade_key = grade.split('/')[0] if grade else "I"
         rate = RATE_ASN.get(grade_key, 10000)
         
-        # Holiday doesn't change rate for ASN usually, but let's allow it if config changes
-        # For now, sticking to PMK standard: Flat Rate x Hours
+        # ASN: Simple calculation - flat rate x hours
         gross = rate * duration
         
-    else:
-        # NON-ASN / PPNPN: Follows Depnaker / Omnibus (Simplified)
-        base_rate = RATE_NON_ASN.get(grade, 15000)
-        rate = base_rate
+        # ASN meal allowance
+        meal = UANG_MAKAN_ASN if duration >= 2 else 0
         
-        # Calculation Logic
-        # Workday: 1.5x for first hour, 2x for rest
-        # Holiday: 2x for first 7h, 3x for 8th, 4x for 9th+
+    else:
+        # NON-ASN / PPNPN: Uses fixed rate of 13000 IDR
+        rate = RATE_NON_ASN
+        
+        # Calculation Logic for Non-ASN
+        # Regular workday: 1.5x for first hour, 2x for rest
+        # Holiday: 2x for first 7h, 3x for 8th hour, 4x for 9th+ hours
         
         hours = duration
         if is_holiday:
             if hours <= 7:
-                gross = hours * 2 * base_rate
+                gross = hours * 2 * rate
             elif hours <= 8:
-                gross = (7 * 2 * base_rate) + (1 * 3 * base_rate)
+                gross = (7 * 2 * rate) + (1 * 3 * rate)
             else:
                 extra = hours - 8
-                gross = (7 * 2 * base_rate) + (1 * 3 * base_rate) + (extra * 4 * base_rate)
+                gross = (7 * 2 * rate) + (1 * 3 * rate) + (extra * 4 * rate)
         else:
             if hours <= 1:
-                gross = hours * 1.5 * base_rate
+                gross = hours * 1.5 * rate
             else:
-                gross = (1 * 1.5 * base_rate) + ((hours - 1) * 2 * base_rate)
-    
-    # Meal Allowance (Uang Makan)
-    # Usually given if work >= 2 hours (or 4 hours depending on policy)
-    # Code previously used 4 hours. Let's keep 4 or make it configurable later.
-    meal = UANG_MAKAN if duration >= 2 else 0 # Changed to 2 hours as per common practice
+                gross = (1 * 1.5 * rate) + ((hours - 1) * 2 * rate)
+        
+        # Non-ASN meal allowance
+        meal = UANG_MAKAN_NON_ASN if duration >= 2 else 0
     
     total_gross = gross + meal
     
