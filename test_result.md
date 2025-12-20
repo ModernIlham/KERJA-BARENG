@@ -86,6 +86,18 @@ backend:
         agent: "testing"
         comment: "Differential pay calculation working correctly. Holiday overtime (8 hours, 185,250 IDR net) has higher gross pay than regular overtime (3 hours, 90,250 IDR net). Rate calculations based on employee type (ASN) and grade (III/c) are accurate."
 
+  - task: "Verify Overtime Calculation Logic against new rules"
+    implemented: true
+    working: false
+    file: "/app/backend/routes/kepegawaian.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE: Overtime calculation logic does NOT match the expected new rules. Current implementation uses different rates and meal allowances than specified. Issues found: (1) Non-ASN employees are being classified as ASN, (2) Rate discrepancies - Expected Non-ASN: 13000 IDR vs Actual: 20000 IDR, Expected ASN Gol III: 30000 IDR vs Actual: 20000 IDR, (3) Meal allowance discrepancies - Expected Non-ASN: 30000 IDR vs Actual: 35000 IDR, Expected ASN: 37000 IDR vs Actual: 35000 IDR, (4) Employee type detection logic needs fixing - Non-ASN employees (PPNPN) are incorrectly classified as ASN. The calculation logic in calculate_overtime_pay() function needs to be updated to match the new rules specified in the review request."
+
 frontend:
   - task: "Frontend UI Integration"
     implemented: false
