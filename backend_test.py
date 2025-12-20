@@ -10743,10 +10743,10 @@ def main():
 
 
 def main():
-    """Main function to run the activity logs comprehensive test"""
+    """Main function to run the overtime and attendance features test"""
     tester = APITester()
     
-    print("🚀 Starting Activity Logs Comprehensive Testing...")
+    print("🚀 Starting Overtime and Attendance Features Testing...")
     print("=" * 60)
     
     # Test login first
@@ -10754,9 +10754,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Activity Logs Comprehensive test as requested in review
-    if not tester.test_activity_logs_comprehensive():
-        print("❌ Activity Logs Comprehensive test failed")
+    # Run the Overtime and Attendance Features test as requested in review
+    if not tester.test_overtime_and_attendance_features():
+        print("❌ Overtime and Attendance Features test failed")
         return 1
     
     # Print summary
