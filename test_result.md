@@ -202,6 +202,21 @@ backend:
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: /api/persediaan-transaksi/grouped endpoint working correctly. MongoDB aggregation pipeline groups transactions by dokumen_ref, no_bukti, jenis, and date. Returns proper group structure with total_items count, total_nilai calculation, and items array containing individual transaction details. Search functionality implemented and working. All API responses match expected format."
 
+  - task: "Kepegawaian (HR) Backend APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/kepegawaian.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented Backend APIs for Kepegawaian (HR) & Connect Frontend. 1. Created models_kepegawaian.py. 2. Created routes/kepegawaian.py. 3. Updated Server, AuthContext, AbsensiWidget, ManajemenLembur, DashboardKepegawaian. 4. Installed react-webcam. 5. Seeded Admin Pegawai data."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Complete Kepegawaian (HR) Overtime Management functionality verified. All 10 test steps passed: 1) Admin login successful, 2) Dashboard stats API working, 3) Overtime request creation (17:00-19:00, 2 hours), 4) Request appears in History (Riwayat Pengajuan), 5) Request appears in Approval tab (Persetujuan), 6) Request approval successful, 7) Status changed to Approved, 8) Recap table shows employee data (Laporan), 9) Dashboard overtime hours updated (+2 hours), 10) Financial calculations working correctly (ASN Grade III/c, Rate: 20,000/hour, Net Pay: 38,000). Fixed auth.py to return User object instead of email string. All backend APIs operational and ready for production use."
+
 metadata:
   created_by: "main_agent"
   version: "15.0"
