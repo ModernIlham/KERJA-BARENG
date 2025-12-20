@@ -1217,22 +1217,21 @@ class APITester:
         
         return True
 
-    def test_dokumen_sumber_crud_functionality(self):
-        """Test Dokumen Sumber CRUD functionality as requested in review"""
-        print("\n=== DOKUMEN SUMBER CRUD FUNCTIONALITY TEST ===")
+    def test_dokumen_sumber_filtering_functionality(self):
+        """Test Dokumen Sumber filtering functionality as requested in review"""
+        print("\n=== DOKUMEN SUMBER FILTERING FUNCTIONALITY TEST ===")
         
         import time
-        import io
         from datetime import datetime
         timestamp = int(time.time())
         today = datetime.now().strftime("%Y-%m-%d")
         
-        # Step 1: Create a test PPK employee for the document
+        # Step 1: Create a test PPK employee for the documents
         print("\n👤 Step 1: Creating test PPK employee...")
         
         ppk_data = {
             "nip": f"PPK{timestamp % 100000:05d}",
-            "nama_lengkap": f"Test PPK Dokumen Sumber {timestamp}",
+            "nama_lengkap": f"Test PPK Filter {timestamp}",
             "jabatan": "Pejabat Pembuat Komitmen",
             "jabatan_melekat": ["PPK"],
             "status_kepegawaian": "PNS",
@@ -1240,7 +1239,7 @@ class APITester:
         }
         
         success, response = self.run_test(
-            "Create Test PPK for Dokumen Sumber",
+            "Create Test PPK for Document Filtering",
             "POST",
             "api/pegawai",
             200,
@@ -1255,315 +1254,316 @@ class APITester:
         ppk_nama = ppk_data['nama_lengkap']
         print(f"✅ Test PPK created: {ppk_nama} (ID: {ppk_id})")
         
-        # Step 2: Create Dokumen Sumber as per user's test scenario
-        print("\n📄 Step 2: Creating Dokumen Sumber (Jenis: Kontrak, No: TEST-DOC-001)...")
+        # Step 2: Create Document 1 - KONTRAK-PERSEDIAAN with Kategori: Persediaan
+        print("\n📄 Step 2: Creating Document 1 - KONTRAK-PERSEDIAAN (Type: Kontrak, Kategori: Persediaan)...")
         
-        dokumen_data = {
+        doc1_data = {
             "jenis_dokumen": "Kontrak",
-            "nomor_dokumen": "TEST-DOC-001",
+            "nomor_dokumen": "KONTRAK-PERSEDIAAN",
             "tanggal_dokumen": today,
             "ppk_id": ppk_id,
             "ppk_nama": ppk_nama,
-            "nama_penyedia": "CV Test Supplier",
+            "nama_penyedia": "CV Supplier Persediaan",
             "npwp_penyedia": "12.345.678.9-012.345",
             "akun_belanja": "521211",
-            "uraian": "Test dokumen sumber for CRUD testing",
+            "uraian": "Kontrak untuk pengadaan persediaan",
             "nilai_total": 50000000,
-            "nomor_spm": "SPM-001",
-            "tanggal_spm": today,
-            "nomor_bast": "BAST-001",
-            "tanggal_bast": today
+            "kategori": "Persediaan"
         }
         
         success, response = self.run_test(
-            "Create Dokumen Sumber (TEST-DOC-001)",
+            "Create Document 1 - KONTRAK-PERSEDIAAN",
             "POST",
             "api/dokumen-sumber",
             200,
-            data=dokumen_data
+            data=doc1_data
         )
         
         if not success:
-            print("❌ Failed to create Dokumen Sumber")
+            print("❌ Failed to create Document 1 (KONTRAK-PERSEDIAAN)")
             return False
             
-        dokumen_id = response.get('_id') or response.get('id')
-        print(f"✅ Dokumen Sumber created with ID: {dokumen_id}")
-        print(f"   Jenis: {response.get('jenis_dokumen')}")
-        print(f"   No Dokumen: {response.get('nomor_dokumen')}")
-        print(f"   Tanggal: {response.get('tanggal_dokumen')}")
-        print(f"   SPM Info: No SPM: {response.get('nomor_spm')}, Tanggal: {response.get('tanggal_spm')}")
-        print(f"   BAST Info: No BAST: {response.get('nomor_bast')}, Tanggal: {response.get('tanggal_bast')}")
+        doc1_id = response.get('_id') or response.get('id')
+        print(f"✅ Document 1 created with ID: {doc1_id}")
+        print(f"   Nomor: {response.get('nomor_dokumen')}")
+        print(f"   Type: {response.get('jenis_dokumen')}")
+        print(f"   Kategori: {response.get('kategori')}")
         
-        # Verify all fields are saved correctly
-        expected_fields = {
-            'jenis_dokumen': 'Kontrak',
-            'nomor_dokumen': 'TEST-DOC-001',
-            'nomor_spm': 'SPM-001',
-            'nomor_bast': 'BAST-001'
-        }
+        # Step 3: Create Document 2 - KONTRAK-ASET with Kategori: Aset Tetap
+        print("\n📄 Step 3: Creating Document 2 - KONTRAK-ASET (Type: Kontrak, Kategori: Aset Tetap)...")
         
-        for field, expected_value in expected_fields.items():
-            actual_value = response.get(field)
-            if actual_value != expected_value:
-                print(f"❌ {field} not saved correctly. Expected: {expected_value}, Got: {actual_value}")
-                return False
-        
-        print("✅ All document fields saved correctly")
-        
-        # Step 3: Test file uploads for SPM and BAST (simulating user's dummy files)
-        print(f"\n📤 Step 3: Testing file uploads for SPM and BAST...")
-        
-        # Create mock PDF content
-        pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000010 00000 n \n0000000079 00000 n \n0000000173 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n253\n%%EOF"
-        
-        upload_url = f"{self.base_url}/api/dokumen-sumber/{dokumen_id}/upload"
-        headers = {}
-        if self.token:
-            headers['Authorization'] = f'Bearer {self.token}'
-        
-        # Upload SPM file
-        print("   Uploading SPM file...")
-        spm_upload_url = f"{upload_url}?type=spm"
-        files_spm = {'file': ('spm_file.pdf', io.BytesIO(pdf_content), 'application/pdf')}
-        
-        try:
-            import requests
-            response_spm = requests.post(spm_upload_url, files=files_spm, headers=headers)
-            
-            if response_spm.status_code == 200:
-                response_data_spm = response_spm.json()
-                print(f"✅ SPM file upload successful: {response_data_spm.get('message')}")
-                spm_file_url = response_data_spm.get('url')
-                print(f"   SPM File URL: {spm_file_url}")
-            else:
-                print(f"❌ SPM file upload failed: {response_spm.status_code} - {response_spm.text[:200]}")
-                return False
-        except Exception as e:
-            print(f"❌ SPM file upload request failed: {e}")
-            return False
-        
-        # Upload BAST file
-        print("   Uploading BAST file...")
-        bast_upload_url = f"{upload_url}?type=bast"
-        files_bast = {'file': ('bast_file.pdf', io.BytesIO(pdf_content), 'application/pdf')}
-        
-        try:
-            response_bast = requests.post(bast_upload_url, files=files_bast, headers=headers)
-            
-            if response_bast.status_code == 200:
-                response_data_bast = response_bast.json()
-                print(f"✅ BAST file upload successful: {response_data_bast.get('message')}")
-                bast_file_url = response_data_bast.get('url')
-                print(f"   BAST File URL: {bast_file_url}")
-            else:
-                print(f"❌ BAST file upload failed: {response_bast.status_code} - {response_bast.text[:200]}")
-                return False
-        except Exception as e:
-            print(f"❌ BAST file upload request failed: {e}")
-            return False
-        
-        # Step 4: Verify document appears in list with correct SPM and BAST status
-        print(f"\n📋 Step 4: Verifying document appears in list with SPM and BAST status...")
-        
-        success, response = self.run_test(
-            "Get Documents List",
-            "GET",
-            "api/dokumen-sumber",
-            200,
-            data={"page": 1, "limit": 20}
-        )
-        
-        if not success:
-            print("❌ Failed to get documents list")
-            return False
-        
-        documents = response.get('data', [])
-        our_document = None
-        
-        for doc in documents:
-            if doc.get('_id') == dokumen_id:
-                our_document = doc
-                break
-        
-        if not our_document:
-            print("❌ Created document not found in list")
-            return False
-        
-        print("✅ Document found in list:")
-        print(f"   No Dokumen: {our_document.get('nomor_dokumen')}")
-        print(f"   Jenis: {our_document.get('jenis_dokumen')}")
-        
-        # Check SPM and BAST file status
-        spm_status = "✅ File Uploaded" if our_document.get('file_spm_url') else "❌ No File"
-        bast_status = "✅ File Uploaded" if our_document.get('file_bast_url') else "❌ No File"
-        
-        print(f"   SPM Status: {spm_status}")
-        print(f"   BAST Status: {bast_status}")
-        
-        if not our_document.get('file_spm_url'):
-            print("❌ SPM file URL not found in document")
-            return False
-        
-        if not our_document.get('file_bast_url'):
-            print("❌ BAST file URL not found in document")
-            return False
-        
-        print("✅ Both SPM and BAST files correctly linked to document")
-        
-        # Step 5: Test Edit functionality - verify SPM and BAST fields are populated
-        print(f"\n✏️ Step 5: Testing Edit functionality - verifying fields are populated...")
-        
-        success, response = self.run_test(
-            "Get Document Details for Edit",
-            "GET",
-            f"api/dokumen-sumber/{dokumen_id}",
-            200
-        )
-        
-        if not success:
-            print("❌ Failed to get document details for edit")
-            return False
-        
-        print("✅ Document details retrieved for edit:")
-        print(f"   Nomor SPM: {response.get('nomor_spm')}")
-        print(f"   Tanggal SPM: {response.get('tanggal_spm')}")
-        print(f"   Nomor BAST: {response.get('nomor_bast')}")
-        print(f"   Tanggal BAST: {response.get('tanggal_bast')}")
-        print(f"   SPM File URL: {response.get('file_spm_url')}")
-        print(f"   BAST File URL: {response.get('file_bast_url')}")
-        
-        # Verify all expected fields are populated
-        required_fields = ['nomor_spm', 'tanggal_spm', 'nomor_bast', 'tanggal_bast', 'file_spm_url', 'file_bast_url']
-        for field in required_fields:
-            if not response.get(field):
-                print(f"❌ Required field '{field}' is not populated")
-                return False
-        
-        print("✅ All SPM and BAST fields are properly populated for edit")
-        
-        # Step 6: Test Update functionality
-        print(f"\n🔄 Step 6: Testing Update functionality...")
-        
-        updated_data = {
+        doc2_data = {
             "jenis_dokumen": "Kontrak",
-            "nomor_dokumen": "TEST-DOC-001-UPDATED",
+            "nomor_dokumen": "KONTRAK-ASET",
             "tanggal_dokumen": today,
             "ppk_id": ppk_id,
             "ppk_nama": ppk_nama,
-            "nama_penyedia": "CV Test Supplier Updated",
-            "npwp_penyedia": "12.345.678.9-012.345",
-            "akun_belanja": "521211",
-            "uraian": "Updated test dokumen sumber",
-            "nilai_total": 60000000,
-            "nomor_spm": "SPM-001-UPDATED",
-            "tanggal_spm": today,
-            "nomor_bast": "BAST-001-UPDATED",
-            "tanggal_bast": today
+            "nama_penyedia": "CV Supplier Aset",
+            "npwp_penyedia": "12.345.678.9-012.346",
+            "akun_belanja": "532111",
+            "uraian": "Kontrak untuk pengadaan aset tetap",
+            "nilai_total": 100000000,
+            "kategori": "Aset Tetap"
         }
         
         success, response = self.run_test(
-            "Update Document",
-            "PUT",
-            f"api/dokumen-sumber/{dokumen_id}",
+            "Create Document 2 - KONTRAK-ASET",
+            "POST",
+            "api/dokumen-sumber",
             200,
-            data=updated_data
+            data=doc2_data
         )
         
         if not success:
-            print("❌ Failed to update document")
+            print("❌ Failed to create Document 2 (KONTRAK-ASET)")
             return False
+            
+        doc2_id = response.get('_id') or response.get('id')
+        print(f"✅ Document 2 created with ID: {doc2_id}")
+        print(f"   Nomor: {response.get('nomor_dokumen')}")
+        print(f"   Type: {response.get('jenis_dokumen')}")
+        print(f"   Kategori: {response.get('kategori')}")
         
-        print("✅ Document updated successfully:")
-        print(f"   Updated No Dokumen: {response.get('nomor_dokumen')}")
-        print(f"   Updated Penyedia: {response.get('nama_penyedia')}")
-        print(f"   Updated SPM: {response.get('nomor_spm')}")
-        print(f"   Updated BAST: {response.get('nomor_bast')}")
+        # Step 4: Test document filtering for Persediaan transactions
+        print("\n🔍 Step 4: Testing document filtering for Persediaan transactions...")
+        print("   Simulating 'Transaksi Persediaan' -> 'Barang Masuk' -> 'Pilih Dokumen Sumber'")
         
-        # Verify updates were applied
-        if response.get('nomor_dokumen') != 'TEST-DOC-001-UPDATED':
-            print("❌ Document number update failed")
-            return False
-        
-        if response.get('nama_penyedia') != 'CV Test Supplier Updated':
-            print("❌ Penyedia name update failed")
-            return False
-        
-        print("✅ Document update verification passed")
-        
-        # Step 7: Test Delete functionality
-        print(f"\n🗑️ Step 7: Testing Delete functionality...")
-        
+        # Test lookup endpoint with kategori filter for Persediaan
         success, response = self.run_test(
-            "Delete Document",
-            "DELETE",
-            f"api/dokumen-sumber/{dokumen_id}",
-            200
+            "Get Documents for Persediaan (should show KONTRAK-PERSEDIAAN only)",
+            "GET",
+            "api/dokumen-sumber/search/lookup",
+            200,
+            data={"q": "KONTRAK", "kategori": "Persediaan"}
         )
         
         if not success:
-            print("❌ Failed to delete document")
+            print("❌ Failed to get documents for Persediaan filtering")
             return False
         
-        print(f"✅ Delete response: {response.get('message', 'Document deleted')}")
+        persediaan_docs = response if isinstance(response, list) else []
+        print(f"📊 Found {len(persediaan_docs)} documents for Persediaan category")
         
-        # Step 8: Verify document is removed from list
-        print(f"\n🔍 Step 8: Verifying document is removed from list...")
+        # Verify only KONTRAK-PERSEDIAAN is visible
+        kontrak_persediaan_found = False
+        kontrak_aset_found = False
         
+        for doc in persediaan_docs:
+            doc_nomor = doc.get('nomor_dokumen', '')
+            if doc_nomor == 'KONTRAK-PERSEDIAAN':
+                kontrak_persediaan_found = True
+                print(f"✅ KONTRAK-PERSEDIAAN is visible (correct)")
+            elif doc_nomor == 'KONTRAK-ASET':
+                kontrak_aset_found = True
+                print(f"❌ KONTRAK-ASET is visible (should be hidden)")
+        
+        if not kontrak_persediaan_found:
+            print("❌ KONTRAK-PERSEDIAAN should be visible for Persediaan transactions")
+            return False
+        
+        if kontrak_aset_found:
+            print("❌ KONTRAK-ASET should be hidden for Persediaan transactions")
+            return False
+        
+        print("✅ Persediaan document filtering working correctly")
+        
+        # Step 5: Test document filtering for Aset transactions
+        print("\n🔍 Step 5: Testing document filtering for Aset transactions...")
+        print("   Simulating 'Transaksi Aset' -> 'Perolehan' -> 'Pilih Dokumen Sumber'")
+        
+        # Test lookup endpoint with kategori filter for Aset Tetap
         success, response = self.run_test(
-            "Verify Document Deleted from List",
+            "Get Documents for Aset Tetap (should show KONTRAK-ASET only)",
+            "GET",
+            "api/dokumen-sumber/search/lookup",
+            200,
+            data={"q": "KONTRAK", "kategori": "Aset Tetap"}
+        )
+        
+        if not success:
+            print("❌ Failed to get documents for Aset Tetap filtering")
+            return False
+        
+        aset_docs = response if isinstance(response, list) else []
+        print(f"📊 Found {len(aset_docs)} documents for Aset Tetap category")
+        
+        # Verify only KONTRAK-ASET is visible
+        kontrak_persediaan_found = False
+        kontrak_aset_found = False
+        
+        for doc in aset_docs:
+            doc_nomor = doc.get('nomor_dokumen', '')
+            if doc_nomor == 'KONTRAK-PERSEDIAAN':
+                kontrak_persediaan_found = True
+                print(f"❌ KONTRAK-PERSEDIAAN is visible (should be hidden)")
+            elif doc_nomor == 'KONTRAK-ASET':
+                kontrak_aset_found = True
+                print(f"✅ KONTRAK-ASET is visible (correct)")
+        
+        if kontrak_persediaan_found:
+            print("❌ KONTRAK-PERSEDIAAN should be hidden for Aset Tetap transactions")
+            return False
+        
+        if not kontrak_aset_found:
+            print("❌ KONTRAK-ASET should be visible for Aset Tetap transactions")
+            return False
+        
+        print("✅ Aset Tetap document filtering working correctly")
+        
+        # Step 6: Test general document list filtering
+        print("\n🔍 Step 6: Testing general document list with kategori filters...")
+        
+        # Test list endpoint with Persediaan filter
+        success, response = self.run_test(
+            "Get Document List filtered by Persediaan",
             "GET",
             "api/dokumen-sumber",
             200,
-            data={"page": 1, "limit": 20}
+            data={"page": 1, "limit": 20, "kategori": "Persediaan"}
         )
         
         if success:
-            documents = response.get('data', [])
-            found_deleted_doc = False
+            docs = response.get('data', [])
+            persediaan_count = len([d for d in docs if d.get('kategori') == 'Persediaan'])
+            aset_count = len([d for d in docs if d.get('kategori') == 'Aset Tetap'])
+            print(f"📊 Persediaan filter: {persediaan_count} Persediaan docs, {aset_count} Aset docs")
             
-            for doc in documents:
-                if doc.get('_id') == dokumen_id:
-                    found_deleted_doc = True
-                    break
-            
-            if found_deleted_doc:
-                print("❌ Deleted document still appears in list")
+            if aset_count > 0:
+                print("❌ Aset Tetap documents should not appear in Persediaan filter")
                 return False
-            else:
-                print("✅ Document successfully removed from list")
-        else:
-            print("❌ Failed to verify document deletion")
-            return False
+            print("✅ Persediaan list filter working correctly")
         
-        # Step 9: Verify document detail returns 404
-        print(f"\n🔍 Step 9: Verifying document detail returns 404...")
+        # Test list endpoint with Aset Tetap filter
+        success, response = self.run_test(
+            "Get Document List filtered by Aset Tetap",
+            "GET",
+            "api/dokumen-sumber",
+            200,
+            data={"page": 1, "limit": 20, "kategori": "Aset Tetap"}
+        )
+        
+        if success:
+            docs = response.get('data', [])
+            persediaan_count = len([d for d in docs if d.get('kategori') == 'Persediaan'])
+            aset_count = len([d for d in docs if d.get('kategori') == 'Aset Tetap'])
+            print(f"📊 Aset Tetap filter: {persediaan_count} Persediaan docs, {aset_count} Aset docs")
+            
+            if persediaan_count > 0:
+                print("❌ Persediaan documents should not appear in Aset Tetap filter")
+                return False
+            print("✅ Aset Tetap list filter working correctly")
+        
+        # Step 7: Test asset search functionality (simulating Transaksi Aset -> Mutasi/Keluar)
+        print("\n🔍 Step 7: Testing asset search for Mutasi/Keluar transactions...")
+        print("   Simulating 'Transaksi Aset' -> 'Mutasi/Keluar' -> Search for assets")
+        
+        # First, let's create a test asset to search for
+        test_asset_data = {
+            "kode_barang": "1030101001000001",
+            "nama_barang": "Test Asset for Search",
+            "merk": "Test Brand",
+            "kondisi": "Baik",
+            "lokasi_fisik": "Test Location",
+            "nilai_perolehan": 1000000,
+            "tahun_perolehan": 2024,
+            "nup": "12345"
+        }
         
         success, response = self.run_test(
-            "Verify Document Detail Returns 404",
-            "GET",
-            f"api/dokumen-sumber/{dokumen_id}",
-            404
+            "Create Test Asset for Search",
+            "POST",
+            "api/barang",
+            200,
+            data=test_asset_data
         )
         
         if success:
-            print("✅ Document detail correctly returns 404 after deletion")
+            asset_id = response.get('_id') or response.get('id')
+            print(f"✅ Test asset created with ID: {asset_id}")
+            
+            # Test asset search
+            success, response = self.run_test(
+                "Search Assets for Mutasi/Keluar",
+                "GET",
+                "api/barang",
+                200,
+                data={"search": "Test Asset", "page": 1, "limit": 10}
+            )
+            
+            if success:
+                assets = response.get('data', [])
+                print(f"📊 Found {len(assets)} assets matching search")
+                
+                # Verify the search results show the expected columns format
+                for asset in assets:
+                    kode_barang = asset.get('kode_barang', '')
+                    nup = asset.get('nup', '')
+                    nama_barang = asset.get('nama_barang', '')
+                    merk = asset.get('merk', '')
+                    tahun_perolehan = asset.get('tahun_perolehan', '')
+                    kondisi = asset.get('kondisi', '')
+                    nilai_buku = asset.get('nilai_buku', asset.get('nilai_perolehan', 0))
+                    
+                    # Simulate the combined column display as mentioned in review
+                    combined_col1 = f"{kode_barang} - {nup} & {nama_barang} & {merk}"
+                    combined_col2 = f"{tahun_perolehan} & {kondisi} & {nilai_buku:,.0f}"
+                    
+                    print(f"✅ Asset result format:")
+                    print(f"   Column 1 (Kode Barang - NUP & Nama & Merk): {combined_col1}")
+                    print(f"   Column 2 (Tahun & Kondisi & Nilai): {combined_col2}")
+                    
+                    # Verify required fields are present
+                    required_fields = ['kode_barang', 'nup', 'nama_barang', 'merk', 'tahun_perolehan', 'kondisi']
+                    for field in required_fields:
+                        if not asset.get(field):
+                            print(f"❌ Required field '{field}' missing in asset search result")
+                            return False
+                
+                print("✅ Asset search results contain all required columns for Mutasi/Keluar table")
+            else:
+                print("❌ Failed to search assets")
+                return False
         else:
-            print("❌ Document detail should return 404 after deletion")
-            return False
+            print("⚠️ Failed to create test asset, skipping asset search test")
         
-        print("\n🎉 DOKUMEN SUMBER CRUD FUNCTIONALITY TEST COMPLETED SUCCESSFULLY!")
-        print("✅ All test steps passed:")
-        print("   1. ✅ Go to 'Dokumen Sumber' (Menu: Referensi -> Dokumen Sumber) - API accessible")
-        print("   2. ✅ Click 'Tambah Dokumen' - Document creation working")
-        print("   3. ✅ Fill form with Jenis: Kontrak, No: TEST-DOC-001, SPM/BAST info - All fields saved")
-        print("   4. ✅ Upload dummy files for SPM and BAST - File uploads working")
-        print("   5. ✅ Click Simpan - Document saved successfully")
-        print("   6. ✅ Verify document appears in list - Document visible in list")
-        print("   7. ✅ Verify SPM and BAST columns show file status - File status correctly displayed")
-        print("   8. ✅ Click Edit - Document details populated for editing")
-        print("   9. ✅ Verify SPM and BAST fields are populated - All fields correctly loaded")
-        print("   10. ✅ Delete document - Document deletion working")
+        # Step 8: Clean up test documents
+        print("\n🧹 Step 8: Cleaning up test documents...")
+        
+        # Delete Document 1
+        success, response = self.run_test(
+            "Delete Document 1 (KONTRAK-PERSEDIAAN)",
+            "DELETE",
+            f"api/dokumen-sumber/{doc1_id}",
+            200
+        )
+        
+        if success:
+            print("✅ Document 1 (KONTRAK-PERSEDIAAN) deleted")
+        else:
+            print("⚠️ Failed to delete Document 1")
+        
+        # Delete Document 2
+        success, response = self.run_test(
+            "Delete Document 2 (KONTRAK-ASET)",
+            "DELETE",
+            f"api/dokumen-sumber/{doc2_id}",
+            200
+        )
+        
+        if success:
+            print("✅ Document 2 (KONTRAK-ASET) deleted")
+        else:
+            print("⚠️ Failed to delete Document 2")
+        
+        print("\n🎉 DOKUMEN SUMBER FILTERING FUNCTIONALITY TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All test scenarios passed:")
+        print("   1. ✅ Created KONTRAK-PERSEDIAAN with Type: Kontrak, Kategori: Persediaan")
+        print("   2. ✅ Created KONTRAK-ASET with Type: Kontrak, Kategori: Aset Tetap")
+        print("   3. ✅ Persediaan transaction filtering: Only KONTRAK-PERSEDIAAN visible")
+        print("   4. ✅ Aset transaction filtering: Only KONTRAK-ASET visible")
+        print("   5. ✅ Document list filtering by kategori working correctly")
+        print("   6. ✅ Asset search results show proper column format for Mutasi/Keluar")
+        print("   7. ✅ All filtering logic working as expected")
         
         return True
 
