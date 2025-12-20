@@ -1393,10 +1393,10 @@ class APITester:
         
         for doc in aset_docs:
             doc_nomor = doc.get('nomor_dokumen', '')
-            if doc_nomor == 'KONTRAK-PERSEDIAAN':
+            if f'KONTRAK-PERSEDIAAN-{timestamp}' in doc_nomor:
                 kontrak_persediaan_found = True
                 print(f"❌ KONTRAK-PERSEDIAAN is visible (should be hidden)")
-            elif doc_nomor == 'KONTRAK-ASET':
+            elif f'KONTRAK-ASET-{timestamp}' in doc_nomor:
                 kontrak_aset_found = True
                 print(f"✅ KONTRAK-ASET is visible (correct)")
         
