@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 
 class DeleteFunctionalityTester:
-    def __init__(self, base_url="https://workpal-2.preview.emergentagent.com"):
+    def __init__(self, base_url="https://kepegawaian.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
