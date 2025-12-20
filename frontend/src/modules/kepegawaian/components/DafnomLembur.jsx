@@ -122,18 +122,18 @@ const DafnomLembur = ({ month, year }) => {
                         <thead>
                             {/* Header Row 1 - Main categories */}
                             <tr className="bg-gray-100">
-                                <th rowSpan="3" className="border border-black p-1 w-8 text-center align-middle">NO.<br/>URT</th>
-                                <th rowSpan="3" className="border border-black p-1 min-w-[100px] text-center align-middle">Nama</th>
-                                <th rowSpan="3" className="border border-black p-1 min-w-[90px] text-center align-middle">NIP</th>
-                                <th rowSpan="3" className="border border-black p-1 w-8 text-center align-middle">GOL</th>
+                                <th rowSpan="4" className="border border-black p-1 w-8 text-center align-middle">NO.<br/>URT</th>
+                                <th rowSpan="4" className="border border-black p-1 min-w-[100px] text-center align-middle">Nama</th>
+                                <th rowSpan="4" className="border border-black p-1 min-w-[90px] text-center align-middle">NIP</th>
+                                <th rowSpan="4" className="border border-black p-1 w-8 text-center align-middle">GOL</th>
                                 <th colSpan={daysInMonth} className="border border-black p-1 text-center">JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
                                 <th colSpan="2" className="border border-black p-1 text-center">JUMLAH JAM</th>
-                                <th rowSpan="2" className="border border-black p-1 text-center align-middle w-10">JML<br/>MAKAN<br/>LEMBUR</th>
+                                <th rowSpan="3" className="border border-black p-1 text-center align-middle w-10">JML<br/>MAKAN<br/>LEMBUR</th>
                                 <th colSpan="2" className="border border-black p-1 text-center">JUMLAH UANG</th>
-                                <th rowSpan="2" className="border border-black p-1 text-center align-middle w-16">JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
-                                <th rowSpan="2" className="border border-black p-1 text-center align-middle w-14">POTONGAN<br/>PPH</th>
-                                <th rowSpan="2" className="border border-black p-1 text-center align-middle w-16">JUMLAH<br/>BERSIH<br/>(11-12)</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle min-w-[80px]">TANDA TANGAN<br/>/<br/>NO REKENING</th>
+                                <th rowSpan="3" className="border border-black p-1 text-center align-middle w-16">JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
+                                <th rowSpan="3" className="border border-black p-1 text-center align-middle w-14">POTONGAN<br/>PPH</th>
+                                <th rowSpan="3" className="border border-black p-1 text-center align-middle w-16">JUMLAH<br/>BERSIH<br/>(11-12)</th>
+                                <th rowSpan="4" className="border border-black p-1 text-center align-middle min-w-[80px]">TANDA TANGAN<br/>/<br/>NO REKENING</th>
                             </tr>
                             
                             {/* Header Row 2 - Date numbers with +/- indicators */}
@@ -156,7 +156,15 @@ const DafnomLembur = ({ month, year }) => {
                                 <th className="border border-black p-1 text-center w-14">MAKAN<br/>LEMBUR</th>
                             </tr>
                             
-                            {/* Header Row 3 - Column numbers */}
+                            {/* Header Row 3 - Note about +/- symbols */}
+                            <tr className="text-[6px] italic bg-gray-50">
+                                <td colSpan={daysInMonth} className="border border-black p-0 text-center">
+                                    (tanda '-' = Libur ; tanda '+' = Kerja)
+                                </td>
+                                <td colSpan="6" className="border border-black p-0"></td>
+                            </tr>
+                            
+                            {/* Header Row 4 - Column numbers */}
                             <tr className="bg-gray-100 text-[7px]">
                                 {[...Array(daysInMonth)].map((_, i) => (
                                     <th key={i} className="border border-black p-0 text-center">5</th>
@@ -169,15 +177,6 @@ const DafnomLembur = ({ month, year }) => {
                                 <th className="border border-black p-0 text-center">11</th>
                                 <th className="border border-black p-0 text-center">12</th>
                                 <th className="border border-black p-0 text-center">13</th>
-                            </tr>
-                            
-                            {/* Header Row 4 - Note about +/- symbols */}
-                            <tr className="text-[6px] italic">
-                                <td colSpan="4" className="border border-black p-0 text-center"></td>
-                                <td colSpan={daysInMonth} className="border border-black p-0 text-center">
-                                    (tanda '-' = Libur ; tanda '+' = Kerja)
-                                </td>
-                                <td colSpan="9" className="border border-black p-0"></td>
                             </tr>
                         </thead>
                         
