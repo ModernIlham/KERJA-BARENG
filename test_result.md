@@ -155,6 +155,7 @@ test_plan:
     - "Verify Differential Pay calculation"
     - "Verify Overtime Calculation Logic against new rules"
     - "Overtime Settings and Dafnom Features"
+    - "Independent Non-ASN Overtime Rates Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
