@@ -473,6 +473,101 @@ async def recap_overtime(month: str = None): # YYYY-MM
         
     return formatted
 
+@router.get("/overtime/dafnom")
+async def get_dafnom_data(month: str = None): # YYYY-MM
+    """
+    Get detailed Dafnom (Daftar Nominatif) data with daily breakdown for each employee.
+    Returns data suitable for official government overtime report.
+    """
+    if not month:
+        month = datetime.now(timezone.utc).strftime("%Y-%m")
+    
+    year, mon = map(int, month.split("-"))
+    days_in_month = calendar.monthrange(year, mon)[1]
+    
+    # Get all approved overtime requests for the month
+    cursor = db.overtime_requests.find({
+        "date": {"$regex": f"^{month}"},
+        "status": "Approved"
+    })
+    all_requests = await cursor.to_list(length=5000)
+    
+    # Get pegawai bank account info
+    pegawai_cursor = db.pegawai.find({}, {"_id": 0, "id": 1, "nama_lengkap": 1, "no_rekening": 1, "bank": 1})
+    all_pegawai = {p['id']: p for p in await pegawai_cursor.to_list(length=5000)}
+    
+    # Build employee-centric data with daily breakdown
+    employees = {}
+    
+    for req in all_requests:
+        pid = req.get('pegawai_id')
+        if not pid:
+            continue
+            
+        if pid not in employees:
+            peg_info = all_pegawai.get(pid, {})
+            employees[pid] = {
+                "pegawai_id": pid,
+                "nama": req.get('nama_lengkap', '-'),
+                "nip": req.get('nip', '-'),
+                "golongan": req.get('grade', '-'),
+                "employee_type": req.get('employee_type', 'NON_ASN'),
+                "bank_account": peg_info.get('no_rekening', ''),
+                "bank_name": peg_info.get('bank', 'Mandiri'),
+                "daily_hours": {str(d): {"hours": 0, "is_holiday": False} for d in range(1, days_in_month + 1)},
+                "jam_hari_kerja": 0,
+                "jam_hari_libur": 0,
+                "jumlah_makan": 0,
+                "uang_lembur": 0,
+                "uang_makan": 0,
+                "jumlah_kotor": 0,
+                "potongan_pph": 0,
+                "jumlah_bersih": 0
+            }
+        
+        # Extract day from date string (YYYY-MM-DD)
+        day_str = req.get('date', '').split('-')[-1].lstrip('0') or '1'
+        
+        emp = employees[pid]
+        hours = req.get('duration_hours', 0)
+        is_hol = req.get('is_holiday', False)
+        
+        # Update daily breakdown
+        if day_str in emp['daily_hours']:
+            emp['daily_hours'][day_str]['hours'] += hours
+            if is_hol:
+                emp['daily_hours'][day_str]['is_holiday'] = True
+        
+        # Update totals
+        if is_hol:
+            emp['jam_hari_libur'] += hours
+        else:
+            emp['jam_hari_kerja'] += hours
+            
+        emp['uang_lembur'] += req.get('gross_pay', 0) - req.get('meal_allowance', 0) if req.get('gross_pay') else 0
+        emp['uang_makan'] += req.get('meal_allowance', 0)
+        emp['jumlah_kotor'] += req.get('gross_pay', 0)
+        emp['potongan_pph'] += req.get('tax_amount', 0)
+        emp['jumlah_bersih'] += req.get('net_pay', 0)
+        
+        if req.get('meal_allowance', 0) > 0:
+            emp['jumlah_makan'] += 1
+    
+    # Get calendar info for the month (which days are weekends)
+    holidays_in_month = []
+    for d in range(1, days_in_month + 1):
+        weekday = calendar.weekday(year, mon, d)
+        if weekday >= 5:  # Saturday = 5, Sunday = 6
+            holidays_in_month.append(d)
+    
+    return {
+        "month": month,
+        "year": year,
+        "days_in_month": days_in_month,
+        "holidays": holidays_in_month,
+        "employees": list(employees.values())
+    }
+
 # --- ACTIVITY LOGS ---
 
 @router.get("/activities", response_model=List[dict])
