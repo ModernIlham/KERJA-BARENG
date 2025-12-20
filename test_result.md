@@ -202,6 +202,18 @@ backend:
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: /api/persediaan-transaksi/grouped endpoint working correctly. MongoDB aggregation pipeline groups transactions by dokumen_ref, no_bukti, jenis, and date. Returns proper group structure with total_items count, total_nilai calculation, and items array containing individual transaction details. Search functionality implemented and working. All API responses match expected format."
 
+  - task: "Dokumen Sumber CRUD Backend APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/dokumen.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED SUCCESSFULLY: Complete Dokumen Sumber CRUD functionality verified through comprehensive 9-step test: 1) Document creation with Jenis: Kontrak, No: TEST-DOC-001, SPM/BAST info - all fields saved correctly, 2) File uploads for SPM and BAST working (PDF files uploaded successfully), 3) Document appears in list with correct SPM and BAST file status indicators, 4) Edit functionality working - all fields properly populated including nomor_spm, tanggal_spm, nomor_bast, tanggal_bast, file URLs, 5) Update functionality working - document fields updated correctly, 6) Delete functionality working - document removed from list and returns 404 on detail access. All CRUD operations (Create, Read, Update, Delete) working correctly. File upload system working with proper attachment tracking. Search functionality includes SPM and BAST fields. Backend APIs fully operational for Dokumen Sumber management."
+
   - task: "Kepegawaian (HR) Backend APIs"
     implemented: true
     working: false
