@@ -109,6 +109,9 @@ class DokumenSumber(MongoBaseModel):
     # BAST Info
     nomor_bast: Optional[str] = None
     tanggal_bast: Optional[str] = None
+    
+    # Category/Intention
+    kategori: str = "Umum" # Persediaan, Aset Tetap, Umum
     file_bast_url: Optional[str] = None
     
     # Template
