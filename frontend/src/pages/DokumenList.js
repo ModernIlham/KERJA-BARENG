@@ -19,16 +19,19 @@ export default function DokumenList() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [ppkList, setPpkList] = useState([]);
+    
+    // Filter State
+    const [filterKategori, setFilterKategori] = useState('Umum');
 
     useEffect(() => {
         fetchDocs();
         fetchPpk();
-    }, [search]);
+    }, [search, filterKategori]);
 
     const fetchDocs = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/api/dokumen-sumber', { params: { search } });
+            const res = await api.get('/api/dokumen-sumber', { params: { search, kategori: filterKategori === 'Semua' ? '' : filterKategori } });
             setDocs(res.data.data);
         } catch (e) {
             console.error(e);
@@ -79,14 +82,30 @@ export default function DokumenList() {
 
             <Card>
                 <CardHeader className="pb-3">
-                    <div className="relative max-w-sm">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-                        <Input 
-                            placeholder="Cari No Dokumen / Penyedia..." 
-                            className="pl-9"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+                    <div className="flex flex-col md:flex-row gap-4 justify-between items-end md:items-center">
+                        <div className="flex gap-2 items-center">
+                            <Label className="text-xs">Kategori:</Label>
+                            <Select value={filterKategori} onValueChange={setFilterKategori}>
+                                <SelectTrigger className="w-[150px] h-9 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Umum">Umum</SelectItem>
+                                    <SelectItem value="Persediaan">Persediaan</SelectItem>
+                                    <SelectItem value="Aset Tetap">Aset Tetap</SelectItem>
+                                    <SelectItem value="Semua">Semua</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="relative max-w-sm w-full md:w-auto">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+                            <Input 
+                                placeholder="Cari No Dokumen / Penyedia..." 
+                                className="pl-9 h-9"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -94,6 +113,7 @@ export default function DokumenList() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Jenis & Nomor</TableHead>
+                                <TableHead>Kategori</TableHead>
                                 <TableHead>Tanggal</TableHead>
                                 <TableHead>PPK & Penyedia</TableHead>
                                 <TableHead>SPM & BAST</TableHead>
@@ -103,11 +123,11 @@ export default function DokumenList() {
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8">Loading...</TableCell>
+                                    <TableCell colSpan={6} className="text-center py-8">Loading...</TableCell>
                                 </TableRow>
                             ) : docs.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">Belum ada data dokumen.</TableCell>
+                                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">Belum ada data dokumen.</TableCell>
                                 </TableRow>
                             ) : (
                                 docs.map(doc => (
@@ -115,6 +135,15 @@ export default function DokumenList() {
                                         <TableCell>
                                             <div className="font-bold text-slate-800">{doc.jenis_dokumen}</div>
                                             <div className="font-mono text-xs text-blue-600">{doc.nomor_dokumen}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className={`text-[10px] px-2 py-0.5 rounded border ${
+                                                doc.kategori === 'Persediaan' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                                doc.kategori === 'Aset Tetap' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                'bg-slate-50 text-slate-700 border-slate-200'
+                                            }`}>
+                                                {doc.kategori || 'Umum'}
+                                            </span>
                                         </TableCell>
                                         <TableCell>{doc.tanggal_dokumen}</TableCell>
                                         <TableCell>
@@ -173,7 +202,7 @@ export default function DokumenList() {
 }
 
 function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
-    const { register, handleSubmit, reset, setValue } = useForm();
+    const { register, handleSubmit, reset, setValue, watch } = useForm();
     const [loading, setLoading] = useState(false);
     
     // File States
@@ -184,6 +213,7 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
     useEffect(() => {
         register('jenis_dokumen', { required: true });
         register('ppk_id');
+        register('kategori', { required: true });
     }, [register]);
 
     useEffect(() => {
@@ -193,13 +223,16 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
             setBastFile(null);
             if (initialData.jenis_dokumen) setValue('jenis_dokumen', initialData.jenis_dokumen);
             if (initialData.ppk_id) setValue('ppk_id', initialData.ppk_id);
+            if (initialData.kategori) setValue('kategori', initialData.kategori);
         } else {
             reset({
                 jenis_dokumen: 'Kontrak',
+                kategori: 'Umum',
                 tanggal_dokumen: new Date().toISOString().split('T')[0],
                 nilai_total: 0
             });
             setValue('jenis_dokumen', 'Kontrak'); // Default
+            setValue('kategori', 'Umum'); // Default
             setSpmFile(null);
             setBastFile(null);
         }
@@ -272,6 +305,23 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                     {/* General Info */}
                     <div className="grid grid-cols-2 gap-4 border-b pb-4">
                         <div className="space-y-1">
+                            <Label>Kategori / Peruntukan *</Label>
+                            <Select 
+                                onValueChange={(v) => setValue('kategori', v)} 
+                                defaultValue={initialData?.kategori || "Umum"}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih Kategori" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Umum">Umum</SelectItem>
+                                    <SelectItem value="Persediaan">Persediaan</SelectItem>
+                                    <SelectItem value="Aset Tetap">Aset Tetap</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-slate-500">Pilih "Persediaan" atau "Aset Tetap" agar muncul di menu transaksi yang sesuai.</p>
+                        </div>
+                        <div className="space-y-1">
                             <Label>Jenis Dokumen</Label>
                             <Select 
                                 onValueChange={(v) => setValue('jenis_dokumen', v)} 
@@ -298,10 +348,6 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                         <div className="space-y-1">
                             <Label>Tanggal Dokumen *</Label>
                             <Input type="date" {...register('tanggal_dokumen', {required: true})} />
-                        </div>
-                        <div className="space-y-1">
-                            <Label>Nilai Total (Rp)</Label>
-                            <Input type="number" {...register('nilai_total')} placeholder="0" />
                         </div>
                     </div>
 
@@ -400,6 +446,13 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                         <div className="space-y-1">
                             <Label>NPWP Penyedia</Label>
                             <Input {...register('npwp_penyedia')} placeholder="NPWP..." />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <Label>Nilai Total (Rp)</Label>
+                            <Input type="number" {...register('nilai_total')} placeholder="0" />
                         </div>
                     </div>
 
