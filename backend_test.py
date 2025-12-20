@@ -1865,17 +1865,45 @@ class APITester:
             print("❌ Failed to submit Pramubakti overtime request")
             return False
         
-        pramubakti_overtime_id = response.get('id')
-        print(f"✅ Pramubakti overtime request submitted with ID: {pramubakti_overtime_id}")
-        print(f"   Duration: {response.get('duration_hours')} hours")
-        print(f"   Rate per hour: {response.get('rate_per_hour')} IDR")
-        print(f"   Meal allowance: {response.get('meal_allowance')} IDR")
-        print(f"   Gross pay: {response.get('gross_pay')} IDR")
-        print(f"   Net pay: {response.get('net_pay')} IDR")
+        print(f"✅ Pramubakti overtime request submitted successfully")
+        print(f"   Response: {response}")
+        
+        # Get the overtime request from the list to verify calculations
+        success, response = self.run_test(
+            "Get Overtime Requests to Find Pramubakti Request",
+            "GET",
+            "api/kepegawaian/overtime",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get overtime requests list")
+            return False
+        
+        overtime_requests = response if isinstance(response, list) else []
+        pramubakti_request = None
+        
+        # Find the Pramubakti request
+        for req in overtime_requests:
+            if req.get('description') == "Pramubakti overtime test - 3 hours":
+                pramubakti_request = req
+                break
+        
+        if not pramubakti_request:
+            print("❌ Pramubakti overtime request not found in list")
+            return False
+        
+        pramubakti_overtime_id = pramubakti_request.get('id')
+        print(f"✅ Pramubakti overtime request found with ID: {pramubakti_overtime_id}")
+        print(f"   Duration: {pramubakti_request.get('duration_hours')} hours")
+        print(f"   Rate per hour: {pramubakti_request.get('rate_per_hour')} IDR")
+        print(f"   Meal allowance: {pramubakti_request.get('meal_allowance')} IDR")
+        print(f"   Gross pay: {pramubakti_request.get('gross_pay')} IDR")
+        print(f"   Net pay: {pramubakti_request.get('net_pay')} IDR")
         
         # Verify Pramubakti rate is 12000
-        pramubakti_rate = response.get('rate_per_hour', 0)
-        pramubakti_meal = response.get('meal_allowance', 0)
+        pramubakti_rate = pramubakti_request.get('rate_per_hour', 0)
+        pramubakti_meal = pramubakti_request.get('meal_allowance', 0)
         if pramubakti_rate == 12000:
             print("✅ Pramubakti rate verification PASSED: 12000 IDR")
         else:
