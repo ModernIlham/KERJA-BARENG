@@ -66,7 +66,7 @@ async def get_golongan_uraian(kode_barang: str):
 @router.get("/", response_model=Dict)
 async def get_persediaan(
     page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1),
     search: Optional[str] = None,
     filter_kode: Optional[str] = None,
     filter_nama: Optional[str] = None,

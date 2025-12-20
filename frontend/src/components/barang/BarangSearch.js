@@ -22,7 +22,7 @@ export default function BarangSearch({ type, onSelect, className }) {
         setLoading(true);
         try {
             const endpoint = type === 'persediaan' ? '/api/persediaan/' : '/api/barang';
-            const res = await api.get(endpoint, { params: { search, limit: 5 } });
+            const res = await api.get(endpoint, { params: { search, limit: 100 } });
             setResults(res.data.data || []);
             setShowResults(true);
         } catch(e) { console.error(e); }
