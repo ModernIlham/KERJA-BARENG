@@ -56,6 +56,7 @@ api_router.include_router(persediaan_transaksi.router, prefix="/persediaan-trans
 api_router.include_router(laporan_bmn.router, prefix="/laporan-bmn", tags=["Laporan BMN"])
 api_router.include_router(surat.router, prefix="/surat", tags=["Manajemen Persuratan"])
 
+api_router.include_router(kepegawaian.router, prefix="/kepegawaian", tags=["Kepegawaian (HR)"])
 @api_router.get("/")
 async def root():
     return {"message": "SIMAN-G API Ready"}
