@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Printer, Download } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const formatRupiah = (num) => {
     if (num === null || num === undefined || num === 0) return '-';
