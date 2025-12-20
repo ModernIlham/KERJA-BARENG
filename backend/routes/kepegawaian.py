@@ -405,30 +405,6 @@ async def recap_overtime(month: str = None): # YYYY-MM
 
 @router.get("/activities", response_model=List[dict])
 async def get_activity_logs(
-@router.post("/upload")
-async def upload_kepegawaian_file(
-    file: UploadFile = File(...),
-    type: str = Form("evidence"), # spl or evidence
-    current_user: User = Depends(get_current_user)
-):
-    try:
-        # Validate
-        allowed = ["image/jpeg", "image/png", "application/pdf"]
-        if file.content_type not in allowed:
-            raise HTTPException(status_code=400, detail="Format not allowed (JPG/PNG/PDF only)")
-            
-        file_ext = os.path.splitext(file.filename)[1]
-        filename = f"{type}_{uuid.uuid4()}{file_ext}"
-        file_path = f"/app/uploads/{filename}"
-        
-        with open(file_path, "wb") as f:
-            content = await file.read()
-            f.write(content)
-            
-        return {"url": f"/api/uploads/{filename}"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
     start_date: Optional[str] = None, 
     end_date: Optional[str] = None,
     limit: int = 50,
@@ -462,3 +438,27 @@ async def upload_kepegawaian_file(
             log['timestamp'] = log['timestamp'].isoformat()
             
     return logs
+
+@router.post("/upload")
+async def upload_kepegawaian_file(
+    file: UploadFile = File(...),
+    type: str = Form("evidence"), # spl or evidence
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        # Validate
+        allowed = ["image/jpeg", "image/png", "application/pdf"]
+        if file.content_type not in allowed:
+            raise HTTPException(status_code=400, detail="Format not allowed (JPG/PNG/PDF only)")
+            
+        file_ext = os.path.splitext(file.filename)[1]
+        filename = f"{type}_{uuid.uuid4()}{file_ext}"
+        file_path = f"/app/uploads/{filename}"
+        
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+            
+        return {"url": f"/api/uploads/{filename}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
