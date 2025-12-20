@@ -7,7 +7,7 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Loader2, Plus, Search, FileText, Edit, Trash, Upload } from 'lucide-react';
+import { Loader2, Plus, Search, FileText, Edit, Trash, Upload, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Textarea } from '../components/ui/textarea';
@@ -96,7 +96,7 @@ export default function DokumenList() {
                                 <TableHead>Jenis & Nomor</TableHead>
                                 <TableHead>Tanggal</TableHead>
                                 <TableHead>PPK & Penyedia</TableHead>
-                                <TableHead>Keterangan</TableHead>
+                                <TableHead>SPM & BAST</TableHead>
                                 <TableHead className="text-center">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -125,8 +125,20 @@ export default function DokumenList() {
                                                 <span className="font-semibold">Penyedia:</span> {doc.nama_penyedia || '-'}
                                             </div>
                                         </TableCell>
-                                        <TableCell className="max-w-[200px] truncate text-slate-500 text-xs">
-                                            {doc.uraian}
+                                        <TableCell>
+                                            <div className="space-y-1">
+                                                {doc.file_spm_url ? (
+                                                    <a href={doc.file_spm_url} target="_blank" rel="noreferrer" className="text-xs flex items-center gap-1 text-green-600 hover:underline">
+                                                        <FileText size={10} /> SPM
+                                                    </a>
+                                                ) : <span className="text-xs text-slate-400">- No SPM</span>}
+                                                
+                                                {doc.file_bast_url ? (
+                                                    <a href={doc.file_bast_url} target="_blank" rel="noreferrer" className="text-xs flex items-center gap-1 text-purple-600 hover:underline">
+                                                        <FileText size={10} /> BAST
+                                                    </a>
+                                                ) : <span className="text-xs text-slate-400">- No BAST</span>}
+                                            </div>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             <div className="flex justify-center gap-1">
@@ -163,7 +175,10 @@ export default function DokumenList() {
 function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
     const { register, handleSubmit, reset, setValue } = useForm();
     const [loading, setLoading] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
+    
+    // File States
+    const [spmFile, setSpmFile] = useState(null);
+    const [bastFile, setBastFile] = useState(null);
 
     // Register fields handled by custom components (Select)
     useEffect(() => {
@@ -174,8 +189,8 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
     useEffect(() => {
         if (initialData) {
             reset(initialData);
-            setSelectedFile(null);
-            // Manually set values for Select components if needed, though reset usually handles it if names match
+            setSpmFile(null);
+            setBastFile(null);
             if (initialData.jenis_dokumen) setValue('jenis_dokumen', initialData.jenis_dokumen);
             if (initialData.ppk_id) setValue('ppk_id', initialData.ppk_id);
         } else {
@@ -185,7 +200,8 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                 nilai_total: 0
             });
             setValue('jenis_dokumen', 'Kontrak'); // Default
-            setSelectedFile(null);
+            setSpmFile(null);
+            setBastFile(null);
         }
     }, [initialData, isOpen, reset, setValue]);
 
@@ -210,19 +226,31 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                 toast.success("Data dokumen dibuat");
             }
 
-            // 2. Upload File if selected
-            if (selectedFile && docId) {
+            // 2. Upload SPM if selected
+            if (spmFile && docId) {
                 const formData = new FormData();
-                formData.append('file', selectedFile);
-                
-                const tUpload = toast.loading("Mengupload file dokumen...");
+                formData.append('file', spmFile);
                 try {
-                    await api.post(`/api/dokumen-sumber/${docId}/upload`, formData, {
+                    await api.post(`/api/dokumen-sumber/${docId}/upload?type=spm`, formData, {
                         headers: { 'Content-Type': 'multipart/form-data' }
                     });
-                    toast.success("File berhasil diupload", { id: tUpload });
+                    toast.success("SPM berhasil diupload");
                 } catch (e) {
-                    toast.error("Gagal upload file, tapi data tersimpan", { id: tUpload });
+                    toast.error("Gagal upload SPM");
+                }
+            }
+
+            // 3. Upload BAST if selected
+            if (bastFile && docId) {
+                const formData = new FormData();
+                formData.append('file', bastFile);
+                try {
+                    await api.post(`/api/dokumen-sumber/${docId}/upload?type=bast`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    toast.success("BAST berhasil diupload");
+                } catch (e) {
+                    toast.error("Gagal upload BAST");
                 }
             }
 
@@ -236,12 +264,13 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{initialData ? 'Edit Dokumen Sumber' : 'Tambah Dokumen Sumber Baru'}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* General Info */}
+                    <div className="grid grid-cols-2 gap-4 border-b pb-4">
                         <div className="space-y-1">
                             <Label>Jenis Dokumen</Label>
                             <Select 
@@ -254,7 +283,6 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                                 <SelectContent>
                                     <SelectItem value="Kontrak">Kontrak</SelectItem>
                                     <SelectItem value="Kontrak BLU">Kontrak BLU</SelectItem>
-                                    <SelectItem value="Non Kontrak BLU">Non Kontrak BLU</SelectItem>
                                     <SelectItem value="SPM">SPM</SelectItem>
                                     <SelectItem value="SP2D">SP2D</SelectItem>
                                     <SelectItem value="BAST">BAST</SelectItem>
@@ -264,12 +292,9 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                             </Select>
                         </div>
                         <div className="space-y-1">
-                            <Label>Nomor Dokumen *</Label>
-                            <Input {...register('nomor_dokumen', {required: true})} placeholder="Nomor..." />
+                            <Label>Nomor Dokumen Utama *</Label>
+                            <Input {...register('nomor_dokumen', {required: true})} placeholder="Nomor Kontrak/SK..." />
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <Label>Tanggal Dokumen *</Label>
                             <Input type="date" {...register('tanggal_dokumen', {required: true})} />
@@ -280,18 +305,73 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                         </div>
                     </div>
 
-                    {/* New Fields for SPM */}
-                    <div className="grid grid-cols-2 gap-4 bg-yellow-50 p-3 rounded border border-yellow-100">
-                        <div className="space-y-1">
-                            <Label>Nomor SPM/SPBY</Label>
-                            <Input {...register('nomor_spm')} placeholder="Nomor SPM..." />
+                    {/* Section: SPM */}
+                    <div className="bg-yellow-50 p-4 rounded border border-yellow-100 space-y-3">
+                        <h3 className="font-bold text-sm text-yellow-800">Informasi SPM</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <Label>Nomor SPM</Label>
+                                <Input {...register('nomor_spm')} placeholder="Nomor SPM..." />
+                            </div>
+                            <div className="space-y-1">
+                                <Label>Tanggal SPM</Label>
+                                <Input type="date" {...register('tanggal_spm')} />
+                            </div>
                         </div>
                         <div className="space-y-1">
-                            <Label>Tanggal SPM/SPBY</Label>
-                            <Input type="date" {...register('tanggal_spm')} />
+                            <Label className="flex items-center gap-2">
+                                <Upload size={14}/> Upload Dokumen SPM
+                            </Label>
+                            <Input 
+                                type="file" 
+                                accept="application/pdf,image/*"
+                                onChange={(e) => setSpmFile(e.target.files[0])}
+                                className="bg-white"
+                            />
+                            {initialData?.file_spm_url && (
+                                <div className="mt-1 text-xs">
+                                    <a href={initialData.file_spm_url} target="_blank" rel="noreferrer" className="text-blue-600 underline flex items-center gap-1">
+                                        <Eye size={12}/> Lihat File SPM Tersimpan
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     </div>
 
+                    {/* Section: BAST */}
+                    <div className="bg-purple-50 p-4 rounded border border-purple-100 space-y-3">
+                        <h3 className="font-bold text-sm text-purple-800">Informasi BAST PPK ke KPB</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <Label>No BAST PPK ke KPB</Label>
+                                <Input {...register('nomor_bast')} placeholder="Nomor BAST..." />
+                            </div>
+                            <div className="space-y-1">
+                                <Label>Tanggal BAST</Label>
+                                <Input type="date" {...register('tanggal_bast')} />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="flex items-center gap-2">
+                                <Upload size={14}/> Upload Dokumen BAST
+                            </Label>
+                            <Input 
+                                type="file" 
+                                accept="application/pdf,image/*"
+                                onChange={(e) => setBastFile(e.target.files[0])}
+                                className="bg-white"
+                            />
+                            {initialData?.file_bast_url && (
+                                <div className="mt-1 text-xs">
+                                    <a href={initialData.file_bast_url} target="_blank" rel="noreferrer" className="text-blue-600 underline flex items-center gap-1">
+                                        <Eye size={12}/> Lihat File BAST Tersimpan
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Section: Other Info */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <Label>PPK (Pejabat Pembuat Komitmen)</Label>
@@ -310,14 +390,11 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                             </Select>
                         </div>
                         <div className="space-y-1">
-                            <Label>Akun Belanja (Opsional)</Label>
+                            <Label>Akun Belanja</Label>
                             <Input {...register('akun_belanja')} placeholder="Kode Akun..." />
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded border">
                         <div className="space-y-1">
-                            <Label>Nama Penyedia / Rekanan</Label>
+                            <Label>Nama Penyedia</Label>
                             <Input {...register('nama_penyedia')} placeholder="CV / PT..." />
                         </div>
                         <div className="space-y-1">
@@ -327,59 +404,15 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                     </div>
 
                     <div className="space-y-1">
-                        <Label>Uraian / Keterangan</Label>
-                        <Textarea {...register('uraian')} placeholder="Keterangan singkat tentang dokumen ini..." />
-                    </div>
-
-                    {/* File Upload Section */}
-                    <div className="space-y-2 border-t pt-4">
-                        <Label className="flex items-center gap-2">
-                            <Upload size={16}/> Upload Dokumen (Multi Upload)
-                        </Label>
-                        <div className="flex gap-2 items-center">
-                            <Input 
-                                type="file" 
-                                accept="application/pdf,image/*"
-                                onChange={(e) => setSelectedFile(e.target.files[0])}
-                                className="cursor-pointer"
-                            />
-                        </div>
-                        <p className="text-[10px] text-slate-500">
-                            Pilih file baru untuk menambah dokumen. (PDF/JPG/PNG, Max 10MB)
-                        </p>
-
-                        {/* List of existing attachments */}
-                        {initialData?.dokumen_attachments && initialData.dokumen_attachments.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                                <Label className="text-xs font-semibold">File Tersimpan:</Label>
-                                {initialData.dokumen_attachments.map((file, idx) => (
-                                    <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded border border-slate-200">
-                                        <div className="flex items-center gap-2">
-                                            <FileText size={12} className="text-blue-600"/>
-                                            <span className="truncate max-w-[200px]">{file.original_name || 'Dokumen'}</span>
-                                        </div>
-                                        <a href={file.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-[10px]">
-                                            Lihat
-                                        </a>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        
-                        {/* Fallback for legacy single file */}
-                        {!initialData?.dokumen_attachments?.length && initialData?.file_url && (
-                            <div className="text-xs text-blue-600 flex items-center gap-1 bg-blue-50 p-2 rounded mt-2">
-                                <FileText size={12}/>
-                                <a href={initialData.file_url} target="_blank" rel="noreferrer" className="underline">Lihat File Utama</a>
-                            </div>
-                        )}
+                        <Label>Uraian</Label>
+                        <Textarea {...register('uraian')} placeholder="Keterangan singkat..." />
                     </div>
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={onClose}>Batal</Button>
                         <Button type="submit" disabled={loading} className="bg-slate-900 text-white">
                             {loading && <Loader2 className="animate-spin mr-2 h-4 w-4"/>}
-                            Simpan Dokumen
+                            Simpan Perubahan
                         </Button>
                     </DialogFooter>
                 </form>
