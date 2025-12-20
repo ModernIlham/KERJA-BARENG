@@ -2,28 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, MoreHorizontal, Calendar, User, MessageSquare, Search, Box } from 'lucide-react';
+import { Plus, MoreHorizontal, Calendar, User, MessageSquare, Search, Box, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import api from '../../../api/axios';
 import { toast } from 'sonner';
 
 const KanbanColumn = ({ title, tasks, status, color, onStatusChange, onTaskClick, onAddClick }) => (
-  <div className="flex-1 min-w-[280px] bg-slate-50/50 rounded-lg p-3 border border-slate-200">
-    <div className={`flex items-center justify-between mb-3 px-1 border-l-4 ${color} pl-2`}>
+  <div className="flex-1 min-w-[280px] bg-slate-50/50 rounded-lg p-3 border border-slate-200 flex flex-col h-full">
+    <div className={`flex items-center justify-between mb-3 px-1 border-l-4 ${color} pl-2 shrink-0`}>
       <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-700">{title}</h3>
       <Badge variant="secondary" className="bg-white">{tasks.length}</Badge>
     </div>
-    <ScrollArea className="h-[500px]">
+    <ScrollArea className="flex-1">
       <div className="space-y-3 pr-2 pb-2">
         {tasks.map(task => (
-          <Card key={task.id} className="cursor-pointer hover:shadow-md transition-all border-slate-200" onClick={() => onTaskClick(task)}>
+          <Card key={task.id} className="cursor-pointer hover:shadow-md transition-all border-slate-200 group" onClick={() => onTaskClick(task)}>
             <CardContent className="p-3">
               <div className="flex justify-between items-start mb-2">
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
@@ -33,13 +34,18 @@ const KanbanColumn = ({ title, tasks, status, color, onStatusChange, onTaskClick
                 }`}>
                   {task.priority.toUpperCase()}
                 </span>
-                {/* Simple Move Actions */}
-                <div className="flex gap-1">
+                
+                {/* Move Actions - Only show relevant arrows */}
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {status !== 'todo' && (
-                        <button onClick={(e) => { e.stopPropagation(); onStatusChange(task.id, 'prev'); }} className="text-xs text-gray-400 hover:text-blue-600">←</button>
+                        <Button size="icon" variant="ghost" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); onStatusChange(task.id, 'prev'); }} title="Move Back">
+                            ←
+                        </Button>
                     )}
                     {status !== 'done' && (
-                        <button onClick={(e) => { e.stopPropagation(); onStatusChange(task.id, 'next'); }} className="text-xs text-gray-400 hover:text-blue-600">→</button>
+                        <Button size="icon" variant="ghost" className="h-5 w-5" onClick={(e) => { e.stopPropagation(); onStatusChange(task.id, 'next'); }} title="Move Next">
+                            →
+                        </Button>
                     )}
                 </div>
               </div>
@@ -86,6 +92,7 @@ const KanbanBoard = () => {
   // Modal States
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [initialStatus, setInitialStatus] = useState('todo');
   
@@ -118,7 +125,7 @@ const KanbanBoard = () => {
   
   const fetchEmployees = async () => {
       try {
-          const res = await api.get('/api/pegawai/'); 
+          const res = await api.get('/api/pegawai?limit=1000'); 
           if(res.data.data) setEmployees(res.data.data);
       } catch (e) {
           console.error("Fetch employees failed", e);
@@ -165,78 +172,106 @@ const KanbanBoard = () => {
       }
   };
 
-  const handleAddSubmit = async (e) => {
+  const handleFormSubmit = async (e) => {
       e.preventDefault();
       try {
-          await api.post('/api/tasks/', { ...formData, status: initialStatus });
-          toast.success("Tugas dibuat");
-          setIsAddOpen(false);
+          if (isEditMode && selectedTask) {
+              // Edit Mode
+              await api.patch(`/api/tasks/${selectedTask.id}`, formData);
+              toast.success("Tugas diperbarui");
+              setIsDetailOpen(false);
+              setSelectedTask(null);
+          } else {
+              // Add Mode
+              await api.post('/api/tasks/', { ...formData, status: initialStatus });
+              toast.success("Tugas dibuat");
+              setIsAddOpen(false);
+          }
+          
+          // Reset form
           setFormData({ title: '', description: '', priority: 'medium', due_date: '', assignee_id: '', related_asset_id: '' });
           setAssetSearch('');
           fetchTasks();
       } catch (e) {
-          toast.error("Gagal membuat tugas");
+          toast.error("Gagal menyimpan tugas");
+      }
+  };
+
+  const handleDeleteTask = async () => {
+      if (!selectedTask) return;
+      if (!window.confirm("Yakin ingin menghapus tugas ini?")) return;
+      
+      try {
+          await api.delete(`/api/tasks/${selectedTask.id}`);
+          toast.success("Tugas dihapus");
+          setIsDetailOpen(false);
+          setSelectedTask(null);
+          fetchTasks();
+      } catch (e) {
+          toast.error("Gagal menghapus tugas");
       }
   };
 
   const openAddModal = (status) => {
       setInitialStatus(status);
+      setIsEditMode(false);
+      setFormData({ title: '', description: '', priority: 'medium', due_date: '', assignee_id: '', related_asset_id: '' });
+      setAssetSearch('');
       setIsAddOpen(true);
   };
 
   const openDetailModal = (task) => {
       setSelectedTask(task);
       setIsDetailOpen(true);
+      setIsEditMode(false); // View mode initially
+  };
+
+  const startEditMode = () => {
+      if (!selectedTask) return;
+      setFormData({
+          title: selectedTask.title,
+          description: selectedTask.description,
+          priority: selectedTask.priority,
+          due_date: selectedTask.due_date ? selectedTask.due_date.split('T')[0] : '',
+          assignee_id: selectedTask.assignee_id || '',
+          related_asset_id: selectedTask.related_asset_id || ''
+      });
+      if(selectedTask.related_asset_name) {
+          setAssetSearch(selectedTask.related_asset_name);
+      }
+      setIsEditMode(true);
+      setIsAddOpen(true); // Reuse the Add Modal for editing
+      setIsDetailOpen(false);
   };
 
   return (
     <>
-        <div className="flex gap-4 overflow-x-auto pb-4 h-full">
-        <KanbanColumn 
-            title="To Do" 
-            tasks={tasks.filter(t => t.status === 'todo')} 
-            status="todo" 
-            color="border-blue-500"
-            onStatusChange={handleStatusChange}
-            onTaskClick={openDetailModal}
-            onAddClick={openAddModal}
-        />
-        <KanbanColumn 
-            title="In Progress" 
-            tasks={tasks.filter(t => t.status === 'in-progress')} 
-            status="in-progress" 
-            color="border-yellow-500"
-            onStatusChange={handleStatusChange}
-            onTaskClick={openDetailModal}
-            onAddClick={openAddModal}
-        />
-        <KanbanColumn 
-            title="Review" 
-            tasks={tasks.filter(t => t.status === 'review')} 
-            status="review" 
-            color="border-purple-500"
-            onStatusChange={handleStatusChange}
-            onTaskClick={openDetailModal}
-            onAddClick={openAddModal}
-        />
-        <KanbanColumn 
-            title="Done" 
-            tasks={tasks.filter(t => t.status === 'done')} 
-            status="done" 
-            color="border-green-500"
-            onStatusChange={handleStatusChange}
-            onTaskClick={openDetailModal}
-            onAddClick={openAddModal}
-        />
+        <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)]">
+        {['todo', 'in-progress', 'review', 'done'].map(status => (
+            <KanbanColumn 
+                key={status}
+                title={status.replace('-', ' ')} 
+                tasks={tasks.filter(t => t.status === status)} 
+                status={status} 
+                color={
+                    status === 'todo' ? 'border-blue-500' :
+                    status === 'in-progress' ? 'border-yellow-500' :
+                    status === 'review' ? 'border-purple-500' : 'border-green-500'
+                }
+                onStatusChange={handleStatusChange}
+                onTaskClick={openDetailModal}
+                onAddClick={openAddModal}
+            />
+        ))}
         </div>
 
-        {/* Add Task Modal */}
+        {/* Add/Edit Task Modal */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Tambah Tugas Baru</DialogTitle>
+                    <DialogTitle>{isEditMode ? "Edit Tugas" : "Tambah Tugas Baru"}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleAddSubmit} className="space-y-4">
+                <form onSubmit={handleFormSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label>Judul Tugas</Label>
                         <Input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Contoh: Perbaikan AC Ruang Server" />
@@ -258,7 +293,7 @@ const KanbanBoard = () => {
                             />
                         </div>
                         {searchingAssets && <div className="text-xs text-gray-500">Mencari...</div>}
-                        {assets.length > 0 && assetSearch && (
+                        {assets.length > 0 && assetSearch && !formData.related_asset_id && (
                             <div className="border rounded-md max-h-32 overflow-y-auto bg-white absolute w-full z-10 shadow-lg">
                                 {assets.map(asset => (
                                     <div 
@@ -276,9 +311,13 @@ const KanbanBoard = () => {
                                 ))}
                             </div>
                         )}
-                        {formData.related_asset_id && assetSearch && assets.length === 0 && !searchingAssets && (
+                        {formData.related_asset_id && (
                              <div className="text-xs text-green-600 flex items-center gap-1">
                                  <Box size={12}/> Aset terpilih
+                                 <button type="button" className="text-red-500 ml-2" onClick={() => {
+                                     setFormData({...formData, related_asset_id: ''});
+                                     setAssetSearch('');
+                                 }}>Hapus</button>
                              </div>
                         )}
                     </div>
@@ -316,7 +355,7 @@ const KanbanBoard = () => {
                         <Label>Deskripsi</Label>
                         <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                     </div>
-                    <Button type="submit" className="w-full">Simpan</Button>
+                    <Button type="submit" className="w-full">{isEditMode ? "Simpan Perubahan" : "Simpan"}</Button>
                 </form>
             </DialogContent>
         </Dialog>
@@ -324,11 +363,20 @@ const KanbanBoard = () => {
         {/* Task Detail Modal */}
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
             <DialogContent className="max-w-lg">
-                <DialogHeader>
+                <DialogHeader className="flex flex-row items-center justify-between">
                     <DialogTitle className="flex items-center gap-2">
                         {selectedTask?.title}
                         <Badge>{selectedTask?.status}</Badge>
                     </DialogTitle>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal size={16}/></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={startEditMode}><Edit className="mr-2 h-4 w-4"/> Edit</DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleDeleteTask} className="text-red-600"><Trash2 className="mr-2 h-4 w-4"/> Hapus</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </DialogHeader>
                 <div className="space-y-4">
                     <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md">
@@ -360,7 +408,7 @@ const KanbanBoard = () => {
                         )}
                     </div>
                     
-                    {/* Comments Section (Simplified) */}
+                    {/* Comments Section */}
                     <div className="border-t pt-4">
                         <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><MessageSquare size={14}/> Komentar</h4>
                         <div className="max-h-[200px] overflow-y-auto space-y-3 mb-3 pr-2">
