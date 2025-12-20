@@ -10311,10 +10311,10 @@ def main():
 
 
 def main():
-    """Main function to run the tests"""
+    """Main function to run the activity logs comprehensive test"""
     tester = APITester()
     
-    print("🚀 Starting SPM & BAST Document Selection Modal Testing...")
+    print("🚀 Starting Activity Logs Comprehensive Testing...")
     print("=" * 60)
     
     # Test login first
@@ -10322,9 +10322,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the SPM & BAST Document Selection Modal test
-    if not tester.test_spm_bast_document_selection_modal():
-        print("❌ SPM & BAST Document Selection Modal test failed")
+    # Run the Activity Logs Comprehensive test as requested in review
+    if not tester.test_activity_logs_comprehensive():
+        print("❌ Activity Logs Comprehensive test failed")
         return 1
     
     # Print summary
