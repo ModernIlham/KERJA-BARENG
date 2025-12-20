@@ -25,6 +25,7 @@ class APITester:
         print(f"   URL: {url}")
         
         try:
+            response = None
             if method == 'GET':
                 response = requests.get(url, headers=test_headers, params=data)
             elif method == 'POST':
@@ -33,6 +34,8 @@ class APITester:
                 response = requests.put(url, json=data, headers=test_headers)
             elif method == 'DELETE':
                 response = requests.delete(url, headers=test_headers)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=test_headers)
 
             success = response.status_code == expected_status
             result = {
@@ -73,7 +76,7 @@ class APITester:
                     result["raw_response"] = response.text[:200]
 
             self.results.append(result)
-            return success, response.json() if success else {}
+            return success, response.json() if success and response else {}
 
         except Exception as e:
             print(f"❌ Failed - Error: {str(e)}")
