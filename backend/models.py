@@ -169,6 +169,7 @@ class DokumenSumberCreate(BaseModel):
     akun_belanja: Optional[str] = None
     uraian: Optional[str] = None
     nilai_total: Optional[float] = 0
+    kategori: Optional[str] = "Umum"  # Persediaan, Aset Tetap, Umum
 
 # --- Stok FIFO Batch Model ---
 class StokBatch(MongoBaseModel):
