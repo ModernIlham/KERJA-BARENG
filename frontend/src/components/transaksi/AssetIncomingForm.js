@@ -532,7 +532,7 @@ export default function AssetIncomingForm({ onSuccess }) {
 
             {/* Document Selection Modal */}
             <Dialog open={isDocModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-3xl">
+                <DialogContent className="max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>Pilih Dokumen Sumber (Aset Tetap)</DialogTitle>
                     </DialogHeader>
@@ -552,6 +552,7 @@ export default function AssetIncomingForm({ onSuccess }) {
                                         <th className="p-2 border">Jenis & No</th>
                                         <th className="p-2 border">Tanggal</th>
                                         <th className="p-2 border">Penyedia / PPK</th>
+                                        <th className="p-2 border">SPM & BAST</th>
                                         <th className="p-2 border">Aksi</th>
                                     </tr>
                                 </thead>
@@ -566,6 +567,22 @@ export default function AssetIncomingForm({ onSuccess }) {
                                             <td className="p-2 border">
                                                 <div className="text-xs font-semibold">{doc.nama_penyedia || '-'}</div>
                                                 <div className="text-xs text-slate-500">{doc.ppk_nama || '-'}</div>
+                                            </td>
+                                            <td className="p-2 border">
+                                                <div className="text-xs">
+                                                    <div className="flex justify-between gap-2">
+                                                        <span className="font-semibold text-slate-500">SPM:</span>
+                                                        <span className="font-mono">{doc.nomor_spm || '-'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between gap-2">
+                                                        <span className="font-semibold text-slate-500">BAST:</span>
+                                                        <span className="font-mono">{doc.nomor_bast || '-'}</span>
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-400 mt-1">
+                                                        {doc.tanggal_spm ? `Tgl SPM: ${doc.tanggal_spm}` : ''}
+                                                        {doc.tanggal_bast ? ` • Tgl BAST: ${doc.tanggal_bast}` : ''}
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="p-2 border text-center">
                                                 <Button size="sm" variant="ghost" className="h-6 text-xs bg-blue-50 text-blue-700" onClick={() => handleSelectDoc(doc)}>
