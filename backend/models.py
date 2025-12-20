@@ -139,6 +139,7 @@ class SuratArsip(BaseModel):
     konten_final: str # Generated HTML snapshot
     file_path: Optional[str] = None # PDF path
     created_by: Optional[str] = None
+    kategori: Optional[str] = "Umum"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     
