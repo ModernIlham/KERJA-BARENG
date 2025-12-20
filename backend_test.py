@@ -1514,7 +1514,7 @@ class APITester:
             data=missing_fields_data
         )
         
-        if not success:  # We expect this to fail (success=False means we got the expected error)
+        if success:  # We expect this to succeed (meaning we got the expected error status)
             print("✅ Missing required fields properly rejected")
             print(f"   Error response: {response}")
             
