@@ -1571,7 +1571,7 @@ class APITester:
         success, response = self.run_test(
             "Get IN PROGRESS Tasks",
             "GET",
-            "api/tasks",
+            "api/tasks/",
             200,
             data={"status": "in-progress"}
         )
