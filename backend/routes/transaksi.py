@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import List, Dict, Any
-from models import Transaksi, TransaksiCreate, StokBatch
+from models import Transaksi, TransaksiCreate, StokBatch, User
 from auth import get_current_user
+from lib.activity_logger import log_activity
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from bson import ObjectId
@@ -70,7 +71,7 @@ async def get_transaksi_list(
     }
 
 @router.post("", response_model=Transaksi)
-async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(get_current_user)):
+async def create_transaksi(tx_in: TransaksiCreate, current_user: User = Depends(get_current_user)):
     if not ObjectId.is_valid(tx_in.barang_id):
         raise HTTPException(status_code=400, detail="Invalid Barang ID")
         
@@ -140,10 +141,21 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: str = Depends(g
         dokumen_sumber_id=tx_in.dokumen_sumber_id,
         nama_penyedia=tx_in.nama_penyedia,
         npwp_penyedia=tx_in.npwp_penyedia,
-        petugas=current_user
+        petugas=current_user.full_name
     )
     
     result = await db.transaksi.insert_one(new_tx.model_dump(by_alias=True, exclude=["id"]))
+
+    # LOG ACTIVITY
+    await log_activity(
+        db, 
+        user_id=str(current_user.id),
+        user_name=current_user.full_name,
+        action="CREATE",
+        module="Transaksi Aset",
+        target_id=str(result.inserted_id),
+        details=f"Transaksi {tx_in.jenis} Barang: {barang['nama_barang']} ({tx_in.jumlah} unit)"
+    )
     
     # Return the created transaction
     created_tx = await db.transaksi.find_one({"_id": result.inserted_id})

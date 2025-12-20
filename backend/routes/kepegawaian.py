@@ -10,6 +10,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from models_kepegawaian import Attendance, OvertimeRequest, OvertimeCreate, ClockInRequest, ClockOutRequest
 from auth import get_current_user
 from models import User
+from lib.activity_logger import log_activity
 
 router = APIRouter()
 
@@ -140,6 +141,18 @@ async def clock_in(req: ClockInRequest, current_user: User = Depends(get_current
     )
     
     res = await db.attendance.insert_one(new_att.model_dump(by_alias=True, exclude=["id"]))
+    
+    # LOG ACTIVITY
+    await log_activity(
+        db,
+        user_id=str(current_user.id),
+        user_name=current_user.full_name,
+        action="CLOCK_IN",
+        module="Kepegawaian",
+        target_id=str(res.inserted_id),
+        details=f"Clock In pada {format(datetime.now(), '%H:%M')}"
+    )
+
     return {"message": "Clock In Successful", "id": str(res.inserted_id)}
 
 @router.post("/attendance/clock-out")
@@ -165,6 +178,18 @@ async def clock_out(req: ClockOutRequest, current_user: User = Depends(get_curre
             "location_out": req.location
         }}
     )
+
+    # LOG ACTIVITY
+    await log_activity(
+        db,
+        user_id=str(current_user.id),
+        user_name=current_user.full_name,
+        action="CLOCK_OUT",
+        module="Kepegawaian",
+        target_id=str(existing['_id']),
+        details=f"Clock Out pada {format(datetime.now(), '%H:%M')}"
+    )
+
     return {"message": "Clock Out Successful"}
 
 # --- OVERTIME ROUTES ---
