@@ -357,7 +357,7 @@ const ManajemenLembur = () => {
               </TabsContent>
               
               <TabsContent value="dafnom" className="pt-4">
-                  <DafnomLembur data={rekapData} month={new Date().getMonth() + 1} year={new Date().getFullYear()} />
+                  <DafnomMonthSelector />
               </TabsContent>
           </Tabs>
         </TabsContent>
