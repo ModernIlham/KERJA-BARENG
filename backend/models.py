@@ -151,6 +151,12 @@ class DokumenSumberCreate(BaseModel):
     ppk_id: Optional[str] = None
     ppk_nama: Optional[str] = None
     
+    file_spm_url: Optional[str] = None
+    
+    # BAST Info
+    nomor_bast: Optional[str] = None
+    tanggal_bast: Optional[str] = None
+    file_bast_url: Optional[str] = None
     nama_penyedia: Optional[str] = None
     npwp_penyedia: Optional[str] = None
     
