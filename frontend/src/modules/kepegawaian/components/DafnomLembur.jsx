@@ -158,10 +158,6 @@ const DafnomLembur = ({ month, year }) => {
                             
                             {/* Header Row 3 - Column numbers */}
                             <tr className="bg-gray-100 text-[7px]">
-                                <th className="border border-black p-0 text-center">1</th>
-                                <th className="border border-black p-0 text-center">2</th>
-                                <th className="border border-black p-0 text-center">3</th>
-                                <th className="border border-black p-0 text-center">4</th>
                                 {[...Array(daysInMonth)].map((_, i) => (
                                     <th key={i} className="border border-black p-0 text-center">5</th>
                                 ))}
@@ -173,7 +169,6 @@ const DafnomLembur = ({ month, year }) => {
                                 <th className="border border-black p-0 text-center">11</th>
                                 <th className="border border-black p-0 text-center">12</th>
                                 <th className="border border-black p-0 text-center">13</th>
-                                <th className="border border-black p-0 text-center">14</th>
                             </tr>
                             
                             {/* Header Row 4 - Note about +/- symbols */}
