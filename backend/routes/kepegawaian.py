@@ -493,8 +493,13 @@ async def get_dafnom_data(month: str = None): # YYYY-MM
     all_requests = await cursor.to_list(length=5000)
     
     # Get pegawai bank account info
-    pegawai_cursor = db.pegawai.find({}, {"_id": 0, "id": 1, "nama_lengkap": 1, "no_rekening": 1, "bank": 1})
-    all_pegawai = {p['id']: p for p in await pegawai_cursor.to_list(length=5000)}
+    pegawai_cursor = db.pegawai.find({}, {"_id": 1, "id": 1, "nama_lengkap": 1, "no_rekening": 1, "bank": 1})
+    pegawai_list = await pegawai_cursor.to_list(length=5000)
+    all_pegawai = {}
+    for p in pegawai_list:
+        pid = p.get('id') or str(p.get('_id', ''))
+        if pid:
+            all_pegawai[pid] = p
     
     # Build employee-centric data with daily breakdown
     employees = {}
