@@ -104,6 +104,12 @@ class DokumenSumber(MongoBaseModel):
     nomor_spm: Optional[str] = None
     tanggal_spm: Optional[str] = None
     dokumen_attachments: List[Dict[str, Any]] = [] # [{"url": "/uploads/...", "original_name": "SPM.pdf"}]
+    file_spm_url: Optional[str] = None
+    
+    # BAST Info
+    nomor_bast: Optional[str] = None
+    tanggal_bast: Optional[str] = None
+    file_bast_url: Optional[str] = None
     
     # Template
     template_name: Optional[str] = None
