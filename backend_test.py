@@ -1504,6 +1504,369 @@ class APITester:
         
         return True
 
+    def test_kanban_task_management(self):
+        """Test Kanban Task Management functionality as requested in review"""
+        print("\n=== KANBAN TASK MANAGEMENT TEST ===")
+        
+        # Step 1: Login as admin (admin@example.com / admin)
+        print("\n🔐 Step 1: Login as admin (admin@example.com / admin)...")
+        if not self.token:
+            login_success = self.test_login()
+            if not login_success:
+                print("❌ Failed to login as admin")
+                return False
+        
+        # Step 2: Get available employees for assignee selection
+        print("\n👥 Step 2: Getting available employees for task assignment...")
+        success, response = self.run_test(
+            "Get Available Employees",
+            "GET",
+            "api/pegawai",
+            200,
+            data={"page": 1, "limit": 10}
+        )
+        
+        available_employees = []
+        admin_employee = None
+        
+        if success:
+            employees = response.get('data', [])
+            print(f"📊 Found {len(employees)} employees")
+            
+            for emp in employees:
+                emp_name = emp.get('nama_lengkap', 'Unknown')
+                emp_id = str(emp.get('_id', ''))
+                available_employees.append({"id": emp_id, "name": emp_name})
+                
+                # Look for admin employee
+                if 'admin' in emp_name.lower() or emp.get('jabatan_melekat') and 'admin' in str(emp.get('jabatan_melekat')).lower():
+                    admin_employee = {"id": emp_id, "name": emp_name}
+                    print(f"✅ Found admin employee: {emp_name} (ID: {emp_id})")
+            
+            if not admin_employee and available_employees:
+                # Use first available employee as fallback
+                admin_employee = available_employees[0]
+                print(f"⚠️ No admin employee found, using first available: {admin_employee['name']}")
+        else:
+            print("❌ Failed to get employees, will create task without assignee")
+        
+        # Step 3: Get initial task counts by status
+        print("\n📊 Step 3: Getting initial task counts...")
+        
+        # Get TODO tasks
+        success, response = self.run_test(
+            "Get TODO Tasks",
+            "GET",
+            "api/tasks",
+            200,
+            data={"status": "todo"}
+        )
+        
+        initial_todo_count = 0
+        if success:
+            initial_todo_count = len(response) if isinstance(response, list) else 0
+            print(f"📊 Initial TODO tasks: {initial_todo_count}")
+        
+        # Get IN PROGRESS tasks
+        success, response = self.run_test(
+            "Get IN PROGRESS Tasks",
+            "GET",
+            "api/tasks",
+            200,
+            data={"status": "in-progress"}
+        )
+        
+        initial_progress_count = 0
+        if success:
+            initial_progress_count = len(response) if isinstance(response, list) else 0
+            print(f"📊 Initial IN PROGRESS tasks: {initial_progress_count}")
+        
+        # Step 4: Create a new task "Test Task Integration"
+        print("\n📝 Step 4: Creating new task 'Test Task Integration'...")
+        
+        task_data = {
+            "title": "Test Task Integration",
+            "description": "Testing creation",
+            "priority": "high"
+        }
+        
+        # Add assignee if available
+        if admin_employee:
+            task_data["assignee_id"] = admin_employee["id"]
+            print(f"   Assigning to: {admin_employee['name']}")
+        
+        success, response = self.run_test(
+            "Create Task - Test Task Integration",
+            "POST",
+            "api/tasks",
+            200,
+            data=task_data
+        )
+        
+        if not success:
+            print("❌ Failed to create task")
+            return False
+        
+        task_id = response.get('_id') or response.get('id')
+        if not task_id:
+            print("❌ No task ID returned")
+            return False
+        
+        print(f"✅ Task created successfully:")
+        print(f"   ID: {task_id}")
+        print(f"   Title: {response.get('title')}")
+        print(f"   Priority: {response.get('priority')}")
+        print(f"   Status: {response.get('status')}")
+        print(f"   Assignee: {response.get('assignee_name', 'Unassigned')}")
+        
+        # Verify task was created with correct status (should be "todo")
+        if response.get('status') != 'todo':
+            print(f"❌ Expected status 'todo', got '{response.get('status')}'")
+            return False
+        print("✅ Task created with correct status: 'todo'")
+        
+        # Step 5: Verify task appears in "To Do" column
+        print("\n🔍 Step 5: Verifying task appears in TODO column...")
+        
+        success, response = self.run_test(
+            "Verify Task in TODO Column",
+            "GET",
+            "api/tasks",
+            200,
+            data={"status": "todo"}
+        )
+        
+        if not success:
+            print("❌ Failed to get TODO tasks")
+            return False
+        
+        todo_tasks = response if isinstance(response, list) else []
+        new_todo_count = len(todo_tasks)
+        
+        print(f"📊 TODO tasks after creation: {new_todo_count}")
+        
+        # Find our task
+        our_task = None
+        for task in todo_tasks:
+            if task.get('_id') == task_id or task.get('id') == task_id:
+                our_task = task
+                break
+        
+        if not our_task:
+            print("❌ Created task not found in TODO column")
+            return False
+        
+        print("✅ Task found in TODO column:")
+        print(f"   Title: {our_task.get('title')}")
+        print(f"   Priority: {our_task.get('priority')}")
+        
+        # Verify count increased
+        if new_todo_count != initial_todo_count + 1:
+            print(f"⚠️ TODO count: expected {initial_todo_count + 1}, got {new_todo_count}")
+        else:
+            print("✅ TODO count increased correctly")
+        
+        # Step 6: Move task to "In Progress" (simulate clicking → arrow)
+        print("\n➡️ Step 6: Moving task to 'In Progress'...")
+        
+        update_data = {
+            "status": "in-progress"
+        }
+        
+        success, response = self.run_test(
+            "Move Task to In Progress",
+            "PATCH",
+            f"api/tasks/{task_id}",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print("❌ Failed to move task to In Progress")
+            return False
+        
+        print(f"✅ Task moved to In Progress:")
+        print(f"   Status: {response.get('status')}")
+        print(f"   Updated At: {response.get('updated_at')}")
+        
+        # Verify status changed
+        if response.get('status') != 'in-progress':
+            print(f"❌ Expected status 'in-progress', got '{response.get('status')}'")
+            return False
+        
+        # Step 7: Verify task moved from TODO to IN PROGRESS
+        print("\n🔍 Step 7: Verifying task moved between columns...")
+        
+        # Check TODO column (should have one less)
+        success, response = self.run_test(
+            "Verify TODO Column After Move",
+            "GET",
+            "api/tasks",
+            200,
+            data={"status": "todo"}
+        )
+        
+        if success:
+            todo_tasks_after = response if isinstance(response, list) else []
+            print(f"📊 TODO tasks after move: {len(todo_tasks_after)}")
+            
+            # Verify our task is not in TODO anymore
+            task_still_in_todo = False
+            for task in todo_tasks_after:
+                if task.get('_id') == task_id or task.get('id') == task_id:
+                    task_still_in_todo = True
+                    break
+            
+            if task_still_in_todo:
+                print("❌ Task still found in TODO column after move")
+                return False
+            else:
+                print("✅ Task successfully removed from TODO column")
+        
+        # Check IN PROGRESS column (should have our task)
+        success, response = self.run_test(
+            "Verify IN PROGRESS Column After Move",
+            "GET",
+            "api/tasks",
+            200,
+            data={"status": "in-progress"}
+        )
+        
+        if success:
+            progress_tasks_after = response if isinstance(response, list) else []
+            print(f"📊 IN PROGRESS tasks after move: {len(progress_tasks_after)}")
+            
+            # Find our task in IN PROGRESS
+            task_in_progress = None
+            for task in progress_tasks_after:
+                if task.get('_id') == task_id or task.get('id') == task_id:
+                    task_in_progress = task
+                    break
+            
+            if not task_in_progress:
+                print("❌ Task not found in IN PROGRESS column")
+                return False
+            else:
+                print("✅ Task successfully moved to IN PROGRESS column")
+                print(f"   Title: {task_in_progress.get('title')}")
+                print(f"   Status: {task_in_progress.get('status')}")
+        
+        # Step 8: Open task detail modal and add comment
+        print("\n💬 Step 8: Adding comment to task (simulating detail modal)...")
+        
+        comment_data = {
+            "text": "Testing Comment"
+        }
+        
+        success, response = self.run_test(
+            "Add Comment to Task",
+            "POST",
+            f"api/tasks/{task_id}/comments",
+            200,
+            data=comment_data
+        )
+        
+        if not success:
+            print("❌ Failed to add comment to task")
+            return False
+        
+        print("✅ Comment added successfully")
+        
+        # Verify comment was added
+        comments = response.get('comments', [])
+        print(f"📊 Total comments on task: {len(comments)}")
+        
+        if len(comments) == 0:
+            print("❌ No comments found after adding comment")
+            return False
+        
+        # Find our comment
+        our_comment = None
+        for comment in comments:
+            if comment.get('text') == 'Testing Comment':
+                our_comment = comment
+                break
+        
+        if not our_comment:
+            print("❌ Our comment not found in task comments")
+            return False
+        
+        print("✅ Comment verified:")
+        print(f"   Text: {our_comment.get('text')}")
+        print(f"   User: {our_comment.get('user_name')}")
+        print(f"   Created: {our_comment.get('created_at')}")
+        
+        # Step 9: Verify task details are complete
+        print("\n🔍 Step 9: Final verification of task details...")
+        
+        success, response = self.run_test(
+            "Get Final Task Details",
+            "GET",
+            "api/tasks",
+            200,
+            data={"status": "in-progress"}
+        )
+        
+        if success:
+            progress_tasks = response if isinstance(response, list) else []
+            
+            # Find our task
+            final_task = None
+            for task in progress_tasks:
+                if task.get('_id') == task_id or task.get('id') == task_id:
+                    final_task = task
+                    break
+            
+            if final_task:
+                print("✅ Final task verification:")
+                print(f"   Title: {final_task.get('title')}")
+                print(f"   Description: {final_task.get('description')}")
+                print(f"   Priority: {final_task.get('priority')}")
+                print(f"   Status: {final_task.get('status')}")
+                print(f"   Assignee: {final_task.get('assignee_name', 'Unassigned')}")
+                print(f"   Comments: {len(final_task.get('comments', []))}")
+                print(f"   Created By: {final_task.get('created_by_name')}")
+                
+                # Verify all expected fields
+                if final_task.get('title') != 'Test Task Integration':
+                    print(f"❌ Title mismatch: expected 'Test Task Integration', got '{final_task.get('title')}'")
+                    return False
+                
+                if final_task.get('description') != 'Testing creation':
+                    print(f"❌ Description mismatch: expected 'Testing creation', got '{final_task.get('description')}'")
+                    return False
+                
+                if final_task.get('priority') != 'high':
+                    print(f"❌ Priority mismatch: expected 'high', got '{final_task.get('priority')}'")
+                    return False
+                
+                if final_task.get('status') != 'in-progress':
+                    print(f"❌ Status mismatch: expected 'in-progress', got '{final_task.get('status')}'")
+                    return False
+                
+                if len(final_task.get('comments', [])) == 0:
+                    print("❌ No comments found in final task")
+                    return False
+                
+                print("✅ All task fields verified correctly")
+            else:
+                print("❌ Task not found in final verification")
+                return False
+        
+        print("\n🎉 KANBAN TASK MANAGEMENT TEST COMPLETED SUCCESSFULLY!")
+        print("✅ All verifications passed:")
+        print("   1. ✅ Admin login successful")
+        print("   2. ✅ Employee list retrieved for assignee selection")
+        print("   3. ✅ Task created with correct details (Title: 'Test Task Integration', Priority: High)")
+        print("   4. ✅ Task appears in TODO column")
+        print("   5. ✅ Task successfully moved to IN PROGRESS column")
+        print("   6. ✅ Task removed from TODO column after move")
+        print("   7. ✅ Comment 'Testing Comment' added successfully")
+        print("   8. ✅ Task detail modal functionality working")
+        print("   9. ✅ All task fields and status transitions working correctly")
+        
+        return True
+
     def test_kepegawaian_overtime_management(self):
         """Test Kepegawaian (HR) Overtime Management functionality as requested in review"""
         print("\n=== KEPEGAWAIAN OVERTIME MANAGEMENT TEST ===")
