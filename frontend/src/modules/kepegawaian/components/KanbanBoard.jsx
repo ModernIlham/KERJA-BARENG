@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, MoreHorizontal, Calendar, User, MessageSquare } from 'lucide-react';
+import { Plus, MoreHorizontal, Calendar, User, MessageSquare, Search, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -46,8 +46,8 @@ const KanbanColumn = ({ title, tasks, status, color, onStatusChange, onTaskClick
               <p className="font-medium text-sm mb-2 line-clamp-2">{task.title}</p>
               
               {task.related_asset_name && (
-                  <div className="text-xs text-slate-500 mb-2 bg-slate-100 p-1 rounded truncate">
-                      📦 {task.related_asset_name}
+                  <div className="text-xs text-slate-500 mb-2 bg-slate-100 p-1 rounded truncate flex items-center gap-1">
+                      <Box size={10} /> {task.related_asset_name}
                   </div>
               )}
 
@@ -55,11 +55,18 @@ const KanbanColumn = ({ title, tasks, status, color, onStatusChange, onTaskClick
                 <div className="flex items-center gap-1">
                     <User size={12}/> {task.assignee_name ? task.assignee_name.split(' ')[0] : 'Unassigned'}
                 </div>
-                {task.due_date && (
-                    <div className="flex items-center gap-1 text-orange-600">
-                        <Calendar size={12}/> {format(new Date(task.due_date), 'd MMM', {locale: id})}
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    {task.comments && task.comments.length > 0 && (
+                        <span className="flex items-center gap-1 text-slate-400">
+                            <MessageSquare size={12}/> {task.comments.length}
+                        </span>
+                    )}
+                    {task.due_date && (
+                        <div className="flex items-center gap-1 text-orange-600">
+                            <Calendar size={12}/> {format(new Date(task.due_date), 'd MMM', {locale: id})}
+                        </div>
+                    )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -87,9 +94,11 @@ const KanbanBoard = () => {
       title: '', description: '', priority: 'medium', due_date: '', assignee_id: '', related_asset_id: ''
   });
   
-  // Data for Dropdowns
+  // Data for Dropdowns & Search
   const [employees, setEmployees] = useState([]);
-  const [assets, setAssets] = useState([]); // Simplified for now
+  const [assets, setAssets] = useState([]);
+  const [assetSearch, setAssetSearch] = useState('');
+  const [searchingAssets, setSearchingAssets] = useState(false);
 
   useEffect(() => {
       fetchTasks();
@@ -109,15 +118,32 @@ const KanbanBoard = () => {
   
   const fetchEmployees = async () => {
       try {
-          // Assuming we have an endpoint or reusing existing list logic
-          // For now, let's try fetching from pegawai list if available or users
-          // We'll mock if API not ready, but we have /api/pegawai
           const res = await api.get('/api/pegawai/'); 
           if(res.data.data) setEmployees(res.data.data);
       } catch (e) {
           console.error("Fetch employees failed", e);
       }
   };
+
+  // Search Assets
+  useEffect(() => {
+      if(assetSearch.length >= 3) {
+          const delayDebounceFn = setTimeout(async () => {
+              setSearchingAssets(true);
+              try {
+                  const res = await api.get('/api/barang', { params: { search: assetSearch, limit: 10 } });
+                  setAssets(res.data.data);
+              } catch (e) {
+                  console.error("Search assets failed", e);
+              } finally {
+                  setSearchingAssets(false);
+              }
+          }, 500);
+          return () => clearTimeout(delayDebounceFn);
+      } else {
+          setAssets([]);
+      }
+  }, [assetSearch]);
 
   const handleStatusChange = async (taskId, direction) => {
       const task = tasks.find(t => t.id === taskId);
@@ -146,6 +172,7 @@ const KanbanBoard = () => {
           toast.success("Tugas dibuat");
           setIsAddOpen(false);
           setFormData({ title: '', description: '', priority: 'medium', due_date: '', assignee_id: '', related_asset_id: '' });
+          setAssetSearch('');
           fetchTasks();
       } catch (e) {
           toast.error("Gagal membuat tugas");
@@ -214,6 +241,48 @@ const KanbanBoard = () => {
                         <Label>Judul Tugas</Label>
                         <Input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Contoh: Perbaikan AC Ruang Server" />
                     </div>
+                    
+                    {/* Link Asset Section */}
+                    <div className="space-y-2">
+                        <Label>Tautkan Aset (Opsional)</Label>
+                        <div className="relative">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                            <Input 
+                                placeholder="Cari aset (min 3 huruf)..." 
+                                className="pl-8" 
+                                value={assetSearch}
+                                onChange={e => {
+                                    setAssetSearch(e.target.value);
+                                    if(e.target.value === '') setFormData({...formData, related_asset_id: ''});
+                                }}
+                            />
+                        </div>
+                        {searchingAssets && <div className="text-xs text-gray-500">Mencari...</div>}
+                        {assets.length > 0 && assetSearch && (
+                            <div className="border rounded-md max-h-32 overflow-y-auto bg-white absolute w-full z-10 shadow-lg">
+                                {assets.map(asset => (
+                                    <div 
+                                        key={asset._id} 
+                                        className="p-2 hover:bg-blue-50 cursor-pointer text-sm border-b"
+                                        onClick={() => {
+                                            setFormData({...formData, related_asset_id: asset._id});
+                                            setAssetSearch(`${asset.nama_barang} (${asset.kode_barang})`);
+                                            setAssets([]);
+                                        }}
+                                    >
+                                        <div className="font-medium">{asset.nama_barang}</div>
+                                        <div className="text-xs text-gray-500">{asset.kode_barang} • {asset.nup}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {formData.related_asset_id && assetSearch && assets.length === 0 && !searchingAssets && (
+                             <div className="text-xs text-green-600 flex items-center gap-1">
+                                 <Box size={12}/> Aset terpilih
+                             </div>
+                        )}
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label>Prioritas</Label>
@@ -238,7 +307,7 @@ const KanbanBoard = () => {
                             <SelectTrigger><SelectValue placeholder="Pilih Pegawai" /></SelectTrigger>
                             <SelectContent>
                                 {employees.map(emp => (
-                                    <SelectItem key={emp.id} value={emp.id}>{emp.nama_lengkap}</SelectItem>
+                                    <SelectItem key={emp._id} value={emp._id}>{emp.nama_lengkap}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -267,36 +336,49 @@ const KanbanBoard = () => {
                     </p>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                            <span className="font-semibold block">Assignee</span>
-                            {selectedTask?.assignee_name || "-"}
+                            <span className="font-semibold block text-slate-500 text-xs uppercase mb-1">Assignee</span>
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold">
+                                    {selectedTask?.assignee_name ? selectedTask.assignee_name.charAt(0) : "U"}
+                                </div>
+                                {selectedTask?.assignee_name || "Unassigned"}
+                            </div>
                         </div>
                         <div>
-                            <span className="font-semibold block">Due Date</span>
-                            {selectedTask?.due_date ? format(new Date(selectedTask.due_date), 'dd MMM yyyy') : "-"}
+                            <span className="font-semibold block text-slate-500 text-xs uppercase mb-1">Due Date</span>
+                            {selectedTask?.due_date ? format(new Date(selectedTask.due_date), 'dd MMMM yyyy') : "-"}
                         </div>
                         {selectedTask?.related_asset_name && (
-                            <div className="col-span-2">
-                                <span className="font-semibold block">Aset Terkait</span>
-                                {selectedTask.related_asset_name} ({selectedTask.related_asset_kode})
+                            <div className="col-span-2 border rounded p-2 bg-blue-50 border-blue-100">
+                                <span className="font-semibold block text-blue-700 text-xs uppercase mb-1">Aset Terkait</span>
+                                <div className="flex items-center gap-2">
+                                    <Box className="text-blue-600" size={16}/>
+                                    <span className="font-medium">{selectedTask.related_asset_name}</span>
+                                    <span className="text-slate-500 text-xs">({selectedTask.related_asset_kode})</span>
+                                </div>
                             </div>
                         )}
                     </div>
                     
                     {/* Comments Section (Simplified) */}
                     <div className="border-t pt-4">
-                        <h4 className="font-semibold text-sm mb-2">Komentar</h4>
-                        <div className="max-h-[150px] overflow-y-auto space-y-2 mb-2">
+                        <h4 className="font-semibold text-sm mb-2 flex items-center gap-2"><MessageSquare size={14}/> Komentar</h4>
+                        <div className="max-h-[200px] overflow-y-auto space-y-3 mb-3 pr-2">
                             {selectedTask?.comments?.map((c, i) => (
-                                <div key={i} className="text-xs bg-gray-50 p-2 rounded">
-                                    <span className="font-bold">{c.user_name}:</span> {c.text}
+                                <div key={i} className="text-xs bg-gray-50 p-2 rounded border border-gray-100">
+                                    <div className="flex justify-between mb-1">
+                                        <span className="font-bold text-slate-700">{c.user_name}</span>
+                                        <span className="text-slate-400 text-[10px]">{format(new Date(c.created_at || Date.now()), 'd MMM HH:mm')}</span>
+                                    </div>
+                                    <p className="text-slate-600">{c.text}</p>
                                 </div>
                             ))}
                             {(!selectedTask?.comments || selectedTask.comments.length === 0) && (
-                                <p className="text-xs text-gray-400">Belum ada komentar.</p>
+                                <p className="text-xs text-gray-400 italic">Belum ada komentar.</p>
                             )}
                         </div>
                         <div className="flex gap-2">
-                            <Input placeholder="Tulis komentar..." className="h-8 text-xs" id="commentInput" />
+                            <Input placeholder="Tulis komentar..." className="h-9 text-sm" id="commentInput" />
                             <Button size="sm" onClick={async () => {
                                 const input = document.getElementById('commentInput');
                                 if(!input.value) return;
@@ -304,8 +386,18 @@ const KanbanBoard = () => {
                                     await api.post(`/api/tasks/${selectedTask.id}/comments`, { text: input.value });
                                     toast.success("Komentar ditambahkan");
                                     input.value = '';
-                                    fetchTasks(); // Refresh to show comment
-                                    setIsDetailOpen(false); // Close for now, simple implementation
+                                    fetchTasks(); // Refresh list to get updated data
+                                    
+                                    // Update modal local state
+                                    const updatedTask = {...selectedTask};
+                                    if(!updatedTask.comments) updatedTask.comments = [];
+                                    updatedTask.comments.push({
+                                        user_name: "Saya", // Optimistic
+                                        text: input.value,
+                                        created_at: new Date().toISOString()
+                                    });
+                                    setSelectedTask(updatedTask);
+                                    
                                 } catch(e) {
                                     toast.error("Gagal");
                                 }
