@@ -34,6 +34,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Minor: File upload endpoint expects multipart form data instead of JSON. Core overtime request submission working correctly. Both regular and holiday overtime requests submitted successfully."
+      - working: true
+        agent: "testing"
+        comment: "Frontend Integration Test: ✅ Overtime request submission via API works correctly. ✅ Requests appear in list immediately. ✅ File upload endpoint correctly expects multipart form data (not JSON). ✅ Error handling returns appropriate HTTP status codes. ✅ Validation system working. Frontend should use FormData for file uploads."
 
   - task: "List Overtime Requests"
     implemented: true
