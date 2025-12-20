@@ -21,14 +21,6 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# --- CONSTANTS (DEPRECATED - Moved to DB, kept as fallback) ---
-RATE_ASN = {"I": 18000, "II": 24000, "III": 30000, "IV": 36000}
-RATE_NON_ASN = 13000
-UANG_MAKAN_ASN_1_2 = 35000
-UANG_MAKAN_ASN_3 = 37000
-UANG_MAKAN_ASN_4 = 41000
-UANG_MAKAN_NON_ASN = 30000
-
 # --- HELPERS ---
 async def get_overtime_settings():
     settings = await db.overtime_settings.find_one({"key": "overtime_rates"})
@@ -39,7 +31,7 @@ async def get_overtime_settings():
         return default_settings
     return OvertimeSettings(**settings)
 
-async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False):
+async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False, sub_kategori=None, job_title=""):
     settings = await get_overtime_settings()
     
     rate = 0
@@ -74,7 +66,54 @@ async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False)
         
     else:
         # NON-ASN
-        rate = settings.rate_non_asn
+        # Determine Rate based on sub_kategori or job_title
+        category = "ppnpn" # Default
+        
+        # 1. Check Explicit Sub Category
+        if sub_kategori:
+            cat_map = {
+                "Satpam": "satpam",
+                "Supir": "supir",
+                "Pramubakti": "pramubakti",
+                "Konsultan Individu": "konsultan",
+                "Tenaga Ahli": "tenaga_ahli",
+                "Teknisi": "teknisi",
+                "PPNPN": "ppnpn"
+            }
+            category = cat_map.get(sub_kategori, "ppnpn")
+        
+        # 2. If no explicit sub_kategori, guess from job_title (jabatan)
+        elif job_title:
+            jt_lower = job_title.lower()
+            if "satpam" in jt_lower or "security" in jt_lower: category = "satpam"
+            elif "supir" in jt_lower or "driver" in jt_lower or "pengemudi" in jt_lower: category = "supir"
+            elif "pramubakti" in jt_lower or "ob" in jt_lower or "cleaning" in jt_lower: category = "pramubakti"
+            elif "konsultan" in jt_lower: category = "konsultan"
+            elif "ahli" in jt_lower: category = "tenaga_ahli"
+            elif "teknisi" in jt_lower: category = "teknisi"
+            
+        # Get Rate
+        if category == "satpam": 
+            rate = settings.rate_non_asn_satpam
+            if duration >= 2: meal = settings.meal_non_asn_satpam
+        elif category == "supir": 
+            rate = settings.rate_non_asn_supir
+            if duration >= 2: meal = settings.meal_non_asn_supir
+        elif category == "pramubakti": 
+            rate = settings.rate_non_asn_pramubakti
+            if duration >= 2: meal = settings.meal_non_asn_pramubakti
+        elif category == "konsultan": 
+            rate = settings.rate_non_asn_konsultan
+            if duration >= 2: meal = settings.meal_non_asn_konsultan
+        elif category == "tenaga_ahli": 
+            rate = settings.rate_non_asn_tenaga_ahli
+            if duration >= 2: meal = settings.meal_non_asn_tenaga_ahli
+        elif category == "teknisi": 
+            rate = settings.rate_non_asn_teknisi
+            if duration >= 2: meal = settings.meal_non_asn_teknisi
+        else: 
+            rate = settings.rate_non_asn_ppnpn
+            if duration >= 2: meal = settings.meal_non_asn_ppnpn
         
         # Calculation Logic (Depnaker/Omnibus)
         hours = duration
@@ -92,10 +131,6 @@ async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False)
             else:
                 gross = (1 * 1.5 * rate) + ((hours - 1) * 2 * rate)
         
-        # Meal Allowance
-        if duration >= 2:
-            meal = settings.meal_non_asn
-            
         tax_rate = settings.tax_non_asn
     
     total_gross = gross + meal
@@ -324,8 +359,19 @@ async def request_overtime(req: OvertimeCreate, current_user: User = Depends(get
         if match:
             grade = match.group(1) 
     
+    # Get Sub Kategori if exists (NEW)
+    sub_kategori = pegawai.get('sub_kategori')
+    jabatan = pegawai.get('jabatan', "")
+    
     # USE NEW DYNAMIC CALCULATION
-    rate, meal, gross, tax, net = await calculate_overtime_pay_v2(emp_type, grade, duration, req.is_holiday)
+    rate, meal, gross, tax, net = await calculate_overtime_pay_v2(
+        emp_type, 
+        grade, 
+        duration, 
+        req.is_holiday,
+        sub_kategori,
+        jabatan
+    )
     
     new_ot = OvertimeRequest(
         user_id=str(current_user.id),
@@ -334,6 +380,7 @@ async def request_overtime(req: OvertimeCreate, current_user: User = Depends(get
         nip=pegawai.get('nip'),
         employee_type=emp_type,
         grade=grade,
+        sub_kategori=sub_kategori, # Save snapshot
         date=req.date,
         is_holiday=req.is_holiday,
         start_time=req.start_time,
@@ -404,6 +451,7 @@ async def recap_overtime(month: str = None): # YYYY-MM
             "nip": {"$first": "$nip"},
             "type": {"$first": "$employee_type"},
             "grade": {"$first": "$grade"},
+            "sub_kategori": {"$first": "$sub_kategori"}, # Include in recap
             "totalHours": {"$sum": "$duration_hours"},
             "rate": {"$avg": "$rate_per_hour"},
             "mealAllowance": {"$sum": "$meal_allowance"},

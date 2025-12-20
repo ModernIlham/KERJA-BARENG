@@ -12,13 +12,33 @@ class OvertimeSettings(MongoBaseModel):
     rate_asn_gol_3: float = 30000
     rate_asn_gol_4: float = 36000
     
-    # Non ASN Rate (per hour)
+    # Non ASN Rates (per hour) - INDEPENDENT CATEGORIES
+    rate_non_asn_ppnpn: float = 13000 # Default General
+    rate_non_asn_konsultan: float = 13000
+    rate_non_asn_tenaga_ahli: float = 13000
+    rate_non_asn_teknisi: float = 13000
+    rate_non_asn_pramubakti: float = 13000
+    rate_non_asn_satpam: float = 13000
+    rate_non_asn_supir: float = 13000
+    
+    # Legacy/Fallback (if no category matches)
     rate_non_asn: float = 13000
     
     # Meal Allowances (per day/occurrence)
     meal_asn_gol_1_2: float = 35000
     meal_asn_gol_3: float = 37000
     meal_asn_gol_4: float = 41000
+    
+    # Non ASN Meal Allowances - INDEPENDENT
+    meal_non_asn_ppnpn: float = 30000
+    meal_non_asn_konsultan: float = 30000
+    meal_non_asn_tenaga_ahli: float = 30000
+    meal_non_asn_teknisi: float = 30000
+    meal_non_asn_pramubakti: float = 30000
+    meal_non_asn_satpam: float = 30000
+    meal_non_asn_supir: float = 30000
+    
+    # Legacy/Fallback
     meal_non_asn: float = 30000
     
     # Tax Rates
@@ -50,11 +70,12 @@ class OvertimeRequest(MongoBaseModel):
     user_id: str
     pegawai_id: str
     nama_lengkap: str
-    nip: Optional[str] = None # Added NIP for Dafnom
+    nip: Optional[str] = None
     
     # Snapshot of employee data at time of request (for calc stability)
     employee_type: str # ASN / NON_ASN
     grade: Optional[str] = None # Golongan or Level
+    sub_kategori: Optional[str] = None # NEW: Satpam, Supir, etc.
     
     date: str # YYYY-MM-DD
     is_holiday: bool = False

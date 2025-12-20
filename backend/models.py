@@ -376,6 +376,7 @@ class Pegawai(MongoBaseModel):
     
     # Atribut & Status
     status_kepegawaian: Optional[str] = None # PNS, PPPK, Non-ASN
+    sub_kategori: Optional[str] = None # NEW: Satpam, Supir, PPNPN, etc.
     kategori_pegawai: Optional[str] = None # Struktural, Fungsional, Pelaksana
     status_penempatan: Optional[str] = None # Pusat, Daerah, Penugasan
     status_jabatan: Optional[str] = None # Definitif, Plt, Plh
@@ -421,6 +422,7 @@ class PegawaiCreate(BaseModel):
     jabatan_melekat: List[str] = []
     
     status_kepegawaian: Optional[str] = None
+    sub_kategori: Optional[str] = None # NEW
     kategori_pegawai: Optional[str] = None
     status_penempatan: Optional[str] = None
     status_jabatan: Optional[str] = None
