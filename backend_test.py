@@ -1459,7 +1459,7 @@ class APITester:
         
         # First, let's create a test asset to search for
         test_asset_data = {
-            "kode_barang": "5030101001000001",  # Asset code starting with 5 (not 1)
+            "kode_barang": f"503010100100{timestamp % 10000:04d}",  # Unique asset code
             "nama_barang": "Test Asset for Search",
             "merk": "Test Brand",
             "kondisi": "Baik",
