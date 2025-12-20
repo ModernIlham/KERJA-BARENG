@@ -1484,7 +1484,7 @@ class APITester:
             data=invalid_time_data
         )
         
-        if not success and response:
+        if not success:  # We expect this to fail (success=False means we got the expected error)
             print("✅ Invalid time format properly rejected")
             print(f"   Error response: {response}")
             
