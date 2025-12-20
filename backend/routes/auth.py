@@ -68,3 +68,8 @@ async def register(user_in: UserCreate):
     
     access_token = create_access_token(data={"sub": user_in.email})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
