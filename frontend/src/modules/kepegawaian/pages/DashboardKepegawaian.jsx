@@ -1,17 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AbsensiWidget from '../components/AbsensiWidget';
 import KanbanBoard from '../components/KanbanBoard';
-import { Users, Clock, AlertCircle, TrendingUp, CalendarCheck } from 'lucide-react';
+import { Users, Clock, AlertCircle, TrendingUp, CalendarCheck, Loader2 } from 'lucide-react';
 import { PageContainer, PageHeader } from '@/components/ui/page-layout';
+import api from '../../../api/axios';
 
 const DashboardKepegawaian = () => {
-  const stats = [
-    { title: 'Total Pegawai', value: '142', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Hadir Hari Ini', value: '128', icon: CalendarCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { title: 'Izin / Sakit', value: '14', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { title: 'Total Jam Lembur', value: '420 Jam', icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-50' },
+  const [stats, setStats] = useState({
+      total_employees: 0,
+      present_today: 0,
+      on_leave: 0,
+      overtime_hours: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+      const fetchStats = async () => {
+          try {
+              const res = await api.get('/api/kepegawaian/dashboard-stats');
+              setStats(res.data);
+          } catch (e) {
+              console.error("Failed to fetch stats", e);
+          } finally {
+              setLoading(false);
+          }
+      };
+      fetchStats();
+  }, []);
+
+  const statCards = [
+    { title: 'Total Pegawai', value: stats.total_employees, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { title: 'Hadir Hari Ini', value: stats.present_today, icon: CalendarCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { title: 'Izin / Sakit', value: stats.on_leave, icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { title: 'Total Jam Lembur', value: `${stats.overtime_hours} Jam`, icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-50' },
   ];
+
+  if (loading) {
+      return (
+          <div className="flex h-screen items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+      );
+  }
 
   return (
     <PageContainer>
@@ -21,7 +52,7 @@ const DashboardKepegawaian = () => {
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => (
+        {statCards.map((stat, i) => (
           <Card key={i} className="border-slate-200 shadow-sm hover:shadow-md transition-all">
             <CardContent className="p-6 flex items-center gap-4">
               <div className={`p-3 rounded-full ${stat.bg}`}>
