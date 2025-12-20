@@ -1727,7 +1727,7 @@ class APITester:
         success, response = self.run_test(
             "Verify IN PROGRESS Column After Move",
             "GET",
-            "api/tasks",
+            "api/tasks/",
             200,
             data={"status": "in-progress"}
         )
