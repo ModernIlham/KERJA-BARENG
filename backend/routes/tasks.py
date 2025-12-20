@@ -20,9 +20,9 @@ db = client[os.environ['DB_NAME']]
 async def get_tasks(
     status: Optional[str] = None,
     assignee_id: Optional[str] = None,
-    related_asset_id: Optional[str] = None
+    related_asset_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
 ):
-    # Temporarily remove auth for testing
     query = {}
     if status:
         query["status"] = status
@@ -31,49 +31,56 @@ async def get_tasks(
     if related_asset_id:
         query["related_asset_id"] = related_asset_id
         
-    # Optional: If not admin, maybe only show own tasks? 
-    # For now, "Team Tasks" implies visibility for all authorized users.
-    
     cursor = db.tasks.find(query).sort("updated_at", -1)
     tasks = await cursor.to_list(length=1000)
+    
+    # Map _id to id for all tasks
+    for task in tasks:
+        if "_id" in task:
+            task["id"] = str(task["_id"])
+            del task["_id"]
+            
     return tasks
 
 @router.post("/", response_model=Task)
-async def create_task(task_in: TaskCreate):
-    # Temporarily hardcode user for testing
-    current_user_id = "693eab2acbfc67c348f5c751"  # Admin user ID
-    current_user_name = "Administrator"
-    
+async def create_task(task_in: TaskCreate, current_user: User = Depends(get_current_user)):
     # Fetch Assignee Name if provided
     assignee_name = None
     assignee_avatar = None
     
     if task_in.assignee_id:
-        assignee = await db.users.find_one({"_id": ObjectId(task_in.assignee_id)})
-        # Or check pegawai if assignee_id is pegawai_id. 
-        # Let's assume frontend sends User ID for now.
-        if not assignee:
-             # Try Pegawai ID
-             pegawai = await db.pegawai.find_one({"_id": ObjectId(task_in.assignee_id)})
-             if pegawai:
-                 assignee_name = pegawai.get('nama_lengkap')
-                 assignee_avatar = pegawai.get('foto_url')
-        else:
-            assignee_name = assignee.get('full_name')
+        # Check User first
+        try:
+            assignee = await db.users.find_one({"_id": ObjectId(task_in.assignee_id)})
+            if assignee:
+                assignee_name = assignee.get('full_name')
+            else:
+                # Check Pegawai
+                pegawai = await db.pegawai.find_one({"_id": ObjectId(task_in.assignee_id)})
+                if pegawai:
+                    assignee_name = pegawai.get('nama_lengkap')
+                    assignee_avatar = pegawai.get('foto_url')
+        except:
+            # Maybe assignee_id is not an ObjectId but a string ID from another system?
+            # Assuming ObjectId for now as per project standard
+            pass
             
     # Fetch Asset Info if provided
     asset_name = None
     asset_kode = None
     if task_in.related_asset_id:
-        # Check Barang (Fixed Asset)
-        asset = await db.barang.find_one({"_id": ObjectId(task_in.related_asset_id)})
-        if not asset:
-            # Check Persediaan
-            asset = await db.persediaan.find_one({"_id": ObjectId(task_in.related_asset_id)})
-            
-        if asset:
-            asset_name = asset.get('nama_barang')
-            asset_kode = asset.get('kode_barang')
+        try:
+            # Check Barang (Fixed Asset)
+            asset = await db.barang.find_one({"_id": ObjectId(task_in.related_asset_id)})
+            if not asset:
+                # Check Persediaan
+                asset = await db.persediaan.find_one({"_id": ObjectId(task_in.related_asset_id)})
+                
+            if asset:
+                asset_name = asset.get('nama_barang')
+                asset_kode = asset.get('kode_barang')
+        except:
+            pass
 
     new_task = Task(
         title=task_in.title,
@@ -87,17 +94,20 @@ async def create_task(task_in: TaskCreate):
         related_asset_id=task_in.related_asset_id,
         related_asset_name=asset_name,
         related_asset_kode=asset_kode,
-        created_by_id=current_user_id,
-        created_by_name=current_user_name,
+        created_by_id=str(current_user.id),
+        created_by_name=current_user.full_name,
         tags=task_in.tags
     )
     
     res = await db.tasks.insert_one(new_task.model_dump(by_alias=True, exclude=["id"]))
     created_task = await db.tasks.find_one({"_id": res.inserted_id})
+    if created_task:
+        created_task["id"] = str(created_task["_id"])
+        del created_task["_id"]
     return created_task
 
 @router.patch("/{task_id}", response_model=Task)
-async def update_task(task_id: str, update_in: TaskUpdate):
+async def update_task(task_id: str, update_in: TaskUpdate, current_user: User = Depends(get_current_user)):
     task = await db.tasks.find_one({"_id": ObjectId(task_id)})
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -107,36 +117,41 @@ async def update_task(task_id: str, update_in: TaskUpdate):
     
     # If assignee changed, update name
     if 'assignee_id' in update_data and update_data['assignee_id']:
-         # Same logic as create
-         assignee = await db.users.find_one({"_id": ObjectId(update_data['assignee_id'])})
-         if assignee:
-             update_data['assignee_name'] = assignee.get('full_name')
+         try:
+             assignee = await db.users.find_one({"_id": ObjectId(update_data['assignee_id'])})
+             if assignee:
+                 update_data['assignee_name'] = assignee.get('full_name')
+             else:
+                 pegawai = await db.pegawai.find_one({"_id": ObjectId(update_data['assignee_id'])})
+                 if pegawai:
+                     update_data['assignee_name'] = pegawai.get('nama_lengkap')
+         except:
+             pass
     
     await db.tasks.update_one({"_id": ObjectId(task_id)}, {"$set": update_data})
     
     updated_task = await db.tasks.find_one({"_id": ObjectId(task_id)})
+    if updated_task:
+        updated_task["id"] = str(updated_task["_id"])
+        del updated_task["_id"]
     return updated_task
 
 @router.delete("/{task_id}")
-async def delete_task(task_id: str):
+async def delete_task(task_id: str, current_user: User = Depends(get_current_user)):
     res = await db.tasks.delete_one({"_id": ObjectId(task_id)})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"message": "Task deleted"}
 
 @router.post("/{task_id}/comments", response_model=Task)
-async def add_comment(task_id: str, comment_in: CommentCreate):
+async def add_comment(task_id: str, comment_in: CommentCreate, current_user: User = Depends(get_current_user)):
     task = await db.tasks.find_one({"_id": ObjectId(task_id)})
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
         
-    # Hardcode user for testing
-    current_user_id = "693eab2acbfc67c348f5c751"
-    current_user_name = "Administrator"
-        
     new_comment = TaskComment(
-        user_id=current_user_id,
-        user_name=current_user_name,
+        user_id=str(current_user.id),
+        user_name=current_user.full_name,
         text=comment_in.text
     )
     
@@ -146,4 +161,7 @@ async def add_comment(task_id: str, comment_in: CommentCreate):
     )
     
     updated_task = await db.tasks.find_one({"_id": ObjectId(task_id)})
+    if updated_task:
+        updated_task["id"] = str(updated_task["_id"])
+        del updated_task["_id"]
     return updated_task
