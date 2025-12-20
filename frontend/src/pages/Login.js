@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Building2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -23,58 +23,56 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
-      {/* Background Image Overlay */}
-      <div 
-        className="absolute inset-0 z-0 opacity-20"
-        style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1761792425134-7e09471c5b55?crop=entropy&cs=srgb&fm=jpg&q=85")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'grayscale(100%)'
-        }}
-      />
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden">
+        {/* Background Decorative Elements */}
+        <div className="absolute inset-0 z-0">
+            <div className="absolute top-0 left-0 w-full h-[50vh] bg-blue-600/10 skew-y-3 transform -translate-y-20" />
+            <div className="absolute bottom-0 right-0 w-full h-[50vh] bg-slate-200/50 -skew-y-3 transform translate-y-20" />
+        </div>
       
-      <div className="w-full max-w-md z-10 animate-in fade-in zoom-in duration-500">
+      <div className="w-full max-w-lg z-10 px-4">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 font-display">SIMAN-G</h1>
-          <p className="text-slate-400">Sistem Informasi Manajemen Aset Negara</p>
+            <div className="mx-auto w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-blue-600/20">
+                <Building2 className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2 font-display tracking-tight">SIMAN-G</h1>
+            <p className="text-slate-500">Sistem Informasi Manajemen Aset Negara & Kepegawaian</p>
         </div>
 
-        <Card className="border-slate-800 bg-slate-900/90 backdrop-blur-xl shadow-2xl">
-          <CardHeader>
-            <CardTitle className="text-xl text-white">Login</CardTitle>
-            <CardDescription className="text-slate-400">
-              Masukan email dan password untuk mengakses sistem
+        <Card className="border-slate-200 shadow-xl bg-white/80 backdrop-blur-sm">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-xl text-slate-900">Selamat Datang</CardTitle>
+            <CardDescription className="text-slate-500">
+              Masukan kredensial akun anda untuk melanjutkan
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-200">Email</label>
+                <label className="text-sm font-medium text-slate-700">Email</label>
                 <Input
                   type="email"
                   placeholder="admin@example.com"
                   {...register('email', { required: 'Email wajib diisi' })}
-                  className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus:ring-amber-500 focus:border-amber-500"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-blue-500 focus:border-blue-500"
                 />
-                {errors.email && <span className="text-xs text-red-400">{errors.email.message}</span>}
+                {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-200">Password</label>
+                <label className="text-sm font-medium text-slate-700">Password</label>
                 <Input
                   type="password"
                   placeholder="••••••••"
                   {...register('password', { required: 'Password wajib diisi' })}
-                  className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus:ring-amber-500 focus:border-amber-500"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-blue-500 focus:border-blue-500"
                 />
-                {errors.password && <span className="text-xs text-red-400">{errors.password.message}</span>}
+                {errors.password && <span className="text-xs text-red-500">{errors.password.message}</span>}
               </div>
 
               <Button 
                 type="submit" 
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2.5 mt-4"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 mt-2 shadow-md shadow-blue-600/10"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -87,12 +85,12 @@ export default function Login() {
                 )}
               </Button>
             </form>
-            
-            <div className="mt-6 text-center text-xs text-slate-500">
-              &copy; 2025 Kementerian Keuangan Republik Indonesia
-            </div>
           </CardContent>
         </Card>
+        
+        <div className="mt-8 text-center text-xs text-slate-400">
+          &copy; 2025 Kementerian Keuangan Republik Indonesia
+        </div>
       </div>
     </div>
   );
