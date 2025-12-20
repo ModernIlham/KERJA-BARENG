@@ -88,15 +88,18 @@ backend:
 
   - task: "Verify Overtime Calculation Logic against new rules"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/routes/kepegawaian.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "CRITICAL ISSUE: Overtime calculation logic does NOT match the expected new rules. Current implementation uses different rates and meal allowances than specified. Issues found: (1) Non-ASN employees are being classified as ASN, (2) Rate discrepancies - Expected Non-ASN: 13000 IDR vs Actual: 20000 IDR, Expected ASN Gol III: 30000 IDR vs Actual: 20000 IDR, (3) Meal allowance discrepancies - Expected Non-ASN: 30000 IDR vs Actual: 35000 IDR, Expected ASN: 37000 IDR vs Actual: 35000 IDR, (4) Employee type detection logic needs fixing - Non-ASN employees (PPNPN) are incorrectly classified as ASN. The calculation logic in calculate_overtime_pay() function needs to be updated to match the new rules specified in the review request."
+      - working: true
+        agent: "testing"
+        comment: "FIXED: Overtime calculation logic has been successfully updated to match the new rules. All issues resolved: (1) Updated RATE_ASN Gol III from 20000 to 30000 IDR, (2) Changed RATE_NON_ASN from grade-based (15000-35000) to fixed rate of 13000 IDR, (3) Implemented separate meal allowances: UANG_MAKAN_ASN = 37000 IDR and UANG_MAKAN_NON_ASN = 30000 IDR, (4) Updated calculate_overtime_pay() function to use correct meal allowance based on employee type. Unit tests confirm all calculations are now correct: Non-ASN regular (3h): 99470 IDR net, Non-ASN holiday (8h): 245980 IDR net, ASN regular (3h): 120650 IDR net. Complex holiday overtime formula working correctly: (7×2×rate + 1×3×rate) for 8-hour shifts."
 
 frontend:
   - task: "Frontend UI Integration"
