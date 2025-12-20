@@ -31,6 +31,8 @@ class OvertimeRequest(MongoBaseModel):
     grade: Optional[str] = None # Golongan or Level
     
     date: str # YYYY-MM-DD
+    is_holiday: bool = False
+    
     start_time: str # HH:MM
     end_time: str # HH:MM
     duration_hours: float
@@ -49,14 +51,23 @@ class OvertimeRequest(MongoBaseModel):
     tax_amount: float = 0
     net_pay: float = 0
     
+    # Evidence
+    spl_file: Optional[str] = None
+    evidence_files: Optional[List[str]] = []
+    
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class OvertimeCreate(BaseModel):
     date: str
+    is_holiday: bool = False
     start_time: str
     end_time: str
     description: str
+    
+    # Files
+    spl_file: Optional[str] = None
+    evidence_files: Optional[List[str]] = []
 
 class ClockInRequest(BaseModel):
     photo: str # Base64 string or URL if handled separately
