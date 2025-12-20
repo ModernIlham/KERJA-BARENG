@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Loader2, Save, Search, CheckSquare, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { formatCurrency } from '../../lib/utils';
 
 export default function AssetOutgoingForm({ onSuccess }) {
     const [search, setSearch] = useState('');
@@ -50,7 +51,7 @@ export default function AssetOutgoingForm({ onSuccess }) {
         try {
             // Search only active assets
             const res = await api.get('/api/barang', {
-                params: { search, limit: 50, filter_kondisi: 'Baik' } // Assuming we only move Good items? Or allow all?
+                params: { search, limit: 50, filter_kondisi: 'Baik' } 
             });
             setAssets(res.data.data);
         } catch (e) {
@@ -96,13 +97,7 @@ export default function AssetOutgoingForm({ onSuccess }) {
                 toast.loading("Mengupload bukti...", { id: t });
                 const formDataFile = new FormData();
                 formDataFile.append('file', buktiFile);
-                // Need a bulk upload endpoint for general transactions? 
-                // Or loop?
-                // The backend currently supports `upload_bukti_transaksi` for single ID.
-                // We need `upload_bukti_bulk` for general transactions too? 
-                // Or just upload to the first one as reference.
-                // Let's loop for now (safest) or accept that we need to upgrade backend.
-                // For MVP: Upload to the first transaction ID.
+                
                 const firstId = res.data.ids[0];
                 await api.post(`/api/transaksi/${firstId}/upload-bukti`, formDataFile);
             }
@@ -148,8 +143,8 @@ export default function AssetOutgoingForm({ onSuccess }) {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="w-[30px]"></TableHead>
-                                        <TableHead>Aset</TableHead>
-                                        <TableHead>NUP</TableHead>
+                                        <TableHead>Kode Barang - NUP & Nama & Merk</TableHead>
+                                        <TableHead className="text-right">Tahun & Kondisi & Nilai</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -160,11 +155,22 @@ export default function AssetOutgoingForm({ onSuccess }) {
                                                     {selectedIds.has(a._id) && <CheckSquare size={10}/>}
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-xs">
-                                                <div className="font-bold">{a.nama_barang}</div>
-                                                <div className="text-slate-500">{a.kode_barang}</div>
+                                            <TableCell className="text-xs align-top">
+                                                <div className="font-bold text-slate-800">
+                                                    {a.kode_barang} - <span className="text-blue-600">NUP {a.nup}</span>
+                                                </div>
+                                                <div className="font-medium text-slate-700">{a.nama_barang}</div>
+                                                <div className="text-slate-500 italic">{a.merk || '-'} / {a.tipe || '-'}</div>
                                             </TableCell>
-                                            <TableCell className="text-xs">{a.nup}</TableCell>
+                                            <TableCell className="text-xs text-right align-top">
+                                                <div className="font-bold text-slate-800">{a.tahun_anggaran}</div>
+                                                <div className={`font-semibold ${a.kondisi === 'Baik' ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {a.kondisi}
+                                                </div>
+                                                <div className="text-slate-500 font-mono mt-1">
+                                                    {formatCurrency(a.nilai_perolehan)}
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                     {assets.length === 0 && <TableRow><TableCell colSpan={3} className="text-center py-4 text-slate-400">Belum ada data</TableCell></TableRow>}
