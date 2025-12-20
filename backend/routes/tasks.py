@@ -97,7 +97,7 @@ async def create_task(task_in: TaskCreate):
     return created_task
 
 @router.patch("/{task_id}", response_model=Task)
-async def update_task(task_id: str, update_in: TaskUpdate, current_user: User = Depends(get_current_user)):
+async def update_task(task_id: str, update_in: TaskUpdate):
     task = await db.tasks.find_one({"_id": ObjectId(task_id)})
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
