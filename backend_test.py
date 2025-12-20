@@ -11276,10 +11276,10 @@ def main():
 
 
 def main():
-    """Main function to run the frontend overtime integration test"""
+    """Main function to run the overtime calculation logic test"""
     tester = APITester()
     
-    print("🚀 Starting Frontend Overtime Integration Testing...")
+    print("🚀 Starting Overtime Calculation Logic Testing...")
     print("=" * 60)
     
     # Test login first
@@ -11287,9 +11287,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Frontend Overtime Integration test as requested in review
-    if not tester.test_frontend_overtime_integration():
-        print("❌ Frontend Overtime Integration test failed")
+    # Run the Overtime Calculation Logic test as requested in review
+    if not tester.test_overtime_calculation_logic():
+        print("❌ Overtime Calculation Logic test failed")
         return 1
     
     # Print summary
