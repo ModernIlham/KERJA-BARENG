@@ -11648,10 +11648,10 @@ def main():
 
 
 def main():
-    """Main function to run the overtime calculation logic test"""
+    """Main function to run the overtime settings and Dafnom features test"""
     tester = APITester()
     
-    print("🚀 Starting Overtime Calculation Logic Testing...")
+    print("🚀 Starting Overtime Settings and Dafnom Features Testing...")
     print("=" * 60)
     
     # Test login first
@@ -11659,9 +11659,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Overtime Calculation Logic test as requested in review
-    if not tester.test_overtime_calculation_logic():
-        print("❌ Overtime Calculation Logic test failed")
+    # Run the Overtime Settings and Dafnom test as requested in review
+    if not tester.test_overtime_settings_and_dafnom():
+        print("❌ Overtime Settings and Dafnom test failed")
         return 1
     
     # Print summary
