@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import RekapLemburTable from '../components/RekapLemburTable';
 import { toast } from 'sonner';
 import { PageContainer, PageHeader } from '@/components/ui/page-layout';
-import { CheckCircle2, XCircle, Clock, RefreshCcw } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, RefreshCcw, Upload, FileText, Image as ImageIcon } from 'lucide-react';
 import api from '../../../api/axios';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -26,7 +27,10 @@ const ManajemenLembur = () => {
       date: '',
       startTime: '',
       endTime: '',
-      description: ''
+      description: '',
+      is_holiday: false,
+      spl_file: null,
+      evidence_files: []
   });
 
   useEffect(() => {
@@ -40,8 +44,6 @@ const ManajemenLembur = () => {
 
   const fetchRequests = async () => {
       try {
-          // If admin, show pending requests. If user, show own history?
-          // The API endpoint /overtime handles filtering by role.
           const res = await api.get('/api/kepegawaian/overtime', {
               params: { status: activeTab === 'persetujuan' ? 'Pending' : undefined }
           });
@@ -60,16 +62,59 @@ const ManajemenLembur = () => {
       }
   };
 
+  const handleFileUpload = async (file, type) => {
+      const form = new FormData();
+      form.append('file', file);
+      form.append('type', type);
+      
+      try {
+          const res = await api.post('/api/kepegawaian/upload', form, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          return res.data.url;
+      } catch (e) {
+          toast.error("Gagal upload file");
+          throw e;
+      }
+  };
+
   const handleSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
+      const t = toast.loading("Mengirim pengajuan...");
+      
       try {
-          await api.post('/api/kepegawaian/overtime', formData);
-          toast.success("Pengajuan lembur berhasil dikirim");
-          setFormData({ date: '', startTime: '', endTime: '', description: '' });
-          if(activeTab === 'pengajuan') fetchRequests(); // Refresh list if showing history
+          let splUrl = null;
+          let evidenceUrls = [];
+
+          // Upload SPL
+          if (formData.spl_file) {
+              splUrl = await handleFileUpload(formData.spl_file, 'spl');
+          }
+
+          // Upload Evidence
+          if (formData.evidence_files.length > 0) {
+              for (const file of formData.evidence_files) {
+                  const url = await handleFileUpload(file, 'evidence');
+                  evidenceUrls.push(url);
+              }
+          }
+
+          const payload = {
+              ...formData,
+              spl_file: splUrl,
+              evidence_files: evidenceUrls
+          };
+
+          await api.post('/api/kepegawaian/overtime', payload);
+          toast.success("Pengajuan lembur berhasil dikirim", { id: t });
+          setFormData({ 
+              date: '', startTime: '', endTime: '', description: '', 
+              is_holiday: false, spl_file: null, evidence_files: [] 
+          });
+          if(activeTab === 'pengajuan') fetchRequests(); 
       } catch (e) {
-          toast.error(e.response?.data?.detail || "Gagal mengajukan lembur");
+          toast.error(e.response?.data?.detail || "Gagal mengajukan lembur", { id: t });
       } finally {
           setLoading(false);
       }
@@ -85,11 +130,11 @@ const ManajemenLembur = () => {
       }
   };
 
-  // Helper to calculate duration for preview
   const calculateDuration = () => {
       if(formData.startTime && formData.endTime) {
           const t1 = new Date(`2000-01-01T${formData.startTime}`);
-          const t2 = new Date(`2000-01-01T${formData.endTime}`);
+          let t2 = new Date(`2000-01-01T${formData.endTime}`);
+          if (t2 < t1) t2.setDate(t2.getDate() + 1);
           const diff = (t2 - t1) / 1000 / 3600;
           return diff > 0 ? diff.toFixed(1) + " Jam" : "Invalid Time";
       }
@@ -100,7 +145,7 @@ const ManajemenLembur = () => {
     <PageContainer>
       <PageHeader 
         title="Manajemen Lembur" 
-        description="Pengajuan, persetujuan, dan rekapitulasi lembur pegawai."
+        description="Pengajuan, persetujuan, dan rekapitulasi lembur pegawai dengan aturan Depnaker/PMK."
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -115,7 +160,7 @@ const ManajemenLembur = () => {
              <Card className="md:col-span-2 border-slate-200 shadow-sm">
                 <CardHeader>
                 <CardTitle>Form Pengajuan Lembur</CardTitle>
-                <CardDescription>Isi detail rencana lembur anda.</CardDescription>
+                <CardDescription>Lengkapi data lembur beserta bukti pendukung (SPL).</CardDescription>
                 </CardHeader>
                 <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -129,6 +174,18 @@ const ManajemenLembur = () => {
                             <Input disabled value={calculateDuration()} className="bg-slate-50" />
                         </div>
                     </div>
+                    
+                    <div className="flex items-center space-x-2 border p-3 rounded bg-yellow-50 border-yellow-200">
+                        <Checkbox 
+                            id="is_holiday" 
+                            checked={formData.is_holiday}
+                            onCheckedChange={(checked) => setFormData({...formData, is_holiday: checked})}
+                        />
+                        <Label htmlFor="is_holiday" className="font-medium text-yellow-800 cursor-pointer">
+                            Hari Libur / Akhir Pekan (Rate Khusus)
+                        </Label>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label>Jam Mulai</Label>
@@ -139,17 +196,32 @@ const ManajemenLembur = () => {
                             <Input type="time" required value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} />
                         </div>
                     </div>
+                    
                     <div className="space-y-2">
                         <Label>Uraian Pekerjaan</Label>
                         <Textarea 
-                            placeholder="Jelaskan secara detail pekerjaan yang akan dilakukan..." 
+                            placeholder="Jelaskan secara detail..." 
                             required 
-                            className="h-24"
+                            className="h-20"
                             value={formData.description} 
                             onChange={e => setFormData({...formData, description: e.target.value})} 
                         />
                     </div>
-                    <div className="flex justify-end">
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Upload Surat Perintah (SPL)</Label>
+                            <Input type="file" accept=".pdf,.jpg,.png" onChange={e => setFormData({...formData, spl_file: e.target.files[0]})} />
+                            <p className="text-[10px] text-slate-500">PDF/JPG (Wajib untuk validasi)</p>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Bukti Foto Kegiatan</Label>
+                            <Input type="file" accept="image/*" multiple onChange={e => setFormData({...formData, evidence_files: Array.from(e.target.files)})} />
+                            <p className="text-[10px] text-slate-500">Bisa pilih banyak foto</p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-4">
                         <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white w-full md:w-auto">
                             {loading ? "Mengirim..." : "Kirim Pengajuan"}
                         </Button>
@@ -159,30 +231,25 @@ const ManajemenLembur = () => {
             </Card>
 
             <div className="space-y-4">
-                <Card className="bg-blue-50 border-blue-100">
-                    <CardHeader>
-                        <CardTitle className="text-blue-800 text-sm">Ketentuan Lembur</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-xs text-blue-700 space-y-2">
-                        <p>• Lembur wajib mendapatkan persetujuan atasan.</p>
-                        <p>• Uang makan diberikan jika durasi {'>'}= 4 jam.</p>
-                        <p>• Maksimal jam lembur adalah 4 jam per hari (kecuali urgensi tinggi).</p>
-                    </CardContent>
-                </Card>
-                
-                {/* History List */}
-                <Card className="border-slate-200">
+                <Card className="border-slate-200 h-full">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm">Riwayat Pengajuan</CardTitle>
                     </CardHeader>
-                    <CardContent className="max-h-[300px] overflow-y-auto space-y-2">
+                    <CardContent className="max-h-[500px] overflow-y-auto space-y-3">
                         {requests.filter(r => r.user_id === user?.id).map(req => (
-                            <div key={req.id} className="p-2 border rounded bg-slate-50 text-xs">
-                                <div className="flex justify-between font-semibold">
+                            <div key={req.id} className="p-3 border rounded bg-slate-50 text-xs hover:bg-white transition-colors">
+                                <div className="flex justify-between font-bold text-slate-800 mb-1">
                                     <span>{req.date}</span>
                                     <span className={`${req.status === 'Approved' ? 'text-green-600' : req.status === 'Rejected' ? 'text-red-600' : 'text-orange-600'}`}>{req.status}</span>
                                 </div>
-                                <div className="text-slate-500 mt-1">{req.start_time}-{req.end_time}</div>
+                                <div className="text-slate-600 mb-2">
+                                    {req.start_time} - {req.end_time} ({req.duration_hours} Jam)
+                                    {req.is_holiday && <span className="ml-2 text-[10px] bg-yellow-200 px-1 rounded text-yellow-800">Libur</span>}
+                                </div>
+                                <div className="flex gap-2">
+                                    {req.spl_file && <a href={req.spl_file} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded hover:underline"><FileText size={10}/> SPL</a>}
+                                    {req.evidence_files?.length > 0 && <span className="flex items-center gap-1 text-slate-500 bg-slate-200 px-2 py-1 rounded"><ImageIcon size={10}/> {req.evidence_files.length} Foto</span>}
+                                </div>
                             </div>
                         ))}
                     </CardContent>
@@ -207,25 +274,43 @@ const ManajemenLembur = () => {
                         ) : (
                             requests.filter(r => r.status === 'Pending').map(req => (
                                 <div key={req.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 border border-slate-100 rounded-lg bg-white hover:bg-slate-50 transition-colors">
-                                    <div className="flex items-start gap-4 mb-4 md:mb-0">
-                                        <div className="p-2 bg-blue-100 text-blue-600 rounded-full mt-1">
+                                    <div className="flex items-start gap-4 mb-4 md:mb-0 flex-1">
+                                        <div className="p-2 bg-blue-100 text-blue-600 rounded-full mt-1 shrink-0">
                                             <Clock size={20} />
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-slate-900">{req.nama_lengkap} <span className="text-xs font-normal text-slate-500">({req.employee_type})</span></h4>
-                                            <div className="flex flex-wrap gap-2 text-sm text-slate-500 mt-1">
+                                        <div className="space-y-1 w-full">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="font-semibold text-slate-900">{req.nama_lengkap} <span className="text-xs font-normal text-slate-500">({req.employee_type})</span></h4>
+                                                <div className="text-xs text-slate-400">
+                                                    Estimasi: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(req.net_pay)}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex flex-wrap gap-2 text-sm text-slate-500">
                                                 <span className="font-medium text-slate-700">{req.date}</span>
                                                 <span>•</span>
                                                 <span>{req.start_time} - {req.end_time}</span>
                                                 <span className="px-2 py-0.5 bg-slate-100 rounded text-xs font-semibold">{req.duration_hours} Jam</span>
+                                                {req.is_holiday && <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">Libur</span>}
                                             </div>
-                                            <p className="text-sm mt-2 text-slate-600 italic">"{req.description}"</p>
-                                            <div className="mt-1 text-xs text-slate-400">
-                                                Estimasi: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(req.net_pay)}
+                                            
+                                            <p className="text-sm mt-2 text-slate-600 italic bg-slate-50 p-2 rounded">"{req.description}"</p>
+                                            
+                                            <div className="flex gap-2 pt-2">
+                                                {req.spl_file && (
+                                                    <a href={req.spl_file} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100">
+                                                        <FileText size={12}/> Lihat SPL
+                                                    </a>
+                                                )}
+                                                {req.evidence_files?.map((url, idx) => (
+                                                    <a key={idx} href={url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded border border-slate-200 hover:bg-slate-200">
+                                                        <ImageIcon size={12}/> Foto {idx+1}
+                                                    </a>
+                                                ))}
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2 w-full md:w-auto">
+                                    <div className="flex gap-2 w-full md:w-auto md:ml-4">
                                         <Button size="sm" variant="outline" onClick={() => handleAction(req.id, 'reject')} className="flex-1 md:flex-none border-red-200 text-red-700 hover:bg-red-50">
                                             <XCircle className="w-4 h-4 mr-2"/> Tolak
                                         </Button>
