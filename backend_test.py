@@ -9834,7 +9834,7 @@ def main():
     """Main function to run the tests"""
     tester = APITester()
     
-    print("🚀 Starting Kanban Task Management Testing...")
+    print("🚀 Starting Dokumen Sumber CRUD Testing...")
     print("=" * 60)
     
     # Test login first
@@ -9842,9 +9842,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Kanban task management test
-    if not tester.test_kanban_task_management():
-        print("❌ Kanban task management test failed")
+    # Run the Dokumen Sumber CRUD test
+    if not tester.test_dokumen_sumber_crud_functionality():
+        print("❌ Dokumen Sumber CRUD test failed")
         return 1
     
     # Print summary
