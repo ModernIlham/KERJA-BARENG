@@ -11994,10 +11994,10 @@ def main():
 
 
 def main():
-    """Main function to run the overtime settings and Dafnom features test"""
+    """Main function to run the Independent Non-ASN Overtime Rates test"""
     tester = APITester()
     
-    print("🚀 Starting Overtime Settings and Dafnom Features Testing...")
+    print("🚀 Starting Independent Non-ASN Overtime Rates Testing...")
     print("=" * 60)
     
     # Test login first
@@ -12005,9 +12005,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Overtime Settings and Dafnom test as requested in review
-    if not tester.test_overtime_settings_and_dafnom():
-        print("❌ Overtime Settings and Dafnom test failed")
+    # Run the Independent Non-ASN Overtime Rates test as requested in review
+    if not tester.test_independent_non_asn_overtime_rates():
+        print("❌ Independent Non-ASN Overtime Rates test failed")
         return 1
     
     # Print summary
