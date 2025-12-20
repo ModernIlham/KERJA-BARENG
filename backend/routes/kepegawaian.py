@@ -8,7 +8,7 @@ import base64
 import uuid
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from models_kepegawaian import Attendance, OvertimeRequest, OvertimeCreate, ClockInRequest, ClockOutRequest
+from models_kepegawaian import Attendance, OvertimeRequest, OvertimeCreate, ClockInRequest, ClockOutRequest, OvertimeSettings
 from models_activity import ActivityLog
 from auth import get_current_user
 from models import User
@@ -21,39 +21,62 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# --- CONSTANTS ---
-RATE_ASN = {"I": 10000, "II": 15000, "III": 30000, "IV": 25000}  # Updated Gol III to 30000 as per new rules
-RATE_NON_ASN = 13000  # Fixed rate for all Non-ASN employees as per new rules
-UANG_MAKAN_ASN = 37000  # Meal allowance for ASN employees
-UANG_MAKAN_NON_ASN = 30000  # Meal allowance for Non-ASN employees
-TAX_RATE_ASN = 0.05
-TAX_RATE_NON_ASN = 0.02
+# --- CONSTANTS (DEPRECATED - Moved to DB, kept as fallback) ---
+RATE_ASN = {"I": 18000, "II": 24000, "III": 30000, "IV": 36000}
+RATE_NON_ASN = 13000
+UANG_MAKAN_ASN_1_2 = 35000
+UANG_MAKAN_ASN_3 = 37000
+UANG_MAKAN_ASN_4 = 41000
+UANG_MAKAN_NON_ASN = 30000
 
 # --- HELPERS ---
-def calculate_overtime_pay(emp_type, grade, duration, is_holiday=False):
+async def get_overtime_settings():
+    settings = await db.overtime_settings.find_one({"key": "overtime_rates"})
+    if not settings:
+        # Create default
+        default_settings = OvertimeSettings()
+        await db.overtime_settings.insert_one(default_settings.model_dump(by_alias=True, exclude=["id"]))
+        return default_settings
+    return OvertimeSettings(**settings)
+
+async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False):
+    settings = await get_overtime_settings()
+    
     rate = 0
     gross = 0
+    meal = 0
+    tax_rate = 0
     
     if emp_type == 'ASN':
-        # ASN: Flat rate per hour based on Golongan (PMK SBM)
-        # Grade for ASN usually formatted like "III/a", we take the roman part
+        # Clean grade string (e.g., "III/a" -> "III")
         grade_key = grade.split('/')[0] if grade else "I"
-        rate = RATE_ASN.get(grade_key, 10000)
         
-        # ASN: Simple calculation - flat rate x hours
+        # Get Rate from Settings
+        if grade_key == 'I': rate = settings.rate_asn_gol_1
+        elif grade_key == 'II': rate = settings.rate_asn_gol_2
+        elif grade_key == 'III': rate = settings.rate_asn_gol_3
+        elif grade_key == 'IV': rate = settings.rate_asn_gol_4
+        else: rate = settings.rate_asn_gol_1
+        
+        # Gross Calculation (ASN: Flat Rate * Hours)
         gross = rate * duration
         
-        # ASN meal allowance
-        meal = UANG_MAKAN_ASN if duration >= 2 else 0
+        # Meal Allowance
+        if duration >= 2: # Min 2 hours
+            if grade_key in ['I', 'II']: meal = settings.meal_asn_gol_1_2
+            elif grade_key == 'III': meal = settings.meal_asn_gol_3
+            elif grade_key == 'IV': meal = settings.meal_asn_gol_4
+            
+        # Tax Rate
+        if grade_key == 'III': tax_rate = settings.tax_asn_gol_3
+        elif grade_key == 'IV': tax_rate = settings.tax_asn_gol_4
+        else: tax_rate = 0.0 # Gol I & II 0%
         
     else:
-        # NON-ASN / PPNPN: Uses fixed rate of 13000 IDR
-        rate = RATE_NON_ASN
+        # NON-ASN
+        rate = settings.rate_non_asn
         
-        # Calculation Logic for Non-ASN
-        # Regular workday: 1.5x for first hour, 2x for rest
-        # Holiday: 2x for first 7h, 3x for 8th hour, 4x for 9th+ hours
-        
+        # Calculation Logic (Depnaker/Omnibus)
         hours = duration
         if is_holiday:
             if hours <= 7:
@@ -69,12 +92,13 @@ def calculate_overtime_pay(emp_type, grade, duration, is_holiday=False):
             else:
                 gross = (1 * 1.5 * rate) + ((hours - 1) * 2 * rate)
         
-        # Non-ASN meal allowance
-        meal = UANG_MAKAN_NON_ASN if duration >= 2 else 0
+        # Meal Allowance
+        if duration >= 2:
+            meal = settings.meal_non_asn
+            
+        tax_rate = settings.tax_non_asn
     
     total_gross = gross + meal
-    
-    tax_rate = TAX_RATE_ASN if emp_type == 'ASN' else TAX_RATE_NON_ASN
     tax = total_gross * tax_rate
     net = total_gross - tax
     
@@ -84,7 +108,6 @@ def save_base64_image(base64_str, prefix="att"):
     if not base64_str:
         return None
     try:
-        # Check if header exists "data:image/jpeg;base64,"
         if "base64," in base64_str:
             base64_str = base64_str.split("base64,")[1]
         
@@ -100,6 +123,27 @@ def save_base64_image(base64_str, prefix="att"):
         print(f"Error saving image: {e}")
         return None
 
+# --- SETTINGS ROUTES ---
+
+@router.get("/settings", response_model=OvertimeSettings)
+async def get_settings(current_user: User = Depends(get_current_user)):
+    return await get_overtime_settings()
+
+@router.put("/settings", response_model=OvertimeSettings)
+async def update_settings(settings_in: OvertimeSettings, current_user: User = Depends(get_current_user)):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin only")
+        
+    settings_data = settings_in.model_dump(exclude={"id", "_id", "key"})
+    settings_data["updated_at"] = datetime.now(timezone.utc)
+    
+    await db.overtime_settings.update_one(
+        {"key": "overtime_rates"},
+        {"$set": settings_data},
+        upsert=True
+    )
+    return await get_overtime_settings()
+
 # --- ATTENDANCE HISTORY ROUTES ---
 
 @router.get("/attendance/history")
@@ -109,12 +153,10 @@ async def get_attendance_history(
     user_id: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
-    # Determine target user
     target_uid = str(current_user.id)
     if user_id and current_user.role == 'admin':
         target_uid = user_id
         
-    # Build Date Range Regex for YYYY-MM
     month_str = f"{year}-{month:02d}"
     
     query = {
@@ -125,7 +167,6 @@ async def get_attendance_history(
     cursor = db.attendance.find(query).sort("date", 1)
     logs = await cursor.to_list(length=31)
     
-    # Format
     result = []
     for log in logs:
         log['id'] = str(log['_id'])
@@ -138,18 +179,12 @@ async def get_attendance_history(
 
 @router.get("/dashboard-stats")
 async def get_dashboard_stats():
-    # Mock aggregation for now, replace with real DB counts later
     total_pegawai = await db.pegawai.count_documents({"status": "AKTIF"})
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     hadir_today = await db.attendance.count_documents({"date": today})
-    
-    # Simple logic: users not present are absent/leave
-    # Real logic would check Leave requests
     on_leave = 0 
     
-    # Overtime hours this month
     current_month = datetime.now(timezone.utc).strftime("%Y-%m")
-    # Aggregation for overtime hours
     pipeline = [
         {"$match": {"date": {"$regex": f"^{current_month}"}, "status": "Approved"}},
         {"$group": {"_id": None, "total": {"$sum": "$duration_hours"}}}
@@ -161,7 +196,7 @@ async def get_dashboard_stats():
     return {
         "total_employees": total_pegawai,
         "present_today": hadir_today,
-        "on_leave": on_leave, # Placeholder
+        "on_leave": on_leave,
         "overtime_hours": round(ot_hours, 1)
     }
 
@@ -182,7 +217,6 @@ async def get_today_attendance(current_user: User = Depends(get_current_user)):
 async def clock_in(req: ClockInRequest, current_user: User = Depends(get_current_user)):
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
-    # Check existing
     existing = await db.attendance.find_one({
         "user_id": str(current_user.id),
         "date": today
@@ -190,7 +224,6 @@ async def clock_in(req: ClockInRequest, current_user: User = Depends(get_current
     if existing:
         raise HTTPException(status_code=400, detail="Already clocked in today")
         
-    # Get Pegawai Data
     pegawai = await db.pegawai.find_one({"_id": ObjectId(current_user.pegawai_id)})
     if not pegawai:
         raise HTTPException(status_code=404, detail="Pegawai profile not found")
@@ -210,7 +243,6 @@ async def clock_in(req: ClockInRequest, current_user: User = Depends(get_current
     
     res = await db.attendance.insert_one(new_att.model_dump(by_alias=True, exclude=["id"]))
     
-    # LOG ACTIVITY
     await log_activity(
         db,
         user_id=str(current_user.id),
@@ -247,7 +279,6 @@ async def clock_out(req: ClockOutRequest, current_user: User = Depends(get_curre
         }}
     )
 
-    # LOG ACTIVITY
     await log_activity(
         db,
         user_id=str(current_user.id),
@@ -279,30 +310,28 @@ async def request_overtime(req: OvertimeCreate, current_user: User = Depends(get
     except:
          raise HTTPException(status_code=400, detail="Invalid time format HH:MM")
          
-    # Handle overnight
     if t2 < t1:
         t2 += timedelta(days=1)
         
     duration = (t2 - t1).seconds / 3600
     
-    # Determine Type & Grade
     emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'PPPK', 'ASN'] else "NON_ASN"
-    grade = pegawai.get('pangkat_golongan') # e.g. "Penata Muda (III/a)" or "Senior"
+    grade = pegawai.get('pangkat_golongan') 
     
-    # Fallback/Normalize grade
     if emp_type == 'ASN' and grade:
-        # Extract Roman numeral if present
         import re
         match = re.search(r'\((.*?)\)', grade)
         if match:
-            grade = match.group(1) # III/a
+            grade = match.group(1) 
     
-    rate, meal, gross, tax, net = calculate_overtime_pay(emp_type, grade, duration, req.is_holiday)
+    # USE NEW DYNAMIC CALCULATION
+    rate, meal, gross, tax, net = await calculate_overtime_pay_v2(emp_type, grade, duration, req.is_holiday)
     
     new_ot = OvertimeRequest(
         user_id=str(current_user.id),
         pegawai_id=str(current_user.pegawai_id),
         nama_lengkap=pegawai['nama_lengkap'],
+        nip=pegawai.get('nip'),
         employee_type=emp_type,
         grade=grade,
         date=req.date,
@@ -316,8 +345,6 @@ async def request_overtime(req: OvertimeCreate, current_user: User = Depends(get
         gross_pay=gross,
         tax_amount=tax,
         net_pay=net,
-        
-        # Files
         spl_file=req.spl_file,
         evidence_files=req.evidence_files
     )
@@ -327,9 +354,6 @@ async def request_overtime(req: OvertimeCreate, current_user: User = Depends(get
 
 @router.get("/overtime")
 async def list_overtime(status: str = None, current_user: User = Depends(get_current_user)):
-    # If admin, show all? For now, let's say "admin" role shows all, else show own
-    # Assuming role is in current_user.role
-    
     query = {}
     if current_user.role != 'admin':
         query["user_id"] = str(current_user.id)
@@ -340,7 +364,6 @@ async def list_overtime(status: str = None, current_user: User = Depends(get_cur
     cursor = db.overtime_requests.find(query).sort("date", -1)
     items = await cursor.to_list(length=100)
     
-    # Fix ID
     for item in items:
         item['id'] = str(item['_id'])
         del item['_id']
@@ -378,21 +401,22 @@ async def recap_overtime(month: str = None): # YYYY-MM
         {"$group": {
             "_id": "$pegawai_id",
             "name": {"$first": "$nama_lengkap"},
+            "nip": {"$first": "$nip"},
             "type": {"$first": "$employee_type"},
             "grade": {"$first": "$grade"},
             "totalHours": {"$sum": "$duration_hours"},
-            "rate": {"$avg": "$rate_per_hour"}, # Should be same per user
+            "rate": {"$avg": "$rate_per_hour"},
             "mealAllowance": {"$sum": "$meal_allowance"},
             "totalGross": {"$sum": "$gross_pay"},
             "tax": {"$sum": "$tax_amount"},
-            "netPay": {"$sum": "$net_pay"}
+            "netPay": {"$sum": "$net_pay"},
+            "count": {"$sum": 1}
         }}
     ]
     
     cursor = db.overtime_requests.aggregate(pipeline)
     result = await cursor.to_list(length=1000)
     
-    # Format for frontend
     formatted = []
     for r in result:
         r['id'] = str(r['_id'])
@@ -401,7 +425,7 @@ async def recap_overtime(month: str = None): # YYYY-MM
         
     return formatted
 
-# --- ACTIVITY LOGS (SMART RESUME) ---
+# --- ACTIVITY LOGS ---
 
 @router.get("/activities", response_model=List[dict])
 async def get_activity_logs(
@@ -430,7 +454,6 @@ async def get_activity_logs(
     cursor = db.activity_logs.find(query).sort("timestamp", -1).limit(limit)
     logs = await cursor.to_list(length=limit)
     
-    # Format
     for log in logs:
         log['id'] = str(log['_id'])
         del log['_id']
@@ -446,7 +469,6 @@ async def upload_kepegawaian_file(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        # Validate
         allowed = ["image/jpeg", "image/png", "application/pdf"]
         if file.content_type not in allowed:
             raise HTTPException(status_code=400, detail="Format not allowed (JPG/PNG/PDF only)")

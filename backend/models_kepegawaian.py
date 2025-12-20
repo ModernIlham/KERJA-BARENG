@@ -3,6 +3,31 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from models import MongoBaseModel
 
+class OvertimeSettings(MongoBaseModel):
+    key: str = "overtime_rates"
+    
+    # ASN Rates (per hour)
+    rate_asn_gol_1: float = 18000
+    rate_asn_gol_2: float = 24000
+    rate_asn_gol_3: float = 30000
+    rate_asn_gol_4: float = 36000
+    
+    # Non ASN Rate (per hour)
+    rate_non_asn: float = 13000
+    
+    # Meal Allowances (per day/occurrence)
+    meal_asn_gol_1_2: float = 35000
+    meal_asn_gol_3: float = 37000
+    meal_asn_gol_4: float = 41000
+    meal_non_asn: float = 30000
+    
+    # Tax Rates
+    tax_asn_gol_3: float = 0.05
+    tax_asn_gol_4: float = 0.15
+    tax_non_asn: float = 0.0
+    
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class Attendance(MongoBaseModel):
     user_id: str
     pegawai_id: str
@@ -25,6 +50,7 @@ class OvertimeRequest(MongoBaseModel):
     user_id: str
     pegawai_id: str
     nama_lengkap: str
+    nip: Optional[str] = None # Added NIP for Dafnom
     
     # Snapshot of employee data at time of request (for calc stability)
     employee_type: str # ASN / NON_ASN

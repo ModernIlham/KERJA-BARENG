@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import RekapLemburTable from '../components/RekapLemburTable';
+import DafnomLembur from '../components/DafnomLembur';
+import OvertimeSettings from '../components/OvertimeSettings';
 import { toast } from 'sonner';
 import { PageContainer, PageHeader } from '@/components/ui/page-layout';
-import { CheckCircle2, XCircle, Clock, RefreshCcw, Upload, FileText, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, RefreshCcw, Upload, FileText, Image as ImageIcon, Settings, Printer } from 'lucide-react';
 import api from '../../../api/axios';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -155,12 +157,21 @@ const ManajemenLembur = () => {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full md:w-[400px] grid-cols-3">
+        <TabsList className="grid w-full md:w-[600px] grid-cols-4">
           <TabsTrigger value="pengajuan">Pengajuan</TabsTrigger>
           <TabsTrigger value="persetujuan">Persetujuan</TabsTrigger>
-          <TabsTrigger value="rekap">Laporan</TabsTrigger>
+          <TabsTrigger value="rekap">Laporan & Dafnom</TabsTrigger>
+          {user?.role === 'admin' && <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-2"/>Aturan</TabsTrigger>}
         </TabsList>
 
+        {/* --- PENGATURAN (ADMIN ONLY) --- */}
+        {user?.role === 'admin' && (
+            <TabsContent value="settings">
+                <OvertimeSettings />
+            </TabsContent>
+        )}
+
+        {/* --- PENGAJUAN --- */}
         <TabsContent value="pengajuan" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
              <Card className="md:col-span-2 border-slate-200 shadow-sm">
@@ -264,6 +275,7 @@ const ManajemenLembur = () => {
           </div>
         </TabsContent>
 
+        {/* --- PERSETUJUAN --- */}
         <TabsContent value="persetujuan">
             <Card className="border-slate-200 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -332,8 +344,22 @@ const ManajemenLembur = () => {
             </Card>
         </TabsContent>
 
-        <TabsContent value="rekap">
-          <RekapLemburTable data={rekapData} />
+        {/* --- REKAP & DAFNOM --- */}
+        <TabsContent value="rekap" className="space-y-6">
+          <Tabs defaultValue="list" className="w-full">
+              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent gap-6">
+                  <TabsTrigger value="list" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Rekapitulasi List</TabsTrigger>
+                  <TabsTrigger value="dafnom" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Cetak Dafnom (PDF)</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="list" className="pt-4">
+                  <RekapLemburTable data={rekapData} />
+              </TabsContent>
+              
+              <TabsContent value="dafnom" className="pt-4">
+                  <DafnomLembur data={rekapData} month={new Date().getMonth() + 1} year={new Date().getFullYear()} />
+              </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </PageContainer>
