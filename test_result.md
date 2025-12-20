@@ -142,6 +142,7 @@ test_plan:
     - "Check Overtime Recap"
     - "Verify Differential Pay calculation"
     - "Verify Overtime Calculation Logic against new rules"
+    - "Overtime Settings and Dafnom Features"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
