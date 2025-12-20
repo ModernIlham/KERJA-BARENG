@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, Package, Users, LogOut, Menu, X, FileSpreadsheet, FileText, 
   Settings, Mail, ChevronDown, ChevronRight, Book, Box, Building, Network, 
-  Clock, Briefcase, FileCheck, ClipboardList, ArrowRightLeft, ChevronsLeft, ChevronsRight
+  Clock, Briefcase, FileCheck, ClipboardList, ArrowRightLeft, ChevronsLeft, ChevronsRight,
   Calendar,
 } from 'lucide-react';
 import { Button } from './ui/button';
