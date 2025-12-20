@@ -22,9 +22,10 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # --- CONSTANTS ---
-RATE_ASN = {"I": 10000, "II": 15000, "III": 20000, "IV": 25000}
-RATE_NON_ASN = {"Junior": 15000, "Senior": 25000, "Lead": 35000}
-UANG_MAKAN = 35000
+RATE_ASN = {"I": 10000, "II": 15000, "III": 30000, "IV": 25000}  # Updated Gol III to 30000 as per new rules
+RATE_NON_ASN = 13000  # Fixed rate for all Non-ASN employees as per new rules
+UANG_MAKAN_ASN = 37000  # Meal allowance for ASN employees
+UANG_MAKAN_NON_ASN = 30000  # Meal allowance for Non-ASN employees
 TAX_RATE_ASN = 0.05
 TAX_RATE_NON_ASN = 0.02
 
