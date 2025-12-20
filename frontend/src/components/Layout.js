@@ -21,7 +21,8 @@ import {
   Clock,
   Briefcase,
   FileCheck,
-  ClipboardList
+  ClipboardList,
+  ArrowRightLeft
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
