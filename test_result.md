@@ -204,11 +204,11 @@ backend:
 
   - task: "Kepegawaian (HR) Backend APIs"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/routes/kepegawaian.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -216,6 +216,21 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED SUCCESSFULLY: Complete Kepegawaian (HR) Overtime Management functionality verified. All 10 test steps passed: 1) Admin login successful, 2) Dashboard stats API working, 3) Overtime request creation (17:00-19:00, 2 hours), 4) Request appears in History (Riwayat Pengajuan), 5) Request appears in Approval tab (Persetujuan), 6) Request approval successful, 7) Status changed to Approved, 8) Recap table shows employee data (Laporan), 9) Dashboard overtime hours updated (+2 hours), 10) Financial calculations working correctly (ASN Grade III/c, Rate: 20,000/hour, Net Pay: 38,000). Fixed auth.py to return User object instead of email string. All backend APIs operational and ready for production use."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL REGRESSION: Auth system reverted to returning string instead of User object. Backend error 'AttributeError: str object has no attribute pegawai_id' in /api/kepegawaian/overtime endpoint causing HTTP 422 errors. Overtime request submission failing. Dashboard and UI load correctly but core functionality broken. REQUIRES IMMEDIATE FIX: Auth system must return User object for Kepegawaian APIs to work."
+
+  - task: "Kepegawaian Comprehensive Testing"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/modules/kepegawaian/pages/DashboardKepegawaian.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL BACKEND ERROR FOUND: Auth system returning string instead of User object causing Kepegawaian overtime API failures. ✅ PARTIAL SUCCESS: 1) Login working (admin@example.com/admin), 2) Kepegawaian Dashboard loads correctly with title 'Dashboard Kepegawaian', stats cards populated (Total Pegawai: 58, Hadir Hari Ini: 1, Izin/Sakit: 0, Total Jam Lembur: 4 Jam), Absensi Harian widget visible with proper time display, Tugas Tim (Kanban) board functional with TO DO/IN PROGRESS/DONE columns, 3) Manajemen Lembur page loads with correct tabs (Pengajuan, Persetujuan, Laporan), 4) Asset page accessible but form fields not properly identified for automation. ❌ CRITICAL ISSUES: Backend error 'AttributeError: str object has no attribute pegawai_id' in /api/kepegawaian/overtime endpoint preventing overtime request submission (HTTP 422), Frontend shows React runtime errors about invalid object types, Camera functionality not testable in headless environment but UI handles gracefully. Screenshots captured: kepegawaian_dashboard.png, manajemen_lembur.png, asset_list.png. REQUIRES IMMEDIATE FIX: Auth system must return User object instead of string for Kepegawaian functionality to work."
 
 metadata:
   created_by: "main_agent"
