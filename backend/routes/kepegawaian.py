@@ -1598,11 +1598,11 @@ async def reset_overtime_data(
         await log_activity(
             db=db,
             user_id=current_user.id,
-            user_email=current_user.email,
+            user_name=current_user.email,
             action="RESET_OVERTIME_DATA",
-            entity_type="system",
-            entity_id="overtime",
-            description=f"Reset all overtime data: {ot_result.deleted_count} overtime requests, {batch_result.deleted_count} batches, {att_result.deleted_count} attendance records deleted"
+            module="kepegawaian",
+            target_id="overtime",
+            details=f"Reset all overtime data: {ot_result.deleted_count} overtime requests, {batch_result.deleted_count} batches, {att_result.deleted_count} attendance records deleted"
         )
         
         return {
