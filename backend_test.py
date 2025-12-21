@@ -33,7 +33,7 @@ class APITester:
             elif method == 'PUT':
                 response = requests.put(url, json=data, headers=test_headers)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=test_headers)
+                response = requests.delete(url, json=data, headers=test_headers)
             elif method == 'PATCH':
                 response = requests.patch(url, json=data, headers=test_headers)
 
