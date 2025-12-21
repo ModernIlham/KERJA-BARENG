@@ -71,7 +71,7 @@ const DafnomLembur = ({ month, year }) => {
     const days1to15 = Array.from({ length: 15 }, (_, i) => i + 1);
     const days16to31 = Array.from({ length: 16 }, (_, i) => i + 16).filter(d => d <= daysInMonth);
 
-    // Base styles
+    // Styles
     const cell = { border: '1px solid #000', textAlign: 'center', verticalAlign: 'middle', padding: '1px', fontSize: '6px' };
     const dayCell = { ...cell, width: '13px', minWidth: '13px' };
     const holidayBg = { backgroundColor: '#ffcccc' };
@@ -104,23 +104,24 @@ const DafnomLembur = ({ month, year }) => {
                         <div>Nusantara, {new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'})}</div>
                     </div>
 
-                    {/* Main Table */}
+                    {/* Main Table - Total 28 columns */}
+                    {/* Col: NO(1) + Nama(1) + NIP(1) + GOL(1) + Days(15) + HariKerja(1) + HariLibur(1) + JmlMakan(1) + UangLembur(1) + UangMakan(1) + JmlKolom(1) + PotPPH(1) + JmlBersih(1) + TTD(1) = 28 */}
                     <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'auto' }}>
                         <thead>
-                            {/* Row 1 */}
+                            {/* Row 1 - Main headers */}
                             <tr>
-                                <th rowSpan="4" style={{...cell, width: '20px'}}>NO<br/>URT</th>
-                                <th rowSpan="4" style={{...cell, width: '55px'}}>Nama</th>
-                                <th rowSpan="4" style={{...cell, width: '65px'}}>NIP</th>
-                                <th rowSpan="4" style={{...cell, width: '18px'}}>GOL</th>
+                                <th rowSpan="5" style={{...cell, width: '20px'}}>NO<br/>URT</th>
+                                <th rowSpan="5" style={{...cell, width: '55px'}}>Nama</th>
+                                <th rowSpan="5" style={{...cell, width: '65px'}}>NIP</th>
+                                <th rowSpan="5" style={{...cell, width: '18px'}}>GOL</th>
                                 <th colSpan="15" style={cell}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
-                                <th colSpan="2" rowSpan="2" style={cell}>JUMLAH JAM</th>
-                                <th rowSpan="3" style={{...cell, width: '22px'}}>JML<br/>MAKAN</th>
-                                <th colSpan="2" rowSpan="2" style={cell}>JUMLAH UANG</th>
-                                <th rowSpan="3" style={{...cell, width: '42px'}}>JML<br/>KOLOM</th>
-                                <th rowSpan="3" style={{...cell, width: '35px'}}>POT<br/>PPH</th>
-                                <th rowSpan="3" style={{...cell, width: '42px'}}>JML<br/>BERSIH</th>
-                                <th rowSpan="4" style={{...cell, width: '45px'}}>TTD/<br/>NO REK</th>
+                                <th colSpan="2" rowSpan="3" style={cell}>JUMLAH JAM</th>
+                                <th rowSpan="4" style={{...cell, width: '22px'}}>JML<br/>MAKAN<br/>LEMBUR</th>
+                                <th colSpan="2" rowSpan="3" style={cell}>JUMLAH UANG</th>
+                                <th rowSpan="4" style={{...cell, width: '42px'}}>JML<br/>DARI<br/>KOLOM</th>
+                                <th rowSpan="4" style={{...cell, width: '35px'}}>POT.<br/>PPH</th>
+                                <th rowSpan="4" style={{...cell, width: '42px'}}>JML<br/>BERSIH</th>
+                                <th rowSpan="5" style={{...cell, width: '45px'}}>TTD/<br/>NO REK</th>
                             </tr>
 
                             {/* Row 2: Days 1-15 */}
@@ -132,7 +133,7 @@ const DafnomLembur = ({ month, year }) => {
                                 ))}
                             </tr>
 
-                            {/* Row 3: Days 16-31 + Sub headers */}
+                            {/* Row 3: Days 16-31 */}
                             <tr>
                                 {days16to31.map(day => (
                                     <th key={day} style={{...dayCell, ...(isHoliday(day) ? holidayBg : {})}}>
@@ -142,15 +143,22 @@ const DafnomLembur = ({ month, year }) => {
                                 {Array.from({ length: 15 - days16to31.length }, (_, i) => (
                                     <th key={`pad-${i}`} style={dayCell}></th>
                                 ))}
-                                <th style={{...cell, width: '20px', fontSize: '5px'}}>HARI<br/>KERJA</th>
-                                <th style={{...cell, width: '20px', fontSize: '5px'}}>HARI<br/>LIBUR</th>
-                                <th style={{...cell, width: '40px', fontSize: '5px'}}>LEMBUR</th>
-                                <th style={{...cell, width: '35px', fontSize: '5px'}}>MAKAN</th>
                             </tr>
 
-                            {/* Row 4: Column Numbers */}
+                            {/* Row 4: Sub headers */}
+                            <tr>
+                                <td colSpan="15" style={{...cell, fontStyle: 'italic', fontSize: '5px'}}>
+                                    5 (tanda '-' = Libur ; '+' = Kerja)
+                                </td>
+                                <td style={{...cell, fontSize: '5px'}}>HARI<br/>KERJA</td>
+                                <td style={{...cell, fontSize: '5px'}}>HARI<br/>LIBUR</td>
+                                <td style={{...cell, fontSize: '5px'}}>LEMBUR</td>
+                                <td style={{...cell, fontSize: '5px'}}>MAKAN</td>
+                            </tr>
+
+                            {/* Row 5: Column Numbers */}
                             <tr style={{ fontSize: '5px' }}>
-                                <td colSpan="15" style={{...cell, fontStyle: 'italic'}}>5 (tanda '-' = Libur ; '+' = Kerja)</td>
+                                <td colSpan="15" style={cell}></td>
                                 <td style={cell}><b>6</b></td>
                                 <td style={cell}><b>7</b></td>
                                 <td style={cell}><b>8</b></td>
@@ -161,7 +169,7 @@ const DafnomLembur = ({ month, year }) => {
                                 <td style={cell}><b>13</b></td>
                             </tr>
 
-                            {/* Row 5: Column IDs 1-4, 14 */}
+                            {/* Row 6: Column IDs 1-4, 14 */}
                             <tr style={{ fontSize: '5px' }}>
                                 <td style={cell}><b>1</b></td>
                                 <td style={cell}><b>2</b></td>
