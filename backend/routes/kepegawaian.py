@@ -77,8 +77,22 @@ async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False,
         elif grade_key == 'IV': rate = settings.rate_asn_gol_4
         else: rate = settings.rate_asn_gol_1
         
-        # Gross Calculation (ASN: Flat Rate * Hours)
-        gross = rate * duration
+        # Gross Calculation ASN dengan aturan Depnaker
+        # Hari Libur: Tarif 2x untuk 7 jam pertama, 3x untuk jam ke-8, 4x untuk jam ke-9 dst
+        # Hari Kerja: Tarif 1.5x untuk jam pertama, 2x untuk jam berikutnya
+        hours = duration
+        if is_holiday:
+            if hours <= 7:
+                gross = hours * 2 * rate
+            elif hours <= 8:
+                gross = (7 * 2 * rate) + ((hours - 7) * 3 * rate)
+            else:
+                gross = (7 * 2 * rate) + (1 * 3 * rate) + ((hours - 8) * 4 * rate)
+        else:
+            if hours <= 1:
+                gross = hours * 1.5 * rate
+            else:
+                gross = (1 * 1.5 * rate) + ((hours - 1) * 2 * rate)
         
         # Meal Allowance
         if duration >= 2: # Min 2 hours
