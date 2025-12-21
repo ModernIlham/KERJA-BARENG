@@ -326,6 +326,7 @@ async def create_holiday(
         "name": holiday['name'],
         "description": holiday.get('description', ''),
         "is_national": holiday.get('is_national', True),
+        "is_cuti_nasional": holiday.get('is_cuti_nasional', False),
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": str(current_user.id)
     }
