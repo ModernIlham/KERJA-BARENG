@@ -256,68 +256,6 @@ const ManajemenLembur = () => {
         <TabsContent value="daftar" className="space-y-4">
             <OvertimeBatchList refreshTrigger={batchRefresh} />
         </TabsContent>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <Label>Uraian Pekerjaan</Label>
-                        <Textarea 
-                            placeholder="Jelaskan secara detail..." 
-                            required 
-                            className="h-20"
-                            value={formData.description} 
-                            onChange={e => setFormData({...formData, description: e.target.value})} 
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Upload Surat Perintah (SPL)</Label>
-                            <Input type="file" accept=".pdf,.jpg,.png" onChange={e => setFormData({...formData, spl_file: e.target.files[0]})} />
-                            <p className="text-[10px] text-slate-500">PDF/JPG (Wajib untuk validasi)</p>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Bukti Foto Kegiatan</Label>
-                            <Input type="file" accept="image/*" multiple onChange={e => setFormData({...formData, evidence_files: Array.from(e.target.files)})} />
-                            <p className="text-[10px] text-slate-500">Bisa pilih banyak foto</p>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end pt-4">
-                        <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white w-full md:w-auto">
-                            {loading ? "Mengirim..." : "Kirim Pengajuan"}
-                        </Button>
-                    </div>
-                </form>
-                </CardContent>
-            </Card>
-
-            <div className="space-y-4">
-                <Card className="border-slate-200 h-full">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">Riwayat Pengajuan</CardTitle>
-                    </CardHeader>
-                    <CardContent className="max-h-[500px] overflow-y-auto space-y-3">
-                        {requests.filter(r => r.user_id === user?.id).map(req => (
-                            <div key={req.id} className="p-3 border rounded bg-slate-50 text-xs hover:bg-white transition-colors">
-                                <div className="flex justify-between font-bold text-slate-800 mb-1">
-                                    <span>{req.date}</span>
-                                    <span className={`${req.status === 'Approved' ? 'text-green-600' : req.status === 'Rejected' ? 'text-red-600' : 'text-orange-600'}`}>{req.status}</span>
-                                </div>
-                                <div className="text-slate-600 mb-2">
-                                    {req.start_time} - {req.end_time} ({req.duration_hours} Jam)
-                                    {req.is_holiday && <span className="ml-2 text-[10px] bg-yellow-200 px-1 rounded text-yellow-800">Libur</span>}
-                                </div>
-                                <div className="flex gap-2">
-                                    {req.spl_file && <a href={req.spl_file} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded hover:underline"><FileText size={10}/> SPL</a>}
-                                    {req.evidence_files?.length > 0 && <span className="flex items-center gap-1 text-slate-500 bg-slate-200 px-2 py-1 rounded"><ImageIcon size={10}/> {req.evidence_files.length} Foto</span>}
-                                </div>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-          </div>
-        </TabsContent>
 
         {/* --- PERSETUJUAN --- */}
         <TabsContent value="persetujuan">
