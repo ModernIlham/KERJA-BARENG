@@ -1318,11 +1318,16 @@ async def recap_overtime_by_spl(month: str = None, include_pending: bool = False
         if len(records) > 0 or include_pending:
             result.append(batch)
     
+    # Get detailed holiday info
+    holiday_data = await get_holidays_detailed_for_month(year, mon)
+    
     return {
         "month": month,
         "year": year,
         "days_in_month": days_in_month,
-        "holidays": holidays_in_month,
+        "holidays": holiday_data["holidays"],
+        "cuti_nasional": holiday_data["cuti_nasional"],
+        "holiday_names": holiday_data["holiday_names"],
         "batches": result
     }
 
