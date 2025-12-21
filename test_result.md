@@ -1,3 +1,25 @@
+# Test Result Documentation
+
+## Latest Test Session - December 21, 2025
+
+### Features to Test:
+1. **Cuti Nasional Feature** - New holiday type with faded color
+   - Navigate to Manajemen Lembur → Aturan → Hari Libur
+   - Click "Tambah Hari Libur" button
+   - Verify there are 2 checkboxes: "Hari Libur Nasional" and "Cuti Nasional (Warna Pudar)"
+   - Test adding a new Cuti Nasional entry
+
+2. **PDF Print & Excel Export on All Report Pages**
+   - Navigate to Manajemen Lembur → Laporan
+   - Check Rekap per SPL - should have Excel and Cetak buttons
+   - Check Rekap per Pegawai - should have Excel and Cetak buttons  
+   - Check Dafnom per Pegawai - should have Export Excel and Cetak buttons
+   - Check Dafnom per SPL - should have Export Excel and Cetak buttons
+
+### Test Credentials:
+- Email: admin@example.com
+- Password: admin
+
 backend:
   - task: "Clock In and Clock Out flow"
     implemented: true
