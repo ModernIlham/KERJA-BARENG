@@ -29,6 +29,7 @@ const DafnomLembur = ({ month, year }) => {
                     -webkit-print-color-adjust: exact !important; 
                     print-color-adjust: exact !important;
                 }
+                table { font-size: 7px !important; }
             }
         `
     });
@@ -62,10 +63,6 @@ const DafnomLembur = ({ month, year }) => {
     const holidays = data?.holidays || [];
     const employees = data?.employees || [];
 
-    // Split days into two rows: 1-15 and 16-31
-    const daysRow1 = Array.from({ length: 15 }, (_, i) => i + 1);
-    const daysRow2 = Array.from({ length: Math.min(16, daysInMonth - 15) }, (_, i) => i + 16);
-
     // Calculate totals
     const totals = {
         jam_kerja: employees.reduce((acc, e) => acc + (e.jam_hari_kerja || 0), 0),
@@ -78,16 +75,22 @@ const DafnomLembur = ({ month, year }) => {
         jumlah_bersih: employees.reduce((acc, e) => acc + (e.jumlah_bersih || 0), 0),
     };
 
-    // Helper to check if a day is a holiday
     const isHoliday = (day) => holidays.includes(day);
 
-    // Get cell style for day cells
-    const getDayCellStyle = (day) => {
-        return isHoliday(day) ? { backgroundColor: '#ffcccc' } : {};
-    };
+    // Cell style for holiday
+    const holidayStyle = { backgroundColor: '#ffcccc' };
+    const normalStyle = { backgroundColor: '#ffffff' };
 
     if (loading) {
         return <div className="text-center py-8">Memuat data Dafnom...</div>;
+    }
+
+    // Days array split into two rows
+    const days1to15 = Array.from({ length: 15 }, (_, i) => i + 1);
+    const days16to31 = Array.from({ length: Math.min(16, daysInMonth - 15) }, (_, i) => i + 16);
+    // Pad days16to31 to always have 16 items for consistent table structure
+    while (days16to31.length < 16) {
+        days16to31.push(null);
     }
 
     return (
@@ -103,21 +106,20 @@ const DafnomLembur = ({ month, year }) => {
             <div 
                 className="bg-white border shadow-sm overflow-x-auto" 
                 ref={componentRef}
-                style={{ fontFamily: 'Arial, sans-serif' }}
+                style={{ fontFamily: 'Arial, sans-serif', fontSize: '8px' }}
             >
-                <div className="p-4 min-w-[1400px]">
+                <div className="p-3 min-w-[1200px]">
                     {/* HEADER SECTION */}
-                    <div className="mb-4 text-center">
-                        <h1 className="font-bold text-sm uppercase">
+                    <div className="mb-3 text-center">
+                        <h1 className="font-bold text-[11px] uppercase">
                             DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR
                         </h1>
-                        <h2 className="font-bold text-xs uppercase">
+                        <h2 className="font-bold text-[10px] uppercase">
                             LEMBUR KEGIATAN INVENTARISASI DAN PELABELAN BMN TAHUNAN
                         </h2>
                     </div>
                     
-                    {/* Second Row: Left info + Right date */}
-                    <div className="flex justify-between mb-3 text-[10px]">
+                    <div className="flex justify-between mb-2 text-[9px]">
                         <div className="font-bold">
                             <p>SATUAN KERJA : OTORITA IBU KOTA NUSANTARA (621001)</p>
                             <p>BULAN : {monthName} {year}</p>
@@ -128,142 +130,187 @@ const DafnomLembur = ({ month, year }) => {
                     </div>
 
                     {/* MAIN TABLE */}
-                    <table className="w-full border-collapse text-[8px]" style={{ borderCollapse: 'collapse' }}>
+                    <table className="w-full" style={{ borderCollapse: 'collapse', fontSize: '7px' }}>
                         <thead>
-                            {/* Header Row 1 - Main categories */}
+                            {/* Row 1: Main Header */}
                             <tr>
-                                <th rowSpan="4" className="border border-black p-1 w-8 text-center align-middle bg-white">NO.<br/>URT</th>
-                                <th rowSpan="4" className="border border-black p-1 min-w-[90px] text-center align-middle bg-white">Nama</th>
-                                <th rowSpan="4" className="border border-black p-1 min-w-[100px] text-center align-middle bg-white">NIP</th>
-                                <th rowSpan="4" className="border border-black p-1 w-8 text-center align-middle bg-white">GOL</th>
-                                <th colSpan="15" className="border border-black p-1 text-center bg-white" rowSpan="1">JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
-                                <th colSpan="2" rowSpan="2" className="border border-black p-1 text-center align-middle bg-white">JUMLAH JAM</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle bg-white w-10">JUMLAH<br/>MAKAN<br/>LEMBUR</th>
-                                <th colSpan="2" rowSpan="2" className="border border-black p-1 text-center align-middle bg-white">JUMLAH UANG</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle bg-white w-14">JUMLAH<br/>DARI<br/>KOLOM</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle bg-white w-12">POTONGAN<br/>PPH</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle bg-white w-14">JUMLAH<br/>BERSIH</th>
-                                <th rowSpan="4" className="border border-black p-1 text-center align-middle bg-white min-w-[70px]">TANDA TANGAN<br/>/<br/>NO REKENING</th>
+                                <th rowSpan="5" style={{border: '1px solid black', padding: '2px', width: '25px', textAlign: 'center', verticalAlign: 'middle'}}>NO.<br/>URT</th>
+                                <th rowSpan="5" style={{border: '1px solid black', padding: '2px', minWidth: '80px', textAlign: 'center', verticalAlign: 'middle'}}>Nama</th>
+                                <th rowSpan="5" style={{border: '1px solid black', padding: '2px', minWidth: '95px', textAlign: 'center', verticalAlign: 'middle'}}>NIP</th>
+                                <th rowSpan="5" style={{border: '1px solid black', padding: '2px', width: '25px', textAlign: 'center', verticalAlign: 'middle'}}>GOL</th>
+                                <th colSpan="15" style={{border: '1px solid black', padding: '2px', textAlign: 'center'}}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
+                                <th colSpan="2" rowSpan="3" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle'}}>JUMLAH JAM</th>
+                                <th rowSpan="4" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '35px'}}>JUMLAH<br/>MAKAN<br/>LEMBUR</th>
+                                <th colSpan="2" rowSpan="3" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle'}}>JUMLAH UANG</th>
+                                <th rowSpan="4" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '55px'}}>JUMLAH<br/>DARI<br/>KOLOM</th>
+                                <th rowSpan="4" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '45px'}}>POTONGAN<br/>PPH</th>
+                                <th rowSpan="4" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '55px'}}>JUMLAH<br/>BERSIH</th>
+                                <th rowSpan="5" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '65px'}}>TANDA TANGAN<br/>/<br/>NO REKENING</th>
                             </tr>
-                            
-                            {/* Header Row 2 - Days 1-15 */}
+
+                            {/* Row 2: Days 1-15 */}
                             <tr>
-                                {daysRow1.map(day => (
-                                    <th 
-                                        key={day} 
-                                        className="border border-black p-0 w-5 text-center text-[7px]"
-                                        style={getDayCellStyle(day)}
-                                    >
+                                {days1to15.map(day => (
+                                    <th key={day} style={{
+                                        border: '1px solid black', 
+                                        padding: '1px', 
+                                        width: '18px', 
+                                        textAlign: 'center',
+                                        fontSize: '6px',
+                                        ...(isHoliday(day) ? holidayStyle : normalStyle)
+                                    }}>
                                         {day}{isHoliday(day) ? '-' : '+'}
                                     </th>
                                 ))}
                             </tr>
-                            
-                            {/* Header Row 3 - Days 16-31 + summary headers */}
+
+                            {/* Row 3: Days 16-31 */}
                             <tr>
-                                {daysRow2.map(day => (
-                                    <th 
-                                        key={day} 
-                                        className="border border-black p-0 w-5 text-center text-[7px]"
-                                        style={getDayCellStyle(day)}
-                                    >
-                                        {day}{isHoliday(day) ? '-' : '+'}
+                                {days16to31.map((day, idx) => (
+                                    <th key={idx} style={{
+                                        border: '1px solid black', 
+                                        padding: '1px', 
+                                        width: '18px', 
+                                        textAlign: 'center',
+                                        fontSize: '6px',
+                                        ...(day && isHoliday(day) ? holidayStyle : normalStyle)
+                                    }}>
+                                        {day ? `${day}${isHoliday(day) ? '-' : '+'}` : ''}
                                     </th>
                                 ))}
-                                {/* Fill remaining cells if less than 16 days in row 2 */}
-                                {Array.from({ length: Math.max(0, 15 - daysRow2.length) }, (_, i) => (
-                                    <th key={`empty-${i}`} className="border border-black p-0 w-5"></th>
-                                ))}
-                                <th className="border border-black p-1 text-center w-8 text-[7px]">HARI<br/>KERJA</th>
-                                <th className="border border-black p-1 text-center w-8 text-[7px]">HARI<br/>LIBUR</th>
-                                <th className="border border-black p-1 text-center w-14 text-[7px]">LEMBUR</th>
-                                <th className="border border-black p-1 text-center w-12 text-[7px]">MAKAN<br/>LEMBUR</th>
+                                <th style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontSize: '6px'}}>HARI<br/>KERJA</th>
+                                <th style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontSize: '6px'}}>HARI<br/>LIBUR</th>
+                                <th style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontSize: '6px'}}>LEMBUR</th>
+                                <th style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontSize: '6px'}}>MAKAN<br/>LEMBUR</th>
                             </tr>
-                            
-                            {/* Header Row 4 - Column numbers + Note */}
-                            <tr className="text-[7px]">
-                                <td colSpan="15" className="border border-black p-0 text-center italic">
+
+                            {/* Row 4: Note + Column numbers */}
+                            <tr style={{fontSize: '6px'}}>
+                                <td colSpan="15" style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontStyle: 'italic'}}>
                                     5 (tanda '-' = Libur ; tanda '+' = Kerja)
                                 </td>
-                                <td className="border border-black p-0 text-center font-bold">6</td>
-                                <td className="border border-black p-0 text-center font-bold">7</td>
-                                <td className="border border-black p-0 text-center font-bold">8</td>
-                                <td className="border border-black p-0 text-center font-bold">9</td>
-                                <td className="border border-black p-0 text-center font-bold">10</td>
-                                <td className="border border-black p-0 text-center font-bold">11</td>
-                                <td className="border border-black p-0 text-center font-bold">12</td>
-                                <td className="border border-black p-0 text-center font-bold">13</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>6</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>7</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>9</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>10</td>
                             </tr>
-                            
-                            {/* Header Row 5 - Column numbers for first columns */}
-                            <tr className="text-[7px]">
-                                <td className="border border-black p-0 text-center font-bold">1</td>
-                                <td className="border border-black p-0 text-center font-bold">2</td>
-                                <td className="border border-black p-0 text-center font-bold">3</td>
-                                <td className="border border-black p-0 text-center font-bold">4</td>
-                                {/* Empty cells for days columns */}
-                                <td colSpan="15" className="border border-black p-0"></td>
-                                <td colSpan="8" className="border border-black p-0"></td>
-                                <td className="border border-black p-0 text-center font-bold">14</td>
+
+                            {/* Row 5: Column numbers for first columns */}
+                            <tr style={{fontSize: '6px'}}>
+                                <td colSpan="15" style={{border: '1px solid black', padding: '0'}}></td>
+                                <td colSpan="2" style={{border: '1px solid black', padding: '0'}}></td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>8</td>
+                                <td colSpan="2" style={{border: '1px solid black', padding: '0'}}></td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>11</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>12</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>13</td>
+                            </tr>
+
+                            {/* Row 6: Column identifiers 1-4 and 14 */}
+                            <tr style={{fontSize: '6px'}}>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>1</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>2</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>3</td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>4</td>
+                                <td colSpan="15" style={{border: '1px solid black', padding: '0'}}></td>
+                                <td colSpan="8" style={{border: '1px solid black', padding: '0'}}></td>
+                                <td style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontWeight: 'bold'}}>14</td>
                             </tr>
                         </thead>
                         
                         <tbody>
                             {employees.length === 0 ? (
                                 <tr>
-                                    <td colSpan="28" className="border border-black p-4 text-center text-gray-500">
+                                    <td colSpan="28" style={{border: '1px solid black', padding: '10px', textAlign: 'center', color: '#888'}}>
                                         Tidak ada data lembur yang disetujui untuk bulan ini
                                     </td>
                                 </tr>
                             ) : (
                                 employees.map((emp, idx) => (
-                                    <tr key={emp.pegawai_id || idx}>
-                                        {/* NO. URT */}
-                                        <td className="border border-black p-1 text-center">{idx + 1}</td>
+                                    <React.Fragment key={emp.pegawai_id || idx}>
+                                        {/* Employee Row 1 - Days 1-15 */}
+                                        <tr>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle'}}>{idx + 1}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'left', verticalAlign: 'middle', fontSize: '6px'}}>{emp.nama}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'left', verticalAlign: 'middle', fontSize: '6px'}}>{emp.nip && emp.nip !== '-' ? emp.nip : '-'}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle'}}>{emp.golongan ? emp.golongan.split('/')[0] : '-'}</td>
+                                            
+                                            {/* Days 1-15 */}
+                                            {days1to15.map(day => {
+                                                const hours = emp.daily_hours?.[String(day)]?.hours || 0;
+                                                return (
+                                                    <td key={day} style={{
+                                                        border: '1px solid black', 
+                                                        padding: '1px', 
+                                                        textAlign: 'center',
+                                                        fontSize: '6px',
+                                                        ...(isHoliday(day) ? holidayStyle : normalStyle)
+                                                    }}>
+                                                        {hours > 0 ? Math.round(hours) : 0}
+                                                    </td>
+                                                );
+                                            })}
+                                            
+                                            {/* Summary cells - span 2 rows */}
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle'}}>{Math.round(emp.jam_hari_kerja || 0)}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle'}}>{Math.round(emp.jam_hari_libur || 0)}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle'}}>{emp.jumlah_makan || 0}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'right', verticalAlign: 'middle', fontSize: '6px', whiteSpace: 'nowrap'}}>{formatRupiah(emp.uang_lembur)}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'right', verticalAlign: 'middle', fontSize: '6px', whiteSpace: 'nowrap'}}>{formatRupiah(emp.uang_makan)}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'right', verticalAlign: 'middle', fontSize: '6px', fontWeight: 'bold', whiteSpace: 'nowrap'}}>{formatRupiah(emp.jumlah_kotor)}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'right', verticalAlign: 'middle', fontSize: '6px', whiteSpace: 'nowrap'}}>{formatRupiah(emp.potongan_pph)}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'right', verticalAlign: 'middle', fontSize: '6px', fontWeight: 'bold', whiteSpace: 'nowrap'}}>{formatRupiah(emp.jumlah_bersih)}</td>
+                                            <td rowSpan="2" style={{border: '1px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', fontSize: '6px'}}>
+                                                {emp.bank_account || '-'}<br/>{emp.bank_name || 'Mandiri'}
+                                            </td>
+                                        </tr>
                                         
-                                        {/* Nama */}
-                                        <td className="border border-black p-1 text-left text-[7px]">{emp.nama}</td>
-                                        
-                                        {/* NIP */}
-                                        <td className="border border-black p-1 text-left text-[7px]">
-                                            {emp.nip && emp.nip !== '-' ? emp.nip : '-'}
-                                        </td>
-                                        
-                                        {/* GOL */}
-                                        <td className="border border-black p-1 text-center">
-                                            {emp.golongan ? emp.golongan.split('/')[0] : '-'}
-                                        </td>
-                                        
-                                        {/* Daily Hours Row 1 (1-15) */}
-                                        {daysRow1.map(day => {
-                                            const dayStr = String(day);
-                                            const hours = emp.daily_hours?.[dayStr]?.hours || 0;
-                                            return (
-                                                <td 
-                                                    key={day} 
-                                                    className="border border-black p-0 text-center text-[7px]"
-                                                    style={getDayCellStyle(day)}
-                                                >
-                                                    {hours > 0 ? Math.round(hours) : 0}
-                                                </td>
-                                            );
-                                        })}
-                                        
-                                        {/* These cells span to the next row - we need a different approach */}
-                                        <td rowSpan="1" className="border border-black p-1 text-center" style={{display: 'none'}}></td>
-                                    </tr>
+                                        {/* Employee Row 2 - Days 16-31 */}
+                                        <tr>
+                                            {days16to31.map((day, dayIdx) => {
+                                                if (!day) {
+                                                    return <td key={dayIdx} style={{border: '1px solid black', padding: '1px', textAlign: 'center', fontSize: '6px'}}>0</td>;
+                                                }
+                                                const hours = emp.daily_hours?.[String(day)]?.hours || 0;
+                                                return (
+                                                    <td key={dayIdx} style={{
+                                                        border: '1px solid black', 
+                                                        padding: '1px', 
+                                                        textAlign: 'center',
+                                                        fontSize: '6px',
+                                                        ...(isHoliday(day) ? holidayStyle : normalStyle)
+                                                    }}>
+                                                        {hours > 0 ? Math.round(hours) : 0}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    </React.Fragment>
                                 ))
                             )}
+                            
+                            {/* TOTAL ROW */}
+                            <tr style={{fontWeight: 'bold', backgroundColor: '#f0f0f0'}}>
+                                <td colSpan="4" style={{border: '1px solid black', padding: '2px', textAlign: 'center'}}>JUMLAH TOTAL</td>
+                                <td colSpan="15" style={{border: '1px solid black', padding: '0'}}></td>
+                                <td style={{border: '1px solid black', padding: '2px', textAlign: 'center'}}>{Math.round(totals.jam_kerja)}</td>
+                                <td style={{border: '1px solid black', padding: '2px', textAlign: 'center'}}>{Math.round(totals.jam_libur)}</td>
+                                <td style={{border: '1px solid black', padding: '2px', textAlign: 'center'}}>{totals.jumlah_makan}</td>
+                                <td style={{border: '1px solid black', padding: '2px', textAlign: 'right', fontSize: '6px', whiteSpace: 'nowrap'}}>{formatRupiah(totals.uang_lembur)}</td>
+                                <td style={{border: '1px solid black', padding: '2px', textAlign: 'right', fontSize: '6px', whiteSpace: 'nowrap'}}>{formatRupiah(totals.uang_makan)}</td>
+                                <td style={{border: '1px solid black', padding: '2px', textAlign: 'right', fontSize: '6px', whiteSpace: 'nowrap'}}>{formatRupiah(totals.jumlah_kotor)}</td>
+                                <td style={{border: '1px solid black', padding: '2px', textAlign: 'right', fontSize: '6px', whiteSpace: 'nowrap'}}>{formatRupiah(totals.potongan_pph)}</td>
+                                <td style={{border: '1px solid black', padding: '2px', textAlign: 'right', fontSize: '6px', whiteSpace: 'nowrap'}}>{formatRupiah(totals.jumlah_bersih)}</td>
+                                <td style={{border: '1px solid black', padding: '0'}}></td>
+                            </tr>
                         </tbody>
                     </table>
 
-                    {/* Simplified approach - single row per employee with 2 rows of dates inline */}
-                    
                     {/* FOOTER / SIGNATURE SECTION */}
-                    <div className="mt-8 flex justify-end">
-                        <div className="text-center text-[10px] w-64">
+                    <div className="mt-6 flex justify-end">
+                        <div className="text-center text-[9px] w-56">
                             <p className="mb-1">Mengetahui:</p>
-                            <p className="font-bold mb-12">Pejabat Pembuat Komitmen</p>
+                            <p className="font-bold mb-10">Pejabat Pembuat Komitmen</p>
                             <p className="font-bold underline">AMBAR TRI BAWONO</p>
                             <p>NIP. 198112082009011008</p>
                         </div>
