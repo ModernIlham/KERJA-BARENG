@@ -298,6 +298,44 @@ export default function Pengaturan() {
       }
   };
 
+  // --- Kepegawaian Reset Functions ---
+  const handleKepegawaianReset = async (type) => {
+      setKepegawaianResetLoading(true);
+      const t = toast.loading('Menghapus data kepegawaian...');
+      
+      try {
+          const endpoints = {
+              overtime: '/api/kepegawaian/reset/overtime',
+              employees: '/api/kepegawaian/reset/employees',
+              all_kepegawaian: '/api/kepegawaian/reset/all'
+          };
+          
+          const res = await api.delete(endpoints[type], {
+              data: { confirm: 'CONFIRM' }
+          });
+          
+          toast.success(res.data.message, { id: t });
+          
+          // Show deleted counts
+          if (res.data.deleted) {
+              const counts = Object.entries(res.data.deleted)
+                  .map(([key, val]) => `${key}: ${val}`)
+                  .join(', ');
+              toast.info(`Data dihapus: ${counts}`);
+          }
+          
+          // Refresh pegawai list if employees were deleted
+          if (type === 'employees' || type === 'all_kepegawaian') {
+              fetchData();
+          }
+      } catch (e) {
+          const errorMsg = e.response?.data?.detail || 'Gagal menghapus data';
+          toast.error(errorMsg, { id: t });
+      } finally {
+          setKepegawaianResetLoading(false);
+      }
+  };
+
   if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
