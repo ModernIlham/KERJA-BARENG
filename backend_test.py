@@ -1615,18 +1615,22 @@ class APITester:
             print(f"   Work Hours: {jam_hari_kerja}, Holiday Hours: {jam_hari_libur}")
             print(f"   Actual uang_lembur: {uang_lembur:,} IDR")
             
-            # Determine expected rate
+            # Determine expected rate based on actual employee grade
             expected_rate = 0
             if emp_type == 'ASN':
                 if emp_grade and emp_grade.startswith('III'):
-                    expected_rate = expected_rates["ASN_III"]
+                    expected_rate = 30000  # ASN Gol III
+                elif emp_grade and emp_grade.startswith('IV'):
+                    expected_rate = 36000  # ASN Gol IV
+                elif emp_grade and emp_grade.startswith('II'):
+                    expected_rate = 24000  # ASN Gol II
                 else:
-                    # Default ASN rate (assume Gol III if not specified)
-                    expected_rate = expected_rates["ASN_III"]
+                    # Default ASN rate (Gol I) for null or unrecognized grades
+                    expected_rate = 18000  # ASN Gol I
             elif emp_type == 'NON_ASN':
-                expected_rate = expected_rates["NON_ASN_PPNPN"]
+                expected_rate = 20000  # NON-ASN PPNPN default
             else:
-                print(f"   ⚠️ Unknown employee type/grade combination: {emp_type}/{emp_grade}")
+                print(f"   ⚠️ Unknown employee type: {emp_type}")
                 continue
             
             # Calculate expected uang_lembur using formula:
