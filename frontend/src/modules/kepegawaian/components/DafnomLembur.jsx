@@ -69,8 +69,9 @@ const DafnomLembur = ({ month, year }) => {
 
     const isHoliday = (day) => holidays.includes(day);
     
-    const days1to15 = Array.from({ length: 15 }, (_, i) => i + 1);
-    const days16to31 = Array.from({ length: 16 }, (_, i) => i + 16);
+    // Days 1-15 for row 1, days 16-31 for row 2 (both 16 columns each for consistency)
+    const days1to16 = Array.from({ length: 16 }, (_, i) => i + 1); // 1-16
+    const days17to31 = Array.from({ length: 15 }, (_, i) => i + 17); // 17-31 (15 items)
 
     // Consistent cell styles
     const baseCell = { 
@@ -88,6 +89,9 @@ const DafnomLembur = ({ month, year }) => {
     if (loading) {
         return <div className="text-center py-8">Memuat data Dafnom...</div>;
     }
+
+    // Total columns: 4 (NO, Nama, NIP, GOL) + 31 (days) + 8 (summary) + 1 (TTD) = 44 columns
+    // But we split days into 2 rows, so each row has: 4 + 16 + 8 + 1 = 29 columns per row
 
     return (
         <div>
@@ -113,14 +117,14 @@ const DafnomLembur = ({ month, year }) => {
                         <div>Nusantara, {new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'})}</div>
                     </div>
 
-                    {/* Main Table - Simplified structure with 4 header rows */}
+                    {/* Main Table */}
                     <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}>
                         <colgroup>
                             <col style={{ width: '22px' }} />  {/* NO URT */}
                             <col style={{ width: '60px' }} />  {/* Nama */}
                             <col style={{ width: '70px' }} />  {/* NIP */}
                             <col style={{ width: '20px' }} />  {/* GOL */}
-                            {/* 16 day columns */}
+                            {/* 16 day columns for row alignment */}
                             {Array(16).fill(null).map((_, i) => <col key={i} style={{ width: '14px' }} />)}
                             <col style={{ width: '22px' }} />  {/* Hari Kerja */}
                             <col style={{ width: '22px' }} />  {/* Hari Libur */}
@@ -149,23 +153,9 @@ const DafnomLembur = ({ month, year }) => {
                                 <th rowSpan={4} style={baseCell}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
                             </tr>
 
-                            {/* Row 2: Day headers 1-15 + empty + Sub-headers */}
+                            {/* Row 2: Day headers 1-16 + Sub-headers */}
                             <tr style={{ height: '20px' }}>
-                                {days1to15.map(day => (
-                                    <th key={day} style={{...dayCell, ...(isHoliday(day) ? holidayBg : {})}}>
-                                        {day}{isHoliday(day) ? '-' : '+'}
-                                    </th>
-                                ))}
-                                <th style={dayCell}></th>
-                                <th style={baseCell}>HARI<br/>KERJA</th>
-                                <th style={baseCell}>HARI<br/>LIBUR</th>
-                                <th style={baseCell}>LEMBUR</th>
-                                <th style={baseCell}>MAKAN</th>
-                            </tr>
-
-                            {/* Row 3: Day headers 16-31 + column numbers 6-13 */}
-                            <tr style={{ height: '20px' }}>
-                                {days16to31.map(day => {
+                                {days1to16.map(day => {
                                     const valid = day <= daysInMonth;
                                     return (
                                         <th key={day} style={{...dayCell, ...(valid && isHoliday(day) ? holidayBg : {})}}>
@@ -173,6 +163,24 @@ const DafnomLembur = ({ month, year }) => {
                                         </th>
                                     );
                                 })}
+                                <th style={baseCell}>HARI<br/>KERJA</th>
+                                <th style={baseCell}>HARI<br/>LIBUR</th>
+                                <th style={baseCell}>LEMBUR</th>
+                                <th style={baseCell}>MAKAN</th>
+                            </tr>
+
+                            {/* Row 3: Day headers 17-31 + empty + column numbers 6-13 */}
+                            <tr style={{ height: '20px' }}>
+                                {days17to31.map(day => {
+                                    const valid = day <= daysInMonth;
+                                    return (
+                                        <th key={day} style={{...dayCell, ...(valid && isHoliday(day) ? holidayBg : {})}}>
+                                            {valid ? `${day}${isHoliday(day) ? '-' : '+'}` : ''}
+                                        </th>
+                                    );
+                                })}
+                                {/* Empty cell to fill 16 columns */}
+                                <th style={dayCell}></th>
                                 <th style={baseCell}>(6)</th>
                                 <th style={baseCell}>(7)</th>
                                 <th style={baseCell}>(8)</th>
@@ -213,22 +221,22 @@ const DafnomLembur = ({ month, year }) => {
                             ) : (
                                 employees.map((emp, idx) => (
                                     <React.Fragment key={emp.pegawai_id || idx}>
-                                        {/* Employee Row 1: Days 1-15 */}
+                                        {/* Employee Row 1: Days 1-16 */}
                                         <tr style={{ height: '20px' }}>
                                             <td rowSpan={2} style={baseCell}>{idx + 1}</td>
                                             <td rowSpan={2} style={{...baseCell, textAlign: 'left', fontSize: '5px'}}>{emp.nama}</td>
                                             <td rowSpan={2} style={{...baseCell, textAlign: 'left', fontSize: '5px'}}>{emp.nip || '-'}</td>
                                             <td rowSpan={2} style={baseCell}>{emp.golongan?.split('/')[0] || '-'}</td>
                                             
-                                            {days1to15.map(day => {
-                                                const hours = emp.daily_hours?.[String(day)]?.hours || 0;
+                                            {days1to16.map(day => {
+                                                const valid = day <= daysInMonth;
+                                                const hours = valid ? (emp.daily_hours?.[String(day)]?.hours || 0) : 0;
                                                 return (
-                                                    <td key={day} style={{...dayCell, ...(isHoliday(day) ? holidayBg : {})}}>
-                                                        {hours > 0 ? Math.round(hours) : 0}
+                                                    <td key={day} style={{...dayCell, ...(valid && isHoliday(day) ? holidayBg : {})}}>
+                                                        {valid ? (hours > 0 ? Math.round(hours) : 0) : ''}
                                                     </td>
                                                 );
                                             })}
-                                            <td style={dayCell}></td>
                                             
                                             <td rowSpan={2} style={baseCell}>{Math.round(emp.jam_hari_kerja || 0)}</td>
                                             <td rowSpan={2} style={baseCell}>{Math.round(emp.jam_hari_libur || 0)}</td>
@@ -243,9 +251,9 @@ const DafnomLembur = ({ month, year }) => {
                                             </td>
                                         </tr>
                                         
-                                        {/* Employee Row 2: Days 16-31 */}
+                                        {/* Employee Row 2: Days 17-31 + empty */}
                                         <tr style={{ height: '20px' }}>
-                                            {days16to31.map(day => {
+                                            {days17to31.map(day => {
                                                 const valid = day <= daysInMonth;
                                                 const hours = valid ? (emp.daily_hours?.[String(day)]?.hours || 0) : 0;
                                                 return (
@@ -254,6 +262,8 @@ const DafnomLembur = ({ month, year }) => {
                                                     </td>
                                                 );
                                             })}
+                                            {/* Empty cell */}
+                                            <td style={dayCell}></td>
                                         </tr>
                                     </React.Fragment>
                                 ))
