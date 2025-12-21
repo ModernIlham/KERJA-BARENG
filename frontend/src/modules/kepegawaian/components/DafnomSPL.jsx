@@ -252,10 +252,9 @@ const DafnomSPLTable = ({ batches, holidays, cutiNasional, daysInMonth, employee
                                                         {/* Days 1-16 - show hours only on the participant's day */}
                                                         {days1to16.map(day => {
                                                             const valid = day <= daysInMonth;
-                                                            const holiday = valid && isHoliday(day);
                                                             const hours = (valid && participantDay === day) ? (p.duration_hours || 0) : 0;
                                                             return (
-                                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...getDayBgStyle(day)}}>
                                                                     {valid ? (hours > 0 ? Math.round(hours) : 0) : ''}
                                                                 </td>
                                                             );
@@ -283,10 +282,9 @@ const DafnomSPLTable = ({ batches, holidays, cutiNasional, daysInMonth, employee
                                                     <tr>
                                                         {days17to31.map(day => {
                                                             const valid = day <= daysInMonth;
-                                                            const holiday = valid && isHoliday(day);
                                                             const hours = (valid && participantDay === day) ? (p.duration_hours || 0) : 0;
                                                             return (
-                                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...getDayBgStyle(day)}}>
                                                                     {valid ? (hours > 0 ? Math.round(hours) : 0) : ''}
                                                                 </td>
                                                             );
