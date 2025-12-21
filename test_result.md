@@ -196,3 +196,19 @@ agent_communication:
     message: "DAFNOM REPORT UI OVERHAUL COMPLETED: Redesigned DafnomLembur.jsx component to match the official government overtime report PDF example. Changes include: ✅ Created new backend endpoint /api/kepegawaian/overtime/dafnom for detailed daily breakdown per employee. ✅ Implemented complex table structure with 31 date columns showing +/- indicators for workdays/holidays. ✅ Added proper header hierarchy with main categories, sub-categories, and column numbers. ✅ Weekend days (Saturday/Sunday) highlighted in red background. ✅ Added month/year selector for period selection. ✅ Implemented proper footer with PPK signature section. ✅ All monetary values formatted as Rupiah. ✅ Print/PDF functionality preserved. Visual structure now closely matches the user-provided PDF example."
   - agent: "testing"
     message: "FINAL DAFNOM VERIFICATION COMPLETED SUCCESSFULLY! ✅ Comprehensive final testing performed on all 10 specific requirements from the review request: (1) Login with admin@example.com/admin - VERIFIED WORKING, (2) Navigation to /kepegawaian/lembur → 'Laporan & Dafnom' tab → 'Cetak Dafnom (PDF)' sub-tab - ALL NAVIGATION WORKING PERFECTLY, (3) Table header alignment - All headers (JUMLAH JAM, JML MAKAN LEMBUR, JUMLAH UANG, etc.) aligned on same row - VERIFIED, (4) Date columns Row 1: Days 1-15 + 1 empty cell = 16 cells total - VERIFIED CORRECT STRUCTURE, (5) Date columns Row 2: Days 16-31 = 16 cells - VERIFIED CORRECT STRUCTURE, (6) Sub-headers (HARI KERJA, HARI LIBUR, LEMBUR, MAKAN) under parent headers - VERIFIED POSITIONED CORRECTLY, (7) Column numbers (5, 6, 7, 8, 9, 10, 11, 12, 13) displayed correctly - VERIFIED ALL PRESENT, (8) No extra/separated columns on right side - VERIFIED CLEAN TABLE STRUCTURE, (9) Employee data displayed correctly in 2 rows per person - VERIFIED (or no data message when appropriate), (10) Total row at bottom - VERIFIED PRESENT, (11) PPK signature footer complete with 'AMBAR TRI BAWONO', NIP '198112082009011008', 'Pejabat Pembuat Komitmen' - VERIFIED COMPLETE, (12) 'Cetak / PDF' button visible and functional - VERIFIED WORKING. ✅ PRINT FUNCTIONALITY TESTED: Print button accessible and ready for PDF generation. ✅ ALL 10 VERIFICATION POINTS FROM REVIEW REQUEST SUCCESSFULLY COMPLETED. The final Dafnom overtime report with all improvements is production-ready and fully functional. No critical issues found - ready for production use."
+
+  - task: "Dafnom Reports with PPK Selector and Dynamic Title"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/frontend/src/modules/kepegawaian/components/DafnomSPL.jsx, /app/frontend/src/modules/kepegawaian/components/DafnomLembur.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "needs_testing"
+        agent: "main"
+        comment: "Added new features: (1) PPK (Pejabat Pembuat Komitmen) selector dropdown to choose signatory for reports, (2) Dynamic report title that changes based on selected SPL - uses SPL description or 'PER SURAT PERINTAH LEMBUR' if all SPL selected, (3) Column 'TANDA TANGAN/NO REK' displays bank name and account number, (4) ASN/NON-ASN tabs in both reports. Testing needed to verify all features."
+
+Incorporate User Feedback:
+  - agent: "main"
+    message: "New features added to Dafnom reports: PPK selector from employee list with jabatan_melekat containing 'PPK', dynamic title based on selected SPL's description, bank account info displayed in TANDA TANGAN/NO REK column."
