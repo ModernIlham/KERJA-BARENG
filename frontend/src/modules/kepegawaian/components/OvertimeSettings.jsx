@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Save, RefreshCw, DollarSign, Calendar } from 'lucide-react';
+import { Save, RefreshCw, DollarSign, Calendar, Trash2, AlertTriangle, Users, Clock, Database } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import api from '../../../api/axios';
 import { formatCurrency } from '../../../lib/utils';
 import HolidayManagement from './HolidayManagement';
