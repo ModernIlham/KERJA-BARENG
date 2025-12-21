@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 class APITester:
-    def __init__(self, base_url="https://wms-overtime.preview.emergentagent.com"):
+    def __init__(self, base_url="https://employee-portal-80.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
