@@ -316,9 +316,9 @@ const ManajemenLembur = () => {
             </TabsContent>
         )}
 
-        {/* --- PENGAJUAN (NEW BATCH FORM) --- */}
+        {/* --- PENGAJUAN (NEW RANGE FORM) --- */}
         <TabsContent value="pengajuan" className="space-y-4">
-            <OvertimeBatchForm onSuccess={() => setBatchRefresh(prev => prev + 1)} />
+            <OvertimeRangeForm onSuccess={() => setBatchRefresh(prev => prev + 1)} />
         </TabsContent>
 
         {/* --- DAFTAR SPL --- */}
