@@ -2,8 +2,9 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Printer, RefreshCw } from 'lucide-react';
+import { Printer, RefreshCw, Download } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
+import * as XLSX from 'xlsx';
 import api from '../../../api/axios';
 
 const formatRupiah = (num) => {
