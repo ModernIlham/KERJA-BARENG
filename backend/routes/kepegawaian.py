@@ -888,9 +888,9 @@ async def create_overtime_range(req: OvertimeRangeCreate, current_user: User = D
                 description=req.description,
                 rate_per_hour=rate,
                 meal_allowance=meal,
-                gross_pay=gross + meal,
+                gross_pay=gross,  # Uang lembur saja, tanpa meal
                 tax_amount=tax,
-                net_pay=(gross + meal) - tax,
+                net_pay=net,
                 spl_file=req.spl_file,
                 evidence_files=req.evidence_files
             )
@@ -905,8 +905,8 @@ async def create_overtime_range(req: OvertimeRangeCreate, current_user: User = D
                 "start_time": participant.start_time,
                 "end_time": participant.end_time,
                 "duration_hours": round(duration, 2),
-                "gross_pay": gross + meal,
-                "net_pay": (gross + meal) - tax
+                "gross_pay": gross,  # Uang lembur saja
+                "net_pay": net
             })
         
         days_config_stored.append(day_config_stored)
