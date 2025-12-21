@@ -1,13 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Printer, Download } from 'lucide-react';
+import { Printer } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const formatRupiah = (num) => {
-    if (num === null || num === undefined || num === 0) return '-';
-    return `Rp ${num.toLocaleString('id-ID')}`;
+    if (num === null || num === undefined) return '-';
+    if (num === 0) return '-';
+    return `Rp ${Math.round(num).toLocaleString('id-ID')}`;
 };
 
 const DafnomLembur = ({ month, year }) => {
@@ -61,6 +62,10 @@ const DafnomLembur = ({ month, year }) => {
     const holidays = data?.holidays || [];
     const employees = data?.employees || [];
 
+    // Split days into two rows: 1-15 and 16-31
+    const daysRow1 = Array.from({ length: 15 }, (_, i) => i + 1);
+    const daysRow2 = Array.from({ length: Math.min(16, daysInMonth - 15) }, (_, i) => i + 16);
+
     // Calculate totals
     const totals = {
         jam_kerja: employees.reduce((acc, e) => acc + (e.jam_hari_kerja || 0), 0),
@@ -71,6 +76,14 @@ const DafnomLembur = ({ month, year }) => {
         jumlah_kotor: employees.reduce((acc, e) => acc + (e.jumlah_kotor || 0), 0),
         potongan_pph: employees.reduce((acc, e) => acc + (e.potongan_pph || 0), 0),
         jumlah_bersih: employees.reduce((acc, e) => acc + (e.jumlah_bersih || 0), 0),
+    };
+
+    // Helper to check if a day is a holiday
+    const isHoliday = (day) => holidays.includes(day);
+
+    // Get cell style for day cells
+    const getDayCellStyle = (day) => {
+        return isHoliday(day) ? { backgroundColor: '#ffcccc' } : {};
     };
 
     if (loading) {
@@ -94,26 +107,23 @@ const DafnomLembur = ({ month, year }) => {
             >
                 <div className="p-4 min-w-[1400px]">
                     {/* HEADER SECTION */}
-                    <div className="mb-4">
-                        {/* Top Row: Title Centered */}
-                        <div className="text-center mb-2">
-                            <h1 className="font-bold text-sm uppercase">
-                                DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR
-                            </h1>
-                            <h2 className="font-bold text-xs uppercase">
-                                LEMBUR KEGIATAN INVENTARISASI DAN PELABELAN BMN TAHUNAN
-                            </h2>
+                    <div className="mb-4 text-center">
+                        <h1 className="font-bold text-sm uppercase">
+                            DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR
+                        </h1>
+                        <h2 className="font-bold text-xs uppercase">
+                            LEMBUR KEGIATAN INVENTARISASI DAN PELABELAN BMN TAHUNAN
+                        </h2>
+                    </div>
+                    
+                    {/* Second Row: Left info + Right date */}
+                    <div className="flex justify-between mb-3 text-[10px]">
+                        <div className="font-bold">
+                            <p>SATUAN KERJA : OTORITA IBU KOTA NUSANTARA (621001)</p>
+                            <p>BULAN : {monthName} {year}</p>
                         </div>
-                        
-                        {/* Second Row: Left info + Right date */}
-                        <div className="flex justify-between mt-3 text-[10px]">
-                            <div className="font-bold">
-                                <p>SATUAN KERJA : OTORITA IBU KOTA NUSANTARA (621001)</p>
-                                <p>BULAN : {monthName} {year}</p>
-                            </div>
-                            <div className="text-right">
-                                <p>Nusantara, {new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'})}</p>
-                            </div>
+                        <div className="text-right">
+                            <p>Nusantara, {new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'})}</p>
                         </div>
                     </div>
 
@@ -121,69 +131,87 @@ const DafnomLembur = ({ month, year }) => {
                     <table className="w-full border-collapse text-[8px]" style={{ borderCollapse: 'collapse' }}>
                         <thead>
                             {/* Header Row 1 - Main categories */}
-                            <tr className="bg-gray-100">
-                                <th rowSpan="4" className="border border-black p-1 w-8 text-center align-middle">NO.<br/>URT</th>
-                                <th rowSpan="4" className="border border-black p-1 min-w-[100px] text-center align-middle">Nama</th>
-                                <th rowSpan="4" className="border border-black p-1 min-w-[90px] text-center align-middle">NIP</th>
-                                <th rowSpan="4" className="border border-black p-1 w-8 text-center align-middle">GOL</th>
-                                <th colSpan={daysInMonth} className="border border-black p-1 text-center">JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
-                                <th colSpan="2" className="border border-black p-1 text-center">JUMLAH JAM</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle w-10">JML<br/>MAKAN<br/>LEMBUR</th>
-                                <th colSpan="2" className="border border-black p-1 text-center">JUMLAH UANG</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle w-16">JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle w-14">POTONGAN<br/>PPH</th>
-                                <th rowSpan="3" className="border border-black p-1 text-center align-middle w-16">JUMLAH<br/>BERSIH<br/>(11-12)</th>
-                                <th rowSpan="4" className="border border-black p-1 text-center align-middle min-w-[80px]">TANDA TANGAN<br/>/<br/>NO REKENING</th>
+                            <tr>
+                                <th rowSpan="4" className="border border-black p-1 w-8 text-center align-middle bg-white">NO.<br/>URT</th>
+                                <th rowSpan="4" className="border border-black p-1 min-w-[90px] text-center align-middle bg-white">Nama</th>
+                                <th rowSpan="4" className="border border-black p-1 min-w-[100px] text-center align-middle bg-white">NIP</th>
+                                <th rowSpan="4" className="border border-black p-1 w-8 text-center align-middle bg-white">GOL</th>
+                                <th colSpan="15" className="border border-black p-1 text-center bg-white" rowSpan="1">JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
+                                <th colSpan="2" rowSpan="2" className="border border-black p-1 text-center align-middle bg-white">JUMLAH JAM</th>
+                                <th rowSpan="3" className="border border-black p-1 text-center align-middle bg-white w-10">JUMLAH<br/>MAKAN<br/>LEMBUR</th>
+                                <th colSpan="2" rowSpan="2" className="border border-black p-1 text-center align-middle bg-white">JUMLAH UANG</th>
+                                <th rowSpan="3" className="border border-black p-1 text-center align-middle bg-white w-14">JUMLAH<br/>DARI<br/>KOLOM</th>
+                                <th rowSpan="3" className="border border-black p-1 text-center align-middle bg-white w-12">POTONGAN<br/>PPH</th>
+                                <th rowSpan="3" className="border border-black p-1 text-center align-middle bg-white w-14">JUMLAH<br/>BERSIH</th>
+                                <th rowSpan="4" className="border border-black p-1 text-center align-middle bg-white min-w-[70px]">TANDA TANGAN<br/>/<br/>NO REKENING</th>
                             </tr>
                             
-                            {/* Header Row 2 - Date numbers with +/- indicators */}
-                            <tr className="bg-gray-50">
-                                {[...Array(daysInMonth)].map((_, i) => {
-                                    const day = i + 1;
-                                    const isHoliday = holidays.includes(day);
-                                    return (
-                                        <th 
-                                            key={day} 
-                                            className={`border border-black p-0 w-5 text-center text-[7px] ${isHoliday ? 'bg-red-200' : ''}`}
-                                        >
-                                            {day}{isHoliday ? '-' : '+'}
-                                        </th>
-                                    );
-                                })}
-                                <th className="border border-black p-1 text-center w-10">HARI<br/>KERJA</th>
-                                <th className="border border-black p-1 text-center w-10">HARI<br/>LIBUR</th>
-                                <th className="border border-black p-1 text-center w-14">LEMBUR</th>
-                                <th className="border border-black p-1 text-center w-14">MAKAN<br/>LEMBUR</th>
-                            </tr>
-                            
-                            {/* Header Row 3 - Note about +/- symbols */}
-                            <tr className="text-[6px] italic bg-gray-50">
-                                <td colSpan={daysInMonth} className="border border-black p-0 text-center">
-                                    (tanda '-' = Libur ; tanda '+' = Kerja)
-                                </td>
-                                <td colSpan="6" className="border border-black p-0"></td>
-                            </tr>
-                            
-                            {/* Header Row 4 - Column numbers */}
-                            <tr className="bg-gray-100 text-[7px]">
-                                {[...Array(daysInMonth)].map((_, i) => (
-                                    <th key={i} className="border border-black p-0 text-center">5</th>
+                            {/* Header Row 2 - Days 1-15 */}
+                            <tr>
+                                {daysRow1.map(day => (
+                                    <th 
+                                        key={day} 
+                                        className="border border-black p-0 w-5 text-center text-[7px]"
+                                        style={getDayCellStyle(day)}
+                                    >
+                                        {day}{isHoliday(day) ? '-' : '+'}
+                                    </th>
                                 ))}
-                                <th className="border border-black p-0 text-center">6</th>
-                                <th className="border border-black p-0 text-center">7</th>
-                                <th className="border border-black p-0 text-center">8</th>
-                                <th className="border border-black p-0 text-center">9</th>
-                                <th className="border border-black p-0 text-center">10</th>
-                                <th className="border border-black p-0 text-center">11</th>
-                                <th className="border border-black p-0 text-center">12</th>
-                                <th className="border border-black p-0 text-center">13</th>
+                            </tr>
+                            
+                            {/* Header Row 3 - Days 16-31 + summary headers */}
+                            <tr>
+                                {daysRow2.map(day => (
+                                    <th 
+                                        key={day} 
+                                        className="border border-black p-0 w-5 text-center text-[7px]"
+                                        style={getDayCellStyle(day)}
+                                    >
+                                        {day}{isHoliday(day) ? '-' : '+'}
+                                    </th>
+                                ))}
+                                {/* Fill remaining cells if less than 16 days in row 2 */}
+                                {Array.from({ length: Math.max(0, 15 - daysRow2.length) }, (_, i) => (
+                                    <th key={`empty-${i}`} className="border border-black p-0 w-5"></th>
+                                ))}
+                                <th className="border border-black p-1 text-center w-8 text-[7px]">HARI<br/>KERJA</th>
+                                <th className="border border-black p-1 text-center w-8 text-[7px]">HARI<br/>LIBUR</th>
+                                <th className="border border-black p-1 text-center w-14 text-[7px]">LEMBUR</th>
+                                <th className="border border-black p-1 text-center w-12 text-[7px]">MAKAN<br/>LEMBUR</th>
+                            </tr>
+                            
+                            {/* Header Row 4 - Column numbers + Note */}
+                            <tr className="text-[7px]">
+                                <td colSpan="15" className="border border-black p-0 text-center italic">
+                                    5 (tanda '-' = Libur ; tanda '+' = Kerja)
+                                </td>
+                                <td className="border border-black p-0 text-center font-bold">6</td>
+                                <td className="border border-black p-0 text-center font-bold">7</td>
+                                <td className="border border-black p-0 text-center font-bold">8</td>
+                                <td className="border border-black p-0 text-center font-bold">9</td>
+                                <td className="border border-black p-0 text-center font-bold">10</td>
+                                <td className="border border-black p-0 text-center font-bold">11</td>
+                                <td className="border border-black p-0 text-center font-bold">12</td>
+                                <td className="border border-black p-0 text-center font-bold">13</td>
+                            </tr>
+                            
+                            {/* Header Row 5 - Column numbers for first columns */}
+                            <tr className="text-[7px]">
+                                <td className="border border-black p-0 text-center font-bold">1</td>
+                                <td className="border border-black p-0 text-center font-bold">2</td>
+                                <td className="border border-black p-0 text-center font-bold">3</td>
+                                <td className="border border-black p-0 text-center font-bold">4</td>
+                                {/* Empty cells for days columns */}
+                                <td colSpan="15" className="border border-black p-0"></td>
+                                <td colSpan="8" className="border border-black p-0"></td>
+                                <td className="border border-black p-0 text-center font-bold">14</td>
                             </tr>
                         </thead>
                         
                         <tbody>
                             {employees.length === 0 ? (
                                 <tr>
-                                    <td colSpan={daysInMonth + 13} className="border border-black p-4 text-center text-gray-500">
+                                    <td colSpan="28" className="border border-black p-4 text-center text-gray-500">
                                         Tidak ada data lembur yang disetujui untuk bulan ini
                                     </td>
                                 </tr>
@@ -196,9 +224,9 @@ const DafnomLembur = ({ month, year }) => {
                                         {/* Nama */}
                                         <td className="border border-black p-1 text-left text-[7px]">{emp.nama}</td>
                                         
-                                        {/* NIP - with apostrophe prefix for Excel compatibility */}
+                                        {/* NIP */}
                                         <td className="border border-black p-1 text-left text-[7px]">
-                                            {emp.nip && emp.nip !== '-' ? `'${emp.nip}` : '-'}
+                                            {emp.nip && emp.nip !== '-' ? emp.nip : '-'}
                                         </td>
                                         
                                         {/* GOL */}
@@ -206,91 +234,31 @@ const DafnomLembur = ({ month, year }) => {
                                             {emp.golongan ? emp.golongan.split('/')[0] : '-'}
                                         </td>
                                         
-                                        {/* Daily Hours (1-31) */}
-                                        {[...Array(daysInMonth)].map((_, i) => {
-                                            const day = String(i + 1);
-                                            const dayData = emp.daily_hours?.[day] || { hours: 0, is_holiday: false };
-                                            const hours = dayData.hours || 0;
-                                            const isHoliday = holidays.includes(i + 1) || dayData.is_holiday;
-                                            
+                                        {/* Daily Hours Row 1 (1-15) */}
+                                        {daysRow1.map(day => {
+                                            const dayStr = String(day);
+                                            const hours = emp.daily_hours?.[dayStr]?.hours || 0;
                                             return (
                                                 <td 
                                                     key={day} 
-                                                    className={`border border-black p-0 text-center text-[7px] ${isHoliday ? 'bg-red-100' : ''}`}
+                                                    className="border border-black p-0 text-center text-[7px]"
+                                                    style={getDayCellStyle(day)}
                                                 >
-                                                    {hours > 0 ? Math.round(hours) : ''}
+                                                    {hours > 0 ? Math.round(hours) : 0}
                                                 </td>
                                             );
                                         })}
                                         
-                                        {/* JUMLAH JAM HARI KERJA */}
-                                        <td className="border border-black p-1 text-center">
-                                            {emp.jam_hari_kerja > 0 ? Math.round(emp.jam_hari_kerja) : 0}
-                                        </td>
-                                        
-                                        {/* JUMLAH JAM HARI LIBUR */}
-                                        <td className="border border-black p-1 text-center">
-                                            {emp.jam_hari_libur > 0 ? Math.round(emp.jam_hari_libur) : 0}
-                                        </td>
-                                        
-                                        {/* JUMLAH MAKAN LEMBUR */}
-                                        <td className="border border-black p-1 text-center">
-                                            {emp.jumlah_makan || 0}
-                                        </td>
-                                        
-                                        {/* UANG LEMBUR */}
-                                        <td className="border border-black p-1 text-right text-[7px] whitespace-nowrap">
-                                            {formatRupiah(emp.uang_lembur)}
-                                        </td>
-                                        
-                                        {/* UANG MAKAN LEMBUR */}
-                                        <td className="border border-black p-1 text-right text-[7px] whitespace-nowrap">
-                                            {formatRupiah(emp.uang_makan)}
-                                        </td>
-                                        
-                                        {/* JUMLAH DARI KOLOM (9+10) */}
-                                        <td className="border border-black p-1 text-right font-bold text-[7px] whitespace-nowrap">
-                                            {formatRupiah(emp.jumlah_kotor)}
-                                        </td>
-                                        
-                                        {/* POTONGAN PPH */}
-                                        <td className="border border-black p-1 text-right text-[7px] whitespace-nowrap">
-                                            {formatRupiah(emp.potongan_pph)}
-                                        </td>
-                                        
-                                        {/* JUMLAH BERSIH */}
-                                        <td className="border border-black p-1 text-right font-bold text-[7px] whitespace-nowrap">
-                                            {formatRupiah(emp.jumlah_bersih)}
-                                        </td>
-                                        
-                                        {/* TANDA TANGAN / NO REKENING */}
-                                        <td className="border border-black p-1 text-center text-[7px]">
-                                            <div className="h-6 border-b border-dotted mb-1"></div>
-                                            <div>{emp.bank_account || '-'}</div>
-                                            <div>{emp.bank_name || ''}</div>
-                                        </td>
+                                        {/* These cells span to the next row - we need a different approach */}
+                                        <td rowSpan="1" className="border border-black p-1 text-center" style={{display: 'none'}}></td>
                                     </tr>
                                 ))
                             )}
-                            
-                            {/* TOTAL ROW */}
-                            <tr className="font-bold bg-gray-200">
-                                <td colSpan={4 + daysInMonth} className="border border-black p-1 text-center">
-                                    JUMLAH TOTAL
-                                </td>
-                                <td className="border border-black p-1 text-center">{Math.round(totals.jam_kerja)}</td>
-                                <td className="border border-black p-1 text-center">{Math.round(totals.jam_libur)}</td>
-                                <td className="border border-black p-1 text-center">{totals.jumlah_makan}</td>
-                                <td className="border border-black p-1 text-right text-[7px] whitespace-nowrap">{formatRupiah(totals.uang_lembur)}</td>
-                                <td className="border border-black p-1 text-right text-[7px] whitespace-nowrap">{formatRupiah(totals.uang_makan)}</td>
-                                <td className="border border-black p-1 text-right text-[7px] whitespace-nowrap">{formatRupiah(totals.jumlah_kotor)}</td>
-                                <td className="border border-black p-1 text-right text-[7px] whitespace-nowrap">{formatRupiah(totals.potongan_pph)}</td>
-                                <td className="border border-black p-1 text-right text-[7px] whitespace-nowrap">{formatRupiah(totals.jumlah_bersih)}</td>
-                                <td className="border border-black p-1"></td>
-                            </tr>
                         </tbody>
                     </table>
 
+                    {/* Simplified approach - single row per employee with 2 rows of dates inline */}
+                    
                     {/* FOOTER / SIGNATURE SECTION */}
                     <div className="mt-8 flex justify-end">
                         <div className="text-center text-[10px] w-64">
