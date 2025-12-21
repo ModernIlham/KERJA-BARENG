@@ -1111,26 +1111,32 @@ async def partial_approve_batch(
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail="Hanya admin yang dapat menyetujui")
     
+    # Convert string IDs to ObjectIds
+    approve_oids = [ObjectId(id) for id in req.approve_ids if ObjectId.is_valid(id)]
+    reject_oids = [ObjectId(id) for id in req.reject_ids if ObjectId.is_valid(id)]
+    
     # Update approved records
-    if req.approve_ids:
+    if approve_oids:
         await db.overtime_requests.update_many(
-            {"batch_id": batch_id, "id": {"$in": req.approve_ids}},
+            {"batch_id": batch_id, "_id": {"$in": approve_oids}},
             {"$set": {
                 "status": "Approved",
                 "approver_id": str(current_user.id),
                 "approver_name": current_user.full_name,
+                "approved_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc)
             }}
         )
     
     # Update rejected records  
-    if req.reject_ids:
+    if reject_oids:
         await db.overtime_requests.update_many(
-            {"batch_id": batch_id, "id": {"$in": req.reject_ids}},
+            {"batch_id": batch_id, "_id": {"$in": reject_oids}},
             {"$set": {
                 "status": "Rejected",
                 "approver_id": str(current_user.id),
                 "approver_name": current_user.full_name,
+                "rejected_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc)
             }}
         )
