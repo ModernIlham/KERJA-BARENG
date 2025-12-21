@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { 
     Users, Calendar, Clock, FileText, Send, Search, X, CheckCircle, 
     ChevronDown, ChevronRight, Plus, Trash2, Copy, Sun, Moon,
-    Coffee, CalendarRange
+    Coffee, CalendarRange, CalendarPlus
 } from 'lucide-react';
 import api from '../../../api/axios';
 
@@ -20,13 +20,19 @@ const OvertimeRangeForm = ({ onSuccess }) => {
     const [pegawaiList, setPegawaiList] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedPegawai, setSelectedPegawai] = useState([]);
-    const [daysInfo, setDaysInfo] = useState([]);
-    const [daysConfig, setDaysConfig] = useState([]);
     const [expandedDays, setExpandedDays] = useState({});
+    const [expandedRanges, setExpandedRanges] = useState({0: true});
     
-    const [formData, setFormData] = useState({
+    // Multiple date ranges
+    const [dateRanges, setDateRanges] = useState([{
+        id: 0,
         start_date: new Date().toISOString().split('T')[0],
         end_date: new Date().toISOString().split('T')[0],
+        daysInfo: [],
+        daysConfig: []
+    }]);
+    
+    const [formData, setFormData] = useState({
         description: '',
         default_start_time: '08:00',
         default_end_time: '17:00',
@@ -36,20 +42,6 @@ const OvertimeRangeForm = ({ onSuccess }) => {
     useEffect(() => {
         fetchPegawai();
     }, []);
-
-    // Fetch holidays when date range changes
-    useEffect(() => {
-        if (formData.start_date && formData.end_date) {
-            fetchDaysInfo();
-        }
-    }, [formData.start_date, formData.end_date]);
-
-    // Initialize days config when days info or selected pegawai changes
-    useEffect(() => {
-        if (daysInfo.length > 0) {
-            initializeDaysConfig();
-        }
-    }, [daysInfo, selectedPegawai, formData.default_start_time, formData.default_end_time, formData.default_breaks]);
 
     const fetchPegawai = async () => {
         try {
@@ -69,42 +61,95 @@ const OvertimeRangeForm = ({ onSuccess }) => {
         }
     };
 
-    const fetchDaysInfo = async () => {
+    // Fetch holidays when date range changes
+    const fetchDaysInfo = async (rangeId, startDate, endDate) => {
+        if (!startDate || !endDate) return;
         try {
-            const res = await api.get(`/api/kepegawaian/overtime/check-holidays?start_date=${formData.start_date}&end_date=${formData.end_date}`);
-            setDaysInfo(res.data || []);
-        } catch (e) {
-            console.error("Gagal memuat info hari", e);
-            setDaysInfo([]);
-        }
-    };
-
-    const initializeDaysConfig = () => {
-        const newConfig = daysInfo.map(dayInfo => {
-            // Find existing config for this date
-            const existingConfig = daysConfig.find(d => d.date === dayInfo.date);
+            const res = await api.get(`/api/kepegawaian/overtime/check-holidays?start_date=${startDate}&end_date=${endDate}`);
+            const daysInfo = res.data || [];
             
-            return {
+            // Initialize days config for this range
+            const daysConfig = daysInfo.map(dayInfo => ({
                 date: dayInfo.date,
                 day_name: dayInfo.day_name,
                 is_holiday: dayInfo.is_holiday,
                 is_weekend: dayInfo.is_weekend,
-                breaks: existingConfig?.breaks || [...formData.default_breaks],
-                participants: selectedPegawai.map(p => {
-                    // Find existing participant config
-                    const existingParticipant = existingConfig?.participants?.find(ep => ep.pegawai_id === p.id);
-                    return {
-                        pegawai_id: p.id,
-                        nama_lengkap: p.nama_lengkap,
-                        nip: p.nip,
-                        attending: existingParticipant?.attending ?? true,
-                        start_time: existingParticipant?.start_time || formData.default_start_time,
-                        end_time: existingParticipant?.end_time || formData.default_end_time
-                    };
-                })
-            };
-        });
-        setDaysConfig(newConfig);
+                breaks: [...formData.default_breaks],
+                participants: selectedPegawai.map(p => ({
+                    pegawai_id: p.id,
+                    nama_lengkap: p.nama_lengkap,
+                    nip: p.nip,
+                    attending: true,
+                    start_time: formData.default_start_time,
+                    end_time: formData.default_end_time
+                }))
+            }));
+            
+            setDateRanges(prev => prev.map(r => 
+                r.id === rangeId ? { ...r, daysInfo, daysConfig } : r
+            ));
+        } catch (e) {
+            console.error("Gagal memuat info hari", e);
+        }
+    };
+
+    // Update days config when selected pegawai changes
+    useEffect(() => {
+        if (selectedPegawai.length > 0) {
+            setDateRanges(prev => prev.map(range => ({
+                ...range,
+                daysConfig: range.daysConfig.map(day => ({
+                    ...day,
+                    participants: selectedPegawai.map(p => {
+                        const existing = day.participants?.find(ep => ep.pegawai_id === p.id);
+                        return existing || {
+                            pegawai_id: p.id,
+                            nama_lengkap: p.nama_lengkap,
+                            nip: p.nip,
+                            attending: true,
+                            start_time: formData.default_start_time,
+                            end_time: formData.default_end_time
+                        };
+                    })
+                }))
+            })));
+        }
+    }, [selectedPegawai]);
+
+    const addDateRange = () => {
+        const newId = Math.max(...dateRanges.map(r => r.id)) + 1;
+        setDateRanges(prev => [...prev, {
+            id: newId,
+            start_date: new Date().toISOString().split('T')[0],
+            end_date: new Date().toISOString().split('T')[0],
+            daysInfo: [],
+            daysConfig: []
+        }]);
+        setExpandedRanges(prev => ({ ...prev, [newId]: true }));
+    };
+
+    const removeDateRange = (rangeId) => {
+        if (dateRanges.length <= 1) {
+            toast.error("Minimal harus ada satu rentang tanggal");
+            return;
+        }
+        setDateRanges(prev => prev.filter(r => r.id !== rangeId));
+    };
+
+    const updateDateRange = (rangeId, field, value) => {
+        setDateRanges(prev => prev.map(r => 
+            r.id === rangeId ? { ...r, [field]: value } : r
+        ));
+        
+        // Fetch days info when dates change
+        const range = dateRanges.find(r => r.id === rangeId);
+        if (range) {
+            const startDate = field === 'start_date' ? value : range.start_date;
+            const endDate = field === 'end_date' ? value : range.end_date;
+            if (startDate && endDate && startDate <= endDate) {
+                setTimeout(() => fetchDaysInfo(rangeId, startDate, endDate), 100);
+            }
+        }
     };
 
     const filteredPegawai = (pegawaiList || []).filter(p => {
@@ -128,87 +173,135 @@ const OvertimeRangeForm = ({ onSuccess }) => {
     const selectAll = () => setSelectedPegawai(filteredPegawai);
     const clearAll = () => setSelectedPegawai([]);
 
-    const toggleDay = (date) => {
-        setExpandedDays(prev => ({ ...prev, [date]: !prev[date] }));
+    const toggleDay = (rangeId, date) => {
+        const key = `${rangeId}-${date}`;
+        setExpandedDays(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const toggleRange = (rangeId) => {
+        setExpandedRanges(prev => ({ ...prev, [rangeId]: !prev[rangeId] }));
     };
 
     // Day configuration handlers
-    const updateDayBreaks = (date, breaks) => {
-        setDaysConfig(prev => prev.map(d => 
-            d.date === date ? { ...d, breaks } : d
-        ));
-    };
-
-    const addBreak = (date) => {
-        setDaysConfig(prev => prev.map(d => 
-            d.date === date 
-                ? { ...d, breaks: [...d.breaks, { start_time: '15:00', end_time: '15:30' }] }
-                : d
-        ));
-    };
-
-    const removeBreak = (date, index) => {
-        setDaysConfig(prev => prev.map(d => 
-            d.date === date 
-                ? { ...d, breaks: d.breaks.filter((_, i) => i !== index) }
-                : d
-        ));
-    };
-
-    const updateBreak = (date, index, field, value) => {
-        setDaysConfig(prev => prev.map(d => {
-            if (d.date === date) {
-                const newBreaks = [...d.breaks];
-                newBreaks[index] = { ...newBreaks[index], [field]: value };
-                return { ...d, breaks: newBreaks };
-            }
-            return d;
-        }));
-    };
-
-    const updateParticipant = (date, pegawaiId, field, value) => {
-        setDaysConfig(prev => prev.map(d => {
-            if (d.date === date) {
-                const newParticipants = d.participants.map(p => 
-                    p.pegawai_id === pegawaiId ? { ...p, [field]: value } : p
-                );
-                return { ...d, participants: newParticipants };
-            }
-            return d;
-        }));
-    };
-
-    // Template apply functions
-    const applyDefaultToAllDays = () => {
-        setDaysConfig(prev => prev.map(d => ({
-            ...d,
-            breaks: [...formData.default_breaks],
-            participants: d.participants.map(p => ({
-                ...p,
-                start_time: formData.default_start_time,
-                end_time: formData.default_end_time,
-                attending: true
-            }))
-        })));
-        toast.success("Template diterapkan ke semua hari");
-    };
-
-    const copyDayConfig = (sourceDate) => {
-        const sourceConfig = daysConfig.find(d => d.date === sourceDate);
-        if (!sourceConfig) return;
-
-        setDaysConfig(prev => prev.map(d => {
-            if (d.date === sourceDate) return d;
+    const updateDayConfig = (rangeId, date, field, value) => {
+        setDateRanges(prev => prev.map(range => {
+            if (range.id !== rangeId) return range;
             return {
-                ...d,
-                breaks: [...sourceConfig.breaks],
-                participants: d.participants.map(p => {
-                    const sourceP = sourceConfig.participants.find(sp => sp.pegawai_id === p.pegawai_id);
-                    return sourceP ? { ...p, ...sourceP, pegawai_id: p.pegawai_id } : p;
+                ...range,
+                daysConfig: range.daysConfig.map(day => 
+                    day.date === date ? { ...day, [field]: value } : day
+                )
+            };
+        }));
+    };
+
+    const addBreak = (rangeId, date) => {
+        setDateRanges(prev => prev.map(range => {
+            if (range.id !== rangeId) return range;
+            return {
+                ...range,
+                daysConfig: range.daysConfig.map(day => 
+                    day.date === date 
+                        ? { ...day, breaks: [...day.breaks, { start_time: '15:00', end_time: '15:30' }] }
+                        : day
+                )
+            };
+        }));
+    };
+
+    const removeBreak = (rangeId, date, index) => {
+        setDateRanges(prev => prev.map(range => {
+            if (range.id !== rangeId) return range;
+            return {
+                ...range,
+                daysConfig: range.daysConfig.map(day => 
+                    day.date === date 
+                        ? { ...day, breaks: day.breaks.filter((_, i) => i !== index) }
+                        : day
+                )
+            };
+        }));
+    };
+
+    const updateBreak = (rangeId, date, index, field, value) => {
+        setDateRanges(prev => prev.map(range => {
+            if (range.id !== rangeId) return range;
+            return {
+                ...range,
+                daysConfig: range.daysConfig.map(day => {
+                    if (day.date !== date) return day;
+                    const newBreaks = [...day.breaks];
+                    newBreaks[index] = { ...newBreaks[index], [field]: value };
+                    return { ...day, breaks: newBreaks };
                 })
             };
         }));
-        toast.success(`Konfigurasi ${sourceDate} disalin ke hari lain`);
+    };
+
+    const updateParticipant = (rangeId, date, pegawaiId, field, value) => {
+        setDateRanges(prev => prev.map(range => {
+            if (range.id !== rangeId) return range;
+            return {
+                ...range,
+                daysConfig: range.daysConfig.map(day => {
+                    if (day.date !== date) return day;
+                    return {
+                        ...day,
+                        participants: day.participants.map(p => 
+                            p.pegawai_id === pegawaiId ? { ...p, [field]: value } : p
+                        )
+                    };
+                })
+            };
+        }));
+    };
+
+    // Apply template to a specific range
+    const applyTemplateToRange = (rangeId) => {
+        setDateRanges(prev => prev.map(range => {
+            if (range.id !== rangeId) return range;
+            return {
+                ...range,
+                daysConfig: range.daysConfig.map(day => ({
+                    ...day,
+                    breaks: [...formData.default_breaks],
+                    participants: day.participants.map(p => ({
+                        ...p,
+                        start_time: formData.default_start_time,
+                        end_time: formData.default_end_time,
+                        attending: true
+                    }))
+                }))
+            };
+        }));
+        toast.success("Template diterapkan");
+    };
+
+    const copyDayConfig = (rangeId, sourceDate) => {
+        const range = dateRanges.find(r => r.id === rangeId);
+        if (!range) return;
+        
+        const sourceConfig = range.daysConfig.find(d => d.date === sourceDate);
+        if (!sourceConfig) return;
+
+        setDateRanges(prev => prev.map(r => {
+            if (r.id !== rangeId) return r;
+            return {
+                ...r,
+                daysConfig: r.daysConfig.map(day => {
+                    if (day.date === sourceDate) return day;
+                    return {
+                        ...day,
+                        breaks: [...sourceConfig.breaks],
+                        participants: day.participants.map(p => {
+                            const sourceP = sourceConfig.participants.find(sp => sp.pegawai_id === p.pegawai_id);
+                            return sourceP ? { ...p, ...sourceP, pegawai_id: p.pegawai_id } : p;
+                        })
+                    };
+                })
+            };
+        }));
+        toast.success(`Konfigurasi disalin ke hari lain dalam rentang ini`);
     };
 
     // Calculate duration for display
@@ -221,7 +314,6 @@ const OvertimeRangeForm = ({ onSuccess }) => {
             if (end < start) end += 24 * 60;
             let totalMinutes = end - start;
             
-            // Subtract breaks
             breaks.forEach(brk => {
                 const [bh1, bm1] = brk.start_time.split(':').map(Number);
                 const [bh2, bm2] = brk.end_time.split(':').map(Number);
@@ -242,21 +334,24 @@ const OvertimeRangeForm = ({ onSuccess }) => {
         let totalDays = 0;
         let totalHours = 0;
         let attendanceCount = 0;
+        let totalRanges = dateRanges.filter(r => r.daysConfig.length > 0).length;
 
-        daysConfig.forEach(day => {
-            const attending = day.participants.filter(p => p.attending);
-            if (attending.length > 0) {
-                totalDays++;
-                attending.forEach(p => {
-                    const hours = parseFloat(calculateDuration(p.start_time, p.end_time, day.breaks));
-                    totalHours += hours;
-                    attendanceCount++;
-                });
-            }
+        dateRanges.forEach(range => {
+            range.daysConfig.forEach(day => {
+                const attending = day.participants.filter(p => p.attending);
+                if (attending.length > 0) {
+                    totalDays++;
+                    attending.forEach(p => {
+                        const hours = parseFloat(calculateDuration(p.start_time, p.end_time, day.breaks));
+                        totalHours += hours;
+                        attendanceCount++;
+                    });
+                }
+            });
         });
 
-        return { totalDays, totalHours: totalHours.toFixed(1), attendanceCount };
-    }, [daysConfig]);
+        return { totalRanges, totalDays, totalHours: totalHours.toFixed(1), attendanceCount };
+    }, [dateRanges]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -271,30 +366,46 @@ const OvertimeRangeForm = ({ onSuccess }) => {
             return;
         }
 
-        if (daysConfig.length === 0) {
-            toast.error("Pilih rentang tanggal terlebih dahulu");
+        const validRanges = dateRanges.filter(r => r.daysConfig.length > 0);
+        if (validRanges.length === 0) {
+            toast.error("Pilih rentang tanggal dan generate konfigurasi hari");
             return;
         }
 
         setLoading(true);
         try {
+            // Combine all days from all ranges
+            const allDays = [];
+            validRanges.forEach(range => {
+                range.daysConfig.forEach(day => {
+                    allDays.push({
+                        date: day.date,
+                        is_holiday: day.is_holiday,
+                        breaks: day.breaks,
+                        participants: day.participants.map(p => ({
+                            pegawai_id: p.pegawai_id,
+                            nama_lengkap: p.nama_lengkap,
+                            nip: p.nip,
+                            attending: p.attending,
+                            start_time: p.start_time,
+                            end_time: p.end_time
+                        }))
+                    });
+                });
+            });
+
+            // Sort by date
+            allDays.sort((a, b) => a.date.localeCompare(b.date));
+
             const payload = {
-                start_date: formData.start_date,
-                end_date: formData.end_date,
+                start_date: allDays[0].date,
+                end_date: allDays[allDays.length - 1].date,
                 description: formData.description,
                 participant_ids: selectedPegawai.map(p => p.id),
-                days: daysConfig.map(d => ({
-                    date: d.date,
-                    is_holiday: d.is_holiday,
-                    breaks: d.breaks,
-                    participants: d.participants.map(p => ({
-                        pegawai_id: p.pegawai_id,
-                        nama_lengkap: p.nama_lengkap,
-                        nip: p.nip,
-                        attending: p.attending,
-                        start_time: p.start_time,
-                        end_time: p.end_time
-                    }))
+                days: allDays,
+                date_ranges: validRanges.map(r => ({
+                    start_date: r.start_date,
+                    end_date: r.end_date
                 })),
                 default_start_time: formData.default_start_time,
                 default_end_time: formData.default_end_time,
@@ -306,11 +417,14 @@ const OvertimeRangeForm = ({ onSuccess }) => {
             
             // Reset form
             setSelectedPegawai([]);
-            setDaysConfig([]);
-            setDaysInfo([]);
-            setFormData({
+            setDateRanges([{
+                id: 0,
                 start_date: new Date().toISOString().split('T')[0],
                 end_date: new Date().toISOString().split('T')[0],
+                daysInfo: [],
+                daysConfig: []
+            }]);
+            setFormData({
                 description: '',
                 default_start_time: '08:00',
                 default_end_time: '17:00',
@@ -335,36 +449,14 @@ const OvertimeRangeForm = ({ onSuccess }) => {
             <CardHeader className="pb-3 border-b">
                 <CardTitle className="text-base font-bold flex items-center gap-2">
                     <CalendarRange className="w-5 h-5" />
-                    Buat Pengajuan Lembur (Multi-Hari)
+                    Buat Pengajuan Lembur (Multi-Rentang)
                 </CardTitle>
                 <CardDescription className="text-xs">
-                    Pilih rentang tanggal dan konfigurasi jam kerja serta istirahat per hari
+                    Pilih satu atau lebih rentang tanggal dan konfigurasi jam kerja serta istirahat per hari
                 </CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
                 <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Date Range */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-xs font-medium">Tanggal Mulai</Label>
-                            <Input 
-                                type="date" 
-                                value={formData.start_date}
-                                onChange={e => setFormData({...formData, start_date: e.target.value})}
-                                className="h-9"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-xs font-medium">Tanggal Selesai</Label>
-                            <Input 
-                                type="date" 
-                                value={formData.end_date}
-                                onChange={e => setFormData({...formData, end_date: e.target.value})}
-                                className="h-9"
-                            />
-                        </div>
-                    </div>
-
                     {/* Description */}
                     <div className="space-y-2">
                         <Label className="text-xs font-medium">Deskripsi Kegiatan Lembur</Label>
@@ -378,18 +470,7 @@ const OvertimeRangeForm = ({ onSuccess }) => {
 
                     {/* Default Template */}
                     <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-xs font-medium text-blue-800">Template Default (untuk semua hari)</Label>
-                            <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="sm"
-                                onClick={applyDefaultToAllDays}
-                                className="text-xs"
-                            >
-                                <Copy className="w-3 h-3 mr-1" /> Terapkan ke Semua Hari
-                            </Button>
-                        </div>
+                        <Label className="text-xs font-medium text-blue-800">Template Default</Label>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <div className="space-y-1">
                                 <Label className="text-xs">Jam Mulai</Label>
@@ -516,7 +597,7 @@ const OvertimeRangeForm = ({ onSuccess }) => {
                             />
                         </div>
 
-                        <div className="border rounded-lg max-h-[200px] overflow-y-auto">
+                        <div className="border rounded-lg max-h-[150px] overflow-y-auto">
                             {filteredPegawai.length === 0 ? (
                                 <div className="p-4 text-center text-slate-500 text-sm">
                                     Tidak ada pegawai ditemukan
@@ -554,184 +635,266 @@ const OvertimeRangeForm = ({ onSuccess }) => {
                         </div>
                     </div>
 
-                    {/* Per-Day Configuration */}
-                    {daysConfig.length > 0 && selectedPegawai.length > 0 && (
-                        <div className="space-y-3">
+                    {/* Date Ranges */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
                             <Label className="text-xs font-medium flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                Konfigurasi Per Hari ({daysConfig.length} hari)
+                                <CalendarRange className="w-4 h-4" />
+                                Rentang Tanggal ({dateRanges.length})
                             </Label>
-                            
-                            <div className="border rounded-lg divide-y max-h-[400px] overflow-y-auto">
-                                {daysConfig.map((day, dayIdx) => (
-                                    <Collapsible 
-                                        key={day.date} 
-                                        open={expandedDays[day.date]}
-                                        onOpenChange={() => toggleDay(day.date)}
-                                    >
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm"
+                                onClick={addDateRange}
+                            >
+                                <CalendarPlus className="w-4 h-4 mr-1" /> Tambah Rentang
+                            </Button>
+                        </div>
+
+                        <div className="space-y-3">
+                            {dateRanges.map((range, rangeIdx) => (
+                                <Collapsible
+                                    key={range.id}
+                                    open={expandedRanges[range.id]}
+                                    onOpenChange={() => toggleRange(range.id)}
+                                >
+                                    <div className="border rounded-lg overflow-hidden">
                                         <CollapsibleTrigger className="w-full">
-                                            <div className={`flex items-center justify-between p-3 hover:bg-slate-50 ${
-                                                day.is_holiday ? 'bg-red-50' : ''
-                                            }`}>
-                                                <div className="flex items-center gap-3">
-                                                    {expandedDays[day.date] ? 
+                                            <div className="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100">
+                                                <div className="flex items-center gap-2">
+                                                    {expandedRanges[range.id] ? 
                                                         <ChevronDown className="w-4 h-4" /> : 
                                                         <ChevronRight className="w-4 h-4" />
                                                     }
-                                                    <div className="text-left">
-                                                        <div className="font-medium text-sm flex items-center gap-2">
-                                                            {dayNameIndo[day.day_name] || day.day_name}, {new Date(day.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                            {day.is_holiday && (
-                                                                <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 text-xs">
-                                                                    <Moon className="w-3 h-3 mr-1" /> Libur
-                                                                </Badge>
-                                                            )}
-                                                            {!day.is_holiday && (
-                                                                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200 text-xs">
-                                                                    <Sun className="w-3 h-3 mr-1" /> Kerja
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                        <div className="text-xs text-slate-500">
-                                                            {day.participants.filter(p => p.attending).length} peserta aktif • 
-                                                            {day.breaks.length} istirahat
-                                                        </div>
-                                                    </div>
+                                                    <span className="font-medium text-sm">
+                                                        Rentang #{rangeIdx + 1}: {range.start_date} s/d {range.end_date}
+                                                    </span>
+                                                    {range.daysConfig.length > 0 && (
+                                                        <Badge variant="outline" className="text-xs">
+                                                            {range.daysConfig.length} hari
+                                                        </Badge>
+                                                    )}
                                                 </div>
-                                                <Button 
-                                                    type="button" 
-                                                    variant="ghost" 
-                                                    size="sm"
-                                                    className="text-xs"
-                                                    onClick={(e) => { e.stopPropagation(); copyDayConfig(day.date); }}
-                                                >
-                                                    <Copy className="w-3 h-3 mr-1" /> Salin ke Hari Lain
-                                                </Button>
+                                                {dateRanges.length > 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-red-500 hover:text-red-700"
+                                                        onClick={(e) => { e.stopPropagation(); removeDateRange(range.id); }}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </CollapsibleTrigger>
-                                        
+
                                         <CollapsibleContent>
-                                            <div className="p-3 bg-slate-50 space-y-3 border-t">
-                                                {/* Break Times */}
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <Label className="text-xs font-medium flex items-center gap-1">
-                                                            <Coffee className="w-3 h-3" /> Jam Istirahat
-                                                        </Label>
-                                                        <Button 
-                                                            type="button" 
-                                                            variant="outline" 
-                                                            size="sm"
-                                                            className="h-6 text-xs"
-                                                            onClick={() => addBreak(day.date)}
-                                                        >
-                                                            <Plus className="w-3 h-3 mr-1" /> Tambah Istirahat
-                                                        </Button>
+                                            <div className="p-3 space-y-3 border-t">
+                                                {/* Date inputs */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-1">
+                                                        <Label className="text-xs">Tanggal Mulai</Label>
+                                                        <Input 
+                                                            type="date" 
+                                                            value={range.start_date}
+                                                            onChange={e => updateDateRange(range.id, 'start_date', e.target.value)}
+                                                            className="h-8"
+                                                        />
                                                     </div>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {day.breaks.map((brk, brkIdx) => (
-                                                            <div key={brkIdx} className="flex items-center gap-1 bg-white px-2 py-1 rounded border text-xs">
-                                                                <span className="text-slate-500">#{brkIdx + 1}</span>
-                                                                <Input 
-                                                                    type="time" 
-                                                                    value={brk.start_time}
-                                                                    onChange={e => updateBreak(day.date, brkIdx, 'start_time', e.target.value)}
-                                                                    className="h-6 w-20 text-xs px-1"
-                                                                />
-                                                                <span>-</span>
-                                                                <Input 
-                                                                    type="time" 
-                                                                    value={brk.end_time}
-                                                                    onChange={e => updateBreak(day.date, brkIdx, 'end_time', e.target.value)}
-                                                                    className="h-6 w-20 text-xs px-1"
-                                                                />
-                                                                <Button 
-                                                                    type="button" 
-                                                                    variant="ghost" 
-                                                                    size="icon" 
-                                                                    className="h-5 w-5 text-red-500 hover:text-red-700"
-                                                                    onClick={() => removeBreak(day.date, brkIdx)}
-                                                                >
-                                                                    <Trash2 className="w-3 h-3" />
-                                                                </Button>
-                                                            </div>
-                                                        ))}
-                                                        {day.breaks.length === 0 && (
-                                                            <span className="text-xs text-slate-400 italic">Tidak ada istirahat</span>
-                                                        )}
+                                                    <div className="space-y-1">
+                                                        <Label className="text-xs">Tanggal Selesai</Label>
+                                                        <Input 
+                                                            type="date" 
+                                                            value={range.end_date}
+                                                            onChange={e => updateDateRange(range.id, 'end_date', e.target.value)}
+                                                            className="h-8"
+                                                        />
                                                     </div>
                                                 </div>
 
-                                                {/* Participants */}
-                                                <div className="space-y-2">
-                                                    <Label className="text-xs font-medium flex items-center gap-1">
-                                                        <Users className="w-3 h-3" /> Kehadiran & Jam Kerja Peserta
-                                                    </Label>
-                                                    <div className="space-y-1">
-                                                        {day.participants.map((p, pIdx) => {
-                                                            const duration = calculateDuration(p.start_time, p.end_time, day.breaks);
-                                                            return (
-                                                                <div key={p.pegawai_id} className={`flex items-center gap-2 p-2 rounded border ${
-                                                                    p.attending ? 'bg-white' : 'bg-slate-100 opacity-60'
-                                                                }`}>
-                                                                    <Checkbox 
-                                                                        checked={p.attending}
-                                                                        onCheckedChange={(checked) => updateParticipant(day.date, p.pegawai_id, 'attending', checked)}
-                                                                    />
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="text-sm font-medium truncate">{p.nama_lengkap}</div>
-                                                                    </div>
-                                                                    {p.attending && (
-                                                                        <>
-                                                                            <Input 
-                                                                                type="time" 
-                                                                                value={p.start_time}
-                                                                                onChange={e => updateParticipant(day.date, p.pegawai_id, 'start_time', e.target.value)}
-                                                                                className="h-7 w-24 text-xs"
-                                                                            />
-                                                                            <span className="text-xs">-</span>
-                                                                            <Input 
-                                                                                type="time" 
-                                                                                value={p.end_time}
-                                                                                onChange={e => updateParticipant(day.date, p.pegawai_id, 'end_time', e.target.value)}
-                                                                                className="h-7 w-24 text-xs"
-                                                                            />
-                                                                            <Badge variant="outline" className="text-xs">
-                                                                                {duration} jam
-                                                                            </Badge>
-                                                                        </>
-                                                                    )}
-                                                                    {!p.attending && (
-                                                                        <span className="text-xs text-slate-400 italic">Tidak hadir</span>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
+                                                {range.daysConfig.length > 0 && selectedPegawai.length > 0 && (
+                                                    <>
+                                                        <div className="flex justify-end">
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-xs"
+                                                                onClick={() => applyTemplateToRange(range.id)}
+                                                            >
+                                                                <Copy className="w-3 h-3 mr-1" /> Terapkan Template
+                                                            </Button>
+                                                        </div>
+
+                                                        {/* Days in this range */}
+                                                        <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
+                                                            {range.daysConfig.map((day) => {
+                                                                const dayKey = `${range.id}-${day.date}`;
+                                                                return (
+                                                                    <Collapsible 
+                                                                        key={day.date} 
+                                                                        open={expandedDays[dayKey]}
+                                                                        onOpenChange={() => toggleDay(range.id, day.date)}
+                                                                    >
+                                                                        <CollapsibleTrigger className="w-full">
+                                                                            <div className={`flex items-center justify-between p-2 hover:bg-slate-50 text-xs ${
+                                                                                day.is_holiday ? 'bg-red-50' : ''
+                                                                            }`}>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    {expandedDays[dayKey] ? 
+                                                                                        <ChevronDown className="w-3 h-3" /> : 
+                                                                                        <ChevronRight className="w-3 h-3" />
+                                                                                    }
+                                                                                    <span className="font-medium">
+                                                                                        {dayNameIndo[day.day_name]}, {new Date(day.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                                                    </span>
+                                                                                    {day.is_holiday ? (
+                                                                                        <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 text-[10px]">
+                                                                                            Libur
+                                                                                        </Badge>
+                                                                                    ) : (
+                                                                                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200 text-[10px]">
+                                                                                            Kerja
+                                                                                        </Badge>
+                                                                                    )}
+                                                                                </div>
+                                                                                <span className="text-slate-500">
+                                                                                    {day.participants.filter(p => p.attending).length} peserta
+                                                                                </span>
+                                                                            </div>
+                                                                        </CollapsibleTrigger>
+                                                                        
+                                                                        <CollapsibleContent>
+                                                                            <div className="p-2 bg-slate-50 space-y-2 border-t text-xs">
+                                                                                {/* Break Times */}
+                                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                                    <span className="text-slate-500">Istirahat:</span>
+                                                                                    {day.breaks.map((brk, brkIdx) => (
+                                                                                        <div key={brkIdx} className="flex items-center gap-1 bg-white px-1 py-0.5 rounded border">
+                                                                                            <Input 
+                                                                                                type="time" 
+                                                                                                value={brk.start_time}
+                                                                                                onChange={e => updateBreak(range.id, day.date, brkIdx, 'start_time', e.target.value)}
+                                                                                                className="h-5 w-16 text-xs px-1"
+                                                                                            />
+                                                                                            <span>-</span>
+                                                                                            <Input 
+                                                                                                type="time" 
+                                                                                                value={brk.end_time}
+                                                                                                onChange={e => updateBreak(range.id, day.date, brkIdx, 'end_time', e.target.value)}
+                                                                                                className="h-5 w-16 text-xs px-1"
+                                                                                            />
+                                                                                            <X 
+                                                                                                className="w-3 h-3 text-red-500 cursor-pointer"
+                                                                                                onClick={() => removeBreak(range.id, day.date, brkIdx)}
+                                                                                            />
+                                                                                        </div>
+                                                                                    ))}
+                                                                                    <Button 
+                                                                                        type="button" 
+                                                                                        variant="ghost" 
+                                                                                        size="sm"
+                                                                                        className="h-5 text-xs px-1"
+                                                                                        onClick={() => addBreak(range.id, day.date)}
+                                                                                    >
+                                                                                        <Plus className="w-3 h-3" />
+                                                                                    </Button>
+                                                                                </div>
+
+                                                                                {/* Participants */}
+                                                                                <div className="space-y-1">
+                                                                                    {day.participants.map((p) => {
+                                                                                        const duration = calculateDuration(p.start_time, p.end_time, day.breaks);
+                                                                                        return (
+                                                                                            <div key={p.pegawai_id} className={`flex items-center gap-2 p-1 rounded ${
+                                                                                                p.attending ? 'bg-white border' : 'bg-slate-100 opacity-50'
+                                                                                            }`}>
+                                                                                                <Checkbox 
+                                                                                                    checked={p.attending}
+                                                                                                    onCheckedChange={(checked) => updateParticipant(range.id, day.date, p.pegawai_id, 'attending', checked)}
+                                                                                                    className="h-3 w-3"
+                                                                                                />
+                                                                                                <span className="flex-1 truncate">{p.nama_lengkap}</span>
+                                                                                                {p.attending && (
+                                                                                                    <>
+                                                                                                        <Input 
+                                                                                                            type="time" 
+                                                                                                            value={p.start_time}
+                                                                                                            onChange={e => updateParticipant(range.id, day.date, p.pegawai_id, 'start_time', e.target.value)}
+                                                                                                            className="h-5 w-16 text-xs"
+                                                                                                        />
+                                                                                                        <span>-</span>
+                                                                                                        <Input 
+                                                                                                            type="time" 
+                                                                                                            value={p.end_time}
+                                                                                                            onChange={e => updateParticipant(range.id, day.date, p.pegawai_id, 'end_time', e.target.value)}
+                                                                                                            className="h-5 w-16 text-xs"
+                                                                                                        />
+                                                                                                        <Badge variant="outline" className="text-[10px]">
+                                                                                                            {duration}j
+                                                                                                        </Badge>
+                                                                                                    </>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                                
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    className="text-xs w-full"
+                                                                                    onClick={() => copyDayConfig(range.id, day.date)}
+                                                                                >
+                                                                                    <Copy className="w-3 h-3 mr-1" /> Salin ke Hari Lain
+                                                                                </Button>
+                                                                            </div>
+                                                                        </CollapsibleContent>
+                                                                    </Collapsible>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                {range.daysConfig.length === 0 && (
+                                                    <div className="text-center py-4 text-slate-400 text-xs">
+                                                        {selectedPegawai.length === 0 
+                                                            ? "Pilih peserta terlebih dahulu"
+                                                            : "Pilih tanggal untuk generate konfigurasi"
+                                                        }
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </CollapsibleContent>
-                                    </Collapsible>
-                                ))}
-                            </div>
+                                    </div>
+                                </Collapsible>
+                            ))}
                         </div>
-                    )}
+                    </div>
 
                     {/* Summary */}
-                    {daysConfig.length > 0 && selectedPegawai.length > 0 && (
+                    {summary.totalDays > 0 && (
                         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                             <Label className="text-xs font-medium text-green-800 mb-2 block">Ringkasan</Label>
-                            <div className="grid grid-cols-3 gap-4 text-center">
+                            <div className="grid grid-cols-4 gap-4 text-center">
                                 <div>
-                                    <div className="text-2xl font-bold text-green-700">{summary.totalDays}</div>
+                                    <div className="text-xl font-bold text-green-700">{summary.totalRanges}</div>
+                                    <div className="text-xs text-green-600">Rentang</div>
+                                </div>
+                                <div>
+                                    <div className="text-xl font-bold text-green-700">{summary.totalDays}</div>
                                     <div className="text-xs text-green-600">Hari Aktif</div>
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-green-700">{summary.attendanceCount}</div>
-                                    <div className="text-xs text-green-600">Total Kehadiran</div>
+                                    <div className="text-xl font-bold text-green-700">{summary.attendanceCount}</div>
+                                    <div className="text-xs text-green-600">Kehadiran</div>
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-green-700">{summary.totalHours}</div>
+                                    <div className="text-xl font-bold text-green-700">{summary.totalHours}</div>
                                     <div className="text-xs text-green-600">Total Jam</div>
                                 </div>
                             </div>
@@ -742,7 +905,7 @@ const OvertimeRangeForm = ({ onSuccess }) => {
                     <div className="flex justify-end pt-4 border-t">
                         <Button 
                             type="submit" 
-                            disabled={loading || selectedPegawai.length === 0 || daysConfig.length === 0}
+                            disabled={loading || selectedPegawai.length === 0 || summary.totalDays === 0}
                             className="bg-blue-600 hover:bg-blue-700 text-white"
                         >
                             <Send className="w-4 h-4 mr-2" />
