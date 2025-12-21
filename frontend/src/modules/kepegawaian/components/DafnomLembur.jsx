@@ -88,6 +88,43 @@ const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeT
         return holidayBg;
     };
 
+    // Export to Excel function
+    const handleExportExcel = () => {
+        const monthNames = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+        const exportData = filteredEmployees.map((emp, idx) => {
+            const row = {
+                'No': idx + 1,
+                'Nama': emp.nama,
+                'NIP': emp.nip || '-',
+                'Golongan': emp.golongan || '-',
+            };
+            
+            // Add daily hours columns
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayData = emp.daily_hours?.[String(d)] || { hours: 0 };
+                row[`Tgl ${d}`] = dayData.hours > 0 ? Math.round(dayData.hours) : 0;
+            }
+            
+            row['Jam Hari Kerja'] = Math.round(emp.jam_hari_kerja || 0);
+            row['Jam Hari Libur'] = Math.round(emp.jam_hari_libur || 0);
+            row['Jml Makan Lembur'] = emp.jumlah_makan || 0;
+            row['Uang Lembur'] = emp.uang_lembur || 0;
+            row['Uang Makan'] = emp.uang_makan || 0;
+            row['Jumlah Kotor'] = emp.jumlah_kotor || 0;
+            row['Potongan PPH'] = emp.potongan_pph || 0;
+            row['Jumlah Bersih'] = emp.jumlah_bersih || 0;
+            row['Bank'] = emp.bank_name || '-';
+            row['No Rekening'] = emp.bank_account || '-';
+            
+            return row;
+        });
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `Dafnom ${employeeType}`);
+        XLSX.writeFile(wb, `Dafnom_Lembur_${employeeType}_${monthNames[parseInt(month) - 1]}_${year}.xlsx`);
+    };
+
     if (filteredEmployees.length === 0) {
         return (
             <div className="text-center py-8 text-slate-500">
@@ -98,7 +135,10 @@ const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeT
 
     return (
         <div>
-            <div className="flex justify-end mb-4 print:hidden">
+            <div className="flex justify-end gap-2 mb-4 print:hidden">
+                <Button variant="outline" onClick={handleExportExcel} className="text-green-700 border-green-600 hover:bg-green-50">
+                    <Download className="w-4 h-4 mr-2"/> Export Excel
+                </Button>
                 <Button onClick={handlePrint} className="bg-slate-800 text-white hover:bg-slate-700">
                     <Printer className="w-4 h-4 mr-2"/> Cetak {employeeType}
                 </Button>
