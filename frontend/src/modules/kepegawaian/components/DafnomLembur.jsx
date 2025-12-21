@@ -72,16 +72,17 @@ const DafnomLembur = ({ month, year }) => {
     const days1to15 = Array.from({ length: 15 }, (_, i) => i + 1);
     const days16to31 = Array.from({ length: 16 }, (_, i) => i + 16);
 
-    // Unified cell style
-    const cell = { 
+    // Consistent cell styles
+    const baseCell = { 
         border: '1px solid #000', 
         textAlign: 'center', 
         verticalAlign: 'middle', 
-        padding: '2px', 
+        padding: '3px 2px', 
         fontSize: '6px',
-        backgroundColor: '#fff'
+        backgroundColor: '#fff',
+        lineHeight: '1.2'
     };
-    const dayCell = { ...cell, width: '13px', minWidth: '13px', padding: '1px' };
+    const dayCell = { ...baseCell, width: '14px', minWidth: '14px', maxWidth: '14px', padding: '2px 1px' };
     const holidayBg = { backgroundColor: '#ffcccc' };
 
     if (loading) {
@@ -97,7 +98,7 @@ const DafnomLembur = ({ month, year }) => {
             </div>
 
             <div className="bg-white border shadow-sm overflow-x-auto" ref={componentRef}>
-                <div style={{ padding: '10px', minWidth: '950px', fontFamily: 'Arial, sans-serif', fontSize: '7px' }}>
+                <div style={{ padding: '10px', minWidth: '1000px', fontFamily: 'Arial, sans-serif', fontSize: '7px' }}>
                     {/* Header */}
                     <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                         <div style={{ fontWeight: 'bold', fontSize: '9px' }}>DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR</div>
@@ -112,95 +113,112 @@ const DafnomLembur = ({ month, year }) => {
                         <div>Nusantara, {new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'})}</div>
                     </div>
 
-                    {/* Main Table - 5 header rows */}
-                    <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'auto' }}>
+                    {/* Main Table - Simplified structure with 4 header rows */}
+                    <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}>
+                        <colgroup>
+                            <col style={{ width: '22px' }} />  {/* NO URT */}
+                            <col style={{ width: '60px' }} />  {/* Nama */}
+                            <col style={{ width: '70px' }} />  {/* NIP */}
+                            <col style={{ width: '20px' }} />  {/* GOL */}
+                            {/* 16 day columns */}
+                            {Array(16).fill(null).map((_, i) => <col key={i} style={{ width: '14px' }} />)}
+                            <col style={{ width: '22px' }} />  {/* Hari Kerja */}
+                            <col style={{ width: '22px' }} />  {/* Hari Libur */}
+                            <col style={{ width: '22px' }} />  {/* Jml Makan */}
+                            <col style={{ width: '50px' }} />  {/* Uang Lembur */}
+                            <col style={{ width: '45px' }} />  {/* Uang Makan */}
+                            <col style={{ width: '55px' }} />  {/* Jml Kolom */}
+                            <col style={{ width: '40px' }} />  {/* PPH */}
+                            <col style={{ width: '55px' }} />  {/* Bersih */}
+                            <col style={{ width: '55px' }} />  {/* TTD */}
+                        </colgroup>
                         <thead>
-                            {/* Row 1: Main category headers */}
-                            <tr>
-                                <th rowSpan={4} style={{...cell, width: '20px'}}>NO.<br/>URT</th>
-                                <th rowSpan={4} style={{...cell, width: '55px'}}>Nama</th>
-                                <th rowSpan={4} style={{...cell, width: '65px'}}>NIP</th>
-                                <th rowSpan={4} style={{...cell, width: '18px'}}>GOL</th>
-                                <th colSpan={16} style={cell}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
-                                <th colSpan={2} style={cell}>JUMLAH JAM</th>
-                                <th rowSpan={2} style={{...cell, width: '22px'}}>JML<br/>MAKAN<br/>LEMBUR</th>
-                                <th colSpan={2} style={cell}>JUMLAH UANG</th>
-                                <th rowSpan={2} style={{...cell, width: '45px'}}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
-                                <th rowSpan={2} style={{...cell, width: '35px'}}>POTONGAN<br/>PPH</th>
-                                <th rowSpan={2} style={{...cell, width: '45px'}}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
-                                <th rowSpan={4} style={{...cell, width: '50px'}}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
+                            {/* Row 1: Main Headers */}
+                            <tr style={{ height: '36px' }}>
+                                <th rowSpan={4} style={baseCell}>NO.<br/>URT</th>
+                                <th rowSpan={4} style={baseCell}>Nama</th>
+                                <th rowSpan={4} style={baseCell}>NIP</th>
+                                <th rowSpan={4} style={baseCell}>GOL</th>
+                                <th colSpan={16} style={baseCell}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
+                                <th colSpan={2} style={baseCell}>JUMLAH<br/>JAM</th>
+                                <th rowSpan={2} style={baseCell}>JML<br/>MAKAN<br/>LEMBUR</th>
+                                <th colSpan={2} style={baseCell}>JUMLAH UANG</th>
+                                <th rowSpan={2} style={baseCell}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
+                                <th rowSpan={2} style={baseCell}>POT.<br/>PPH</th>
+                                <th rowSpan={2} style={baseCell}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
+                                <th rowSpan={4} style={baseCell}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
                             </tr>
 
-                            {/* Row 2: Days 1-15 + 1 empty + sub-headers */}
-                            <tr>
+                            {/* Row 2: Day headers 1-15 + empty + Sub-headers */}
+                            <tr style={{ height: '20px' }}>
                                 {days1to15.map(day => (
                                     <th key={day} style={{...dayCell, ...(isHoliday(day) ? holidayBg : {})}}>
                                         {day}{isHoliday(day) ? '-' : '+'}
                                     </th>
                                 ))}
                                 <th style={dayCell}></th>
-                                <th rowSpan={1} style={{...cell, width: '20px'}}>HARI<br/>KERJA</th>
-                                <th rowSpan={1} style={{...cell, width: '20px'}}>HARI<br/>LIBUR</th>
-                                <th rowSpan={1} style={{...cell, width: '40px'}}>LEMBUR</th>
-                                <th rowSpan={1} style={{...cell, width: '35px'}}>MAKAN<br/>LEMBUR</th>
+                                <th style={baseCell}>HARI<br/>KERJA</th>
+                                <th style={baseCell}>HARI<br/>LIBUR</th>
+                                <th style={baseCell}>LEMBUR</th>
+                                <th style={baseCell}>MAKAN</th>
                             </tr>
 
-                            {/* Row 3: Days 16-31 + Note + Column numbers 6-13 */}
-                            <tr>
+                            {/* Row 3: Day headers 16-31 + column numbers 6-13 */}
+                            <tr style={{ height: '20px' }}>
                                 {days16to31.map(day => {
-                                    const isValidDay = day <= daysInMonth;
+                                    const valid = day <= daysInMonth;
                                     return (
-                                        <th key={day} style={{...dayCell, ...(isValidDay && isHoliday(day) ? holidayBg : {})}}>
-                                            {isValidDay ? `${day}${isHoliday(day) ? '-' : '+'}` : ''}
+                                        <th key={day} style={{...dayCell, ...(valid && isHoliday(day) ? holidayBg : {})}}>
+                                            {valid ? `${day}${isHoliday(day) ? '-' : '+'}` : ''}
                                         </th>
                                     );
                                 })}
-                                <td style={{...cell, fontWeight: 'bold'}}>(6)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(7)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(8)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(9)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(10)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(11)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(12)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(13)</td>
+                                <th style={baseCell}>(6)</th>
+                                <th style={baseCell}>(7)</th>
+                                <th style={baseCell}>(8)</th>
+                                <th style={baseCell}>(9)</th>
+                                <th style={baseCell}>(10)</th>
+                                <th style={baseCell}>(11)</th>
+                                <th style={baseCell}>(12)</th>
+                                <th style={baseCell}>(13)</th>
                             </tr>
 
-                            {/* Row 4: Note + Column numbers 1-5, 14 */}
-                            <tr>
-                                <td colSpan={16} style={{...cell, fontStyle: 'italic', fontSize: '5px'}}>
+                            {/* Row 4: Note + column numbers 1-4, 5, 14 */}
+                            <tr style={{ height: '18px' }}>
+                                <th colSpan={16} style={{...baseCell, fontStyle: 'italic', fontSize: '5px'}}>
                                     (5) tanda "-" = Libur ; tanda "+" = Kerja
-                                </td>
-                                <td colSpan={8} style={cell}></td>
+                                </th>
+                                <th colSpan={8} style={baseCell}></th>
                             </tr>
 
-                            {/* Row 5: Column identifiers 1-4 and 14 */}
-                            <tr>
-                                <td style={{...cell, fontWeight: 'bold'}}>(1)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(2)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(3)</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(4)</td>
-                                <td colSpan={16} style={cell}></td>
-                                <td colSpan={8} style={cell}></td>
-                                <td style={{...cell, fontWeight: 'bold'}}>(14)</td>
+                            {/* Row 5: Column identifiers for 1-4 and 14 */}
+                            <tr style={{ height: '16px' }}>
+                                <th style={baseCell}>(1)</th>
+                                <th style={baseCell}>(2)</th>
+                                <th style={baseCell}>(3)</th>
+                                <th style={baseCell}>(4)</th>
+                                <th colSpan={16} style={baseCell}></th>
+                                <th colSpan={8} style={baseCell}></th>
+                                <th style={baseCell}>(14)</th>
                             </tr>
                         </thead>
                         
                         <tbody>
                             {employees.length === 0 ? (
                                 <tr>
-                                    <td colSpan={29} style={{...cell, padding: '15px', color: '#666'}}>
+                                    <td colSpan={29} style={{...baseCell, padding: '15px', color: '#666'}}>
                                         Tidak ada data lembur yang disetujui untuk bulan ini
                                     </td>
                                 </tr>
                             ) : (
                                 employees.map((emp, idx) => (
                                     <React.Fragment key={emp.pegawai_id || idx}>
-                                        {/* Employee Row 1: Days 1-15 + empty */}
-                                        <tr>
-                                            <td rowSpan={2} style={cell}>{idx + 1}</td>
-                                            <td rowSpan={2} style={{...cell, textAlign: 'left', fontSize: '5px'}}>{emp.nama}</td>
-                                            <td rowSpan={2} style={{...cell, textAlign: 'left', fontSize: '5px'}}>{emp.nip || '-'}</td>
-                                            <td rowSpan={2} style={cell}>{emp.golongan?.split('/')[0] || '-'}</td>
+                                        {/* Employee Row 1: Days 1-15 */}
+                                        <tr style={{ height: '20px' }}>
+                                            <td rowSpan={2} style={baseCell}>{idx + 1}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'left', fontSize: '5px'}}>{emp.nama}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'left', fontSize: '5px'}}>{emp.nip || '-'}</td>
+                                            <td rowSpan={2} style={baseCell}>{emp.golongan?.split('/')[0] || '-'}</td>
                                             
                                             {days1to15.map(day => {
                                                 const hours = emp.daily_hours?.[String(day)]?.hours || 0;
@@ -212,27 +230,27 @@ const DafnomLembur = ({ month, year }) => {
                                             })}
                                             <td style={dayCell}></td>
                                             
-                                            <td rowSpan={2} style={cell}>{Math.round(emp.jam_hari_kerja || 0)}</td>
-                                            <td rowSpan={2} style={cell}>{Math.round(emp.jam_hari_libur || 0)}</td>
-                                            <td rowSpan={2} style={cell}>{emp.jumlah_makan || 0}</td>
-                                            <td rowSpan={2} style={{...cell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.uang_lembur)}</td>
-                                            <td rowSpan={2} style={{...cell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.uang_makan)}</td>
-                                            <td rowSpan={2} style={{...cell, textAlign: 'right', fontSize: '5px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_kotor)}</td>
-                                            <td rowSpan={2} style={{...cell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.potongan_pph)}</td>
-                                            <td rowSpan={2} style={{...cell, textAlign: 'right', fontSize: '5px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_bersih)}</td>
-                                            <td rowSpan={2} style={{...cell, fontSize: '5px'}}>
+                                            <td rowSpan={2} style={baseCell}>{Math.round(emp.jam_hari_kerja || 0)}</td>
+                                            <td rowSpan={2} style={baseCell}>{Math.round(emp.jam_hari_libur || 0)}</td>
+                                            <td rowSpan={2} style={baseCell}>{emp.jumlah_makan || 0}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.uang_lembur)}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.uang_makan)}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_kotor)}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.potongan_pph)}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_bersih)}</td>
+                                            <td rowSpan={2} style={{...baseCell, fontSize: '5px'}}>
                                                 {emp.bank_account || '-'}<br/>{emp.bank_name || 'Mandiri'}
                                             </td>
                                         </tr>
                                         
                                         {/* Employee Row 2: Days 16-31 */}
-                                        <tr>
+                                        <tr style={{ height: '20px' }}>
                                             {days16to31.map(day => {
-                                                const isValidDay = day <= daysInMonth;
-                                                const hours = isValidDay ? (emp.daily_hours?.[String(day)]?.hours || 0) : 0;
+                                                const valid = day <= daysInMonth;
+                                                const hours = valid ? (emp.daily_hours?.[String(day)]?.hours || 0) : 0;
                                                 return (
-                                                    <td key={day} style={{...dayCell, ...(isValidDay && isHoliday(day) ? holidayBg : {})}}>
-                                                        {isValidDay ? (hours > 0 ? Math.round(hours) : 0) : ''}
+                                                    <td key={day} style={{...dayCell, ...(valid && isHoliday(day) ? holidayBg : {})}}>
+                                                        {valid ? (hours > 0 ? Math.round(hours) : 0) : ''}
                                                     </td>
                                                 );
                                             })}
@@ -242,18 +260,18 @@ const DafnomLembur = ({ month, year }) => {
                             )}
                             
                             {/* Total Row */}
-                            <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
-                                <td colSpan={4} style={cell}>JUMLAH TOTAL</td>
-                                <td colSpan={16} style={cell}></td>
-                                <td style={cell}>{Math.round(totals.jam_kerja)}</td>
-                                <td style={cell}>{Math.round(totals.jam_libur)}</td>
-                                <td style={cell}>{totals.jumlah_makan}</td>
-                                <td style={{...cell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.uang_lembur)}</td>
-                                <td style={{...cell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.uang_makan)}</td>
-                                <td style={{...cell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.jumlah_kotor)}</td>
-                                <td style={{...cell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.potongan_pph)}</td>
-                                <td style={{...cell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.jumlah_bersih)}</td>
-                                <td style={cell}></td>
+                            <tr style={{ height: '22px', fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                                <td colSpan={4} style={baseCell}>JUMLAH TOTAL</td>
+                                <td colSpan={16} style={baseCell}></td>
+                                <td style={baseCell}>{Math.round(totals.jam_kerja)}</td>
+                                <td style={baseCell}>{Math.round(totals.jam_libur)}</td>
+                                <td style={baseCell}>{totals.jumlah_makan}</td>
+                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.uang_lembur)}</td>
+                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.uang_makan)}</td>
+                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.jumlah_kotor)}</td>
+                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.potongan_pph)}</td>
+                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.jumlah_bersih)}</td>
+                                <td style={baseCell}></td>
                             </tr>
                         </tbody>
                     </table>
