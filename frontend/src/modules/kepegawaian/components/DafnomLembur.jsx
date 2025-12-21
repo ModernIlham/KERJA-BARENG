@@ -69,29 +69,34 @@ const DafnomLembur = ({ month, year }) => {
 
     const isHoliday = (day) => holidays.includes(day);
     
-    // Days 1-15 for row 1, days 16-31 for row 2 (both 16 columns each for consistency)
-    const days1to16 = Array.from({ length: 16 }, (_, i) => i + 1); // 1-16
-    const days17to31 = Array.from({ length: 15 }, (_, i) => i + 17); // 17-31 (15 items)
+    // Days arrays
+    const days1to16 = Array.from({ length: 16 }, (_, i) => i + 1);
+    const days17to31 = Array.from({ length: 15 }, (_, i) => i + 17);
 
-    // Consistent cell styles
+    // Cell styles - INCREASED FONT SIZE
     const baseCell = { 
         border: '1px solid #000', 
         textAlign: 'center', 
         verticalAlign: 'middle', 
-        padding: '3px 2px', 
-        fontSize: '6px',
+        padding: '4px 3px', 
+        fontSize: '8px',  // Increased from 6px
         backgroundColor: '#fff',
-        lineHeight: '1.2'
+        lineHeight: '1.3'
     };
-    const dayCell = { ...baseCell, width: '14px', minWidth: '14px', maxWidth: '14px', padding: '2px 1px' };
+    const dayCell = { ...baseCell, width: '16px', minWidth: '16px', maxWidth: '16px', padding: '2px 1px', fontSize: '7px' };
     const holidayBg = { backgroundColor: '#ffcccc' };
+    
+    // Total row style with background color
+    const totalRowStyle = {
+        ...baseCell,
+        backgroundColor: '#d4edda',  // Light green background
+        fontWeight: 'bold',
+        fontSize: '9px'
+    };
 
     if (loading) {
         return <div className="text-center py-8">Memuat data Dafnom...</div>;
     }
-
-    // Total columns: 4 (NO, Nama, NIP, GOL) + 31 (days) + 8 (summary) + 1 (TTD) = 44 columns
-    // But we split days into 2 rows, so each row has: 4 + 16 + 8 + 1 = 29 columns per row
 
     return (
         <div>
@@ -102,14 +107,14 @@ const DafnomLembur = ({ month, year }) => {
             </div>
 
             <div className="bg-white border shadow-sm overflow-x-auto" ref={componentRef}>
-                <div style={{ padding: '10px', minWidth: '1000px', fontFamily: 'Arial, sans-serif', fontSize: '7px' }}>
+                <div style={{ padding: '12px', minWidth: '1000px', fontFamily: 'Arial, sans-serif', fontSize: '9px' }}>
                     {/* Header */}
-                    <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                        <div style={{ fontWeight: 'bold', fontSize: '9px' }}>DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR</div>
-                        <div style={{ fontWeight: 'bold', fontSize: '8px' }}>LEMBUR KEGIATAN INVENTARISASI DAN PELABELAN BMN TAHUNAN</div>
+                    <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '11px' }}>DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR</div>
+                        <div style={{ fontWeight: 'bold', fontSize: '10px' }}>LEMBUR KEGIATAN INVENTARISASI DAN PELABELAN BMN TAHUNAN</div>
                     </div>
                     
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '7px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '9px' }}>
                         <div style={{ fontWeight: 'bold' }}>
                             <div>SATUAN KERJA : OTORITA IBU KOTA NUSANTARA (621001)</div>
                             <div>BULAN : {monthName} {year}</div>
@@ -120,41 +125,41 @@ const DafnomLembur = ({ month, year }) => {
                     {/* Main Table */}
                     <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}>
                         <colgroup>
-                            <col style={{ width: '22px' }} />  {/* NO URT */}
-                            <col style={{ width: '60px' }} />  {/* Nama */}
-                            <col style={{ width: '70px' }} />  {/* NIP */}
-                            <col style={{ width: '20px' }} />  {/* GOL */}
-                            {/* 16 day columns for row alignment */}
-                            {Array(16).fill(null).map((_, i) => <col key={i} style={{ width: '14px' }} />)}
-                            <col style={{ width: '22px' }} />  {/* Hari Kerja */}
-                            <col style={{ width: '22px' }} />  {/* Hari Libur */}
-                            <col style={{ width: '22px' }} />  {/* Jml Makan */}
-                            <col style={{ width: '50px' }} />  {/* Uang Lembur */}
-                            <col style={{ width: '45px' }} />  {/* Uang Makan */}
-                            <col style={{ width: '55px' }} />  {/* Jml Kolom */}
-                            <col style={{ width: '40px' }} />  {/* PPH */}
-                            <col style={{ width: '55px' }} />  {/* Bersih */}
-                            <col style={{ width: '55px' }} />  {/* TTD */}
+                            <col style={{ width: '24px' }} />  {/* NO URT */}
+                            <col style={{ width: '70px' }} />  {/* Nama */}
+                            <col style={{ width: '80px' }} />  {/* NIP */}
+                            <col style={{ width: '24px' }} />  {/* GOL */}
+                            {/* 16 day columns */}
+                            {Array(16).fill(null).map((_, i) => <col key={i} style={{ width: '16px' }} />)}
+                            <col style={{ width: '26px' }} />  {/* Hari Kerja */}
+                            <col style={{ width: '26px' }} />  {/* Hari Libur */}
+                            <col style={{ width: '26px' }} />  {/* Jml Makan */}
+                            <col style={{ width: '58px' }} />  {/* Uang Lembur */}
+                            <col style={{ width: '52px' }} />  {/* Uang Makan */}
+                            <col style={{ width: '62px' }} />  {/* Jml Kolom */}
+                            <col style={{ width: '48px' }} />  {/* PPH */}
+                            <col style={{ width: '62px' }} />  {/* Bersih */}
+                            <col style={{ width: '60px' }} />  {/* TTD */}
                         </colgroup>
                         <thead>
                             {/* Row 1: Main Headers */}
-                            <tr style={{ height: '36px' }}>
-                                <th rowSpan={4} style={baseCell}>NO.<br/>URT</th>
-                                <th rowSpan={4} style={baseCell}>Nama</th>
-                                <th rowSpan={4} style={baseCell}>NIP</th>
-                                <th rowSpan={4} style={baseCell}>GOL</th>
+                            <tr>
+                                <th rowSpan={3} style={baseCell}>NO.<br/>URT</th>
+                                <th rowSpan={3} style={baseCell}>Nama</th>
+                                <th rowSpan={3} style={baseCell}>NIP</th>
+                                <th rowSpan={3} style={baseCell}>GOL</th>
                                 <th colSpan={16} style={baseCell}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
-                                <th colSpan={2} style={baseCell}>JUMLAH<br/>JAM</th>
+                                <th colSpan={2} style={baseCell}>JUMLAH JAM</th>
                                 <th rowSpan={2} style={baseCell}>JML<br/>MAKAN<br/>LEMBUR</th>
                                 <th colSpan={2} style={baseCell}>JUMLAH UANG</th>
                                 <th rowSpan={2} style={baseCell}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
                                 <th rowSpan={2} style={baseCell}>POT.<br/>PPH</th>
                                 <th rowSpan={2} style={baseCell}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
-                                <th rowSpan={4} style={baseCell}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
+                                <th rowSpan={3} style={baseCell}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
                             </tr>
 
                             {/* Row 2: Day headers 1-16 + Sub-headers */}
-                            <tr style={{ height: '20px' }}>
+                            <tr>
                                 {days1to16.map(day => {
                                     const valid = day <= daysInMonth;
                                     return (
@@ -169,8 +174,8 @@ const DafnomLembur = ({ month, year }) => {
                                 <th style={baseCell}>MAKAN</th>
                             </tr>
 
-                            {/* Row 3: Day headers 17-31 + empty + column numbers 6-13 */}
-                            <tr style={{ height: '20px' }}>
+                            {/* Row 3: Day headers 17-31 + empty + ALL column numbers in ONE row */}
+                            <tr>
                                 {days17to31.map(day => {
                                     const valid = day <= daysInMonth;
                                     return (
@@ -179,7 +184,6 @@ const DafnomLembur = ({ month, year }) => {
                                         </th>
                                     );
                                 })}
-                                {/* Empty cell to fill 16 columns */}
                                 <th style={dayCell}></th>
                                 <th style={baseCell}>(6)</th>
                                 <th style={baseCell}>(7)</th>
@@ -191,22 +195,23 @@ const DafnomLembur = ({ month, year }) => {
                                 <th style={baseCell}>(13)</th>
                             </tr>
 
-                            {/* Row 4: Note + column numbers 1-4, 5, 14 */}
-                            <tr style={{ height: '18px' }}>
-                                <th colSpan={16} style={{...baseCell, fontStyle: 'italic', fontSize: '5px'}}>
-                                    (5) tanda "-" = Libur ; tanda "+" = Kerja
-                                </th>
-                                <th colSpan={8} style={baseCell}></th>
-                            </tr>
-
-                            {/* Row 5: Column identifiers for 1-4 and 14 */}
-                            <tr style={{ height: '16px' }}>
+                            {/* Row 4: ALL column identifiers in ONE row */}
+                            <tr>
                                 <th style={baseCell}>(1)</th>
                                 <th style={baseCell}>(2)</th>
                                 <th style={baseCell}>(3)</th>
                                 <th style={baseCell}>(4)</th>
-                                <th colSpan={16} style={baseCell}></th>
-                                <th colSpan={8} style={baseCell}></th>
+                                <th colSpan={16} style={{...baseCell, fontStyle: 'italic', fontSize: '7px'}}>
+                                    (5) tanda "-" = Libur ; tanda "+" = Kerja
+                                </th>
+                                <th style={baseCell}>(6)</th>
+                                <th style={baseCell}>(7)</th>
+                                <th style={baseCell}>(8)</th>
+                                <th style={baseCell}>(9)</th>
+                                <th style={baseCell}>(10)</th>
+                                <th style={baseCell}>(11)</th>
+                                <th style={baseCell}>(12)</th>
+                                <th style={baseCell}>(13)</th>
                                 <th style={baseCell}>(14)</th>
                             </tr>
                         </thead>
@@ -214,7 +219,7 @@ const DafnomLembur = ({ month, year }) => {
                         <tbody>
                             {employees.length === 0 ? (
                                 <tr>
-                                    <td colSpan={29} style={{...baseCell, padding: '15px', color: '#666'}}>
+                                    <td colSpan={29} style={{...baseCell, padding: '20px', color: '#666'}}>
                                         Tidak ada data lembur yang disetujui untuk bulan ini
                                     </td>
                                 </tr>
@@ -222,10 +227,10 @@ const DafnomLembur = ({ month, year }) => {
                                 employees.map((emp, idx) => (
                                     <React.Fragment key={emp.pegawai_id || idx}>
                                         {/* Employee Row 1: Days 1-16 */}
-                                        <tr style={{ height: '20px' }}>
+                                        <tr>
                                             <td rowSpan={2} style={baseCell}>{idx + 1}</td>
-                                            <td rowSpan={2} style={{...baseCell, textAlign: 'left', fontSize: '5px'}}>{emp.nama}</td>
-                                            <td rowSpan={2} style={{...baseCell, textAlign: 'left', fontSize: '5px'}}>{emp.nip || '-'}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'left', fontSize: '7px'}}>{emp.nama}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'left', fontSize: '7px'}}>{emp.nip || '-'}</td>
                                             <td rowSpan={2} style={baseCell}>{emp.golongan?.split('/')[0] || '-'}</td>
                                             
                                             {days1to16.map(day => {
@@ -241,18 +246,18 @@ const DafnomLembur = ({ month, year }) => {
                                             <td rowSpan={2} style={baseCell}>{Math.round(emp.jam_hari_kerja || 0)}</td>
                                             <td rowSpan={2} style={baseCell}>{Math.round(emp.jam_hari_libur || 0)}</td>
                                             <td rowSpan={2} style={baseCell}>{emp.jumlah_makan || 0}</td>
-                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.uang_lembur)}</td>
-                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.uang_makan)}</td>
-                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_kotor)}</td>
-                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(emp.potongan_pph)}</td>
-                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '5px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_bersih)}</td>
-                                            <td rowSpan={2} style={{...baseCell, fontSize: '5px'}}>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '7px'}}>{formatRupiah(emp.uang_lembur)}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '7px'}}>{formatRupiah(emp.uang_makan)}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '7px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_kotor)}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '7px'}}>{formatRupiah(emp.potongan_pph)}</td>
+                                            <td rowSpan={2} style={{...baseCell, textAlign: 'right', fontSize: '7px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_bersih)}</td>
+                                            <td rowSpan={2} style={{...baseCell, fontSize: '6px'}}>
                                                 {emp.bank_account || '-'}<br/>{emp.bank_name || 'Mandiri'}
                                             </td>
                                         </tr>
                                         
                                         {/* Employee Row 2: Days 17-31 + empty */}
-                                        <tr style={{ height: '20px' }}>
+                                        <tr>
                                             {days17to31.map(day => {
                                                 const valid = day <= daysInMonth;
                                                 const hours = valid ? (emp.daily_hours?.[String(day)]?.hours || 0) : 0;
@@ -262,35 +267,34 @@ const DafnomLembur = ({ month, year }) => {
                                                     </td>
                                                 );
                                             })}
-                                            {/* Empty cell */}
                                             <td style={dayCell}></td>
                                         </tr>
                                     </React.Fragment>
                                 ))
                             )}
                             
-                            {/* Total Row */}
-                            <tr style={{ height: '22px', fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
-                                <td colSpan={4} style={baseCell}>JUMLAH TOTAL</td>
-                                <td colSpan={16} style={baseCell}></td>
-                                <td style={baseCell}>{Math.round(totals.jam_kerja)}</td>
-                                <td style={baseCell}>{Math.round(totals.jam_libur)}</td>
-                                <td style={baseCell}>{totals.jumlah_makan}</td>
-                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.uang_lembur)}</td>
-                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.uang_makan)}</td>
-                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.jumlah_kotor)}</td>
-                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.potongan_pph)}</td>
-                                <td style={{...baseCell, textAlign: 'right', fontSize: '5px'}}>{formatRupiah(totals.jumlah_bersih)}</td>
-                                <td style={baseCell}></td>
+                            {/* Total Row - with background color and bold font */}
+                            <tr>
+                                <td colSpan={4} style={totalRowStyle}>JUMLAH TOTAL</td>
+                                <td colSpan={16} style={totalRowStyle}></td>
+                                <td style={totalRowStyle}>{Math.round(totals.jam_kerja)}</td>
+                                <td style={totalRowStyle}>{Math.round(totals.jam_libur)}</td>
+                                <td style={totalRowStyle}>{totals.jumlah_makan}</td>
+                                <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.uang_lembur)}</td>
+                                <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.uang_makan)}</td>
+                                <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.jumlah_kotor)}</td>
+                                <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.potongan_pph)}</td>
+                                <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.jumlah_bersih)}</td>
+                                <td style={totalRowStyle}></td>
                             </tr>
                         </tbody>
                     </table>
 
                     {/* Footer */}
-                    <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <div style={{ textAlign: 'center', fontSize: '7px', width: '160px' }}>
+                    <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <div style={{ textAlign: 'center', fontSize: '9px', width: '180px' }}>
                             <div>Mengetahui:</div>
-                            <div style={{ fontWeight: 'bold', marginBottom: '35px' }}>Pejabat Pembuat Komitmen</div>
+                            <div style={{ fontWeight: 'bold', marginBottom: '40px' }}>Pejabat Pembuat Komitmen</div>
                             <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>AMBAR TRI BAWONO</div>
                             <div>NIP. 198112082009011008</div>
                         </div>
