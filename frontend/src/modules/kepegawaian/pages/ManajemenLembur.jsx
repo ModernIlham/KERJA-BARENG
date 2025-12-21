@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import RekapLemburTable from '../components/RekapLemburTable';
 import DafnomLembur from '../components/DafnomLembur';
+import DafnomSPL from '../components/DafnomSPL';
 import OvertimeSettings from '../components/OvertimeSettings';
 import OvertimeBatchForm from '../components/OvertimeBatchForm';
 import OvertimeBatchList from '../components/OvertimeBatchList';
