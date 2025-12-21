@@ -1,179 +1,171 @@
 <analysis>**original_problem_statement:**
 The user's initial goal was to build a comprehensive Workforce Management System (SIMAN-G). The development is highly iterative, driven by user feedback.
 
-The most recent requests were to:
-1.  **Perfect the UI of the Dafnom (Daftar Nominatif) overtime report**, which has now been approved by the user.
-2.  **Add a configurable holiday management system**, which has also been completed and approved.
-3.  **Refactor the overtime process**:
-    *   Change the workflow so that the logged-in user acts as an administrator who creates overtime batches (Surat Perintah Lembur - SPL) for multiple employees, rather than submitting for themselves.
-    *   Employees are selectable from a master list.
-4.  **Create new reports**:
-    *   A recap report based on the SPL number.
-    *   A Dafnom report grouped by SPL.
+The most recent requests from the user are:
+1.  **Refactor Dafnom Reports:**
+    *   Change the TANDA TANGAN column in both Dafnom per Pegawai and Dafnom per SPL reports to TANDA TANGAN/NO REK.
+    *   Populate this new column with the employee's bank name and account number.
+    *   Split both Dafnom reports into two separate, identical tables/tabs: one exclusively for ASN employees and another for NON-ASN employees.
+2.  **Ensure all reports only show approved data.**
+3.  **Provide a visual indicator for partially rejected items** within an approved SPL.
+4.  Implement a highly complex overtime submission form allowing for multiple date ranges, daily variations in work/break times, and per-participant time adjustments.
 
 **User's preferred language**: Bahasa Indonesia
 
 **what currently exists?**
-A full-stack FastAPI/React application for workforce management. The agent has successfully completed two major user requests in this session: perfecting the per-employee Dafnom report UI and implementing a dynamic holiday management system. The agent then implemented a significant new feature: a batch overtime submission system. This allows an admin to create a single overtime request (SPL) for multiple employees. New reporting pages have been created to view data by SPL, including a Rekap per SPL and a Dafnom per SPL. The application is functional but the newest features are pending final user verification and thorough testing.
+A full-stack FastAPI/React application for workforce management. In this session, the agent built a very sophisticated batch overtime (SPL) submission and approval system from the ground up, based on detailed user feedback.
+
+Key features completed:
+-   **Advanced Overtime Form:** A new form allows creating a single SPL with multiple, non-contiguous date ranges. It enables detailed daily configuration of work hours and multiple break times, which can be set via a template and then customized for each day and even each participant.
+-   **Automated Holiday Detection:** The system now automatically identifies holidays (weekends and national holidays) and applies the correct 2x pay rate multiplier for all employee types (ASN and NON-ASN), removing the need for manual input.
+-   **Partial Approval System:** A new approval UI allows approvers to view pending SPLs grouped by date and participant. They can selectively approve/reject individual employees within a single SPL. The UI dynamically recalculates totals based on the selection.
+-   **Informative Detail Views:** The SPL list now expands to show a detailed, day-by-day breakdown of participants, hours, and costs. Approved SPLs with rejected individuals are clearly marked.
+-   **Corrected Reporting:** All reports have been updated to only show data from  overtime records.
 
 **Last working item**:
-- **Last item agent was working**: The user requested that the Dafnom per SPL report should not mimic the complex, multi-row layout of the per-employee report. Instead, it should be a simpler table that includes the SPL number as a column. The agent implemented this simplification in  and presented a screenshot for verification.
-- **Status**: USER VERIFICATION PENDING
-- **Agent Testing Done**: Y
-- **Which testing method agent to use?**: Manual verification by the user based on the last screenshot provided. The agent should wait for the user's feedback.
-- **User Testing Done**: N
+-   **Last item agent was working**: Implementing the user's latest request to split the Dafnom per Pegawai and Dafnom per SPL reports into separate tabs for ASN and NON-ASN employees, and to add a column with bank account details. The agent had just started this work.
+-   **Status**: IN PROGRESS
+-   **Agent Testing Done**: N
+-   **Which testing method agent to use?**: screenshot tool. The agent needs to verify the UI of both  and  after the changes. The test should confirm:
+    1.  The presence and functionality of ASN and NON-ASN tabs.
+    2.  Correct filtering of employees into their respective tabs.
+    3.  The TANDA TANGAN/NO REK column correctly displays the bank name and account number.
+    4.  All totals and calculations remain accurate.
+-   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: (P0) Dafnom per SPL report UI needs user verification.**
-- **Issue 2: (P1) The new Batch Overtime module is likely unstable.**
-- **Issue 3: (P2) Initial batch of fixes from a previous fork have not been verified by the user.**
+-   **Issue 1: (P0) Reports are not yet split by employee type (ASN/NON-ASN) and lack bank details.** This is the 
+wtmp begins Sun Dec 21 05:57:54 2025.
 
 **Issues Detail:**
-- **Issue 1: Dafnom per SPL report UI needs user verification.**
-  - **Attempted fixes:** The agent first created a complex version, then simplified it based on user feedback by overwriting . The latest screenshot shows the simplified version.
-  - **Next debug checklist:** Await user feedback. If the user approves, this issue is resolved. If not, apply the requested changes to .
-  - **Why fix this issue and what will be achieved with the fix?** This is the final piece of the user's latest feature request for the overtime module.
-  - **Status:** USER VERIFICATION PENDING
-  - **Is recurring issue?** N
-  - **Should Test frontend/backend/both after fix?** frontend
-  - **Blocked on other issue:** None
-
-- **Issue 2: The new Batch Overtime module is likely unstable.**
-  - **Attempted fixes:** None. The feature was just built. The agent tested the happy path (submission and viewing reports), but no edge cases or failure modes have been tested.
-  - **Next debug checklist:**
-    1.  Once the UI for all reports is approved, use the  to perform a full regression test.
-    2.  Test creating an SPL with zero participants.
-    3.  Test creating an SPL with all participants.
-    4.  Verify calculations for different employee types (ASN, Non-ASN) within the same SPL.
-    5.  Test the Detail button functionality on the Daftar SPL list.
-  - **Why fix this issue and what will be achieved with the fix?** The new module involves significant changes to backend models, API endpoints, and frontend state management. Proactive testing is required to ensure stability.
-  - **Status:** NOT STARTED
-  - **Is recurring issue?** N
-  - **Should Test frontend/backend/both after fix?** both
-  - **Blocked on other issue:** Issue 1
-
-- **Issue 3: Initial batch of fixes from a previous fork have not been verified by the user.**
-  - **Attempted fixes:** None in this session.
-  - **Next debug checklist:**
-    1.  After resolving the Overtime module tasks, explicitly ask the user to verify the functionality of the Kanban Board (), the main Dashboard's responsive UI, the sidebar's active link highlighting, and the Barang Keluar search functionality.
-  - **Why fix this issue and what will be achieved with the fix?** To clear technical debt and prevent old issues from being re-reported.
-  - **Status:** USER VERIFICATION PENDING
-  - **Is recurring issue?** Y
-  - **Should Test frontend/backend/both after fix?** both
-  - **Blocked on other issue:** Issue 1
+-   **Issue 1: Reports are not yet split by employee type (ASN/NON-ASN) and lack bank details.**
+    -   **Attempted fixes:** The agent started implementation by updating the  backend endpoint to include bank details and overwrote  with a new structure containing tabs. The work is incomplete.
+    -   **Next debug checklist:**
+        1.  Finish overwriting  to match the new tabbed structure of .
+        2.  Ensure the  endpoint also provides the necessary bank account information.
+        3.  Thoroughly test both report components to ensure the tabs, data filtering, new column, and all calculations work correctly.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a direct and explicit request from the user to finalize the reporting UI.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on other issue:** None
 
 **In progress Task List**:
-- **Task 1: Overhaul Overtime Management System**
-  - **Where to resume:** Awaiting user verification for .
-  - **What will be achieved with this?** A complete, user-accepted overtime module with batch submissions and multiple reporting views.
-  - **Status:** IN PROGRESS
-  - **Should Test frontend/backend/both after fix?** both
-  - **Blocked on something:** Awaiting user feedback on Issue 1.
+-   **Task 1: Refactor Dafnom Reports UI (P0)**
+    -   **Where to resume:** The agent needs to finish the implementation for  to mirror the changes made in . Then, test both components.
+    -   **What will be achieved with this?** Both Dafnom reports will be split into ASN/NON-ASN tabs and will display employee bank details as requested by the user.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on something:** None
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks**:
-    - **(P1)** Verify previously implemented fixes (Kanban, Dashboard UI, Sidebar, Search limit) with the user.
-    - **(P2)** Implement Frontend for Smart Resume / Activity Logging on the  page.
-    - **(P3)** Enhance Attendance History: Add flexi-time configuration options.
-    - **(P3)** Implement Collapsible Sidebar.
-- **Future Tasks**:
-    - Implement Real-time Selfie and Location Capture for clock-in.
-    - Implement pagination on all data-heavy tables.
-    - Enhance the Task Detail View on the Kanban board.
+-   **Upcoming Tasks**:
+    -   **(P1)** After the current UI task is verified, perform a full regression test of the entire overtime module using the  to ensure the high complexity hasn't introduced hidden bugs.
+    -   **(P2)** Verify previously implemented fixes from an older session (Kanban Board, Dashboard UI, Sidebar active links, Barang Keluar search) with the user.
+    -   **(P3)** Implement Frontend for Smart Resume / Activity Logging on the  page.
+    -   **(P4)** Enhance Attendance History: Add flexi-time configuration options.
+    -   **(P5)** Implement Collapsible Sidebar.
+-   **Future Tasks**:
+    -   Implement Real-time Selfie and Location Capture for clock-in.
+    -   Implement pagination on all data-heavy tables.
+    -   Enhance the Task Detail View on the Kanban board.
 
 **Completed work in this session**
-- **Dafnom Report (per Employee):**
-  - Successfully refined the UI of  to meet the user's exact visual specifications. **(User Approved)**
-- **Holiday Management System:**
-  - Created a backend API () for CRUD operations on holidays in .
-  - Built a frontend component  allowing dynamic import of national holidays by year (2024-2028). **(User Approved)**
-- **Batch Overtime (SPL) System:**
-  - **Backend:**
-    - Modified  and  to support  and link individual s via a .
-    - Added new API endpoints in :  (POST),  (GET), and  (GET).
-  - **Frontend:**
-    - Created  to allow an admin to select multiple employees for a single overtime request.
-    - Created  to display a list of all created SPLs.
-    - Created  for a detailed report grouped by SPL.
-    - Created and refined  to show a Dafnom-style report per SPL.
-    - Heavily modified  to integrate all new components into a tabbed interface.
+-   **Advanced Overtime Submission Form ():**
+    -   Implemented a new form supporting multiple date ranges, daily customization of work/break times per participant, and automatic holiday detection.
+-   **Comprehensive Approval System ():**
+    -   Built a new UI for approvals, allowing selective approval/rejection of individuals within an SPL.
+    -   The backend now supports partial approvals via a new endpoint.
+-   **Corrected Holiday Pay Calculation:**
+    -   Fixed the backend logic () to correctly apply the 2x holiday pay rate for ASN employees.
+-   **Informative Reporting & Status Tracking:**
+    -   All overtime-related reports are now filtered to only show  records.
+    -   The SPL detail view now clearly indicates which individuals were rejected in a partially approved SPL.
+    -   The SPL list status now correctly updates from Pending to Approved or Rejected after an action.
+-   **Fixed UI Bug:** Resolved a JavaScript error () in the approval component's checkboxes.
 
 **Earlier issues found/mentioned but not fixed**
-- Same as **Pending/In progress Issue list: Issue 3**. Fixes for the Kanban board, Dashboard UI, sidebar links, and search limits from a previous job are still pending user verification.
+-   Fixes for the Kanban board, Dashboard UI, sidebar links, and search limits from a previous job are still pending user verification.
 
 **Known issue recurrence from previous fork**
-- The issue of the Dafnom report UI not being perfect was the main recurring problem. However, this has been **RESOLVED** in this session as the user gave explicit approval for the per-employee Dafnom table (). The agent has successfully broken the cycle of  by iterating until approval was given.
+-   None. The agent successfully addressed the core complexities of the overtime module by iterating closely with the user, preventing the kind of recurring UI rejection seen in the previous fork.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Frontend**: React, Create React App, Tailwind CSS, Shadcn/UI, Lucide-React, , complex state management with  and  for multi-component interaction.
-- **Backend**: FastAPI, Pydantic, Motor (async MongoDB).
-- **Database**: MongoDB, with new schemas for batch overtime management.
+-   **Frontend**: React, Tailwind CSS, Shadcn/UI. Extremely complex state management in forms (, ) to handle dynamic, nested, and interdependent data structures.
+-   **Backend**: FastAPI, Pydantic. Advanced data modeling to represent complex user inputs (date ranges, daily configs, breaks). Logic for partial document updates in MongoDB.
+-   **Database**: MongoDB.
 
 **key DB schema**
-- **overtime_batches**: 
-- **overtime_requests**: Modified to include a  field to link it to the  collection.
+-   **New Pydantic Models** (in ):
+    -   : 
+    -   : 
+    -   : 
+    -   : 
+    -   : The main model for the new form, containing lists of  and .
+-   **overtime_requests**: The  field is now critical, holding 'Pending', 'Approved', or 'Rejected'. A  may also be present.
+-   **overtime_batches**: The status field reflects the overall state (e.g., 'Approved', 'Partially Approved', 'Rejected').
 
 **changes in tech stack**
-- None.
+-   None.
 
 **All files of reference**
-- : (Heavily modified) The main page orchestrating all overtime-related components.
-- : (Heavily modified) Contains all new backend logic for holidays and batch overtime.
-- : (New) The component for the last working item, pending user verification.
-- : (New) The form for creating batch overtime.
-- : (New) The component for the recap report by SPL.
-- : (Modified) The  model was added here.
+-   : (In Progress) The component being modified for the last working item.
+-   : (In Progress) The next component to be modified.
+-   : Contains all new and modified backend logic.
+-   : Contains the new Pydantic models for the advanced form.
+-   : The new advanced submission form.
+-   : The new approval component.
+-   : The component with the enhanced detail view.
 
 **Areas that need refactoring**:
--  has become a very large component managing state for at least 6 child components. It could be broken down using a state management library or more focused custom hooks to improve maintainability.
+-    is now extremely large and handles all logic for overtime, holidays, reporting, and settings. It should be split into multiple, focused router files (e.g., , ).
+-   The new frontend components (, ) are very complex. Their logic could be extracted into custom React hooks for better readability and reuse.
 
 **key api endpoints**
-- **POST** : Add a new holiday.
-- **GET** : Get holidays for a specific year.
-- **POST** : Import national holidays for a given year.
-- **POST** : Create a new overtime batch (SPL) for multiple employees.
-- **GET** : Get a list of all overtime batches.
-- **GET** : Get recap data for the report grouped by SPL.
+-   **POST** : Creates a new SPL from the advanced form.
+-   **PATCH** : Approves/rejects selected individuals within an SPL.
+-   **GET** : Retrieves detailed data for an SPL, now including individual statuses.
+-   **GET** : (Modified) Now filters by  and includes bank account info.
+-   **GET** : (Modified) Filters by  and must also be updated to include bank account info.
 
 **Critical Info for New Agent**
-- **User has approved the complex  table.** Do not modify it unless explicitly asked. The current focus is verifying the new, simpler  table.
-- **Language is Bahasa Indonesia.** All communication must be in Bahasa Indonesia.
-- **The new Batch Overtime feature is fresh.** After the UI is fully approved, the highest priority is to stabilize this feature with thorough testing (see Issue #2). Do not assume it is bug-free.
-- **Acknowledge and plan for the backlog.** There is a list of unverified fixes from a previous session (Kanban, Dashboard, etc.). Once the overtime module is stable and approved, you should propose verifying these with the user.
+-   **Current Task is In Progress:** You must complete the refactoring of  and  to split them by ASN/NON-ASN and add bank details. This is the top priority.
+-   **Language is Bahasa Indonesia.** All user-facing communication must be in Bahasa Indonesia.
+-   **The Overtime Module is Complex but Functional:** The user has driven the creation of a very powerful system. Trust the recently implemented logic for calculations, holiday detection, and partial approvals, as it has been tested and validated.
+-   **Reports Must Filter by Status:** A critical requirement is that all reports *only* show data from records with . This has been implemented on the main endpoints but must be maintained.
 
 **documents and test_reports created in this job**
-- None.
+-   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-- #250: **Dafnom per SPL dengan desain tabel yang sama sudah selesai!** ...
-- #249: Tool Responses
-- #248: Tool Call
-- #247: Overwrite successful: /app/frontend/src/modules/kepegawaian/components/DafnomSPL.jsx
-- #246: Saya mengerti! Cukup tambahkan kolom nomor SPL dan gunakan desain tabel yang sama. Saya akan menyederhanakan:
-- #245: tidak perlu dibuat seperti itu cukup tambahkan nomor SPLnya di laporannya dan menggunakan design tabel yang sama
-- #244: **Dafnom per SPL dengan desain yang sama seperti Dafnom per Pegawai sudah b...**
-- #243: **Dafnom per SPL dengan desain yang sama seperti Dafnom per Pegawai sudah berhasil!** ...
-- #242: Tool Responses
-- #241: Tool Call
+-   : Request to change TANDA TANGAN to TANDA TANGAN/NO REK with bank details, and split Dafnom reports into ASN/NON-ASN.
+-   : Request for a visual marker for rejected records in an SPL and a fix for reports not updating with approved data.
+-   : User reports a JS error  when using the approval checkboxes.
+-   : A major feature request: support for multiple date ranges, an improved SPL detail view, a fix for approval status not updating, and a more informative approval page with per-person options.
+-   : User confirms requirements for the advanced form: cross-month ranges are okay, no limit on break times, and a bulk-apply-then-edit workflow is desired.
+-   : User clarifies requirements for the advanced form: start/end times can differ per day, multiple breaks are possible per day, and participants can have different attendance/times on the same day.
+-   : A large feedback message identifying several major requirements: overtime pay calculations are wrong (holiday rate not applied), the holiday checkbox should be removed in favor of automatic detection, the form should support date ranges, and break times should be configurable.
+-   : lanjutkan (continue).
+-   : User asks to modify the Dafnom per SPL report to include the HARI KERJA / HARI LIBUR columns and the 1-31 day grid, mirroring the Dafnom per Pegawai report.
 
 **Project Health Check:**
-- **In Progress**: Major features have been built and approved by the user. The application is largely functional, but the newest features require final user verification and subsequent stability testing.
+-   **In Progress**: The application is in a state of rapid, iterative development. The core functionality is robust, but the latest user requests are still being implemented. Code complexity is increasing, suggesting a future need for refactoring.
 
 **3rd Party Integrations**
--  (existing). No new integrations were added.
+-    (existing).
 
 **Testing status**
-- **Testing agent used after significant changes**: NO. The agent relied on taking screenshots and manual verification for the rapid development of the new batch overtime features.
-- **Troubleshoot agent used after agent stuck in loop**: NO.
-- **Test files created**: None.
-- **Known regressions**: None in this session. The previous regression (Dafnom header alignment) was fixed and approved.
+-   **Testing agent used after significant changes**: NO. The agent relied on screenshots and manual  commands for verification. A full regression test is recommended.
+-   **Troubleshoot agent used after agent stuck in loop**: NO.
+-   **Test files created**: None.
+-   **Known regressions**: None.
 
 **Credentials to test flow:**
-- **Email**: 
-- **Password**: 
+-   **Email**: 
+-   **Password**: 
 
 **What agent forgot to execute**
-- The agent has not yet addressed the backlog of unverified fixes from the previous fork (Kanban board, Dashboard UI, etc.). This should be planned after the current overtime module work is fully completed and stabilized.</analysis>
+-   The agent correctly identified the need to update both  and  but has only completed the first one. The work on  and the final testing remains.</analysis>
