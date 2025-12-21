@@ -395,6 +395,7 @@ const DafnomSPL = ({ month, year }) => {
 
     const batches = data?.batches || [];
     const holidays = data?.holidays || [];
+    const cutiNasional = data?.cuti_nasional || [];
     const daysInMonth = data?.days_in_month || 31;
 
     // Filter batches by selection
@@ -473,7 +474,8 @@ const DafnomSPL = ({ month, year }) => {
                 <TabsContent value="ASN" className="mt-4">
                     <DafnomSPLTable 
                         batches={displayBatches} 
-                        holidays={holidays} 
+                        holidays={holidays}
+                        cutiNasional={cutiNasional}
                         daysInMonth={daysInMonth}
                         employeeType="ASN"
                         month={month}
@@ -486,7 +488,8 @@ const DafnomSPL = ({ month, year }) => {
                 <TabsContent value="NON_ASN" className="mt-4">
                     <DafnomSPLTable 
                         batches={displayBatches} 
-                        holidays={holidays} 
+                        holidays={holidays}
+                        cutiNasional={cutiNasional}
                         daysInMonth={daysInMonth}
                         employeeType="NON-ASN"
                         month={month}
