@@ -567,6 +567,283 @@ async def request_overtime(req: OvertimeCreate, current_user: User = Depends(get
     await db.overtime_requests.insert_one(new_ot.model_dump(by_alias=True, exclude=["id"]))
     return {"message": "Overtime requested"}
 
+# --- NEW: BATCH OVERTIME ROUTES ---
+
+async def generate_spl_number():
+    """Generate unique SPL number for the year"""
+    year = datetime.now().year
+    prefix = f"SPL-{year}-"
+    
+    # Find the highest number for this year
+    last_batch = await db.overtime_batches.find_one(
+        {"nomor_spl": {"$regex": f"^{prefix}"}},
+        sort=[("nomor_spl", -1)]
+    )
+    
+    if last_batch:
+        last_num = int(last_batch['nomor_spl'].split('-')[-1])
+        new_num = last_num + 1
+    else:
+        new_num = 1
+    
+    return f"{prefix}{new_num:04d}"
+
+@router.post("/overtime/batch")
+async def create_overtime_batch(req: OvertimeCreate, current_user: User = Depends(get_current_user)):
+    """Create overtime batch with multiple participants"""
+    
+    if not req.participant_ids or len(req.participant_ids) == 0:
+        raise HTTPException(status_code=400, detail="Pilih minimal satu peserta lembur")
+    
+    # Calculate duration
+    fmt = "%H:%M"
+    try:
+        t1 = datetime.strptime(req.start_time, fmt)
+        t2 = datetime.strptime(req.end_time, fmt)
+    except:
+        raise HTTPException(status_code=400, detail="Format waktu tidak valid (HH:MM)")
+    
+    if t2 < t1:
+        t2 += timedelta(days=1)
+    
+    duration = (t2 - t1).seconds / 3600
+    
+    # Generate SPL number
+    nomor_spl = await generate_spl_number()
+    batch_id = str(uuid.uuid4())
+    
+    # Get all participant data
+    participant_data = []
+    for pid in req.participant_ids:
+        pegawai = await db.pegawai.find_one({"_id": ObjectId(pid)})
+        if pegawai:
+            participant_data.append(pegawai)
+    
+    if len(participant_data) == 0:
+        raise HTTPException(status_code=400, detail="Data pegawai tidak ditemukan")
+    
+    # Create individual overtime records for each participant
+    total_gross = 0
+    total_tax = 0
+    total_net = 0
+    
+    for pegawai in participant_data:
+        emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'PPPK', 'ASN'] else "NON_ASN"
+        grade = pegawai.get('pangkat_golongan')
+        
+        if emp_type == 'ASN' and grade:
+            import re
+            match = re.search(r'\((.*?)\)', grade)
+            if match:
+                grade = match.group(1)
+        
+        sub_kategori = pegawai.get('sub_kategori')
+        jabatan = pegawai.get('jabatan', "")
+        
+        rate, meal, gross, tax, net = await calculate_overtime_pay_v2(
+            emp_type, grade, duration, req.is_holiday, sub_kategori, jabatan
+        )
+        
+        total_gross += gross
+        total_tax += tax
+        total_net += net
+        
+        # Create individual overtime request linked to batch
+        new_ot = OvertimeRequest(
+            user_id=str(pegawai.get('user_id', '')),
+            pegawai_id=str(pegawai['_id']),
+            nama_lengkap=pegawai['nama_lengkap'],
+            nip=pegawai.get('nip'),
+            batch_id=batch_id,
+            nomor_spl=nomor_spl,
+            creator_id=str(current_user.id),
+            creator_name=current_user.full_name,
+            employee_type=emp_type,
+            grade=grade,
+            sub_kategori=sub_kategori,
+            date=req.date,
+            is_holiday=req.is_holiday,
+            start_time=req.start_time,
+            end_time=req.end_time,
+            duration_hours=round(duration, 2),
+            description=req.description,
+            rate_per_hour=rate,
+            meal_allowance=meal,
+            gross_pay=gross,
+            tax_amount=tax,
+            net_pay=net,
+            spl_file=req.spl_file,
+            evidence_files=req.evidence_files
+        )
+        
+        await db.overtime_requests.insert_one(new_ot.model_dump(by_alias=True, exclude=["id"]))
+    
+    # Create batch record
+    new_batch = OvertimeBatch(
+        id=batch_id,
+        nomor_spl=nomor_spl,
+        tanggal_spl=datetime.now().strftime("%Y-%m-%d"),
+        creator_id=str(current_user.id),
+        creator_name=current_user.full_name,
+        date=req.date,
+        is_holiday=req.is_holiday,
+        start_time=req.start_time,
+        end_time=req.end_time,
+        duration_hours=round(duration, 2),
+        description=req.description,
+        participant_ids=req.participant_ids,
+        spl_file=req.spl_file,
+        evidence_files=req.evidence_files,
+        total_gross=total_gross,
+        total_tax=total_tax,
+        total_net=total_net
+    )
+    
+    batch_data = new_batch.model_dump(by_alias=True, exclude=["id"])
+    batch_data['_id'] = batch_id
+    await db.overtime_batches.insert_one(batch_data)
+    
+    return {
+        "message": f"Lembur berhasil dibuat dengan nomor {nomor_spl}",
+        "batch_id": batch_id,
+        "nomor_spl": nomor_spl,
+        "participant_count": len(participant_data)
+    }
+
+@router.get("/overtime/batches")
+async def list_overtime_batches(
+    status: str = None,
+    month: str = None,
+    current_user: User = Depends(get_current_user)
+):
+    """List overtime batches"""
+    query = {}
+    
+    # Non-admin only sees their own created batches
+    if current_user.role != 'admin':
+        query["creator_id"] = str(current_user.id)
+    
+    if status:
+        query["status"] = status
+    
+    if month:
+        query["date"] = {"$regex": f"^{month}"}
+    
+    cursor = db.overtime_batches.find(query).sort("created_at", -1)
+    items = await cursor.to_list(length=100)
+    
+    result = []
+    for item in items:
+        item['id'] = str(item['_id'])
+        del item['_id']
+        
+        # Get participant names
+        participant_names = []
+        for pid in item.get('participant_ids', []):
+            peg = await db.pegawai.find_one({"_id": ObjectId(pid)}, {"nama_lengkap": 1})
+            if peg:
+                participant_names.append(peg['nama_lengkap'])
+        item['participant_names'] = participant_names
+        item['participant_count'] = len(participant_names)
+        
+        result.append(item)
+    
+    return result
+
+@router.get("/overtime/batch/{batch_id}")
+async def get_overtime_batch_detail(batch_id: str, current_user: User = Depends(get_current_user)):
+    """Get detailed batch info with all participant overtime records"""
+    
+    batch = await db.overtime_batches.find_one({"_id": batch_id})
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch tidak ditemukan")
+    
+    batch['id'] = str(batch['_id'])
+    del batch['_id']
+    
+    # Get all overtime records for this batch
+    overtime_records = await db.overtime_requests.find(
+        {"batch_id": batch_id}
+    ).to_list(100)
+    
+    for rec in overtime_records:
+        rec['id'] = str(rec['_id'])
+        del rec['_id']
+    
+    batch['records'] = overtime_records
+    
+    return batch
+
+@router.patch("/overtime/batch/{batch_id}/{action}")
+async def approve_reject_batch(
+    batch_id: str,
+    action: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Approve or reject entire batch"""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Hanya admin yang dapat menyetujui")
+    
+    if action not in ['approve', 'reject']:
+        raise HTTPException(status_code=400, detail="Action tidak valid")
+    
+    new_status = "Approved" if action == 'approve' else "Rejected"
+    
+    # Update batch
+    await db.overtime_batches.update_one(
+        {"_id": batch_id},
+        {"$set": {
+            "status": new_status,
+            "approver_id": str(current_user.id),
+            "approver_name": current_user.full_name,
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    # Update all linked overtime records
+    await db.overtime_requests.update_many(
+        {"batch_id": batch_id},
+        {"$set": {
+            "status": new_status,
+            "approver_id": str(current_user.id),
+            "approver_name": current_user.full_name,
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    return {"message": f"Batch lembur {new_status}"}
+
+@router.get("/overtime/recap-by-spl")
+async def recap_overtime_by_spl(month: str = None):
+    """Rekapitulasi lembur berdasarkan nomor SPL"""
+    if not month:
+        month = datetime.now(timezone.utc).strftime("%Y-%m")
+    
+    # Get all batches for the month
+    batches = await db.overtime_batches.find(
+        {"date": {"$regex": f"^{month}"}}
+    ).sort("nomor_spl", 1).to_list(200)
+    
+    result = []
+    for batch in batches:
+        batch['id'] = str(batch['_id'])
+        del batch['_id']
+        
+        # Get all overtime records for this batch
+        records = await db.overtime_requests.find(
+            {"batch_id": batch['id']},
+            {"_id": 0, "nama_lengkap": 1, "nip": 1, "employee_type": 1, "grade": 1,
+             "duration_hours": 1, "gross_pay": 1, "tax_amount": 1, "net_pay": 1, "meal_allowance": 1}
+        ).to_list(100)
+        
+        batch['participants'] = records
+        batch['participant_count'] = len(records)
+        result.append(batch)
+    
+    return result
+
+# --- END NEW BATCH ROUTES ---
+
 @router.get("/overtime")
 async def list_overtime(status: str = None, current_user: User = Depends(get_current_user)):
     query = {}
