@@ -412,6 +412,7 @@ async def bulk_create_holidays(
             "name": h['name'],
             "description": h.get('description', ''),
             "is_national": h.get('is_national', True),
+            "is_cuti_nasional": h.get('is_cuti_nasional', False),
             "created_at": datetime.now(timezone.utc).isoformat(),
             "created_by": str(current_user.id)
         }
