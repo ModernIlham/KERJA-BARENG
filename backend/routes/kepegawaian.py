@@ -1693,11 +1693,11 @@ async def reset_all_kepegawaian_data(
         await log_activity(
             db=db,
             user_id=current_user.id,
-            user_email=current_user.email,
+            user_name=current_user.email,
             action="RESET_ALL_KEPEGAWAIAN_DATA",
-            entity_type="system",
-            entity_id="kepegawaian",
-            description=f"Reset all kepegawaian data: {sum(deleted_counts.values())} total records deleted"
+            module="kepegawaian",
+            target_id="kepegawaian",
+            details=f"Reset all kepegawaian data: {sum(deleted_counts.values())} total records deleted"
         )
         
         return {
