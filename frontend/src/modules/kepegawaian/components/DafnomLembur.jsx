@@ -161,7 +161,7 @@ const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeT
                                     const valid = day <= daysInMonth;
                                     const holiday = valid && isHoliday(day);
                                     return (
-                                        <th key={day} style={{...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                        <th key={day} style={{...dayColStyle, ...getDayBgStyle(day)}}>
                                             {valid ? `${day}${holiday ? '-' : '+'}` : ''}
                                         </th>
                                     );
@@ -178,7 +178,7 @@ const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeT
                                     const valid = day <= daysInMonth;
                                     const holiday = valid && isHoliday(day);
                                     return (
-                                        <th key={day} style={{...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                        <th key={day} style={{...dayColStyle, ...getDayBgStyle(day)}}>
                                             {valid ? `${day}${holiday ? '-' : '+'}` : ''}
                                         </th>
                                     );
