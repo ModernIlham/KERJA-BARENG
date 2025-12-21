@@ -66,11 +66,57 @@ class Attendance(MongoBaseModel):
     status: str = "Hadir" # Hadir, Telat, Pulang Cepat
     keterangan: Optional[str] = None
 
+# NEW: Overtime Batch model - represents a single SPL/batch of overtime
+class OvertimeBatch(MongoBaseModel):
+    nomor_spl: str  # SPL number (e.g., "SPL-2025-001")
+    tanggal_spl: str  # Date of SPL creation (YYYY-MM-DD)
+    
+    # Creator info (pengurus/pembuat lembur)
+    creator_id: str  # User ID who created this batch
+    creator_name: str
+    
+    date: str  # Overtime execution date (YYYY-MM-DD)
+    is_holiday: bool = False
+    
+    start_time: str  # HH:MM
+    end_time: str  # HH:MM
+    duration_hours: float
+    description: str
+    
+    # List of participant pegawai IDs
+    participant_ids: List[str] = []
+    
+    status: str = "Pending"  # Pending, Approved, Rejected
+    
+    approver_id: Optional[str] = None
+    approver_name: Optional[str] = None
+    rejection_reason: Optional[str] = None
+    
+    # Evidence
+    spl_file: Optional[str] = None
+    evidence_files: Optional[List[str]] = []
+    
+    # Totals (aggregated from all participants)
+    total_gross: float = 0
+    total_tax: float = 0
+    total_net: float = 0
+    
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class OvertimeRequest(MongoBaseModel):
     user_id: str
     pegawai_id: str
     nama_lengkap: str
     nip: Optional[str] = None
+    
+    # Link to batch (NEW)
+    batch_id: Optional[str] = None
+    nomor_spl: Optional[str] = None
+    
+    # Creator info (NEW - who submitted this overtime, may differ from participant)
+    creator_id: Optional[str] = None
+    creator_name: Optional[str] = None
     
     # Snapshot of employee data at time of request (for calc stability)
     employee_type: str # ASN / NON_ASN
@@ -111,6 +157,9 @@ class OvertimeCreate(BaseModel):
     start_time: str
     end_time: str
     description: str
+    
+    # NEW: List of pegawai IDs to include in this overtime
+    participant_ids: Optional[List[str]] = []
     
     # Files
     spl_file: Optional[str] = None
