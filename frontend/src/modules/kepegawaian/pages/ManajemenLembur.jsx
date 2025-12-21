@@ -230,11 +230,14 @@ const ManajemenLembur = () => {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full md:w-[600px] grid-cols-4">
-          <TabsTrigger value="pengajuan">Pengajuan</TabsTrigger>
+        <TabsList className="grid w-full md:w-[700px] grid-cols-5">
+          <TabsTrigger value="pengajuan">
+            <Users className="w-4 h-4 mr-1 hidden sm:inline" />Pengajuan
+          </TabsTrigger>
+          <TabsTrigger value="daftar">Daftar SPL</TabsTrigger>
           <TabsTrigger value="persetujuan">Persetujuan</TabsTrigger>
-          <TabsTrigger value="rekap">Laporan & Dafnom</TabsTrigger>
-          {user?.role === 'admin' && <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-2"/>Aturan</TabsTrigger>}
+          <TabsTrigger value="rekap">Laporan</TabsTrigger>
+          {user?.role === 'admin' && <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-1"/>Aturan</TabsTrigger>}
         </TabsList>
 
         {/* --- PENGATURAN (ADMIN ONLY) --- */}
