@@ -863,9 +863,9 @@ async def create_overtime_range(req: OvertimeRangeCreate, current_user: User = D
                 emp_type, grade, duration, is_holiday, sub_kategori, jabatan
             )
             
-            total_gross += gross + meal
+            total_gross += gross + meal  # Total = uang lembur + uang makan
             total_tax += tax
-            total_net += (gross + meal) - tax
+            total_net += net  # Net sudah dihitung di calculate_overtime_pay_v2
             
             # Create individual overtime record
             new_ot = OvertimeRequest(
