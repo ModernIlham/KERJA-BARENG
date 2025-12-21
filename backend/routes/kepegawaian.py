@@ -680,7 +680,7 @@ async def create_overtime_batch(req: OvertimeCreate, current_user: User = Depend
     
     # Create batch record
     new_batch = OvertimeBatch(
-        id=batch_id,
+        batch_id=batch_id,
         nomor_spl=nomor_spl,
         tanggal_spl=datetime.now().strftime("%Y-%m-%d"),
         creator_id=str(current_user.id),
@@ -699,7 +699,7 @@ async def create_overtime_batch(req: OvertimeCreate, current_user: User = Depend
         total_net=total_net
     )
     
-    batch_data = new_batch.model_dump(by_alias=True, exclude=["id"])
+    batch_data = new_batch.model_dump()
     batch_data['_id'] = batch_id
     await db.overtime_batches.insert_one(batch_data)
     
