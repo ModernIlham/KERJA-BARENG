@@ -1734,7 +1734,7 @@ class APITester:
                 print(f"   Meal Allowance: {meal_allowance:,} IDR (separate from gross_pay)")
                 
                 # Verify gross_pay calculation
-                expected_rate = 30000 if (emp_type == 'ASN' and grade.startswith('III')) else 20000
+                expected_rate = 30000 if (emp_type == 'ASN' and grade and grade.startswith('III')) else 20000
                 expected_gross = duration * expected_rate * (2 if is_holiday else 1)
                 
                 print(f"   Expected gross: {duration} × {expected_rate:,} × {2 if is_holiday else 1} = {expected_gross:,} IDR")
