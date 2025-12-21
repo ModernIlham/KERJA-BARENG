@@ -359,10 +359,7 @@ const OvertimeApproval = ({ refreshTrigger }) => {
                                                                     <div className="flex items-center gap-3">
                                                                         <Checkbox 
                                                                             checked={dateSelectedCount === dayData.records.length}
-                                                                            onCheckedChange={(e) => {
-                                                                                e.stopPropagation();
-                                                                                toggleAllInDate(batch.id, dayData.records);
-                                                                            }}
+                                                                            onCheckedChange={() => toggleAllInDate(batch.id, dayData.records)}
                                                                             onClick={e => e.stopPropagation()}
                                                                         />
                                                                         {expandedDates[dateKey] !== false ? 
