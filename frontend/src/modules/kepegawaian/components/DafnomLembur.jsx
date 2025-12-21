@@ -145,10 +145,10 @@ const DafnomLembur = ({ month, year }) => {
                         <thead>
                             {/* Row 1: Main Headers */}
                             <tr>
-                                <th rowSpan={4} style={thStyle}>NO.<br/>URT</th>
-                                <th rowSpan={4} style={thStyle}>Nama</th>
-                                <th rowSpan={4} style={thStyle}>NIP</th>
-                                <th rowSpan={4} style={thStyle}>GOL</th>
+                                <th rowSpan={3} style={thStyle}>NO.<br/>URT</th>
+                                <th rowSpan={3} style={thStyle}>Nama</th>
+                                <th rowSpan={3} style={thStyle}>NIP</th>
+                                <th rowSpan={3} style={thStyle}>GOL</th>
                                 <th colSpan={16} style={thStyle}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
                                 <th colSpan={2} style={thStyle}>JUMLAH JAM</th>
                                 <th rowSpan={3} style={thStyle}>JML<br/>MAKAN<br/>LEMBUR</th>
@@ -156,7 +156,7 @@ const DafnomLembur = ({ month, year }) => {
                                 <th rowSpan={3} style={thStyle}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
                                 <th rowSpan={3} style={thStyle}>POT.<br/>PPH</th>
                                 <th rowSpan={3} style={thStyle}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
-                                <th rowSpan={4} style={thStyle}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
+                                <th rowSpan={3} style={thStyle}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
                             </tr>
 
                             {/* Row 2: Days 1-16 + Sub-headers (rowSpan=2) */}
@@ -193,6 +193,10 @@ const DafnomLembur = ({ month, year }) => {
 
                             {/* Row 4: All Column Identifiers */}
                             <tr>
+                                <th style={thStyle}>(1)</th>
+                                <th style={thStyle}>(2)</th>
+                                <th style={thStyle}>(3)</th>
+                                <th style={thStyle}>(4)</th>
                                 <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(5) tanda "-" = Libur ; tanda "+" = Kerja</th>
                                 <th style={thStyle}>(6)</th>
                                 <th style={thStyle}>(7)</th>
@@ -202,6 +206,7 @@ const DafnomLembur = ({ month, year }) => {
                                 <th style={thStyle}>(11)=(9+10)</th>
                                 <th style={thStyle}>(12)</th>
                                 <th style={thStyle}>(13)</th>
+                                <th style={thStyle}>(14)</th>
                             </tr>
                         </thead>
                         
