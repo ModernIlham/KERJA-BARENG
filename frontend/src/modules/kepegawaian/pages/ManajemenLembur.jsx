@@ -88,6 +88,74 @@ const DafnomMonthSelector = () => {
   );
 };
 
+// Dafnom SPL Selector Component
+const DafnomSPLSelector = () => {
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(String(currentDate.getMonth() + 1));
+  const [selectedYear, setSelectedYear] = useState(String(currentDate.getFullYear()));
+
+  const months = [
+    { value: '1', label: 'Januari' },
+    { value: '2', label: 'Februari' },
+    { value: '3', label: 'Maret' },
+    { value: '4', label: 'April' },
+    { value: '5', label: 'Mei' },
+    { value: '6', label: 'Juni' },
+    { value: '7', label: 'Juli' },
+    { value: '8', label: 'Agustus' },
+    { value: '9', label: 'September' },
+    { value: '10', label: 'Oktober' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'Desember' }
+  ];
+
+  const years = Array.from({ length: 5 }, (_, i) => ({
+    value: String(currentDate.getFullYear() - 2 + i),
+    label: String(currentDate.getFullYear() - 2 + i)
+  }));
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-slate-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Pilih Periode Dafnom per SPL</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <div className="w-40">
+              <Label className="text-xs mb-1 block">Bulan</Label>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map(m => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-28">
+              <Label className="text-xs mb-1 block">Tahun</Label>
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map(y => (
+                    <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <DafnomSPL month={selectedMonth} year={selectedYear} />
+    </div>
+  );
+};
+
 const ManajemenLembur = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('pengajuan');
