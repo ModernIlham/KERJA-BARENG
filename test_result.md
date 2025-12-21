@@ -168,6 +168,7 @@ test_plan:
     - "Verify Overtime Calculation Logic against new rules"
     - "Overtime Settings and Dafnom Features"
     - "Independent Non-ASN Overtime Rates Verification"
+    - "Dafnom (Daftar Nominatif) Overtime Report Page"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
