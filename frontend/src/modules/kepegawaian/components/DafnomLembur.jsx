@@ -12,7 +12,7 @@ const formatRupiah = (num) => {
     return `Rp ${Math.round(num).toLocaleString('id-ID')}`;
 };
 
-const DafnomTable = ({ employees, holidays, daysInMonth, employeeType, month, year, selectedPPK }) => {
+const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeType, month, year, selectedPPK }) => {
     const componentRef = useRef();
     
     const handlePrint = useReactToPrint({
@@ -50,6 +50,7 @@ const DafnomTable = ({ employees, holidays, daysInMonth, employeeType, month, ye
     };
 
     const isHoliday = (day) => holidays.includes(day);
+    const isCutiNasional = (day) => (cutiNasional || []).includes(day);
     
     // Days split: 1-16 (first row), 17-31+1empty (second row) = 16 columns each
     const days1to16 = Array.from({ length: 16 }, (_, i) => i + 1);
@@ -75,8 +76,16 @@ const DafnomTable = ({ employees, holidays, daysInMonth, employeeType, month, ye
         backgroundColor: '#fff'
     };
     const dayColStyle = { ...thStyle, width: '18px', minWidth: '18px', maxWidth: '18px', padding: '1px' };
-    const holidayBg = { backgroundColor: '#ffcccc' };
+    const holidayBg = { backgroundColor: '#ffcccc' };  // Regular holiday - red
+    const cutiNasionalBg = { backgroundColor: '#fff0f0' };  // Cuti Nasional - faded red
     const totalRowStyle = { ...tdStyle, backgroundColor: '#c8e6c9', fontWeight: 'bold', fontSize: '8px' };
+
+    // Helper to get day background style
+    const getDayBgStyle = (day) => {
+        if (!isHoliday(day)) return {};
+        if (isCutiNasional(day)) return cutiNasionalBg;
+        return holidayBg;
+    };
 
     if (filteredEmployees.length === 0) {
         return (
