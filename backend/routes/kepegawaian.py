@@ -1222,8 +1222,24 @@ async def recap_overtime_by_spl(month: str = None, include_pending: bool = False
             record_query,
             {"_id": 0, "id": 1, "nama_lengkap": 1, "nip": 1, "employee_type": 1, "grade": 1,
              "duration_hours": 1, "gross_pay": 1, "tax_amount": 1, "net_pay": 1, 
-             "meal_allowance": 1, "is_holiday": 1, "date": 1, "status": 1}
-        ).to_list(100)
+             "meal_allowance": 1, "is_holiday": 1, "date": 1, "status": 1, "pegawai_id": 1}
+        ).to_list(500)
+        
+        # Get bank account info for each participant
+        for rec in records:
+            pegawai_id = rec.get('pegawai_id')
+            if pegawai_id:
+                try:
+                    pegawai = await db.pegawai.find_one(
+                        {"_id": ObjectId(pegawai_id)},
+                        {"nama_bank": 1, "no_rekening": 1}
+                    )
+                    if pegawai:
+                        rec['nama_bank'] = pegawai.get('nama_bank', '')
+                        rec['no_rekening'] = pegawai.get('no_rekening', '')
+                except:
+                    rec['nama_bank'] = ''
+                    rec['no_rekening'] = ''
         
         # Calculate jam_hari_kerja and jam_hari_libur per participant
         for rec in records:
