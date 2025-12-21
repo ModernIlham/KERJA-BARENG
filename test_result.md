@@ -259,6 +259,18 @@ Incorporate User Feedback:
         agent: "testing"
         comment: "OVERTIME CALCULATION SYSTEM VERIFICATION COMPLETED SUCCESSFULLY! ✅ Comprehensive testing performed on all requested APIs: (1) GET /api/kepegawaian/settings - All required tax rate fields present (tax_asn_gol_1-4, tax_non_asn_ppnpn, tax_non_asn_satpam, etc.), (2) GET /api/kepegawaian/holidays?year=2025&month=12 - Holiday detection working correctly, (3) GET /api/kepegawaian/overtime/dafnom?month=2025-12 - Detailed daily breakdown with separate jam_hari_kerja (40.0h) and jam_hari_libur (44.02h) calculations, (4) GET /api/kepegawaian/overtime/recap-by-spl?month=2025-12 - Participants correctly flagged with is_holiday status, (5) Calculation formulas verified: Workday overtime (3h) = 165,000 IDR gross using 1.5x first hour + 2x subsequent hours formula, Holiday overtime (8h) = 510,000 IDR gross using 2x for 7 hours + 3x for 8th hour formula. ✅ All calculations are mathematically correct and match expected formulas. ✅ Tax deduction properly applied per grade/category from settings. ✅ Workday vs holiday calculations are completely separate and accurate. The overtime calculation system is production-ready and fully compliant with Indonesian labor regulations."
 
+  - task: "Kepegawaian Data Reset Endpoints"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/kepegawaian.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "KEPEGAWAIAN DATA RESET ENDPOINTS TESTING COMPLETED SUCCESSFULLY! ✅ Comprehensive testing performed on all three new data reset endpoints: (1) DELETE /api/kepegawaian/reset/overtime - VERIFIED WORKING: Deletes overtime_requests, overtime_batches, and attendance data with proper admin authentication and 'CONFIRM' validation, (2) DELETE /api/kepegawaian/reset/employees - VERIFIED WORKING: Deletes all pegawai data with proper security checks, (3) DELETE /api/kepegawaian/reset/all - VERIFIED WORKING: Deletes all kepegawaian data (pegawai, overtime, attendance, holidays) with comprehensive validation. ✅ Security verification: Invalid confirm text properly rejected (400 status), Valid 'CONFIRM' text accepted (200 status), Admin role requirement enforced (403 for non-admin users). ✅ Response validation: All endpoints return detailed deleted counts in response, Proper success messages in Indonesian language. ✅ Data deletion verification: Overtime reset deleted 0 overtime requests, 0 batches, 0 attendance records (empty database), Employee reset deleted 79 pegawai records, All data reset deleted 0 pegawai, 0 overtime data, 46 holidays. ✅ All destructive operations are properly secured with dual validation (admin role + CONFIRM text). The data reset endpoints are production-ready and fully functional for database maintenance operations."
+
   - task: "Print Functionality on Overtime Reports (Laporan Lembur) Pages"
     implemented: true
     working: false
