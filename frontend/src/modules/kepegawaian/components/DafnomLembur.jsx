@@ -144,18 +144,18 @@ const DafnomLembur = ({ month, year }) => {
                         <thead>
                             {/* Row 1: Main Headers */}
                             <tr>
-                                <th rowSpan={3} style={baseCell}>NO.<br/>URT</th>
-                                <th rowSpan={3} style={baseCell}>Nama</th>
-                                <th rowSpan={3} style={baseCell}>NIP</th>
-                                <th rowSpan={3} style={baseCell}>GOL</th>
+                                <th rowSpan={4} style={baseCell}>NO.<br/>URT</th>
+                                <th rowSpan={4} style={baseCell}>Nama</th>
+                                <th rowSpan={4} style={baseCell}>NIP</th>
+                                <th rowSpan={4} style={baseCell}>GOL</th>
                                 <th colSpan={16} style={baseCell}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
                                 <th colSpan={2} style={baseCell}>JUMLAH JAM</th>
-                                <th rowSpan={2} style={baseCell}>JML<br/>MAKAN<br/>LEMBUR</th>
+                                <th rowSpan={3} style={baseCell}>JML<br/>MAKAN<br/>LEMBUR</th>
                                 <th colSpan={2} style={baseCell}>JUMLAH UANG</th>
-                                <th rowSpan={2} style={baseCell}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
-                                <th rowSpan={2} style={baseCell}>POT.<br/>PPH</th>
-                                <th rowSpan={2} style={baseCell}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
-                                <th rowSpan={3} style={baseCell}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
+                                <th rowSpan={3} style={baseCell}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
+                                <th rowSpan={3} style={baseCell}>POT.<br/>PPH</th>
+                                <th rowSpan={3} style={baseCell}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
+                                <th rowSpan={4} style={baseCell}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
                             </tr>
 
                             {/* Row 2: Day headers 1-16 + Sub-headers */}
@@ -168,13 +168,13 @@ const DafnomLembur = ({ month, year }) => {
                                         </th>
                                     );
                                 })}
-                                <th style={baseCell}>HARI<br/>KERJA</th>
-                                <th style={baseCell}>HARI<br/>LIBUR</th>
-                                <th style={baseCell}>LEMBUR</th>
-                                <th style={baseCell}>MAKAN</th>
+                                <th rowSpan={2} style={baseCell}>HARI<br/>KERJA</th>
+                                <th rowSpan={2} style={baseCell}>HARI<br/>LIBUR</th>
+                                <th rowSpan={2} style={baseCell}>LEMBUR</th>
+                                <th rowSpan={2} style={baseCell}>MAKAN</th>
                             </tr>
 
-                            {/* Row 3: Day headers 17-31 + empty + ALL column numbers in ONE row */}
+                            {/* Row 3: Day headers 17-31 + empty */}
                             <tr>
                                 {days17to31.map(day => {
                                     const valid = day <= daysInMonth;
@@ -185,14 +185,6 @@ const DafnomLembur = ({ month, year }) => {
                                     );
                                 })}
                                 <th style={dayCell}></th>
-                                <th style={baseCell}>(6)</th>
-                                <th style={baseCell}>(7)</th>
-                                <th style={baseCell}>(8)</th>
-                                <th style={baseCell}>(9)</th>
-                                <th style={baseCell}>(10)</th>
-                                <th style={baseCell}>(11)</th>
-                                <th style={baseCell}>(12)</th>
-                                <th style={baseCell}>(13)</th>
                             </tr>
 
                             {/* Row 4: ALL column identifiers in ONE row */}
