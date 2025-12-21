@@ -815,9 +815,15 @@ async def approve_reject_batch(
 
 @router.get("/overtime/recap-by-spl")
 async def recap_overtime_by_spl(month: str = None):
-    """Rekapitulasi lembur berdasarkan nomor SPL"""
+    """Rekapitulasi lembur berdasarkan nomor SPL dengan detail jam per hari"""
     if not month:
         month = datetime.now(timezone.utc).strftime("%Y-%m")
+    
+    year, mon = map(int, month.split("-"))
+    days_in_month = calendar.monthrange(year, mon)[1]
+    
+    # Get holidays for the month
+    holidays_in_month = await get_holidays_for_month(year, mon)
     
     # Get all batches for the month
     batches = await db.overtime_batches.find(
@@ -830,18 +836,36 @@ async def recap_overtime_by_spl(month: str = None):
         batch['id'] = batch_id
         del batch['_id']
         
-        # Get all overtime records for this batch using batch_id field
+        # Get all overtime records for this batch
         records = await db.overtime_requests.find(
             {"batch_id": batch_id},
             {"_id": 0, "nama_lengkap": 1, "nip": 1, "employee_type": 1, "grade": 1,
-             "duration_hours": 1, "gross_pay": 1, "tax_amount": 1, "net_pay": 1, "meal_allowance": 1}
+             "duration_hours": 1, "gross_pay": 1, "tax_amount": 1, "net_pay": 1, 
+             "meal_allowance": 1, "is_holiday": 1, "date": 1}
         ).to_list(100)
+        
+        # Calculate jam_hari_kerja and jam_hari_libur per participant
+        for rec in records:
+            hours = rec.get('duration_hours', 0) or 0
+            is_holiday = rec.get('is_holiday', False)
+            if is_holiday:
+                rec['jam_hari_kerja'] = 0
+                rec['jam_hari_libur'] = hours
+            else:
+                rec['jam_hari_kerja'] = hours
+                rec['jam_hari_libur'] = 0
         
         batch['participants'] = records
         batch['participant_count'] = len(records)
         result.append(batch)
     
-    return result
+    return {
+        "month": month,
+        "year": year,
+        "days_in_month": days_in_month,
+        "holidays": holidays_in_month,
+        "batches": result
+    }
 
 # --- END NEW BATCH ROUTES ---
 
