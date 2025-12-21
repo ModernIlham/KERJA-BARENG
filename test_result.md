@@ -199,15 +199,18 @@ agent_communication:
 
   - task: "Dafnom Reports with PPK Selector and Dynamic Title"
     implemented: true
-    working: "needs_testing"
+    working: false
     file: "/app/frontend/src/modules/kepegawaian/components/DafnomSPL.jsx, /app/frontend/src/modules/kepegawaian/components/DafnomLembur.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "needs_testing"
         agent: "main"
         comment: "Added new features: (1) PPK (Pejabat Pembuat Komitmen) selector dropdown to choose signatory for reports, (2) Dynamic report title that changes based on selected SPL - uses SPL description or 'PER SURAT PERINTAH LEMBUR' if all SPL selected, (3) Column 'TANDA TANGAN/NO REK' displays bank name and account number, (4) ASN/NON-ASN tabs in both reports. Testing needed to verify all features."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE: Dafnom sub-tabs not accessible in UI. Testing results: ✅ Login successful with admin@example.com/admin, ✅ Navigation to /kepegawaian/lembur working, ✅ 'Laporan' tab accessible, ❌ 'Dafnom per Pegawai' and 'Dafnom per SPL' sub-tabs NOT FOUND in UI. Backend API endpoints are working correctly (/api/kepegawaian/overtime/dafnom returns valid data with employee records, bank info, daily hours). The issue appears to be in the frontend tab structure - the Dafnom sub-tabs are not rendering or are not properly integrated into the Laporan section. The components exist in the codebase but are not accessible through the UI navigation. This prevents testing of PPK selector, ASN/NON-ASN tabs, dynamic titles, and TANDA TANGAN/NO REK column features."
 
 Incorporate User Feedback:
   - agent: "main"
