@@ -416,11 +416,6 @@ const DafnomSPL = ({ month, year }) => {
     const [ppkList, setPpkList] = useState([]);
     const [selectedPPKId, setSelectedPPKId] = useState('');
 
-    useEffect(() => {
-        fetchData();
-        fetchPPKList();
-    }, [month, year]);
-
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -441,6 +436,11 @@ const DafnomSPL = ({ month, year }) => {
             console.error('Error fetching PPK list:', err);
         }
     };
+
+    useEffect(() => {
+        fetchData();
+        fetchPPKList();
+    }, [month, year]);
 
     const batches = data?.batches || [];
     const holidays = data?.holidays || [];
