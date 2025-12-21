@@ -736,6 +736,247 @@ async def create_overtime_batch(req: OvertimeCreate, current_user: User = Depend
         "participant_count": len(participant_data)
     }
 
+# === NEW: Multi-Day Overtime with Break Times ===
+
+def calculate_work_hours_with_breaks(start_time: str, end_time: str, breaks: list) -> float:
+    """Calculate actual work hours after subtracting break times"""
+    fmt = "%H:%M"
+    try:
+        t1 = datetime.strptime(start_time, fmt)
+        t2 = datetime.strptime(end_time, fmt)
+        
+        # Handle overnight
+        if t2 < t1:
+            t2 += timedelta(days=1)
+        
+        total_minutes = (t2 - t1).seconds / 60
+        
+        # Subtract break times
+        for brk in breaks:
+            b1 = datetime.strptime(brk.get('start_time', '00:00'), fmt)
+            b2 = datetime.strptime(brk.get('end_time', '00:00'), fmt)
+            if b2 < b1:
+                b2 += timedelta(days=1)
+            break_minutes = (b2 - b1).seconds / 60
+            total_minutes -= break_minutes
+        
+        return max(0, total_minutes / 60)
+    except:
+        return 0
+
+@router.post("/overtime/range")
+async def create_overtime_range(req: OvertimeRangeCreate, current_user: User = Depends(get_current_user)):
+    """Create multi-day overtime batch with per-day configuration"""
+    
+    if not req.participant_ids or len(req.participant_ids) == 0:
+        raise HTTPException(status_code=400, detail="Pilih minimal satu peserta lembur")
+    
+    if not req.days or len(req.days) == 0:
+        raise HTTPException(status_code=400, detail="Konfigurasi hari tidak boleh kosong")
+    
+    # Generate SPL number
+    nomor_spl = await generate_spl_number()
+    batch_id = str(uuid.uuid4())
+    
+    # Get all participant data
+    all_pegawai = {}
+    for pid in req.participant_ids:
+        pegawai = await db.pegawai.find_one({"_id": ObjectId(pid)})
+        if pegawai:
+            all_pegawai[str(pegawai['_id'])] = pegawai
+    
+    if len(all_pegawai) == 0:
+        raise HTTPException(status_code=400, detail="Data pegawai tidak ditemukan")
+    
+    # Process each day
+    total_gross = 0
+    total_tax = 0
+    total_net = 0
+    days_config_stored = []
+    overtime_records_created = 0
+    
+    for day_config in req.days:
+        date_str = day_config.date
+        
+        # Auto-detect holiday
+        try:
+            year, month, day = map(int, date_str.split('-'))
+            holidays_in_month = await get_holidays_for_month(year, month)
+            is_holiday = day in holidays_in_month
+        except:
+            is_holiday = day_config.is_holiday
+        
+        # Get breaks for this day
+        breaks_list = [{"start_time": b.start_time, "end_time": b.end_time} for b in day_config.breaks]
+        
+        day_config_stored = {
+            "date": date_str,
+            "is_holiday": is_holiday,
+            "breaks": breaks_list,
+            "participants": []
+        }
+        
+        # Process each participant for this day
+        for participant in day_config.participants:
+            if not participant.attending:
+                continue
+            
+            pid = participant.pegawai_id
+            if pid not in all_pegawai:
+                continue
+            
+            pegawai = all_pegawai[pid]
+            
+            # Calculate work hours minus breaks
+            duration = calculate_work_hours_with_breaks(
+                participant.start_time, 
+                participant.end_time, 
+                breaks_list
+            )
+            
+            if duration <= 0:
+                continue
+            
+            emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'PPPK', 'ASN'] else "NON_ASN"
+            grade = pegawai.get('pangkat_golongan')
+            
+            if emp_type == 'ASN' and grade:
+                import re
+                match = re.search(r'\((.*?)\)', grade)
+                if match:
+                    grade = match.group(1)
+            
+            sub_kategori = pegawai.get('sub_kategori')
+            jabatan = pegawai.get('jabatan', "")
+            
+            rate, meal, gross, tax, net = await calculate_overtime_pay_v2(
+                emp_type, grade, duration, is_holiday, sub_kategori, jabatan
+            )
+            
+            total_gross += gross + meal
+            total_tax += tax
+            total_net += (gross + meal) - tax
+            
+            # Create individual overtime record
+            new_ot = OvertimeRequest(
+                user_id=str(pegawai.get('user_id', '')),
+                pegawai_id=str(pegawai['_id']),
+                nama_lengkap=pegawai['nama_lengkap'],
+                nip=pegawai.get('nip'),
+                batch_id=batch_id,
+                nomor_spl=nomor_spl,
+                creator_id=str(current_user.id),
+                creator_name=current_user.full_name,
+                employee_type=emp_type,
+                grade=grade,
+                sub_kategori=sub_kategori,
+                date=date_str,
+                is_holiday=is_holiday,
+                start_time=participant.start_time,
+                end_time=participant.end_time,
+                duration_hours=round(duration, 2),
+                description=req.description,
+                rate_per_hour=rate,
+                meal_allowance=meal,
+                gross_pay=gross + meal,
+                tax_amount=tax,
+                net_pay=(gross + meal) - tax,
+                spl_file=req.spl_file,
+                evidence_files=req.evidence_files
+            )
+            
+            await db.overtime_requests.insert_one(new_ot.model_dump(by_alias=True, exclude=["id"]))
+            overtime_records_created += 1
+            
+            # Store participant config
+            day_config_stored["participants"].append({
+                "pegawai_id": pid,
+                "nama_lengkap": pegawai['nama_lengkap'],
+                "start_time": participant.start_time,
+                "end_time": participant.end_time,
+                "duration_hours": round(duration, 2),
+                "gross_pay": gross + meal,
+                "net_pay": (gross + meal) - tax
+            })
+        
+        days_config_stored.append(day_config_stored)
+    
+    # Create range batch record
+    new_batch = OvertimeRangeBatch(
+        batch_id=batch_id,
+        nomor_spl=nomor_spl,
+        tanggal_spl=datetime.now().strftime("%Y-%m-%d"),
+        creator_id=str(current_user.id),
+        creator_name=current_user.full_name,
+        start_date=req.start_date,
+        end_date=req.end_date,
+        description=req.description,
+        participant_ids=req.participant_ids,
+        days_config=days_config_stored,
+        spl_file=req.spl_file,
+        evidence_files=req.evidence_files,
+        total_days=len(req.days),
+        total_participants=len(all_pegawai),
+        total_gross=total_gross,
+        total_tax=total_tax,
+        total_net=total_net
+    )
+    
+    batch_data = new_batch.model_dump()
+    batch_data['_id'] = batch_id
+    await db.overtime_batches.insert_one(batch_data)
+    
+    return {
+        "message": f"Lembur berhasil dibuat dengan nomor {nomor_spl}",
+        "batch_id": batch_id,
+        "nomor_spl": nomor_spl,
+        "total_days": len(req.days),
+        "total_records": overtime_records_created,
+        "total_gross": total_gross,
+        "total_net": total_net
+    }
+
+@router.get("/overtime/check-holidays")
+async def check_holidays_for_range(start_date: str, end_date: str):
+    """Get holiday info for a date range"""
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+    except:
+        raise HTTPException(status_code=400, detail="Format tanggal tidak valid (YYYY-MM-DD)")
+    
+    if end < start:
+        raise HTTPException(status_code=400, detail="Tanggal selesai harus setelah tanggal mulai")
+    
+    result = []
+    current = start
+    
+    # Get all holidays for all months in range
+    holidays_cache = {}
+    
+    while current <= end:
+        year = current.year
+        month = current.month
+        cache_key = f"{year}-{month:02d}"
+        
+        if cache_key not in holidays_cache:
+            holidays_cache[cache_key] = await get_holidays_for_month(year, month)
+        
+        day = current.day
+        is_holiday = day in holidays_cache[cache_key]
+        day_name = current.strftime("%A")
+        
+        result.append({
+            "date": current.strftime("%Y-%m-%d"),
+            "day_name": day_name,
+            "is_holiday": is_holiday,
+            "is_weekend": current.weekday() >= 5
+        })
+        
+        current += timedelta(days=1)
+    
+    return result
+
 @router.get("/overtime/batches")
 async def list_overtime_batches(
     status: str = None,
