@@ -173,3 +173,85 @@ class ClockInRequest(BaseModel):
 class ClockOutRequest(BaseModel):
     photo: Optional[str] = None
     location: Optional[Dict[str, float]] = None
+
+
+
+# === NEW: Models for Multi-Day Overtime with Break Times ===
+
+class BreakTime(BaseModel):
+    """Represents a single break period"""
+    start_time: str  # HH:MM
+    end_time: str    # HH:MM
+
+class ParticipantDayConfig(BaseModel):
+    """Configuration for a single participant on a single day"""
+    pegawai_id: str
+    nama_lengkap: str
+    nip: Optional[str] = None
+    attending: bool = True  # Whether participant attends this day
+    start_time: str = "08:00"  # Individual start time
+    end_time: str = "17:00"    # Individual end time
+
+class DayConfig(BaseModel):
+    """Configuration for a single day in the overtime range"""
+    date: str  # YYYY-MM-DD
+    is_holiday: bool = False  # Auto-detected
+    breaks: List[BreakTime] = []  # Break periods for this day
+    participants: List[ParticipantDayConfig] = []  # Per-participant config
+
+class OvertimeRangeCreate(BaseModel):
+    """Request model for creating multi-day overtime batch"""
+    start_date: str  # YYYY-MM-DD
+    end_date: str    # YYYY-MM-DD
+    description: str
+    
+    # Selected participant IDs (initial selection)
+    participant_ids: List[str] = []
+    
+    # Per-day configuration
+    days: List[DayConfig] = []
+    
+    # Template settings (for quick fill)
+    default_start_time: str = "08:00"
+    default_end_time: str = "17:00"
+    default_breaks: List[BreakTime] = []
+    
+    # Files
+    spl_file: Optional[str] = None
+    evidence_files: Optional[List[str]] = []
+
+class OvertimeRangeBatch(BaseModel):
+    """Batch record for multi-day overtime SPL"""
+    batch_id: str
+    nomor_spl: str
+    tanggal_spl: str  # SPL creation date
+    
+    creator_id: str
+    creator_name: str
+    
+    start_date: str  # Range start
+    end_date: str    # Range end
+    description: str
+    
+    # All participant IDs involved
+    participant_ids: List[str] = []
+    
+    # Per-day configuration (stored for reference)
+    days_config: List[Dict[str, Any]] = []
+    
+    status: str = "Pending"
+    approver_id: Optional[str] = None
+    approver_name: Optional[str] = None
+    
+    spl_file: Optional[str] = None
+    evidence_files: Optional[List[str]] = []
+    
+    # Totals
+    total_days: int = 0
+    total_participants: int = 0
+    total_gross: float = 0
+    total_tax: float = 0
+    total_net: float = 0
+    
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
