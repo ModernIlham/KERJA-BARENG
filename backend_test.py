@@ -12940,10 +12940,10 @@ def main():
 
 
 def main():
-    """Main function to run the Updated Overtime Calculation Formula test"""
+    """Main function to run the Kepegawaian Data Reset Endpoints test"""
     tester = APITester()
     
-    print("🚀 Starting Updated Overtime Calculation Formula Testing...")
+    print("🚀 Starting Kepegawaian Data Reset Endpoints Testing...")
     print("=" * 60)
     
     # Test login first
@@ -12951,9 +12951,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Updated Overtime Calculation Formula test as requested in review
-    if not tester.test_updated_overtime_calculation_formula():
-        print("❌ Updated Overtime Calculation Formula test failed")
+    # Run the Kepegawaian Data Reset Endpoints test as requested in review
+    if not tester.test_kepegawaian_data_reset_endpoints():
+        print("❌ Kepegawaian Data Reset Endpoints test failed")
         return 1
     
     # Print summary
