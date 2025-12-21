@@ -56,7 +56,8 @@ const RekapSPL = () => {
         try {
             const month = `${selectedYear}-${selectedMonth}`;
             const res = await api.get(`/api/kepegawaian/overtime/recap-by-spl?month=${month}`);
-            setData(res.data);
+            // Response now has {batches, holidays, days_in_month, ...}
+            setData(res.data?.batches || []);
         } catch (e) {
             toast.error("Gagal memuat data rekap SPL");
         } finally {
