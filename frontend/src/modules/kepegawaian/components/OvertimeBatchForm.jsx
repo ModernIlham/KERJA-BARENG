@@ -31,10 +31,18 @@ const OvertimeBatchForm = ({ onSuccess }) => {
 
     const fetchPegawai = async () => {
         try {
-            const res = await api.get('/api/pegawai');
-            // Ensure we always get an array
-            const data = Array.isArray(res.data) ? res.data : [];
-            setPegawaiList(data);
+            const res = await api.get('/api/pegawai?limit=200');
+            // Handle both array and paginated response formats
+            let data = res.data;
+            if (data && data.data && Array.isArray(data.data)) {
+                data = data.data;
+            }
+            // Map _id to id for consistency
+            const mappedData = (Array.isArray(data) ? data : []).map(p => ({
+                ...p,
+                id: p.id || p._id
+            }));
+            setPegawaiList(mappedData);
         } catch (e) {
             console.error("Gagal memuat data pegawai", e);
             setPegawaiList([]);
