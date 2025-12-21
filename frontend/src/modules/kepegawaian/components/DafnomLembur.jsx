@@ -69,10 +69,9 @@ const DafnomLembur = ({ month, year }) => {
 
     const isHoliday = (day) => holidays.includes(day);
     
-    // Row 1: days 1-15 (15 cells)
-    // Row 2: days 16-31 (16 cells) - total 31 days, but we need 16 cells to match colspan
+    // Days arrays
     const days1to15 = Array.from({ length: 15 }, (_, i) => i + 1);
-    const days16to31 = Array.from({ length: 16 }, (_, i) => i + 16); // 16-31 = 16 days
+    const days16to31 = Array.from({ length: 16 }, (_, i) => i + 16);
 
     // Styles
     const cell = { border: '1px solid #000', textAlign: 'center', verticalAlign: 'middle', padding: '1px', fontSize: '6px' };
@@ -107,38 +106,42 @@ const DafnomLembur = ({ month, year }) => {
                         <div>Nusantara, {new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'})}</div>
                     </div>
 
-                    {/* Main Table - Fixed 16 columns for days section */}
+                    {/* Main Table */}
                     <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'auto' }}>
                         <thead>
-                            {/* Row 1 - Main headers - ALL aligned at top */}
+                            {/* Row 1 - Main headers */}
                             <tr>
-                                <th rowSpan="5" style={{...cell, width: '20px', verticalAlign: 'middle'}}>NO<br/>URT</th>
-                                <th rowSpan="5" style={{...cell, width: '55px', verticalAlign: 'middle'}}>Nama</th>
-                                <th rowSpan="5" style={{...cell, width: '65px', verticalAlign: 'middle'}}>NIP</th>
-                                <th rowSpan="5" style={{...cell, width: '18px', verticalAlign: 'middle'}}>GOL</th>
-                                {/* Days section spans 16 columns (for 31 days split into 15+16, with 1 empty in row 1) */}
+                                <th rowSpan="6" style={{...cell, width: '20px'}}>NO<br/>URT</th>
+                                <th rowSpan="6" style={{...cell, width: '55px'}}>Nama</th>
+                                <th rowSpan="6" style={{...cell, width: '65px'}}>NIP</th>
+                                <th rowSpan="6" style={{...cell, width: '18px'}}>GOL</th>
                                 <th colSpan="16" style={cell}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
-                                <th colSpan="2" rowSpan="2" style={{...cell, verticalAlign: 'middle'}}>JUMLAH JAM</th>
-                                <th rowSpan="3" style={{...cell, width: '22px', verticalAlign: 'middle'}}>JML<br/>MAKAN<br/>LEMBUR</th>
-                                <th colSpan="2" rowSpan="2" style={{...cell, verticalAlign: 'middle'}}>JUMLAH UANG</th>
-                                <th rowSpan="3" style={{...cell, width: '42px', verticalAlign: 'middle'}}>JML<br/>DARI<br/>KOLOM</th>
-                                <th rowSpan="3" style={{...cell, width: '35px', verticalAlign: 'middle'}}>POT.<br/>PPH</th>
-                                <th rowSpan="3" style={{...cell, width: '42px', verticalAlign: 'middle'}}>JML<br/>BERSIH</th>
-                                <th rowSpan="5" style={{...cell, width: '45px', verticalAlign: 'middle'}}>TTD/<br/>NO REK</th>
+                                <th colSpan="2" style={cell}>JUMLAH JAM</th>
+                                <th rowSpan="4" style={{...cell, width: '22px'}}>JML<br/>MAKAN<br/>LEMBUR</th>
+                                <th colSpan="2" style={cell}>JUMLAH UANG</th>
+                                <th rowSpan="4" style={{...cell, width: '42px'}}>JML<br/>DARI<br/>KOLOM</th>
+                                <th rowSpan="4" style={{...cell, width: '35px'}}>POT.<br/>PPH</th>
+                                <th rowSpan="4" style={{...cell, width: '42px'}}>JML<br/>BERSIH</th>
+                                <th rowSpan="6" style={{...cell, width: '45px'}}>TTD/<br/>NO REK</th>
                             </tr>
 
-                            {/* Row 2: Days 1-15 + 1 empty cell = 16 cells */}
+                            {/* Row 2: Days 1-15 + empty cell */}
                             <tr>
                                 {days1to15.map(day => (
                                     <th key={day} style={{...dayCell, ...(isHoliday(day) ? holidayBg : {})}}>
                                         {day}{isHoliday(day) ? '-' : '+'}
                                     </th>
                                 ))}
-                                {/* 1 empty cell to make 16 columns total */}
                                 <th style={dayCell}></th>
+                                {/* JUMLAH JAM sub-headers */}
+                                <th rowSpan="3" style={{...cell, width: '20px'}}>HARI<br/>KERJA</th>
+                                <th rowSpan="3" style={{...cell, width: '20px'}}>HARI<br/>LIBUR</th>
+                                {/* JUMLAH UANG sub-headers */}
+                                <th rowSpan="3" style={{...cell, width: '40px'}}>LEMBUR</th>
+                                <th rowSpan="3" style={{...cell, width: '35px'}}>MAKAN</th>
                             </tr>
 
-                            {/* Row 3: Days 16-31 = 16 cells */}
+                            {/* Row 3: Days 16-31 */}
                             <tr>
                                 {days16to31.map(day => {
                                     const isValidDay = day <= daysInMonth;
@@ -148,17 +151,18 @@ const DafnomLembur = ({ month, year }) => {
                                         </th>
                                     );
                                 })}
-                                <th style={{...cell, fontSize: '5px'}}>HARI<br/>KERJA</th>
-                                <th style={{...cell, fontSize: '5px'}}>HARI<br/>LIBUR</th>
-                                <th style={{...cell, fontSize: '5px'}}>LEMBUR</th>
-                                <th style={{...cell, fontSize: '5px'}}>MAKAN</th>
                             </tr>
 
-                            {/* Row 4: Note + Column Numbers */}
+                            {/* Row 4: Note */}
                             <tr>
                                 <td colSpan="16" style={{...cell, fontStyle: 'italic', fontSize: '5px'}}>
                                     5 (tanda '-' = Libur ; '+' = Kerja)
                                 </td>
+                            </tr>
+
+                            {/* Row 5: Column Numbers 6-13 */}
+                            <tr style={{ fontSize: '5px' }}>
+                                <td colSpan="16" style={cell}></td>
                                 <td style={cell}><b>6</b></td>
                                 <td style={cell}><b>7</b></td>
                                 <td style={cell}><b>8</b></td>
@@ -169,7 +173,7 @@ const DafnomLembur = ({ month, year }) => {
                                 <td style={cell}><b>13</b></td>
                             </tr>
 
-                            {/* Row 5: Column IDs 1-4, 14 */}
+                            {/* Row 6: Column IDs 1-4, 14 */}
                             <tr style={{ fontSize: '5px' }}>
                                 <td style={cell}><b>1</b></td>
                                 <td style={cell}><b>2</b></td>
@@ -206,7 +210,6 @@ const DafnomLembur = ({ month, year }) => {
                                                     </td>
                                                 );
                                             })}
-                                            {/* 1 empty cell */}
                                             <td style={dayCell}></td>
                                             
                                             <td rowSpan="2" style={cell}>{Math.round(emp.jam_hari_kerja || 0)}</td>
