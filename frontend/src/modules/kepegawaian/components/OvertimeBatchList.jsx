@@ -261,6 +261,23 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
                                 </div>
                             </div>
 
+                            {/* Rejection Warning */}
+                            {selectedBatch.has_rejections && (
+                                <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg flex items-center gap-2">
+                                    <XCircle className="w-5 h-5 text-orange-600" />
+                                    <div>
+                                        <span className="text-sm text-orange-700 font-medium">
+                                            SPL ini memiliki {selectedBatch.rejected_count} record yang ditolak
+                                        </span>
+                                        <span className="text-xs text-orange-600 block">
+                                            Record yang ditolak ditandai dengan warna merah
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                                </div>
+                            </div>
+
                             <div>
                                 <span className="text-xs text-slate-500">Deskripsi Kegiatan</span>
                                 <div className="p-3 bg-slate-50 rounded-lg mt-1 text-sm">{selectedBatch.description}</div>
