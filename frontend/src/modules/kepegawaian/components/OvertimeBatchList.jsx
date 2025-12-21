@@ -355,32 +355,38 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
                                                                             <th className="text-right p-2 font-medium">Durasi</th>
                                                                             <th className="text-right p-2 font-medium">Bruto</th>
                                                                             <th className="text-right p-2 font-medium">Neto</th>
+                                                                            <th className="text-center p-2 font-medium">Status</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody className="divide-y">
-                                                                        {dayData.records.map((rec, idx) => (
-                                                                            <tr key={rec.id || idx} className="bg-white hover:bg-slate-50">
-                                                                                <td className="p-2">{idx + 1}</td>
-                                                                                <td className="p-2 font-medium">{rec.nama_lengkap}</td>
-                                                                                <td className="p-2">{rec.nip || '-'}</td>
-                                                                                <td className="p-2 text-center">
-                                                                                    <Badge variant="outline" className={`text-[10px] ${rec.employee_type === 'ASN' ? 'text-blue-700' : 'text-orange-700'}`}>
-                                                                                        {rec.employee_type}
-                                                                                    </Badge>
-                                                                                </td>
-                                                                                <td className="p-2 text-center">{rec.start_time} - {rec.end_time}</td>
-                                                                                <td className="p-2 text-right">{rec.duration_hours} jam</td>
-                                                                                <td className="p-2 text-right">{formatCurrency(rec.gross_pay)}</td>
-                                                                                <td className="p-2 text-right font-medium text-green-700">{formatCurrency(rec.net_pay)}</td>
-                                                                            </tr>
-                                                                        ))}
+                                                                        {dayData.records.map((rec, idx) => {
+                                                                            const isRejected = rec.status === 'Rejected';
+                                                                            return (
+                                                                                <tr key={rec.id || idx} className={`${isRejected ? 'bg-red-50 opacity-60' : 'bg-white'} hover:bg-slate-50`}>
+                                                                                    <td className="p-2">{idx + 1}</td>
+                                                                                    <td className={`p-2 font-medium ${isRejected ? 'line-through text-red-700' : ''}`}>{rec.nama_lengkap}</td>
+                                                                                    <td className="p-2">{rec.nip || '-'}</td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        <Badge variant="outline" className={`text-[10px] ${rec.employee_type === 'ASN' ? 'text-blue-700' : 'text-orange-700'}`}>
+                                                                                            {rec.employee_type}
+                                                                                        </Badge>
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">{rec.start_time} - {rec.end_time}</td>
+                                                                                    <td className="p-2 text-right">{rec.duration_hours} jam</td>
+                                                                                    <td className={`p-2 text-right ${isRejected ? 'line-through' : ''}`}>{formatCurrency(rec.gross_pay)}</td>
+                                                                                    <td className={`p-2 text-right font-medium ${isRejected ? 'line-through text-red-700' : 'text-green-700'}`}>{formatCurrency(rec.net_pay)}</td>
+                                                                                    <td className="p-2 text-center">{getRecordStatusBadge(rec.status)}</td>
+                                                                                </tr>
+                                                                            );
+                                                                        })}
                                                                     </tbody>
                                                                     <tfoot className="bg-green-50 font-semibold">
                                                                         <tr>
-                                                                            <td colSpan={5} className="p-2 text-right">Sub Total:</td>
-                                                                            <td className="p-2 text-right">{dayData.total_hours.toFixed(1)} jam</td>
-                                                                            <td className="p-2 text-right">{formatCurrency(dayData.total_gross)}</td>
-                                                                            <td className="p-2 text-right">{formatCurrency(dayData.total_net)}</td>
+                                                                            <td colSpan={5} className="p-2 text-right">Sub Total (Approved):</td>
+                                                                            <td className="p-2 text-right">{dayData.records.filter(r => r.status !== 'Rejected').reduce((s,r) => s + (r.duration_hours || 0), 0).toFixed(1)} jam</td>
+                                                                            <td className="p-2 text-right">{formatCurrency(dayData.records.filter(r => r.status !== 'Rejected').reduce((s,r) => s + (r.gross_pay || 0), 0))}</td>
+                                                                            <td className="p-2 text-right">{formatCurrency(dayData.records.filter(r => r.status !== 'Rejected').reduce((s,r) => s + (r.net_pay || 0), 0))}</td>
+                                                                            <td></td>
                                                                         </tr>
                                                                     </tfoot>
                                                                 </table>
