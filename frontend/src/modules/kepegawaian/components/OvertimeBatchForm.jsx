@@ -41,7 +41,7 @@ const OvertimeBatchForm = ({ onSuccess }) => {
         }
     };
 
-    const filteredPegawai = pegawaiList.filter(p => {
+    const filteredPegawai = (pegawaiList || []).filter(p => {
         const search = searchTerm.toLowerCase();
         return (
             p.nama_lengkap?.toLowerCase().includes(search) ||
