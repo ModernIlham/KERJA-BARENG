@@ -1564,3 +1564,146 @@ async def upload_kepegawaian_file(
         return {"url": f"/api/uploads/{filename}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+# --- DATA RESET ENDPOINTS ---
+
+class ResetRequest(BaseModel):
+    confirm: str  # Must be "CONFIRM" to proceed
+
+@router.delete("/reset/overtime")
+async def reset_overtime_data(
+    request: ResetRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Reset all overtime data (overtime_requests, overtime_batches, attendance)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if request.confirm != "CONFIRM":
+        raise HTTPException(status_code=400, detail="Invalid confirmation")
+    
+    try:
+        # Delete overtime requests
+        ot_result = await db.overtime_requests.delete_many({})
+        
+        # Delete overtime batches
+        batch_result = await db.overtime_batches.delete_many({})
+        
+        # Delete attendance records
+        att_result = await db.attendance.delete_many({})
+        
+        # Log activity
+        await log_activity(
+            db=db,
+            user_id=current_user.id,
+            user_email=current_user.email,
+            action="RESET_OVERTIME_DATA",
+            entity_type="system",
+            entity_id="overtime",
+            description=f"Reset all overtime data: {ot_result.deleted_count} overtime requests, {batch_result.deleted_count} batches, {att_result.deleted_count} attendance records deleted"
+        )
+        
+        return {
+            "success": True,
+            "message": "Data lembur berhasil direset",
+            "deleted": {
+                "overtime_requests": ot_result.deleted_count,
+                "overtime_batches": batch_result.deleted_count,
+                "attendance": att_result.deleted_count
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/reset/employees")
+async def reset_employee_data(
+    request: ResetRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Reset all employee data (pegawai collection)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if request.confirm != "CONFIRM":
+        raise HTTPException(status_code=400, detail="Invalid confirmation")
+    
+    try:
+        # Delete all employees
+        result = await db.pegawai.delete_many({})
+        
+        # Log activity
+        await log_activity(
+            db=db,
+            user_id=current_user.id,
+            user_email=current_user.email,
+            action="RESET_EMPLOYEE_DATA",
+            entity_type="system",
+            entity_id="employees",
+            description=f"Reset all employee data: {result.deleted_count} records deleted"
+        )
+        
+        return {
+            "success": True,
+            "message": "Data pegawai berhasil direset",
+            "deleted": {
+                "pegawai": result.deleted_count
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/reset/all")
+async def reset_all_kepegawaian_data(
+    request: ResetRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Reset ALL kepegawaian data (employees, overtime, attendance, holidays)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if request.confirm != "CONFIRM":
+        raise HTTPException(status_code=400, detail="Invalid confirmation")
+    
+    try:
+        deleted_counts = {}
+        
+        # Delete employees
+        result = await db.pegawai.delete_many({})
+        deleted_counts["pegawai"] = result.deleted_count
+        
+        # Delete overtime requests
+        result = await db.overtime_requests.delete_many({})
+        deleted_counts["overtime_requests"] = result.deleted_count
+        
+        # Delete overtime batches
+        result = await db.overtime_batches.delete_many({})
+        deleted_counts["overtime_batches"] = result.deleted_count
+        
+        # Delete attendance
+        result = await db.attendance.delete_many({})
+        deleted_counts["attendance"] = result.deleted_count
+        
+        # Delete holidays
+        result = await db.holidays.delete_many({})
+        deleted_counts["holidays"] = result.deleted_count
+        
+        # Log activity
+        await log_activity(
+            db=db,
+            user_id=current_user.id,
+            user_email=current_user.email,
+            action="RESET_ALL_KEPEGAWAIAN_DATA",
+            entity_type="system",
+            entity_id="kepegawaian",
+            description=f"Reset all kepegawaian data: {sum(deleted_counts.values())} total records deleted"
+        )
+        
+        return {
+            "success": True,
+            "message": "Semua data kepegawaian berhasil direset",
+            "deleted": deleted_counts
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
