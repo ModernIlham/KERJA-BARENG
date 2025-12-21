@@ -1391,7 +1391,7 @@ async def get_dafnom_data(month: str = None): # YYYY-MM
                 "golongan": req.get('grade', '-'),
                 "employee_type": req.get('employee_type', 'NON_ASN'),
                 "bank_account": peg_info.get('no_rekening', ''),
-                "bank_name": peg_info.get('bank', 'Mandiri'),
+                "bank_name": peg_info.get('nama_bank', ''),
                 "daily_hours": {str(d): {"hours": 0, "is_holiday": False} for d in range(1, days_in_month + 1)},
                 "jam_hari_kerja": 0,
                 "jam_hari_libur": 0,
