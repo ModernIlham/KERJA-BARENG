@@ -69,15 +69,16 @@ const DafnomLembur = ({ month, year }) => {
 
     const isHoliday = (day) => holidays.includes(day);
     
-    // All days 1-31
-    const allDays = Array.from({ length: 31 }, (_, i) => i + 1);
+    // Days split: 1-16 (first row), 17-31+1empty (second row) = 16 columns each
+    const days1to16 = Array.from({ length: 16 }, (_, i) => i + 1);
+    const days17to31 = Array.from({ length: 15 }, (_, i) => i + 17); // 17-31 = 15 days + 1 empty = 16
 
     // Cell styles
     const thStyle = { 
         border: '1px solid #000', 
         textAlign: 'center', 
         verticalAlign: 'middle', 
-        padding: '3px 2px', 
+        padding: '2px 1px', 
         fontSize: '7px',
         backgroundColor: '#fff',
         fontWeight: 'bold',
@@ -127,40 +128,40 @@ const DafnomLembur = ({ month, year }) => {
                     <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}>
                         <colgroup>
                             <col style={{ width: '22px' }} /> {/* NO URT */}
-                            <col style={{ width: '65px' }} /> {/* Nama */}
-                            <col style={{ width: '75px' }} /> {/* NIP */}
+                            <col style={{ width: '70px' }} /> {/* Nama */}
+                            <col style={{ width: '80px' }} /> {/* NIP */}
                             <col style={{ width: '22px' }} /> {/* GOL */}
-                            {allDays.map((_, i) => <col key={i} style={{ width: '18px' }} />)} {/* 31 days */}
-                            <col style={{ width: '28px' }} /> {/* Hari Kerja */}
-                            <col style={{ width: '28px' }} /> {/* Hari Libur */}
-                            <col style={{ width: '28px' }} /> {/* Jml Makan */}
+                            {Array(16).fill(null).map((_, i) => <col key={i} style={{ width: '18px' }} />)} {/* 16 date columns */}
+                            <col style={{ width: '26px' }} /> {/* Hari Kerja */}
+                            <col style={{ width: '26px' }} /> {/* Hari Libur */}
+                            <col style={{ width: '26px' }} /> {/* Jml Makan */}
                             <col style={{ width: '55px' }} /> {/* Uang Lembur */}
                             <col style={{ width: '50px' }} /> {/* Uang Makan */}
-                            <col style={{ width: '60px' }} /> {/* Jumlah Kolom */}
+                            <col style={{ width: '58px' }} /> {/* Jumlah Kolom */}
                             <col style={{ width: '45px' }} /> {/* Pot PPH */}
-                            <col style={{ width: '60px' }} /> {/* Jml Bersih */}
+                            <col style={{ width: '58px' }} /> {/* Jml Bersih */}
                             <col style={{ width: '55px' }} /> {/* TTD/NoRek */}
                         </colgroup>
                         <thead>
                             {/* Row 1: Main Headers */}
                             <tr>
-                                <th rowSpan={2} style={thStyle}>NO.<br/>URT</th>
-                                <th rowSpan={2} style={thStyle}>Nama</th>
-                                <th rowSpan={2} style={thStyle}>NIP</th>
-                                <th rowSpan={2} style={thStyle}>GOL</th>
-                                <th colSpan={31} style={thStyle}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
+                                <th rowSpan={3} style={thStyle}>NO.<br/>URT</th>
+                                <th rowSpan={3} style={thStyle}>Nama</th>
+                                <th rowSpan={3} style={thStyle}>NIP</th>
+                                <th rowSpan={3} style={thStyle}>GOL</th>
+                                <th colSpan={16} style={thStyle}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
                                 <th colSpan={2} style={thStyle}>JUMLAH JAM</th>
                                 <th rowSpan={2} style={thStyle}>JML<br/>MAKAN<br/>LEMBUR</th>
                                 <th colSpan={2} style={thStyle}>JUMLAH UANG</th>
                                 <th rowSpan={2} style={thStyle}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
                                 <th rowSpan={2} style={thStyle}>POT.<br/>PPH</th>
                                 <th rowSpan={2} style={thStyle}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
-                                <th rowSpan={2} style={thStyle}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
+                                <th rowSpan={3} style={thStyle}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
                             </tr>
 
-                            {/* Row 2: Sub-headers (Days 1-31 + sub columns) */}
+                            {/* Row 2: Days 1-16 + Sub-headers */}
                             <tr>
-                                {allDays.map(day => {
+                                {days1to16.map(day => {
                                     const valid = day <= daysInMonth;
                                     const holiday = valid && isHoliday(day);
                                     return (
@@ -175,13 +176,19 @@ const DafnomLembur = ({ month, year }) => {
                                 <th style={thStyle}>MAKAN</th>
                             </tr>
 
-                            {/* Row 3: Column Numbers */}
+                            {/* Row 3: Days 17-31 + 1 empty cell + Column Numbers */}
                             <tr>
-                                <th style={thStyle}>(1)</th>
-                                <th style={thStyle}>(2)</th>
-                                <th style={thStyle}>(3)</th>
-                                <th style={thStyle}>(4)</th>
-                                <th colSpan={31} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(5) tanda "-" = Libur ; tanda "+" = Kerja</th>
+                                {days17to31.map(day => {
+                                    const valid = day <= daysInMonth;
+                                    const holiday = valid && isHoliday(day);
+                                    return (
+                                        <th key={day} style={{...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                            {valid ? `${day}${holiday ? '-' : '+'}` : ''}
+                                        </th>
+                                    );
+                                })}
+                                {/* 1 empty cell to make 16 columns (15 days + 1 empty) */}
+                                <th style={dayColStyle}></th>
                                 <th style={thStyle}>(6)</th>
                                 <th style={thStyle}>(7)</th>
                                 <th style={thStyle}>(8)</th>
@@ -190,6 +197,16 @@ const DafnomLembur = ({ month, year }) => {
                                 <th style={thStyle}>(11)=(9+10)</th>
                                 <th style={thStyle}>(12)</th>
                                 <th style={thStyle}>(13)</th>
+                            </tr>
+
+                            {/* Row 4: Column Identifiers */}
+                            <tr>
+                                <th style={thStyle}>(1)</th>
+                                <th style={thStyle}>(2)</th>
+                                <th style={thStyle}>(3)</th>
+                                <th style={thStyle}>(4)</th>
+                                <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(5) tanda "-" = Libur ; tanda "+" = Kerja</th>
+                                <th colSpan={8} style={thStyle}></th>
                                 <th style={thStyle}>(14)</th>
                             </tr>
                         </thead>
@@ -197,46 +214,65 @@ const DafnomLembur = ({ month, year }) => {
                         <tbody>
                             {employees.length === 0 ? (
                                 <tr>
-                                    <td colSpan={45} style={{...tdStyle, padding: '15px', color: '#666'}}>
+                                    <td colSpan={29} style={{...tdStyle, padding: '15px', color: '#666'}}>
                                         Tidak ada data lembur yang disetujui untuk bulan ini
                                     </td>
                                 </tr>
                             ) : (
                                 employees.map((emp, idx) => (
-                                    <tr key={emp.pegawai_id || idx}>
-                                        <td style={tdStyle}>{idx + 1}</td>
-                                        <td style={{...tdStyle, textAlign: 'left', fontSize: '6px'}}>{emp.nama}</td>
-                                        <td style={{...tdStyle, textAlign: 'left', fontSize: '6px'}}>{emp.nip || '-'}</td>
-                                        <td style={tdStyle}>{emp.golongan?.split('/')[0] || '-'}</td>
+                                    <React.Fragment key={emp.pegawai_id || idx}>
+                                        {/* Data Row 1: Days 1-16 */}
+                                        <tr>
+                                            <td rowSpan={2} style={tdStyle}>{idx + 1}</td>
+                                            <td rowSpan={2} style={{...tdStyle, textAlign: 'left', fontSize: '6px'}}>{emp.nama}</td>
+                                            <td rowSpan={2} style={{...tdStyle, textAlign: 'left', fontSize: '6px'}}>{emp.nip || '-'}</td>
+                                            <td rowSpan={2} style={tdStyle}>{emp.golongan?.split('/')[0] || '-'}</td>
+                                            
+                                            {days1to16.map(day => {
+                                                const valid = day <= daysInMonth;
+                                                const hours = valid ? (emp.daily_hours?.[String(day)]?.hours || 0) : 0;
+                                                const holiday = valid && isHoliday(day);
+                                                return (
+                                                    <td key={day} style={{...tdStyle, ...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                                        {valid ? (hours > 0 ? Math.round(hours) : 0) : ''}
+                                                    </td>
+                                                );
+                                            })}
+                                            
+                                            <td rowSpan={2} style={tdStyle}>{Math.round(emp.jam_hari_kerja || 0)}</td>
+                                            <td rowSpan={2} style={tdStyle}>{Math.round(emp.jam_hari_libur || 0)}</td>
+                                            <td rowSpan={2} style={tdStyle}>{emp.jumlah_makan || 0}</td>
+                                            <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.uang_lembur)}</td>
+                                            <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.uang_makan)}</td>
+                                            <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_kotor)}</td>
+                                            <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.potongan_pph)}</td>
+                                            <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_bersih)}</td>
+                                            <td rowSpan={2} style={{...tdStyle, fontSize: '5px'}}>{emp.bank_account || '-'}<br/>{emp.bank_name || 'Mandiri'}</td>
+                                        </tr>
                                         
-                                        {allDays.map(day => {
-                                            const valid = day <= daysInMonth;
-                                            const hours = valid ? (emp.daily_hours?.[String(day)]?.hours || 0) : 0;
-                                            const holiday = valid && isHoliday(day);
-                                            return (
-                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...(holiday ? holidayBg : {})}}>
-                                                    {valid ? (hours > 0 ? Math.round(hours) : 0) : ''}
-                                                </td>
-                                            );
-                                        })}
-                                        
-                                        <td style={tdStyle}>{Math.round(emp.jam_hari_kerja || 0)}</td>
-                                        <td style={tdStyle}>{Math.round(emp.jam_hari_libur || 0)}</td>
-                                        <td style={tdStyle}>{emp.jumlah_makan || 0}</td>
-                                        <td style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.uang_lembur)}</td>
-                                        <td style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.uang_makan)}</td>
-                                        <td style={{...tdStyle, textAlign: 'right', fontSize: '6px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_kotor)}</td>
-                                        <td style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.potongan_pph)}</td>
-                                        <td style={{...tdStyle, textAlign: 'right', fontSize: '6px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_bersih)}</td>
-                                        <td style={{...tdStyle, fontSize: '5px'}}>{emp.bank_account || '-'}<br/>{emp.bank_name || 'Mandiri'}</td>
-                                    </tr>
+                                        {/* Data Row 2: Days 17-31 + 1 empty */}
+                                        <tr>
+                                            {days17to31.map(day => {
+                                                const valid = day <= daysInMonth;
+                                                const hours = valid ? (emp.daily_hours?.[String(day)]?.hours || 0) : 0;
+                                                const holiday = valid && isHoliday(day);
+                                                return (
+                                                    <td key={day} style={{...tdStyle, ...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                                        {valid ? (hours > 0 ? Math.round(hours) : 0) : ''}
+                                                    </td>
+                                                );
+                                            })}
+                                            {/* 1 empty cell */}
+                                            <td style={{...tdStyle, ...dayColStyle}}></td>
+                                        </tr>
+                                    </React.Fragment>
                                 ))
                             )}
                             
                             {/* Total Row */}
                             <tr>
                                 <td colSpan={4} style={totalRowStyle}>JUMLAH TOTAL</td>
-                                <td colSpan={31} style={totalRowStyle}></td>
+                                <td colSpan={16} style={totalRowStyle}></td>
                                 <td style={totalRowStyle}>{Math.round(totals.jam_kerja)}</td>
                                 <td style={totalRowStyle}>{Math.round(totals.jam_libur)}</td>
                                 <td style={totalRowStyle}>{totals.jumlah_makan}</td>
