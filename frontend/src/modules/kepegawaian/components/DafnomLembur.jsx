@@ -17,7 +17,7 @@ const DafnomLembur = ({ month, year }) => {
     const [loading, setLoading] = useState(true);
     
     const handlePrint = useReactToPrint({
-        contentRef: componentRef,
+        content: () => componentRef.current,
         documentTitle: `DAFNOM_LEMBUR_${month}_${year}`,
         pageStyle: `
             @page { 
