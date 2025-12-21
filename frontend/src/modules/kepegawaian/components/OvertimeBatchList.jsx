@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
-import { RefreshCw, Eye, CheckCircle, XCircle, Users, Clock, Calendar, FileText, DollarSign } from 'lucide-react';
+import { RefreshCw, Eye, CheckCircle, XCircle, Users, Clock, Calendar, FileText, DollarSign, ChevronDown, ChevronRight, Sun, Moon, CalendarRange } from 'lucide-react';
 import api from '../../../api/axios';
 import { formatCurrency } from '../../../lib/utils';
 
@@ -16,10 +17,10 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
     const [detailOpen, setDetailOpen] = useState(false);
     const [statusFilter, setStatusFilter] = useState('all');
     const [userRole, setUserRole] = useState('user');
+    const [expandedDates, setExpandedDates] = useState({});
 
     useEffect(() => {
         fetchBatches();
-        // Get user role from localStorage or context
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         setUserRole(user.role || 'user');
     }, [refreshTrigger]);
@@ -49,6 +50,10 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
             const res = await api.get(`/api/kepegawaian/overtime/batch/${batch.id}`);
             setSelectedBatch(res.data);
             setDetailOpen(true);
+            // Expand first date by default
+            if (res.data.records_by_date && Object.keys(res.data.records_by_date).length > 0) {
+                setExpandedDates({ [Object.keys(res.data.records_by_date)[0]]: true });
+            }
         } catch (e) {
             toast.error("Gagal memuat detail");
         }
@@ -59,7 +64,11 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
             await api.patch(`/api/kepegawaian/overtime/batch/${batchId}/${action}`);
             toast.success(action === 'approve' ? 'Lembur disetujui' : 'Lembur ditolak');
             fetchBatches();
-            setDetailOpen(false);
+            // Refresh detail
+            if (selectedBatch) {
+                const res = await api.get(`/api/kepegawaian/overtime/batch/${batchId}`);
+                setSelectedBatch(res.data);
+            }
         } catch (e) {
             toast.error(e.response?.data?.detail || "Gagal memproses");
         }
@@ -79,6 +88,48 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
         return new Date(dateStr).toLocaleDateString('id-ID', {
             weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
         });
+    };
+
+    const formatDateShort = (dateStr) => {
+        return new Date(dateStr).toLocaleDateString('id-ID', {
+            weekday: 'short', day: 'numeric', month: 'short'
+        });
+    };
+
+    const toggleDate = (date) => {
+        setExpandedDates(prev => ({ ...prev, [date]: !prev[date] }));
+    };
+
+    // Group records by date for display
+    const groupRecordsByDate = (records) => {
+        if (!records || records.length === 0) return {};
+        
+        const grouped = {};
+        records.forEach(rec => {
+            const date = rec.date;
+            if (!grouped[date]) {
+                grouped[date] = {
+                    date,
+                    is_holiday: rec.is_holiday,
+                    records: [],
+                    total_hours: 0,
+                    total_gross: 0,
+                    total_net: 0
+                };
+            }
+            grouped[date].records.push(rec);
+            grouped[date].total_hours += rec.duration_hours || 0;
+            grouped[date].total_gross += rec.gross_pay || 0;
+            grouped[date].total_net += rec.net_pay || 0;
+        });
+        
+        // Sort by date
+        return Object.keys(grouped)
+            .sort()
+            .reduce((obj, key) => {
+                obj[key] = grouped[key];
+                return obj;
+            }, {});
     };
 
     return (
@@ -125,25 +176,23 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
                                             <div className="flex items-center gap-3 mb-2">
                                                 <span className="font-bold text-blue-700">{batch.nomor_spl}</span>
                                                 {getStatusBadge(batch.status)}
-                                                {batch.is_holiday && (
-                                                    <Badge variant="outline" className="bg-red-50 text-red-700 text-[10px]">
-                                                        Hari Libur
-                                                    </Badge>
-                                                )}
                                             </div>
                                             <p className="text-sm text-slate-600 mb-2 line-clamp-2">{batch.description}</p>
                                             <div className="flex flex-wrap gap-4 text-xs text-slate-500">
                                                 <span className="flex items-center gap-1">
-                                                    <Calendar className="w-3 h-3" />
-                                                    {formatDate(batch.date)}
+                                                    <CalendarRange className="w-3 h-3" />
+                                                    {batch.start_date === batch.end_date 
+                                                        ? formatDate(batch.start_date || batch.date)
+                                                        : `${formatDateShort(batch.start_date)} - ${formatDateShort(batch.end_date)}`
+                                                    }
                                                 </span>
                                                 <span className="flex items-center gap-1">
-                                                    <Clock className="w-3 h-3" />
-                                                    {batch.start_time} - {batch.end_time} ({batch.duration_hours} jam)
+                                                    <Calendar className="w-3 h-3" />
+                                                    {batch.total_days || 1} hari
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <Users className="w-3 h-3" />
-                                                    {batch.participant_count} orang
+                                                    {batch.total_participants || batch.participant_count} peserta
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <DollarSign className="w-3 h-3" />
@@ -167,7 +216,7 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
 
             {/* Detail Dialog */}
             <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             Detail SPL: {selectedBatch?.nomor_spl}
@@ -178,77 +227,161 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
                     {selectedBatch && (
                         <div className="space-y-4">
                             {/* Info Section */}
-                            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-lg">
                                 <div>
-                                    <span className="text-xs text-slate-500">Tanggal Lembur</span>
-                                    <div className="font-medium">{formatDate(selectedBatch.date)}</div>
+                                    <span className="text-xs text-slate-500">Rentang Tanggal</span>
+                                    <div className="font-medium text-sm">
+                                        {selectedBatch.start_date === selectedBatch.end_date 
+                                            ? formatDate(selectedBatch.start_date || selectedBatch.date)
+                                            : `${formatDateShort(selectedBatch.start_date)} - ${formatDateShort(selectedBatch.end_date)}`
+                                        }
+                                    </div>
                                 </div>
                                 <div>
-                                    <span className="text-xs text-slate-500">Waktu</span>
-                                    <div className="font-medium">{selectedBatch.start_time} - {selectedBatch.end_time} ({selectedBatch.duration_hours} jam)</div>
+                                    <span className="text-xs text-slate-500">Total Hari</span>
+                                    <div className="font-medium">{selectedBatch.total_days || 1} hari</div>
+                                </div>
+                                <div>
+                                    <span className="text-xs text-slate-500">Total Peserta</span>
+                                    <div className="font-medium">{selectedBatch.total_participants || selectedBatch.participant_count} orang</div>
                                 </div>
                                 <div>
                                     <span className="text-xs text-slate-500">Pembuat SPL</span>
                                     <div className="font-medium">{selectedBatch.creator_name}</div>
                                 </div>
-                                <div>
-                                    <span className="text-xs text-slate-500">Jenis Hari</span>
-                                    <div className="font-medium">{selectedBatch.is_holiday ? 'Hari Libur' : 'Hari Kerja'}</div>
-                                </div>
                             </div>
 
                             <div>
                                 <span className="text-xs text-slate-500">Deskripsi Kegiatan</span>
-                                <div className="p-3 bg-slate-50 rounded-lg mt-1">{selectedBatch.description}</div>
+                                <div className="p-3 bg-slate-50 rounded-lg mt-1 text-sm">{selectedBatch.description}</div>
                             </div>
 
-                            {/* Participants Table */}
+                            {/* Records grouped by date */}
                             <div>
                                 <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                                    <Users className="w-4 h-4" />
-                                    Daftar Peserta ({selectedBatch.records?.length || 0} orang)
+                                    <Calendar className="w-4 h-4" />
+                                    Detail Per Tanggal
                                 </h4>
-                                <div className="border rounded-lg overflow-hidden">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-100">
-                                            <tr>
-                                                <th className="text-left p-2 font-medium">No</th>
-                                                <th className="text-left p-2 font-medium">Nama</th>
-                                                <th className="text-left p-2 font-medium">NIP</th>
-                                                <th className="text-left p-2 font-medium">Tipe</th>
-                                                <th className="text-right p-2 font-medium">Jam</th>
-                                                <th className="text-right p-2 font-medium">Bruto</th>
-                                                <th className="text-right p-2 font-medium">Pajak</th>
-                                                <th className="text-right p-2 font-medium">Neto</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y">
-                                            {selectedBatch.records?.map((rec, idx) => (
-                                                <tr key={rec.id || idx} className="hover:bg-slate-50">
-                                                    <td className="p-2">{idx + 1}</td>
-                                                    <td className="p-2">{rec.nama_lengkap}</td>
-                                                    <td className="p-2 text-xs">{rec.nip || '-'}</td>
-                                                    <td className="p-2">
-                                                        <Badge variant="outline" className={rec.employee_type === 'ASN' ? 'text-blue-700' : 'text-orange-700'}>
-                                                            {rec.employee_type}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="p-2 text-right">{rec.duration_hours}</td>
-                                                    <td className="p-2 text-right text-xs">{formatCurrency(rec.gross_pay)}</td>
-                                                    <td className="p-2 text-right text-xs">{formatCurrency(rec.tax_amount)}</td>
-                                                    <td className="p-2 text-right font-medium">{formatCurrency(rec.net_pay)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                        <tfoot className="bg-green-50 font-semibold">
-                                            <tr>
-                                                <td colSpan={5} className="p-2 text-right">TOTAL:</td>
-                                                <td className="p-2 text-right">{formatCurrency(selectedBatch.total_gross)}</td>
-                                                <td className="p-2 text-right">{formatCurrency(selectedBatch.total_tax)}</td>
-                                                <td className="p-2 text-right">{formatCurrency(selectedBatch.total_net)}</td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                                
+                                {(() => {
+                                    const grouped = groupRecordsByDate(selectedBatch.records);
+                                    const dates = Object.keys(grouped);
+                                    
+                                    if (dates.length === 0) {
+                                        return (
+                                            <div className="text-center py-4 text-slate-500 text-sm">
+                                                Tidak ada data peserta
+                                            </div>
+                                        );
+                                    }
+                                    
+                                    return (
+                                        <div className="border rounded-lg divide-y">
+                                            {dates.map(date => {
+                                                const dayData = grouped[date];
+                                                return (
+                                                    <Collapsible
+                                                        key={date}
+                                                        open={expandedDates[date]}
+                                                        onOpenChange={() => toggleDate(date)}
+                                                    >
+                                                        <CollapsibleTrigger className="w-full">
+                                                            <div className={`flex items-center justify-between p-3 hover:bg-slate-50 ${
+                                                                dayData.is_holiday ? 'bg-red-50' : ''
+                                                            }`}>
+                                                                <div className="flex items-center gap-3">
+                                                                    {expandedDates[date] ? 
+                                                                        <ChevronDown className="w-4 h-4" /> : 
+                                                                        <ChevronRight className="w-4 h-4" />
+                                                                    }
+                                                                    <span className="font-medium text-sm">
+                                                                        {formatDate(date)}
+                                                                    </span>
+                                                                    {dayData.is_holiday ? (
+                                                                        <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 text-xs">
+                                                                            <Moon className="w-3 h-3 mr-1" /> Libur (2x)
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200 text-xs">
+                                                                            <Sun className="w-3 h-3 mr-1" /> Kerja
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-center gap-4 text-xs text-slate-500">
+                                                                    <span>{dayData.records.length} orang</span>
+                                                                    <span>{dayData.total_hours.toFixed(1)} jam</span>
+                                                                    <span className="font-medium text-green-700">{formatCurrency(dayData.total_net)}</span>
+                                                                </div>
+                                                            </div>
+                                                        </CollapsibleTrigger>
+                                                        
+                                                        <CollapsibleContent>
+                                                            <div className="p-3 bg-slate-50 border-t">
+                                                                <table className="w-full text-xs">
+                                                                    <thead className="bg-white">
+                                                                        <tr>
+                                                                            <th className="text-left p-2 font-medium">No</th>
+                                                                            <th className="text-left p-2 font-medium">Nama</th>
+                                                                            <th className="text-left p-2 font-medium">NIP</th>
+                                                                            <th className="text-center p-2 font-medium">Tipe</th>
+                                                                            <th className="text-center p-2 font-medium">Jam Kerja</th>
+                                                                            <th className="text-right p-2 font-medium">Durasi</th>
+                                                                            <th className="text-right p-2 font-medium">Bruto</th>
+                                                                            <th className="text-right p-2 font-medium">Neto</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody className="divide-y">
+                                                                        {dayData.records.map((rec, idx) => (
+                                                                            <tr key={rec.id || idx} className="bg-white hover:bg-slate-50">
+                                                                                <td className="p-2">{idx + 1}</td>
+                                                                                <td className="p-2 font-medium">{rec.nama_lengkap}</td>
+                                                                                <td className="p-2">{rec.nip || '-'}</td>
+                                                                                <td className="p-2 text-center">
+                                                                                    <Badge variant="outline" className={`text-[10px] ${rec.employee_type === 'ASN' ? 'text-blue-700' : 'text-orange-700'}`}>
+                                                                                        {rec.employee_type}
+                                                                                    </Badge>
+                                                                                </td>
+                                                                                <td className="p-2 text-center">{rec.start_time} - {rec.end_time}</td>
+                                                                                <td className="p-2 text-right">{rec.duration_hours} jam</td>
+                                                                                <td className="p-2 text-right">{formatCurrency(rec.gross_pay)}</td>
+                                                                                <td className="p-2 text-right font-medium text-green-700">{formatCurrency(rec.net_pay)}</td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                    <tfoot className="bg-green-50 font-semibold">
+                                                                        <tr>
+                                                                            <td colSpan={5} className="p-2 text-right">Sub Total:</td>
+                                                                            <td className="p-2 text-right">{dayData.total_hours.toFixed(1)} jam</td>
+                                                                            <td className="p-2 text-right">{formatCurrency(dayData.total_gross)}</td>
+                                                                            <td className="p-2 text-right">{formatCurrency(dayData.total_net)}</td>
+                                                                        </tr>
+                                                                    </tfoot>
+                                                                </table>
+                                                            </div>
+                                                        </CollapsibleContent>
+                                                    </Collapsible>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Grand Total */}
+                            <div className="p-4 bg-green-100 rounded-lg">
+                                <div className="grid grid-cols-3 gap-4 text-center">
+                                    <div>
+                                        <div className="text-xs text-green-700">Total Bruto</div>
+                                        <div className="text-lg font-bold text-green-800">{formatCurrency(selectedBatch.total_gross)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-green-700">Total Pajak</div>
+                                        <div className="text-lg font-bold text-green-800">{formatCurrency(selectedBatch.total_tax)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-green-700">Total Neto</div>
+                                        <div className="text-xl font-bold text-green-800">{formatCurrency(selectedBatch.total_net)}</div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -261,15 +394,29 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
                                         onClick={() => handleApproveReject(selectedBatch.id, 'reject')}
                                     >
                                         <XCircle className="w-4 h-4 mr-2" />
-                                        Tolak
+                                        Tolak Semua
                                     </Button>
                                     <Button 
                                         className="bg-green-600 hover:bg-green-700 text-white"
                                         onClick={() => handleApproveReject(selectedBatch.id, 'approve')}
                                     >
                                         <CheckCircle className="w-4 h-4 mr-2" />
-                                        Setujui
+                                        Setujui Semua
                                     </Button>
+                                </div>
+                            )}
+
+                            {selectedBatch.status === 'Approved' && (
+                                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-center">
+                                    <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-1" />
+                                    <p className="text-sm text-green-700">SPL ini telah disetujui oleh {selectedBatch.approver_name}</p>
+                                </div>
+                            )}
+
+                            {selectedBatch.status === 'Rejected' && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+                                    <XCircle className="w-6 h-6 text-red-600 mx-auto mb-1" />
+                                    <p className="text-sm text-red-700">SPL ini ditolak oleh {selectedBatch.approver_name}</p>
                                 </div>
                             )}
                         </div>
