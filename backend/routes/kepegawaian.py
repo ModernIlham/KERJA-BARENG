@@ -826,12 +826,13 @@ async def recap_overtime_by_spl(month: str = None):
     
     result = []
     for batch in batches:
-        batch['id'] = str(batch['_id'])
+        batch_id = str(batch['_id'])
+        batch['id'] = batch_id
         del batch['_id']
         
-        # Get all overtime records for this batch
+        # Get all overtime records for this batch using batch_id field
         records = await db.overtime_requests.find(
-            {"batch_id": batch['id']},
+            {"batch_id": batch_id},
             {"_id": 0, "nama_lengkap": 1, "nip": 1, "employee_type": 1, "grade": 1,
              "duration_hours": 1, "gross_pay": 1, "tax_amount": 1, "net_pay": 1, "meal_allowance": 1}
         ).to_list(100)
