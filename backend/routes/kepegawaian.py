@@ -1163,7 +1163,7 @@ async def partial_approve_batch(
     }
 
 @router.get("/overtime/recap-by-spl")
-async def recap_overtime_by_spl(month: str = None):
+async def recap_overtime_by_spl(month: str = None, include_pending: bool = False):
     """Rekapitulasi lembur berdasarkan nomor SPL dengan detail jam per hari"""
     if not month:
         month = datetime.now(timezone.utc).strftime("%Y-%m")
@@ -1174,10 +1174,16 @@ async def recap_overtime_by_spl(month: str = None):
     # Get holidays for the month
     holidays_in_month = await get_holidays_for_month(year, mon)
     
-    # Get all batches for the month
-    batches = await db.overtime_batches.find(
-        {"date": {"$regex": f"^{month}"}}
-    ).sort("nomor_spl", 1).to_list(200)
+    # Get approved batches for the month (or all if include_pending)
+    batch_query = {"$or": [
+        {"date": {"$regex": f"^{month}"}},
+        {"start_date": {"$regex": f"^{month}"}},
+        {"end_date": {"$regex": f"^{month}"}}
+    ]}
+    if not include_pending:
+        batch_query["status"] = "Approved"
+    
+    batches = await db.overtime_batches.find(batch_query).sort("nomor_spl", 1).to_list(200)
     
     result = []
     for batch in batches:
@@ -1185,12 +1191,16 @@ async def recap_overtime_by_spl(month: str = None):
         batch['id'] = batch_id
         del batch['_id']
         
-        # Get all overtime records for this batch
+        # Get only approved overtime records for this batch (or all if include_pending)
+        record_query = {"batch_id": batch_id}
+        if not include_pending:
+            record_query["status"] = "Approved"
+        
         records = await db.overtime_requests.find(
-            {"batch_id": batch_id},
-            {"_id": 0, "nama_lengkap": 1, "nip": 1, "employee_type": 1, "grade": 1,
+            record_query,
+            {"_id": 0, "id": 1, "nama_lengkap": 1, "nip": 1, "employee_type": 1, "grade": 1,
              "duration_hours": 1, "gross_pay": 1, "tax_amount": 1, "net_pay": 1, 
-             "meal_allowance": 1, "is_holiday": 1, "date": 1}
+             "meal_allowance": 1, "is_holiday": 1, "date": 1, "status": 1}
         ).to_list(100)
         
         # Calculate jam_hari_kerja and jam_hari_libur per participant
@@ -1204,9 +1214,15 @@ async def recap_overtime_by_spl(month: str = None):
                 rec['jam_hari_kerja'] = hours
                 rec['jam_hari_libur'] = 0
         
+        # Recalculate totals based on approved records only
         batch['participants'] = records
         batch['participant_count'] = len(records)
-        result.append(batch)
+        batch['total_gross'] = sum(r.get('gross_pay', 0) for r in records)
+        batch['total_tax'] = sum(r.get('tax_amount', 0) for r in records)
+        batch['total_net'] = sum(r.get('net_pay', 0) for r in records)
+        
+        if len(records) > 0 or include_pending:
+            result.append(batch)
     
     return {
         "month": month,
