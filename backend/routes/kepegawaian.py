@@ -6,6 +6,7 @@ from bson import ObjectId
 import os
 import base64
 import uuid
+from pydantic import BaseModel
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from models_kepegawaian import (
