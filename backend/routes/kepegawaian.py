@@ -649,7 +649,7 @@ async def create_overtime_batch(req: OvertimeCreate, current_user: User = Depend
         jabatan = pegawai.get('jabatan', "")
         
         rate, meal, gross, tax, net = await calculate_overtime_pay_v2(
-            emp_type, grade, duration, req.is_holiday, sub_kategori, jabatan
+            emp_type, grade, duration, is_holiday, sub_kategori, jabatan
         )
         
         total_gross += gross
@@ -670,7 +670,7 @@ async def create_overtime_batch(req: OvertimeCreate, current_user: User = Depend
             grade=grade,
             sub_kategori=sub_kategori,
             date=req.date,
-            is_holiday=req.is_holiday,
+            is_holiday=is_holiday,
             start_time=req.start_time,
             end_time=req.end_time,
             duration_hours=round(duration, 2),
