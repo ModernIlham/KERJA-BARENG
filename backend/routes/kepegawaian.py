@@ -1029,16 +1029,32 @@ async def get_overtime_batch_detail(batch_id: str, current_user: User = Depends(
     batch['id'] = str(batch['_id'])
     del batch['_id']
     
-    # Get all overtime records for this batch
+    # Get all overtime records for this batch (including rejected for history)
     overtime_records = await db.overtime_requests.find(
         {"batch_id": batch_id}
-    ).to_list(100)
+    ).to_list(500)
+    
+    # Count by status
+    approved_count = 0
+    rejected_count = 0
+    pending_count = 0
     
     for rec in overtime_records:
         rec['id'] = str(rec['_id'])
         del rec['_id']
+        status = rec.get('status', 'Pending')
+        if status == 'Approved':
+            approved_count += 1
+        elif status == 'Rejected':
+            rejected_count += 1
+        else:
+            pending_count += 1
     
     batch['records'] = overtime_records
+    batch['approved_count'] = approved_count
+    batch['rejected_count'] = rejected_count
+    batch['pending_count'] = pending_count
+    batch['has_rejections'] = rejected_count > 0
     
     return batch
 
