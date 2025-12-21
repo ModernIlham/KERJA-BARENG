@@ -10,7 +10,7 @@ import RekapLemburTable from '../components/RekapLemburTable';
 import DafnomLembur from '../components/DafnomLembur';
 import DafnomSPL from '../components/DafnomSPL';
 import OvertimeSettings from '../components/OvertimeSettings';
-import OvertimeBatchForm from '../components/OvertimeBatchForm';
+import OvertimeRangeForm from '../components/OvertimeRangeForm';
 import OvertimeBatchList from '../components/OvertimeBatchList';
 import RekapSPL from '../components/RekapSPL';
 import { toast } from 'sonner';
