@@ -64,6 +64,18 @@ async def get_overtime_settings():
     return OvertimeSettings(**settings)
 
 async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False, sub_kategori=None, job_title=""):
+    """
+    Calculate overtime pay based on Depnaker/PMK rules:
+    
+    HARI KERJA (is_holiday=False):
+    - Jam pertama: 1.5x tarif dasar
+    - Jam ke-2 dst: 2x tarif dasar
+    
+    HARI LIBUR/WEEKEND (is_holiday=True):
+    - 7 jam pertama: 2x tarif dasar
+    - Jam ke-8: 3x tarif dasar
+    - Jam ke-9 dst: 4x tarif dasar
+    """
     settings = await get_overtime_settings()
     
     rate = 0
@@ -75,18 +87,27 @@ async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False,
         # Clean grade string (e.g., "III/a" -> "III")
         grade_key = grade.split('/')[0] if grade else "I"
         
-        # Get Rate from Settings
-        if grade_key == 'I': rate = settings.rate_asn_gol_1
-        elif grade_key == 'II': rate = settings.rate_asn_gol_2
-        elif grade_key == 'III': rate = settings.rate_asn_gol_3
-        elif grade_key == 'IV': rate = settings.rate_asn_gol_4
-        else: rate = settings.rate_asn_gol_1
+        # Get Rate from Settings per Golongan
+        if grade_key == 'I': 
+            rate = settings.rate_asn_gol_1
+            tax_rate = settings.tax_asn_gol_1
+        elif grade_key == 'II': 
+            rate = settings.rate_asn_gol_2
+            tax_rate = settings.tax_asn_gol_2
+        elif grade_key == 'III': 
+            rate = settings.rate_asn_gol_3
+            tax_rate = settings.tax_asn_gol_3
+        elif grade_key == 'IV': 
+            rate = settings.rate_asn_gol_4
+            tax_rate = settings.tax_asn_gol_4
+        else: 
+            rate = settings.rate_asn_gol_1
+            tax_rate = settings.tax_asn_gol_1
         
         # Gross Calculation ASN dengan aturan Depnaker
-        # Hari Libur: Tarif 2x untuk 7 jam pertama, 3x untuk jam ke-8, 4x untuk jam ke-9 dst
-        # Hari Kerja: Tarif 1.5x untuk jam pertama, 2x untuk jam berikutnya
         hours = duration
         if is_holiday:
+            # HARI LIBUR: 2x untuk 7 jam pertama, 3x jam ke-8, 4x jam ke-9 dst
             if hours <= 7:
                 gross = hours * 2 * rate
             elif hours <= 8:
@@ -94,25 +115,26 @@ async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False,
             else:
                 gross = (7 * 2 * rate) + (1 * 3 * rate) + ((hours - 8) * 4 * rate)
         else:
+            # HARI KERJA: 1.5x jam pertama, 2x jam berikutnya
             if hours <= 1:
                 gross = hours * 1.5 * rate
             else:
                 gross = (1 * 1.5 * rate) + ((hours - 1) * 2 * rate)
         
-        # Meal Allowance
-        if duration >= 2: # Min 2 hours
-            if grade_key in ['I', 'II']: meal = settings.meal_asn_gol_1_2
-            elif grade_key == 'III': meal = settings.meal_asn_gol_3
-            elif grade_key == 'IV': meal = settings.meal_asn_gol_4
-            
-        # Tax Rate
-        if grade_key == 'III': tax_rate = settings.tax_asn_gol_3
-        elif grade_key == 'IV': tax_rate = settings.tax_asn_gol_4
-        else: tax_rate = 0.0 # Gol I & II 0%
+        # Meal Allowance per Golongan (min 2 jam kerja)
+        if duration >= 2:
+            if grade_key in ['I', 'II']: 
+                meal = settings.meal_asn_gol_1_2
+            elif grade_key == 'III': 
+                meal = settings.meal_asn_gol_3
+            elif grade_key == 'IV': 
+                meal = settings.meal_asn_gol_4
+            else:
+                meal = settings.meal_asn_gol_1_2
         
     else:
         # NON-ASN
-        # Determine Rate based on sub_kategori or job_title
+        # Determine Rate & Tax based on sub_kategori or job_title
         category = "ppnpn" # Default
         
         # 1. Check Explicit Sub Category
@@ -138,46 +160,52 @@ async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False,
             elif "ahli" in jt_lower: category = "tenaga_ahli"
             elif "teknisi" in jt_lower: category = "teknisi"
             
-        # Get Rate
+        # Get Rate, Meal, and Tax per Category
         if category == "satpam": 
             rate = settings.rate_non_asn_satpam
+            tax_rate = settings.tax_non_asn_satpam
             if duration >= 2: meal = settings.meal_non_asn_satpam
         elif category == "supir": 
             rate = settings.rate_non_asn_supir
+            tax_rate = settings.tax_non_asn_supir
             if duration >= 2: meal = settings.meal_non_asn_supir
         elif category == "pramubakti": 
             rate = settings.rate_non_asn_pramubakti
+            tax_rate = settings.tax_non_asn_pramubakti
             if duration >= 2: meal = settings.meal_non_asn_pramubakti
         elif category == "konsultan": 
             rate = settings.rate_non_asn_konsultan
+            tax_rate = settings.tax_non_asn_konsultan
             if duration >= 2: meal = settings.meal_non_asn_konsultan
         elif category == "tenaga_ahli": 
             rate = settings.rate_non_asn_tenaga_ahli
+            tax_rate = settings.tax_non_asn_tenaga_ahli
             if duration >= 2: meal = settings.meal_non_asn_tenaga_ahli
         elif category == "teknisi": 
             rate = settings.rate_non_asn_teknisi
+            tax_rate = settings.tax_non_asn_teknisi
             if duration >= 2: meal = settings.meal_non_asn_teknisi
         else: 
             rate = settings.rate_non_asn_ppnpn
+            tax_rate = settings.tax_non_asn_ppnpn
             if duration >= 2: meal = settings.meal_non_asn_ppnpn
         
         # Calculation Logic (Depnaker/Omnibus)
         hours = duration
         if is_holiday:
+            # HARI LIBUR: 2x untuk 7 jam pertama, 3x jam ke-8, 4x jam ke-9 dst
             if hours <= 7:
                 gross = hours * 2 * rate
             elif hours <= 8:
-                gross = (7 * 2 * rate) + (1 * 3 * rate)
+                gross = (7 * 2 * rate) + ((hours - 7) * 3 * rate)
             else:
-                extra = hours - 8
-                gross = (7 * 2 * rate) + (1 * 3 * rate) + (extra * 4 * rate)
+                gross = (7 * 2 * rate) + (1 * 3 * rate) + ((hours - 8) * 4 * rate)
         else:
+            # HARI KERJA: 1.5x jam pertama, 2x jam berikutnya
             if hours <= 1:
                 gross = hours * 1.5 * rate
             else:
                 gross = (1 * 1.5 * rate) + ((hours - 1) * 2 * rate)
-        
-        tax_rate = settings.tax_non_asn
     
     total_gross = gross + meal
     tax = total_gross * tax_rate
