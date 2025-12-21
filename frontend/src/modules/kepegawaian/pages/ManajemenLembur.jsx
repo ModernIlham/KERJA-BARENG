@@ -330,10 +330,11 @@ const ManajemenLembur = () => {
         {/* --- REKAP & DAFNOM --- */}
         <TabsContent value="rekap" className="space-y-6">
           <Tabs defaultValue="spl" className="w-full">
-              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent gap-6">
+              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent gap-4 flex-wrap">
                   <TabsTrigger value="spl" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Rekap per SPL</TabsTrigger>
-                  <TabsTrigger value="list" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Rekapitulasi per Pegawai</TabsTrigger>
-                  <TabsTrigger value="dafnom" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Cetak Dafnom (PDF)</TabsTrigger>
+                  <TabsTrigger value="list" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Rekap per Pegawai</TabsTrigger>
+                  <TabsTrigger value="dafnom-pegawai" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Dafnom per Pegawai</TabsTrigger>
+                  <TabsTrigger value="dafnom-spl" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Dafnom per SPL</TabsTrigger>
               </TabsList>
               
               <TabsContent value="spl" className="pt-4">
@@ -344,8 +345,12 @@ const ManajemenLembur = () => {
                   <RekapLemburTable data={rekapData} />
               </TabsContent>
               
-              <TabsContent value="dafnom" className="pt-4">
+              <TabsContent value="dafnom-pegawai" className="pt-4">
                   <DafnomMonthSelector />
+              </TabsContent>
+              
+              <TabsContent value="dafnom-spl" className="pt-4">
+                  <DafnomSPLSelector />
               </TabsContent>
           </Tabs>
         </TabsContent>
