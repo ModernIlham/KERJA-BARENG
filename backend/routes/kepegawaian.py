@@ -608,6 +608,14 @@ async def create_overtime_batch(req: OvertimeCreate, current_user: User = Depend
     
     duration = (t2 - t1).seconds / 3600
     
+    # Auto-detect if the date is a holiday
+    try:
+        year, month, day = map(int, req.date.split('-'))
+        holidays_in_month = await get_holidays_for_month(year, month)
+        is_holiday = day in holidays_in_month
+    except:
+        is_holiday = req.is_holiday  # Fallback to form value
+    
     # Generate SPL number
     nomor_spl = await generate_spl_number()
     batch_id = str(uuid.uuid4())
