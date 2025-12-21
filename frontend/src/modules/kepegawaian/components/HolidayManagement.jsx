@@ -57,7 +57,7 @@ const HolidayManagement = () => {
             await api.post('/api/kepegawaian/holidays', formData);
             toast.success("Hari libur berhasil ditambahkan");
             setIsAddDialogOpen(false);
-            setFormData({ date: '', name: '', description: '', is_national: true });
+            setFormData({ date: '', name: '', description: '', is_national: true, is_cuti_nasional: false });
             fetchHolidays();
         } catch (e) {
             toast.error(e.response?.data?.detail || "Gagal menambahkan hari libur");
