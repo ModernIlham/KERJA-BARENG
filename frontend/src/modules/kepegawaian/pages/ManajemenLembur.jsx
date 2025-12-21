@@ -294,7 +294,7 @@ const ManajemenLembur = () => {
                                                 {req.is_holiday && <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">Libur</span>}
                                             </div>
                                             
-                                            <p className="text-sm mt-2 text-slate-600 italic bg-slate-50 p-2 rounded">"{req.description}"</p>
+                                            <p className="text-sm mt-2 text-slate-600 italic bg-slate-50 p-2 rounded">&ldquo;{req.description}&rdquo;</p>
                                             
                                             <div className="flex gap-2 pt-2">
                                                 {req.spl_file && (
