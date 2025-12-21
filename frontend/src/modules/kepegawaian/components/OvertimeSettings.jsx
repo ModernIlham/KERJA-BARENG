@@ -328,10 +328,10 @@ const OvertimeSettings = () => {
 
                             {/* FORMULA INFO */}
                             <div className="space-y-2 bg-blue-50 p-3 rounded-lg">
-                                <h4 className="text-xs font-bold text-blue-800">Formula Perhitungan Lembur (Depnaker/PMK):</h4>
+                                <h4 className="text-xs font-bold text-blue-800">Formula Perhitungan Lembur:</h4>
                                 <div className="text-[10px] text-blue-700 space-y-1">
-                                    <p><strong>Hari Kerja:</strong> Jam 1 = 1.5× tarif, Jam 2+ = 2× tarif</p>
-                                    <p><strong>Hari Libur:</strong> Jam 1-7 = 2× tarif, Jam 8 = 3× tarif, Jam 9+ = 4× tarif</p>
+                                    <p><strong>Hari Kerja:</strong> Jam × Tarif per jam</p>
+                                    <p><strong>Hari Libur:</strong> Jam × Tarif per jam × 2</p>
                                 </div>
                             </div>
 
