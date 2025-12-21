@@ -1637,11 +1637,11 @@ async def reset_employee_data(
         await log_activity(
             db=db,
             user_id=current_user.id,
-            user_email=current_user.email,
+            user_name=current_user.email,
             action="RESET_EMPLOYEE_DATA",
-            entity_type="system",
-            entity_id="employees",
-            description=f"Reset all employee data: {result.deleted_count} records deleted"
+            module="kepegawaian",
+            target_id="employees",
+            details=f"Reset all employee data: {result.deleted_count} records deleted"
         )
         
         return {
