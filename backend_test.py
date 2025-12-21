@@ -1617,7 +1617,7 @@ class APITester:
             
             # Determine expected rate
             expected_rate = 0
-            if emp_type == 'ASN' and emp_grade.startswith('III'):
+            if emp_type == 'ASN' and emp_grade and emp_grade.startswith('III'):
                 expected_rate = expected_rates["ASN_III"]
             elif emp_type == 'NON_ASN':
                 expected_rate = expected_rates["NON_ASN_PPNPN"]
