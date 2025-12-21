@@ -328,11 +328,16 @@ const ManajemenLembur = () => {
 
         {/* --- REKAP & DAFNOM --- */}
         <TabsContent value="rekap" className="space-y-6">
-          <Tabs defaultValue="list" className="w-full">
+          <Tabs defaultValue="spl" className="w-full">
               <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent gap-6">
-                  <TabsTrigger value="list" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Rekapitulasi List</TabsTrigger>
+                  <TabsTrigger value="spl" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Rekap per SPL</TabsTrigger>
+                  <TabsTrigger value="list" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Rekapitulasi per Pegawai</TabsTrigger>
                   <TabsTrigger value="dafnom" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-0 py-2">Cetak Dafnom (PDF)</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="spl" className="pt-4">
+                  <RekapSPL />
+              </TabsContent>
               
               <TabsContent value="list" className="pt-4">
                   <RekapLemburTable data={rekapData} />
