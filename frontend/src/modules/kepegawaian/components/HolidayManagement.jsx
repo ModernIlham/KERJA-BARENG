@@ -22,7 +22,8 @@ const HolidayManagement = () => {
         date: '',
         name: '',
         description: '',
-        is_national: true
+        is_national: true,
+        is_cuti_nasional: false
     });
 
     const years = Array.from({ length: 5 }, (_, i) => ({
