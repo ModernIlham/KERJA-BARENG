@@ -91,6 +91,7 @@ const ManajemenLembur = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('pengajuan');
   const [loading, setLoading] = useState(false);
+  const [batchRefresh, setBatchRefresh] = useState(0);
   
   // Data States
   const [requests, setRequests] = useState([]);
