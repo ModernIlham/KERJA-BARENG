@@ -317,9 +317,17 @@ const HolidayManagement = () => {
                                     <Checkbox 
                                         id="is_national"
                                         checked={formData.is_national}
-                                        onCheckedChange={checked => setFormData({...formData, is_national: checked})}
+                                        onCheckedChange={checked => setFormData({...formData, is_national: checked, is_cuti_nasional: false})}
                                     />
                                     <Label htmlFor="is_national" className="cursor-pointer">Hari Libur Nasional</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id="is_cuti_nasional"
+                                        checked={formData.is_cuti_nasional}
+                                        onCheckedChange={checked => setFormData({...formData, is_cuti_nasional: checked, is_national: !checked})}
+                                    />
+                                    <Label htmlFor="is_cuti_nasional" className="cursor-pointer">Cuti Nasional (Warna Pudar)</Label>
                                 </div>
                             </div>
                             <DialogFooter>
