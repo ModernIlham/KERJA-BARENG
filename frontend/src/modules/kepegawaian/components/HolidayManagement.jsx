@@ -332,7 +332,7 @@ const HolidayManagement = () => {
                     </Dialog>
 
                     <Button size="sm" variant="outline" onClick={handleBulkImport}>
-                        <Upload className="w-4 h-4 mr-2" /> Import Libur Nasional 2025
+                        <Upload className="w-4 h-4 mr-2" /> Import Libur Nasional {selectedYear}
                     </Button>
                 </div>
 
