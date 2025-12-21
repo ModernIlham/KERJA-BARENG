@@ -67,7 +67,8 @@ class Attendance(MongoBaseModel):
     keterangan: Optional[str] = None
 
 # NEW: Overtime Batch model - represents a single SPL/batch of overtime
-class OvertimeBatch(MongoBaseModel):
+class OvertimeBatch(BaseModel):
+    batch_id: str  # Custom batch ID (UUID)
     nomor_spl: str  # SPL number (e.g., "SPL-2025-001")
     tanggal_spl: str  # Date of SPL creation (YYYY-MM-DD)
     
