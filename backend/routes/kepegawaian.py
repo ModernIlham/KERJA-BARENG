@@ -548,14 +548,17 @@ async def get_dafnom_data(month: str = None): # YYYY-MM
             emp['jam_hari_libur'] += hours
         else:
             emp['jam_hari_kerja'] += hours
-            
-        emp['uang_lembur'] += req.get('gross_pay', 0) - req.get('meal_allowance', 0) if req.get('gross_pay') else 0
-        emp['uang_makan'] += req.get('meal_allowance', 0)
-        emp['jumlah_kotor'] += req.get('gross_pay', 0)
-        emp['potongan_pph'] += req.get('tax_amount', 0)
-        emp['jumlah_bersih'] += req.get('net_pay', 0)
         
-        if req.get('meal_allowance', 0) > 0:
+        # Calculate uang_lembur (gross - meal) correctly
+        gross_pay = req.get('gross_pay', 0) or 0
+        meal_allowance = req.get('meal_allowance', 0) or 0
+        emp['uang_lembur'] += gross_pay - meal_allowance
+        emp['uang_makan'] += meal_allowance
+        emp['jumlah_kotor'] += gross_pay
+        emp['potongan_pph'] += req.get('tax_amount', 0) or 0
+        emp['jumlah_bersih'] += req.get('net_pay', 0) or 0
+        
+        if meal_allowance > 0:
             emp['jumlah_makan'] += 1
     
     # Get calendar info for the month (which days are weekends)
