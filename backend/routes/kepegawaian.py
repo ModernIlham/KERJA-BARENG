@@ -206,6 +206,147 @@ async def update_settings(settings_in: OvertimeSettings, current_user: User = De
     )
     return await get_overtime_settings()
 
+# --- HOLIDAY MANAGEMENT ROUTES ---
+
+@router.get("/holidays")
+async def get_holidays(
+    year: Optional[int] = None,
+    month: Optional[int] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get holidays list, optionally filtered by year and/or month"""
+    query = {}
+    
+    if year and month:
+        # Filter by specific month
+        start_date = f"{year}-{month:02d}-01"
+        days_in_month = calendar.monthrange(year, month)[1]
+        end_date = f"{year}-{month:02d}-{days_in_month:02d}"
+        query["date"] = {"$gte": start_date, "$lte": end_date}
+    elif year:
+        # Filter by year
+        query["date"] = {"$regex": f"^{year}"}
+    
+    holidays = await db.holidays.find(query, {"_id": 0}).sort("date", 1).to_list(500)
+    return holidays
+
+@router.post("/holidays")
+async def create_holiday(
+    holiday: dict = Body(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new holiday"""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    # Validate required fields
+    if not holiday.get('date') or not holiday.get('name'):
+        raise HTTPException(status_code=400, detail="Date and name are required")
+    
+    # Check if holiday already exists
+    existing = await db.holidays.find_one({"date": holiday['date']})
+    if existing:
+        raise HTTPException(status_code=400, detail="Holiday for this date already exists")
+    
+    new_holiday = {
+        "id": str(uuid.uuid4()),
+        "date": holiday['date'],  # Format: YYYY-MM-DD
+        "name": holiday['name'],
+        "description": holiday.get('description', ''),
+        "is_national": holiday.get('is_national', True),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": str(current_user.id)
+    }
+    
+    await db.holidays.insert_one(new_holiday)
+    del new_holiday['_id']
+    return new_holiday
+
+@router.put("/holidays/{holiday_id}")
+async def update_holiday(
+    holiday_id: str,
+    holiday: dict = Body(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Update an existing holiday"""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    existing = await db.holidays.find_one({"id": holiday_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Holiday not found")
+    
+    update_data = {
+        "name": holiday.get('name', existing['name']),
+        "description": holiday.get('description', existing.get('description', '')),
+        "is_national": holiday.get('is_national', existing.get('is_national', True)),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # If date is being changed, check for duplicates
+    if holiday.get('date') and holiday['date'] != existing['date']:
+        dup = await db.holidays.find_one({"date": holiday['date'], "id": {"$ne": holiday_id}})
+        if dup:
+            raise HTTPException(status_code=400, detail="Another holiday exists for this date")
+        update_data['date'] = holiday['date']
+    
+    await db.holidays.update_one({"id": holiday_id}, {"$set": update_data})
+    
+    updated = await db.holidays.find_one({"id": holiday_id}, {"_id": 0})
+    return updated
+
+@router.delete("/holidays/{holiday_id}")
+async def delete_holiday(
+    holiday_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a holiday"""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    result = await db.holidays.delete_one({"id": holiday_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Holiday not found")
+    
+    return {"message": "Holiday deleted successfully"}
+
+@router.post("/holidays/bulk")
+async def bulk_create_holidays(
+    holidays: List[dict] = Body(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Bulk create holidays (useful for importing national holidays)"""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    created = []
+    skipped = []
+    
+    for h in holidays:
+        if not h.get('date') or not h.get('name'):
+            skipped.append({"date": h.get('date'), "reason": "Missing date or name"})
+            continue
+            
+        existing = await db.holidays.find_one({"date": h['date']})
+        if existing:
+            skipped.append({"date": h['date'], "reason": "Already exists"})
+            continue
+        
+        new_holiday = {
+            "id": str(uuid.uuid4()),
+            "date": h['date'],
+            "name": h['name'],
+            "description": h.get('description', ''),
+            "is_national": h.get('is_national', True),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": str(current_user.id)
+        }
+        
+        await db.holidays.insert_one(new_holiday)
+        created.append(h['date'])
+    
+    return {"created": len(created), "skipped": len(skipped), "skipped_details": skipped}
+
 # --- ATTENDANCE HISTORY ROUTES ---
 
 @router.get("/attendance/history")
