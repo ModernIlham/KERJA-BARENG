@@ -347,7 +347,7 @@ const ManajemenLembur = () => {
               </TabsContent>
               
               <TabsContent value="list" className="pt-4">
-                  <RekapLemburTable data={rekapData} />
+                  <RekapLemburTable data={rekapData} month={String(new Date().getMonth() + 1).padStart(2, '0')} year={String(new Date().getFullYear())} />
               </TabsContent>
               
               <TabsContent value="dafnom-pegawai" className="pt-4">
