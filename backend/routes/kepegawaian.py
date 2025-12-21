@@ -1080,6 +1080,87 @@ async def approve_reject_batch(
     
     return {"message": f"Batch lembur {new_status}"}
 
+class PartialApprovalRequest(BaseModel):
+    approve_ids: List[str] = []
+    reject_ids: List[str] = []
+
+@router.post("/overtime/batch/{batch_id}/partial")
+async def partial_approve_batch(
+    batch_id: str,
+    req: PartialApprovalRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Approve or reject individual records in a batch"""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Hanya admin yang dapat menyetujui")
+    
+    # Update approved records
+    if req.approve_ids:
+        await db.overtime_requests.update_many(
+            {"batch_id": batch_id, "id": {"$in": req.approve_ids}},
+            {"$set": {
+                "status": "Approved",
+                "approver_id": str(current_user.id),
+                "approver_name": current_user.full_name,
+                "updated_at": datetime.now(timezone.utc)
+            }}
+        )
+    
+    # Update rejected records  
+    if req.reject_ids:
+        await db.overtime_requests.update_many(
+            {"batch_id": batch_id, "id": {"$in": req.reject_ids}},
+            {"$set": {
+                "status": "Rejected",
+                "approver_id": str(current_user.id),
+                "approver_name": current_user.full_name,
+                "updated_at": datetime.now(timezone.utc)
+            }}
+        )
+    
+    # Check if all records in batch are processed
+    remaining = await db.overtime_requests.count_documents({
+        "batch_id": batch_id,
+        "status": "Pending"
+    })
+    
+    # Update batch status based on records
+    if remaining == 0:
+        approved_count = await db.overtime_requests.count_documents({
+            "batch_id": batch_id,
+            "status": "Approved"
+        })
+        
+        # Recalculate totals for approved only
+        approved_records = await db.overtime_requests.find({
+            "batch_id": batch_id,
+            "status": "Approved"
+        }).to_list(200)
+        
+        total_gross = sum(r.get('gross_pay', 0) for r in approved_records)
+        total_tax = sum(r.get('tax_amount', 0) for r in approved_records)
+        total_net = sum(r.get('net_pay', 0) for r in approved_records)
+        
+        batch_status = "Approved" if approved_count > 0 else "Rejected"
+        
+        await db.overtime_batches.update_one(
+            {"_id": batch_id},
+            {"$set": {
+                "status": batch_status,
+                "total_gross": total_gross,
+                "total_tax": total_tax,
+                "total_net": total_net,
+                "approver_id": str(current_user.id),
+                "approver_name": current_user.full_name,
+                "updated_at": datetime.now(timezone.utc)
+            }}
+        )
+    
+    return {
+        "message": f"Berhasil memproses {len(req.approve_ids)} disetujui, {len(req.reject_ids)} ditolak",
+        "remaining_pending": remaining
+    }
+
 @router.get("/overtime/recap-by-spl")
 async def recap_overtime_by_spl(month: str = None):
     """Rekapitulasi lembur berdasarkan nomor SPL dengan detail jam per hari"""
