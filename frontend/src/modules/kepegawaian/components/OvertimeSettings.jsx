@@ -55,6 +55,77 @@ const OvertimeSettings = () => {
         setSettings(prev => ({ ...prev, [field]: parseFloat(value) }));
     };
 
+    // Reset data handlers
+    const resetConfig = {
+        overtime: {
+            title: 'Reset Data Lembur',
+            description: 'Hapus semua data pengajuan lembur, SPL batch, dan data absensi. Data tarif dan hari libur tidak akan dihapus.',
+            endpoint: '/api/kepegawaian/reset/overtime',
+            icon: Clock,
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-50',
+            borderColor: 'border-orange-200'
+        },
+        employees: {
+            title: 'Reset Data Pegawai',
+            description: 'Hapus semua data pegawai dari database. Perhatian: Ini akan menghapus semua pegawai yang terdaftar!',
+            endpoint: '/api/kepegawaian/reset/employees',
+            icon: Users,
+            color: 'text-red-600',
+            bgColor: 'bg-red-50',
+            borderColor: 'border-red-200'
+        },
+        all: {
+            title: 'Reset Total Semua Data',
+            description: 'Hapus SEMUA data kepegawaian termasuk pegawai, lembur, absensi, dan hari libur kustom. Hanya pengaturan tarif yang dipertahankan.',
+            endpoint: '/api/kepegawaian/reset/all',
+            icon: Database,
+            color: 'text-red-700',
+            bgColor: 'bg-red-100',
+            borderColor: 'border-red-300'
+        }
+    };
+
+    const openResetDialog = (type) => {
+        setResetType(type);
+        setConfirmText('');
+        setResetDialogOpen(true);
+    };
+
+    const handleReset = async () => {
+        if (confirmText !== 'CONFIRM') {
+            toast.error('Ketik "CONFIRM" untuk melanjutkan');
+            return;
+        }
+
+        setResetting(true);
+        const t = toast.loading('Menghapus data...');
+
+        try {
+            const config = resetConfig[resetType];
+            const res = await api.delete(config.endpoint, {
+                data: { confirm: 'CONFIRM' }
+            });
+            
+            toast.success(res.data.message, { id: t });
+            setResetDialogOpen(false);
+            setConfirmText('');
+            
+            // Show deleted counts
+            if (res.data.deleted) {
+                const counts = Object.entries(res.data.deleted)
+                    .map(([key, val]) => `${key}: ${val}`)
+                    .join(', ');
+                toast.info(`Data dihapus: ${counts}`);
+            }
+        } catch (e) {
+            const errorMsg = e.response?.data?.detail || 'Gagal menghapus data';
+            toast.error(errorMsg, { id: t });
+        } finally {
+            setResetting(false);
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
 
     return (
