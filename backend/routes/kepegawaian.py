@@ -65,16 +65,13 @@ async def get_overtime_settings():
 
 async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False, sub_kategori=None, job_title=""):
     """
-    Calculate overtime pay based on Depnaker/PMK rules:
+    Calculate overtime pay with simple formula:
     
     HARI KERJA (is_holiday=False):
-    - Jam pertama: 1.5x tarif dasar
-    - Jam ke-2 dst: 2x tarif dasar
+    - Uang Lembur = Jam × Tarif per jam
     
     HARI LIBUR/WEEKEND (is_holiday=True):
-    - 7 jam pertama: 2x tarif dasar
-    - Jam ke-8: 3x tarif dasar
-    - Jam ke-9 dst: 4x tarif dasar
+    - Uang Lembur = Jam × Tarif per jam × 2
     """
     settings = await get_overtime_settings()
     
@@ -104,22 +101,14 @@ async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False,
             rate = settings.rate_asn_gol_1
             tax_rate = settings.tax_asn_gol_1
         
-        # Gross Calculation ASN dengan aturan Depnaker
+        # Gross Calculation - Simple formula
         hours = duration
         if is_holiday:
-            # HARI LIBUR: 2x untuk 7 jam pertama, 3x jam ke-8, 4x jam ke-9 dst
-            if hours <= 7:
-                gross = hours * 2 * rate
-            elif hours <= 8:
-                gross = (7 * 2 * rate) + ((hours - 7) * 3 * rate)
-            else:
-                gross = (7 * 2 * rate) + (1 * 3 * rate) + ((hours - 8) * 4 * rate)
+            # HARI LIBUR: Jam × Tarif × 2
+            gross = hours * rate * 2
         else:
-            # HARI KERJA: 1.5x jam pertama, 2x jam berikutnya
-            if hours <= 1:
-                gross = hours * 1.5 * rate
-            else:
-                gross = (1 * 1.5 * rate) + ((hours - 1) * 2 * rate)
+            # HARI KERJA: Jam × Tarif
+            gross = hours * rate
         
         # Meal Allowance per Golongan (min 2 jam kerja)
         if duration >= 2:
@@ -190,22 +179,14 @@ async def calculate_overtime_pay_v2(emp_type, grade, duration, is_holiday=False,
             tax_rate = settings.tax_non_asn_ppnpn
             if duration >= 2: meal = settings.meal_non_asn_ppnpn
         
-        # Calculation Logic (Depnaker/Omnibus)
+        # Gross Calculation - Simple formula
         hours = duration
         if is_holiday:
-            # HARI LIBUR: 2x untuk 7 jam pertama, 3x jam ke-8, 4x jam ke-9 dst
-            if hours <= 7:
-                gross = hours * 2 * rate
-            elif hours <= 8:
-                gross = (7 * 2 * rate) + ((hours - 7) * 3 * rate)
-            else:
-                gross = (7 * 2 * rate) + (1 * 3 * rate) + ((hours - 8) * 4 * rate)
+            # HARI LIBUR: Jam × Tarif × 2
+            gross = hours * rate * 2
         else:
-            # HARI KERJA: 1.5x jam pertama, 2x jam berikutnya
-            if hours <= 1:
-                gross = hours * 1.5 * rate
-            else:
-                gross = (1 * 1.5 * rate) + ((hours - 1) * 2 * rate)
+            # HARI KERJA: Jam × Tarif
+            gross = hours * rate
     
     total_gross = gross + meal
     tax = total_gross * tax_rate
