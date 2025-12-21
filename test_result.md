@@ -226,3 +226,15 @@ Incorporate User Feedback:
       - working: true
         agent: "main"
         comment: "Fixed runtime error with SelectItem value. All features now working: (1) PPK selector dropdown functional, (2) ASN/NON-ASN tabs working, (3) Dynamic title changes based on selected SPL (shows 'TEST INVENTARISASI BMN' when specific SPL selected, 'PER SURAT PERINTAH LEMBUR' when 'Semua SPL' selected), (4) TANDA TANGAN/NO REK column visible in table."
+
+  - task: "Perbaikan Perhitungan Lembur - Holiday vs Workday & Tax per Category"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/backend/routes/kepegawaian.py, /app/backend/models_kepegawaian.py, /app/frontend/src/modules/kepegawaian/components/OvertimeSettings.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "needs_testing"
+        agent: "main"
+        comment: "Fixed overtime calculation issues: (1) Workday formula: 1.5x first hour, 2x for subsequent hours, (2) Holiday formula: 2x for first 7 hours, 3x for 8th hour, 4x for 9th+ hours, (3) Added tax rate per ASN grade (I, II, III, IV) and per NON-ASN category (PPNPN, Satpam, Supir, Pramubakti, Konsultan, Tenaga Ahli, Teknisi), (4) Updated Settings UI to allow configuring tax rates per category. Testing needed to verify correct calculations."
