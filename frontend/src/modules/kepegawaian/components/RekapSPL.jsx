@@ -155,6 +155,9 @@ const RekapSPL = () => {
                     <Button variant="ghost" size="icon" onClick={fetchData}>
                         <RefreshCw size={16} />
                     </Button>
+                    <Button variant="outline" size="sm" onClick={handleExportExcel} className="text-green-700 border-green-600 hover:bg-green-50">
+                        <Download className="w-4 h-4 mr-2" /> Excel
+                    </Button>
                     <Button onClick={handlePrint} size="sm" className="bg-slate-800 text-white hover:bg-slate-700">
                         <Printer className="w-4 h-4 mr-2" /> Cetak
                     </Button>
