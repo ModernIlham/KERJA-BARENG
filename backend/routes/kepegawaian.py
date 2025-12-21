@@ -1431,12 +1431,12 @@ async def get_dafnom_data(month: str = None): # YYYY-MM
         else:
             emp['jam_hari_kerja'] += hours
         
-        # Calculate uang_lembur (gross - meal) correctly
+        # Calculate uang_lembur (gross_pay is already the overtime pay, NOT including meal)
         gross_pay = req.get('gross_pay', 0) or 0
         meal_allowance = req.get('meal_allowance', 0) or 0
-        emp['uang_lembur'] += gross_pay - meal_allowance
+        emp['uang_lembur'] += gross_pay  # gross_pay is overtime pay only
         emp['uang_makan'] += meal_allowance
-        emp['jumlah_kotor'] += gross_pay
+        emp['jumlah_kotor'] += gross_pay + meal_allowance  # Total = overtime + meal
         emp['potongan_pph'] += req.get('tax_amount', 0) or 0
         emp['jumlah_bersih'] += req.get('net_pay', 0) or 0
         
