@@ -130,12 +130,15 @@ const OvertimeSettings = () => {
 
     return (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+            <TabsList className="grid w-full md:w-[500px] grid-cols-3">
                 <TabsTrigger value="tarif" className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4" /> Tarif Lembur
                 </TabsTrigger>
                 <TabsTrigger value="libur" className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" /> Hari Libur
+                </TabsTrigger>
+                <TabsTrigger value="reset" className="flex items-center gap-2 text-red-600">
+                    <Trash2 className="w-4 h-4" /> Reset Data
                 </TabsTrigger>
             </TabsList>
 
