@@ -1491,13 +1491,15 @@ async def get_dafnom_data(month: str = None): # YYYY-MM
             emp['jumlah_makan'] += 1
     
     # Get holidays for the month (weekends + custom holidays from DB)
-    holidays_in_month = await get_holidays_for_month(year, mon)
+    holiday_data = await get_holidays_detailed_for_month(year, mon)
     
     return {
         "month": month,
         "year": year,
         "days_in_month": days_in_month,
-        "holidays": holidays_in_month,
+        "holidays": holiday_data["holidays"],
+        "cuti_nasional": holiday_data["cuti_nasional"],
+        "holiday_names": holiday_data["holiday_names"],
         "employees": list(employees.values())
     }
 
