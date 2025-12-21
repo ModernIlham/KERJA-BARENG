@@ -97,7 +97,8 @@ const HolidayManagement = () => {
             date: holiday.date,
             name: holiday.name,
             description: holiday.description || '',
-            is_national: holiday.is_national !== false
+            is_national: holiday.is_national !== false,
+            is_cuti_nasional: holiday.is_cuti_nasional === true
         });
         setIsEditDialogOpen(true);
     };
