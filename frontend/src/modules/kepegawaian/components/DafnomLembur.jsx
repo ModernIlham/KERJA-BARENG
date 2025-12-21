@@ -347,11 +347,6 @@ const DafnomLembur = ({ month, year }) => {
     const [ppkList, setPpkList] = useState([]);
     const [selectedPPKId, setSelectedPPKId] = useState('');
 
-    useEffect(() => {
-        fetchDafnomData();
-        fetchPPKList();
-    }, [month, year]);
-
     const fetchDafnomData = async () => {
         setLoading(true);
         try {
@@ -372,6 +367,11 @@ const DafnomLembur = ({ month, year }) => {
             console.error('Error fetching PPK list:', err);
         }
     };
+
+    useEffect(() => {
+        fetchDafnomData();
+        fetchPPKList();
+    }, [month, year]);
 
     const daysInMonth = data?.days_in_month || 31;
     const holidays = data?.holidays || [];
