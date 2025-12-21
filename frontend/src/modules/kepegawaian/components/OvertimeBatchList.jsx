@@ -78,10 +78,20 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
         const config = {
             'Pending': { variant: 'outline', className: 'border-yellow-500 text-yellow-700 bg-yellow-50' },
             'Approved': { variant: 'outline', className: 'border-green-500 text-green-700 bg-green-50' },
-            'Rejected': { variant: 'outline', className: 'border-red-500 text-red-700 bg-red-50' }
+            'Rejected': { variant: 'outline', className: 'border-red-500 text-red-700 bg-red-50' },
+            'Partial': { variant: 'outline', className: 'border-orange-500 text-orange-700 bg-orange-50' }
         };
         const c = config[status] || config['Pending'];
         return <Badge variant={c.variant} className={c.className}>{status}</Badge>;
+    };
+
+    const getRecordStatusBadge = (status) => {
+        if (status === 'Approved') {
+            return <Badge variant="outline" className="text-[10px] border-green-500 text-green-700 bg-green-50">✓</Badge>;
+        } else if (status === 'Rejected') {
+            return <Badge variant="outline" className="text-[10px] border-red-500 text-red-700 bg-red-50">✗ Ditolak</Badge>;
+        }
+        return <Badge variant="outline" className="text-[10px] border-yellow-500 text-yellow-700 bg-yellow-50">Pending</Badge>;
     };
 
     const formatDate = (dateStr) => {
