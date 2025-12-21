@@ -247,47 +247,15 @@ const ManajemenLembur = () => {
             </TabsContent>
         )}
 
-        {/* --- PENGAJUAN --- */}
+        {/* --- PENGAJUAN (NEW BATCH FORM) --- */}
         <TabsContent value="pengajuan" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-             <Card className="md:col-span-2 border-slate-200 shadow-sm">
-                <CardHeader>
-                <CardTitle>Form Pengajuan Lembur</CardTitle>
-                <CardDescription>Lengkapi data lembur beserta bukti pendukung (SPL).</CardDescription>
-                </CardHeader>
-                <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Tanggal Pelaksanaan</Label>
-                            <Input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Estimasi Durasi</Label>
-                            <Input disabled value={calculateDuration()} className="bg-slate-50" />
-                        </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 border p-3 rounded bg-yellow-50 border-yellow-200">
-                        <Checkbox 
-                            id="is_holiday" 
-                            checked={formData.is_holiday}
-                            onCheckedChange={(checked) => setFormData({...formData, is_holiday: checked})}
-                        />
-                        <Label htmlFor="is_holiday" className="font-medium text-yellow-800 cursor-pointer">
-                            Hari Libur / Akhir Pekan (Rate Khusus)
-                        </Label>
-                    </div>
+            <OvertimeBatchForm onSuccess={() => setBatchRefresh(prev => prev + 1)} />
+        </TabsContent>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Jam Mulai</Label>
-                            <Input type="time" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Jam Selesai</Label>
-                            <Input type="time" required value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} />
-                        </div>
+        {/* --- DAFTAR SPL --- */}
+        <TabsContent value="daftar" className="space-y-4">
+            <OvertimeBatchList refreshTrigger={batchRefresh} />
+        </TabsContent>
                     </div>
                     
                     <div className="space-y-2">
