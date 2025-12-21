@@ -94,6 +94,51 @@ const DafnomSPLTable = ({ batches, holidays, cutiNasional, daysInMonth, employee
         return holidayBg;
     };
 
+    // Export to Excel function
+    const handleExportExcel = () => {
+        const monthNames = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+        const exportData = [];
+        
+        filteredBatches.forEach((batch, batchIdx) => {
+            const participants = batch.participants || [];
+            participants.forEach((p, pIdx) => {
+                const participantDay = p.date ? parseInt(p.date.split('-')[2]) : null;
+                const row = {
+                    'No SPL': batch.nomor_spl,
+                    'No': pIdx + 1,
+                    'Nama': p.nama_lengkap,
+                    'NIP': p.nip || '-',
+                    'Golongan': p.grade || '-',
+                    'Tipe': p.employee_type,
+                };
+                
+                // Add daily hours columns
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const hours = (participantDay === d) ? (p.duration_hours || 0) : 0;
+                    row[`Tgl ${d}`] = hours > 0 ? Math.round(hours) : 0;
+                }
+                
+                row['Jam Hari Kerja'] = Math.round(p.jam_hari_kerja || 0);
+                row['Jam Hari Libur'] = Math.round(p.jam_hari_libur || 0);
+                row['Jml Makan'] = p.meal_allowance > 0 ? 1 : 0;
+                row['Uang Lembur'] = (p.gross_pay || 0) - (p.meal_allowance || 0);
+                row['Uang Makan'] = p.meal_allowance || 0;
+                row['Jumlah Kotor'] = p.gross_pay || 0;
+                row['Potongan PPH'] = p.tax_amount || 0;
+                row['Jumlah Bersih'] = p.net_pay || 0;
+                row['Bank'] = p.nama_bank || '-';
+                row['No Rekening'] = p.no_rekening || '-';
+                
+                exportData.push(row);
+            });
+        });
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `Dafnom SPL ${employeeType}`);
+        XLSX.writeFile(wb, `Dafnom_SPL_${employeeType}_${monthNames[parseInt(month) - 1]}_${year}.xlsx`);
+    };
+
     if (filteredBatches.length === 0) {
         return (
             <div className="text-center py-8 text-slate-500">
@@ -104,7 +149,10 @@ const DafnomSPLTable = ({ batches, holidays, cutiNasional, daysInMonth, employee
 
     return (
         <div>
-            <div className="flex justify-end mb-4 print:hidden">
+            <div className="flex justify-end gap-2 mb-4 print:hidden">
+                <Button variant="outline" onClick={handleExportExcel} className="text-green-700 border-green-600 hover:bg-green-50">
+                    <Download className="w-4 h-4 mr-2"/> Export Excel
+                </Button>
                 <Button onClick={handlePrint} className="bg-slate-800 text-white hover:bg-slate-700">
                     <Printer className="w-4 h-4 mr-2"/> Cetak {employeeType}
                 </Button>
