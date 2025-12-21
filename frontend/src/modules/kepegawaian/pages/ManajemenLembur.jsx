@@ -12,6 +12,7 @@ import DafnomSPL from '../components/DafnomSPL';
 import OvertimeSettings from '../components/OvertimeSettings';
 import OvertimeRangeForm from '../components/OvertimeRangeForm';
 import OvertimeBatchList from '../components/OvertimeBatchList';
+import OvertimeApproval from '../components/OvertimeApproval';
 import RekapSPL from '../components/RekapSPL';
 import { toast } from 'sonner';
 import { PageContainer, PageHeader } from '@/components/ui/page-layout';
