@@ -729,12 +729,8 @@ async def get_dafnom_data(month: str = None): # YYYY-MM
         if meal_allowance > 0:
             emp['jumlah_makan'] += 1
     
-    # Get calendar info for the month (which days are weekends)
-    holidays_in_month = []
-    for d in range(1, days_in_month + 1):
-        weekday = calendar.weekday(year, mon, d)
-        if weekday >= 5:  # Saturday = 5, Sunday = 6
-            holidays_in_month.append(d)
+    # Get holidays for the month (weekends + custom holidays from DB)
+    holidays_in_month = await get_holidays_for_month(year, mon)
     
     return {
         "month": month,
