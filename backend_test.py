@@ -1914,7 +1914,7 @@ class APITester:
                 test_request = req
                 break
         
-        if not test_request:uest:
+        if not test_request:
             print("❌ Test overtime request not found in list")
             return False
         
