@@ -138,6 +138,18 @@ frontend:
         agent: "testing"
         comment: "Frontend testing not performed as per system limitations. Backend APIs are fully functional and ready for frontend integration."
 
+  - task: "Dafnom (Daftar Nominatif) Overtime Report Page"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/modules/kepegawaian/components/DafnomLembur.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "DAFNOM OVERTIME REPORT TESTING COMPLETED SUCCESSFULLY! ✅ All requested features verified: (1) Login with admin@example.com/admin works correctly, (2) Navigation to /kepegawaian/lembur successful, (3) 'Laporan & Dafnom' tab accessible and functional, (4) 'Cetak Dafnom (PDF)' sub-tab working properly, (5) Report table displays correct structure matching official government format with header 'DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR', (6) Date columns properly split into 1-15 and 16-31 with +/- indicators for workdays/holidays, (7) Holiday days marked with red background (rgb(255, 204, 204)), (8) Employee data structure includes name, NIP, golongan fields, (9) Summary columns present (Jumlah Jam Hari Kerja, Hari Libur, Jumlah Makan Lembur, etc.), (10) Total row displayed at bottom, (11) PPK signature section complete with 'AMBAR TRI BAWONO' and NIP, (12) Month selector functional - successfully tested changing from December to January, (13) 'Cetak / PDF' button visible and enabled, (14) Table is responsive with horizontal scrolling (.overflow-x-auto), (15) Column headers properly aligned. The report matches the official government overtime report format exactly as requested. No data message 'Tidak ada data lembur yang disetujui untuk bulan ini' displays correctly when no overtime data exists for the selected period."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
