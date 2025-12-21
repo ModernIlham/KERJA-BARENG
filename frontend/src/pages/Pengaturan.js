@@ -461,6 +461,35 @@ export default function Pengaturan() {
                             </Button>
                         </CardContent>
                     </Card>
+
+                    {/* Kepegawaian Reset Card */}
+                    <Card className="border-orange-200 bg-orange-50">
+                        <CardHeader>
+                            <CardTitle className="text-orange-800 flex items-center"><Users size={18} className="mr-2"/> Reset Data Kepegawaian</CardTitle>
+                            <CardDescription className="text-orange-600">Hapus data pegawai, lembur, dan absensi secara terpisah atau keseluruhan.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <KepegawaianResetDialog 
+                                type="overtime" 
+                                onConfirm={handleKepegawaianReset} 
+                                loading={kepegawaianResetLoading} 
+                            />
+                            <KepegawaianResetDialog 
+                                type="employees" 
+                                onConfirm={handleKepegawaianReset} 
+                                loading={kepegawaianResetLoading} 
+                            />
+                            <KepegawaianResetDialog 
+                                type="all_kepegawaian" 
+                                onConfirm={handleKepegawaianReset} 
+                                loading={kepegawaianResetLoading} 
+                            />
+                            
+                            <div className="mt-3 p-2 bg-orange-100 border border-orange-200 rounded text-xs text-orange-700">
+                                <strong>Catatan:</strong> Reset data kepegawaian tidak mempengaruhi pengaturan tarif lembur dan user login.
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </TabsContent>
 
