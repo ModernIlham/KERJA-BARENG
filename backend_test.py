@@ -12568,10 +12568,10 @@ def main():
 
 
 def main():
-    """Main function to run the Independent Non-ASN Overtime Rates test"""
+    """Main function to run the Overtime Calculation System test"""
     tester = APITester()
     
-    print("🚀 Starting Independent Non-ASN Overtime Rates Testing...")
+    print("🚀 Starting Overtime Calculation System Testing...")
     print("=" * 60)
     
     # Test login first
@@ -12579,9 +12579,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Independent Non-ASN Overtime Rates test as requested in review
-    if not tester.test_independent_non_asn_overtime_rates():
-        print("❌ Independent Non-ASN Overtime Rates test failed")
+    # Run the Overtime Calculation System test as requested in review
+    if not tester.test_overtime_calculation_system():
+        print("❌ Overtime Calculation System test failed")
         return 1
     
     # Print summary
