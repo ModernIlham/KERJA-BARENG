@@ -102,28 +102,112 @@ const HolidayManagement = () => {
     };
 
     const handleBulkImport = async () => {
-        // Predefined national holidays for Indonesia 2025
-        const nationalHolidays2025 = [
-            { date: "2025-01-01", name: "Tahun Baru Masehi", is_national: true },
-            { date: "2025-01-29", name: "Tahun Baru Imlek", is_national: true },
-            { date: "2025-03-29", name: "Hari Raya Nyepi", is_national: true },
-            { date: "2025-03-31", name: "Hari Raya Idul Fitri", is_national: true },
-            { date: "2025-04-01", name: "Hari Raya Idul Fitri", is_national: true },
-            { date: "2025-04-18", name: "Wafat Isa Al-Masih", is_national: true },
-            { date: "2025-05-01", name: "Hari Buruh Internasional", is_national: true },
-            { date: "2025-05-12", name: "Hari Raya Waisak", is_national: true },
-            { date: "2025-05-29", name: "Kenaikan Isa Al-Masih", is_national: true },
-            { date: "2025-06-01", name: "Hari Lahir Pancasila", is_national: true },
-            { date: "2025-06-07", name: "Hari Raya Idul Adha", is_national: true },
-            { date: "2025-06-27", name: "Tahun Baru Islam", is_national: true },
-            { date: "2025-08-17", name: "Hari Kemerdekaan RI", is_national: true },
-            { date: "2025-09-05", name: "Maulid Nabi Muhammad SAW", is_national: true },
-            { date: "2025-12-25", name: "Hari Raya Natal", is_national: true },
+        // Dynamic national holidays based on selected year
+        // Note: Some dates are approximate for Islamic/Lunar holidays
+        const year = parseInt(selectedYear);
+        
+        // Fixed holidays (same date every year)
+        const fixedHolidays = [
+            { month: "01", day: "01", name: "Tahun Baru Masehi" },
+            { month: "05", day: "01", name: "Hari Buruh Internasional" },
+            { month: "06", day: "01", name: "Hari Lahir Pancasila" },
+            { month: "08", day: "17", name: "Hari Kemerdekaan RI" },
+            { month: "12", day: "25", name: "Hari Raya Natal" },
         ];
 
+        // Variable holidays by year (Islamic, Lunar, Hindu calendars)
+        const variableHolidaysByYear = {
+            2024: [
+                { date: "2024-02-08", name: "Isra Mi'raj Nabi Muhammad SAW" },
+                { date: "2024-02-10", name: "Tahun Baru Imlek" },
+                { date: "2024-03-11", name: "Hari Raya Nyepi" },
+                { date: "2024-03-29", name: "Wafat Isa Al-Masih" },
+                { date: "2024-04-10", name: "Hari Raya Idul Fitri" },
+                { date: "2024-04-11", name: "Hari Raya Idul Fitri" },
+                { date: "2024-05-09", name: "Kenaikan Isa Al-Masih" },
+                { date: "2024-05-23", name: "Hari Raya Waisak" },
+                { date: "2024-06-17", name: "Hari Raya Idul Adha" },
+                { date: "2024-07-07", name: "Tahun Baru Islam 1446 H" },
+                { date: "2024-09-16", name: "Maulid Nabi Muhammad SAW" },
+            ],
+            2025: [
+                { date: "2025-01-29", name: "Tahun Baru Imlek" },
+                { date: "2025-03-29", name: "Hari Raya Nyepi" },
+                { date: "2025-03-31", name: "Hari Raya Idul Fitri" },
+                { date: "2025-04-01", name: "Hari Raya Idul Fitri" },
+                { date: "2025-04-18", name: "Wafat Isa Al-Masih" },
+                { date: "2025-05-12", name: "Hari Raya Waisak" },
+                { date: "2025-05-29", name: "Kenaikan Isa Al-Masih" },
+                { date: "2025-06-07", name: "Hari Raya Idul Adha" },
+                { date: "2025-06-27", name: "Tahun Baru Islam 1447 H" },
+                { date: "2025-09-05", name: "Maulid Nabi Muhammad SAW" },
+            ],
+            2026: [
+                { date: "2026-02-17", name: "Tahun Baru Imlek" },
+                { date: "2026-03-19", name: "Hari Raya Nyepi" },
+                { date: "2026-03-20", name: "Hari Raya Idul Fitri" },
+                { date: "2026-03-21", name: "Hari Raya Idul Fitri" },
+                { date: "2026-04-03", name: "Wafat Isa Al-Masih" },
+                { date: "2026-05-14", name: "Kenaikan Isa Al-Masih" },
+                { date: "2026-05-31", name: "Hari Raya Waisak" },
+                { date: "2026-05-27", name: "Hari Raya Idul Adha" },
+                { date: "2026-06-17", name: "Tahun Baru Islam 1448 H" },
+                { date: "2026-08-26", name: "Maulid Nabi Muhammad SAW" },
+            ],
+            2027: [
+                { date: "2027-02-06", name: "Tahun Baru Imlek" },
+                { date: "2027-03-09", name: "Hari Raya Idul Fitri" },
+                { date: "2027-03-10", name: "Hari Raya Idul Fitri" },
+                { date: "2027-03-26", name: "Wafat Isa Al-Masih" },
+                { date: "2027-04-07", name: "Hari Raya Nyepi" },
+                { date: "2027-05-06", name: "Kenaikan Isa Al-Masih" },
+                { date: "2027-05-16", name: "Hari Raya Idul Adha" },
+                { date: "2027-05-20", name: "Hari Raya Waisak" },
+                { date: "2027-06-06", name: "Tahun Baru Islam 1449 H" },
+                { date: "2027-08-15", name: "Maulid Nabi Muhammad SAW" },
+            ],
+            2028: [
+                { date: "2028-01-26", name: "Tahun Baru Imlek" },
+                { date: "2028-02-26", name: "Hari Raya Idul Fitri" },
+                { date: "2028-02-27", name: "Hari Raya Idul Fitri" },
+                { date: "2028-03-26", name: "Hari Raya Nyepi" },
+                { date: "2028-04-14", name: "Wafat Isa Al-Masih" },
+                { date: "2028-05-04", name: "Hari Raya Idul Adha" },
+                { date: "2028-05-09", name: "Hari Raya Waisak" },
+                { date: "2028-05-25", name: "Kenaikan Isa Al-Masih" },
+                { date: "2028-05-25", name: "Tahun Baru Islam 1450 H" },
+                { date: "2028-08-03", name: "Maulid Nabi Muhammad SAW" },
+            ],
+        };
+
+        // Build holiday list for selected year
+        const nationalHolidays = [];
+        
+        // Add fixed holidays
+        fixedHolidays.forEach(h => {
+            nationalHolidays.push({
+                date: `${year}-${h.month}-${h.day}`,
+                name: h.name,
+                is_national: true
+            });
+        });
+
+        // Add variable holidays if available for the year
+        if (variableHolidaysByYear[year]) {
+            variableHolidaysByYear[year].forEach(h => {
+                nationalHolidays.push({
+                    date: h.date,
+                    name: h.name,
+                    is_national: true
+                });
+            });
+        } else {
+            toast.warning(`Data hari libur variabel untuk tahun ${year} belum tersedia. Hanya hari libur tetap yang akan diimport.`);
+        }
+
         try {
-            const res = await api.post('/api/kepegawaian/holidays/bulk', nationalHolidays2025);
-            toast.success(`${res.data.created} hari libur berhasil ditambahkan`);
+            const res = await api.post('/api/kepegawaian/holidays/bulk', nationalHolidays);
+            toast.success(`${res.data.created} hari libur berhasil ditambahkan untuk tahun ${year}`);
             if (res.data.skipped > 0) {
                 toast.info(`${res.data.skipped} sudah ada/dilewati`);
             }
