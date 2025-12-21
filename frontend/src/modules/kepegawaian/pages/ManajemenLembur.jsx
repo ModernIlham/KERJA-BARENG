@@ -329,71 +329,7 @@ const ManajemenLembur = () => {
 
         {/* --- PERSETUJUAN --- */}
         <TabsContent value="persetujuan">
-            <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Menunggu Persetujuan</CardTitle>
-                        <CardDescription>Daftar pengajuan lembur yang memerlukan tindakan.</CardDescription>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={fetchRequests}><RefreshCcw className="w-4 h-4"/></Button>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {requests.filter(r => r.status === 'Pending').length === 0 ? (
-                            <div className="text-center py-8 text-slate-500">Tidak ada pengajuan yang perlu disetujui.</div>
-                        ) : (
-                            requests.filter(r => r.status === 'Pending').map(req => (
-                                <div key={req.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 border border-slate-100 rounded-lg bg-white hover:bg-slate-50 transition-colors">
-                                    <div className="flex items-start gap-4 mb-4 md:mb-0 flex-1">
-                                        <div className="p-2 bg-blue-100 text-blue-600 rounded-full mt-1 shrink-0">
-                                            <Clock size={20} />
-                                        </div>
-                                        <div className="space-y-1 w-full">
-                                            <div className="flex justify-between items-start">
-                                                <h4 className="font-semibold text-slate-900">{req.nama_lengkap} <span className="text-xs font-normal text-slate-500">({req.employee_type})</span></h4>
-                                                <div className="text-xs text-slate-400">
-                                                    Estimasi: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(req.net_pay)}
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="flex flex-wrap gap-2 text-sm text-slate-500">
-                                                <span className="font-medium text-slate-700">{req.date}</span>
-                                                <span>•</span>
-                                                <span>{req.start_time} - {req.end_time}</span>
-                                                <span className="px-2 py-0.5 bg-slate-100 rounded text-xs font-semibold">{req.duration_hours} Jam</span>
-                                                {req.is_holiday && <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">Libur</span>}
-                                            </div>
-                                            
-                                            <p className="text-sm mt-2 text-slate-600 italic bg-slate-50 p-2 rounded">&ldquo;{req.description}&rdquo;</p>
-                                            
-                                            <div className="flex gap-2 pt-2">
-                                                {req.spl_file && (
-                                                    <a href={req.spl_file} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100">
-                                                        <FileText size={12}/> Lihat SPL
-                                                    </a>
-                                                )}
-                                                {req.evidence_files?.map((url, idx) => (
-                                                    <a key={idx} href={url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded border border-slate-200 hover:bg-slate-200">
-                                                        <ImageIcon size={12}/> Foto {idx+1}
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2 w-full md:w-auto md:ml-4">
-                                        <Button size="sm" variant="outline" onClick={() => handleAction(req.id, 'reject')} className="flex-1 md:flex-none border-red-200 text-red-700 hover:bg-red-50">
-                                            <XCircle className="w-4 h-4 mr-2"/> Tolak
-                                        </Button>
-                                        <Button size="sm" onClick={() => handleAction(req.id, 'approve')} className="flex-1 md:flex-none bg-emerald-600 hover:bg-emerald-700 text-white">
-                                            <CheckCircle2 className="w-4 h-4 mr-2"/> Setujui
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
+            <OvertimeApproval refreshTrigger={batchRefresh} />
         </TabsContent>
 
         {/* --- REKAP & DAFNOM --- */}
