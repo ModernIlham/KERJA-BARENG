@@ -32,9 +32,12 @@ const OvertimeBatchForm = ({ onSuccess }) => {
     const fetchPegawai = async () => {
         try {
             const res = await api.get('/api/pegawai');
-            setPegawaiList(res.data);
+            // Ensure we always get an array
+            const data = Array.isArray(res.data) ? res.data : [];
+            setPegawaiList(data);
         } catch (e) {
-            toast.error("Gagal memuat data pegawai");
+            console.error("Gagal memuat data pegawai", e);
+            setPegawaiList([]);
         }
     };
 
