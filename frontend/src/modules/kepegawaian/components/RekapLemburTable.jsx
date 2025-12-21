@@ -16,7 +16,7 @@ const formatCurrency = (amount) => {
 };
 
 const RekapLemburTable = ({ data, month, year }) => {
-  const componentRef = useRef();
+  const componentRef = useRef(null);
   const totalNetPay = data.reduce((acc, curr) => acc + (curr.netPay || 0), 0);
   const totalGross = data.reduce((acc, curr) => acc + (curr.totalGross || 0), 0);
   const totalTax = data.reduce((acc, curr) => acc + (curr.tax || 0), 0);
@@ -24,7 +24,7 @@ const RekapLemburTable = ({ data, month, year }) => {
   const totalHours = data.reduce((acc, curr) => acc + (curr.totalHours || 0), 0);
 
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
+    contentRef: componentRef,
     documentTitle: `Rekap_Lembur_${month}_${year}`,
     pageStyle: `
       @page { size: A4 landscape; margin: 10mm; }

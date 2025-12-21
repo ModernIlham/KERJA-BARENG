@@ -14,10 +14,10 @@ const formatRupiah = (num) => {
 };
 
 const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeType, month, year, selectedPPK }) => {
-    const componentRef = useRef();
+    const componentRef = useRef(null);
     
     const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
+        contentRef: componentRef,
         documentTitle: `DAFNOM_LEMBUR_${employeeType}_${month}_${year}`,
         pageStyle: `
             @page { size: A4 landscape; margin: 5mm; }

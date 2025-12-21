@@ -15,10 +15,10 @@ const RekapSPL = () => {
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
     const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear()));
-    const componentRef = useRef();
+    const componentRef = useRef(null);
 
     const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
+        contentRef: componentRef,
         documentTitle: `Rekap_SPL_${selectedMonth}_${selectedYear}`,
         pageStyle: `
             @page { size: A4 landscape; margin: 10mm; }
