@@ -275,8 +275,6 @@ const OvertimeBatchList = ({ refreshTrigger }) => {
                                     </div>
                                 </div>
                             )}
-                                </div>
-                            </div>
 
                             <div>
                                 <span className="text-xs text-slate-500">Deskripsi Kegiatan</span>
