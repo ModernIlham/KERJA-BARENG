@@ -186,18 +186,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Clock In and Clock Out flow"
-    - "Get Attendance History for a month"
-    - "Submit Overtime Request (including file upload)"
-    - "List Overtime Requests"
-    - "Approve Overtime Request (as Admin)"
-    - "Check Overtime Recap"
-    - "Verify Differential Pay calculation"
-    - "Verify Overtime Calculation Logic against new rules"
-    - "Overtime Settings and Dafnom Features"
-    - "Independent Non-ASN Overtime Rates Verification"
-    - "Dafnom (Daftar Nominatif) Overtime Report Page"
-  stuck_tasks: []
+    - "Print Functionality on Overtime Reports (Laporan Lembur) Pages"
+  stuck_tasks:
+    - "Print Functionality on Overtime Reports (Laporan Lembur) Pages"
   test_all: false
   test_priority: "high_first"
 
