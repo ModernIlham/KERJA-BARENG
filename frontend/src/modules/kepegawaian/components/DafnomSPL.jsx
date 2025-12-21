@@ -12,7 +12,7 @@ const formatRupiah = (num) => {
     return `Rp ${Math.round(num).toLocaleString('id-ID')}`;
 };
 
-const DafnomSPLTable = ({ batches, holidays, daysInMonth, employeeType, month, year }) => {
+const DafnomSPLTable = ({ batches, holidays, daysInMonth, employeeType, month, year, selectedPPK, reportTitle }) => {
     const componentRef = useRef();
     
     const handlePrint = useReactToPrint({
@@ -106,6 +106,7 @@ const DafnomSPLTable = ({ batches, holidays, daysInMonth, employeeType, month, y
                     <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                         <div style={{ fontWeight: 'bold', fontSize: '10px' }}>DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR</div>
                         <div style={{ fontWeight: 'bold', fontSize: '9px' }}>PEGAWAI {employeeType}</div>
+                        <div style={{ fontWeight: 'bold', fontSize: '9px', marginTop: '4px' }}>{reportTitle}</div>
                     </div>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '8px' }}>
@@ -327,13 +328,22 @@ const DafnomSPLTable = ({ batches, holidays, daysInMonth, employeeType, month, y
                         </tbody>
                     </table>
 
-                    {/* Footer */}
+                    {/* Footer - PPK Signature */}
                     <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <div style={{ textAlign: 'center', fontSize: '8px', width: '160px' }}>
+                        <div style={{ textAlign: 'center', fontSize: '8px', width: '180px' }}>
                             <div>Mengetahui:</div>
                             <div style={{ fontWeight: 'bold', marginBottom: '35px' }}>Pejabat Pembuat Komitmen</div>
-                            <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>AMBAR TRI BAWONO</div>
-                            <div>NIP. 198112082009011008</div>
+                            {selectedPPK ? (
+                                <>
+                                    <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>{selectedPPK.nama_lengkap}</div>
+                                    <div>NIP. {selectedPPK.nip || '-'}</div>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>_____________________</div>
+                                    <div>NIP. _____________________</div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -347,9 +357,12 @@ const DafnomSPL = ({ month, year }) => {
     const [loading, setLoading] = useState(true);
     const [selectedBatch, setSelectedBatch] = useState('all');
     const [employeeTypeFilter, setEmployeeTypeFilter] = useState('ASN');
+    const [ppkList, setPpkList] = useState([]);
+    const [selectedPPKId, setSelectedPPKId] = useState('');
 
     useEffect(() => {
         fetchData();
+        fetchPPKList();
     }, [month, year]);
 
     const fetchData = async () => {
@@ -364,6 +377,15 @@ const DafnomSPL = ({ month, year }) => {
         setLoading(false);
     };
 
+    const fetchPPKList = async () => {
+        try {
+            const res = await api.get('/api/pegawai/pejabat?role=PPK');
+            setPpkList(res.data || []);
+        } catch (err) {
+            console.error('Error fetching PPK list:', err);
+        }
+    };
+
     const batches = data?.batches || [];
     const holidays = data?.holidays || [];
     const daysInMonth = data?.days_in_month || 31;
@@ -373,6 +395,18 @@ const DafnomSPL = ({ month, year }) => {
         ? batches 
         : batches.filter(b => b.nomor_spl === selectedBatch);
 
+    // Get report title based on selected SPL
+    const getReportTitle = () => {
+        if (selectedBatch === 'all') {
+            return 'PER SURAT PERINTAH LEMBUR';
+        }
+        const batch = batches.find(b => b.nomor_spl === selectedBatch);
+        return batch?.description || 'PER SURAT PERINTAH LEMBUR';
+    };
+
+    // Get selected PPK object
+    const selectedPPK = ppkList.find(p => p.id === selectedPPKId || p._id === selectedPPKId);
+
     if (loading) {
         return <div className="text-center py-8">Memuat data Dafnom SPL...</div>;
     }
@@ -380,22 +414,42 @@ const DafnomSPL = ({ month, year }) => {
     return (
         <div className="space-y-4">
             {/* Filters */}
-            <div className="flex justify-between items-center print:hidden">
-                <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium">Pilih SPL:</span>
-                    <Select value={selectedBatch} onValueChange={setSelectedBatch}>
-                        <SelectTrigger className="w-48 h-9">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua SPL</SelectItem>
-                            {batches.map(b => (
-                                <SelectItem key={b.nomor_spl} value={b.nomor_spl}>
-                                    {b.nomor_spl}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+            <div className="flex flex-wrap justify-between items-center gap-3 print:hidden">
+                <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">Pilih SPL:</span>
+                        <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+                            <SelectTrigger className="w-48 h-9">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua SPL</SelectItem>
+                                {batches.map(b => (
+                                    <SelectItem key={b.nomor_spl} value={b.nomor_spl}>
+                                        {b.nomor_spl}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">Penanda Tangan (PPK):</span>
+                        <Select value={selectedPPKId} onValueChange={setSelectedPPKId}>
+                            <SelectTrigger className="w-56 h-9">
+                                <SelectValue placeholder="Pilih PPK..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">-- Pilih PPK --</SelectItem>
+                                {ppkList.map(p => (
+                                    <SelectItem key={p.id || p._id} value={p.id || p._id}>
+                                        {p.nama_lengkap}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    
                     <Button variant="ghost" size="icon" onClick={fetchData}>
                         <RefreshCw size={16} />
                     </Button>
@@ -417,6 +471,8 @@ const DafnomSPL = ({ month, year }) => {
                         employeeType="ASN"
                         month={month}
                         year={year}
+                        selectedPPK={selectedPPK}
+                        reportTitle={getReportTitle()}
                     />
                 </TabsContent>
                 
@@ -428,6 +484,8 @@ const DafnomSPL = ({ month, year }) => {
                         employeeType="NON-ASN"
                         month={month}
                         year={year}
+                        selectedPPK={selectedPPK}
+                        reportTitle={getReportTitle()}
                     />
                 </TabsContent>
             </Tabs>
