@@ -24,7 +24,6 @@ const DafnomSPL = ({ month, year }) => {
             @page { size: A4 landscape; margin: 5mm; }
             @media print {
                 body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-                .page-break { page-break-before: always; }
             }
         `
     });
@@ -36,7 +35,6 @@ const DafnomSPL = ({ month, year }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
             const monthStr = `${year}-${String(month).padStart(2, '0')}`;
             const res = await api.get(`/api/kepegawaian/overtime/recap-by-spl?month=${monthStr}`);
             setBatches(res.data || []);
@@ -54,36 +52,79 @@ const DafnomSPL = ({ month, year }) => {
         ? batches 
         : batches.filter(b => b.nomor_spl === selectedBatch);
 
-    // Cell styles
+    // Create SPL columns (max 16 columns like the date columns)
+    const allSPLs = batches.map(b => b.nomor_spl);
+    const splRow1 = allSPLs.slice(0, 16);
+    const splRow2 = allSPLs.slice(16, 31);
+    // Pad to 16 columns
+    while (splRow1.length < 16) splRow1.push(null);
+    while (splRow2.length < 15) splRow2.push(null);
+
+    // Build employee data with SPL hours
+    const employeeMap = {};
+    displayBatches.forEach(batch => {
+        batch.participants?.forEach(p => {
+            const key = p.nip || p.nama_lengkap;
+            if (!employeeMap[key]) {
+                employeeMap[key] = {
+                    nama: p.nama_lengkap,
+                    nip: p.nip,
+                    employee_type: p.employee_type,
+                    grade: p.grade,
+                    spl_hours: {},
+                    total_jam: 0,
+                    uang_lembur: 0,
+                    uang_makan: 0,
+                    jumlah_kotor: 0,
+                    potongan_pph: 0,
+                    jumlah_bersih: 0,
+                    jumlah_makan: 0
+                };
+            }
+            employeeMap[key].spl_hours[batch.nomor_spl] = p.duration_hours;
+            employeeMap[key].total_jam += p.duration_hours || 0;
+            employeeMap[key].uang_lembur += (p.gross_pay || 0) - (p.meal_allowance || 0);
+            employeeMap[key].uang_makan += p.meal_allowance || 0;
+            employeeMap[key].jumlah_kotor += p.gross_pay || 0;
+            employeeMap[key].potongan_pph += p.tax_amount || 0;
+            employeeMap[key].jumlah_bersih += p.net_pay || 0;
+            if (p.meal_allowance > 0) employeeMap[key].jumlah_makan += 1;
+        });
+    });
+    const employees = Object.values(employeeMap);
+
+    // Calculate totals
+    const totals = {
+        total_jam: employees.reduce((acc, e) => acc + (e.total_jam || 0), 0),
+        jumlah_makan: employees.reduce((acc, e) => acc + (e.jumlah_makan || 0), 0),
+        uang_lembur: employees.reduce((acc, e) => acc + (e.uang_lembur || 0), 0),
+        uang_makan: employees.reduce((acc, e) => acc + (e.uang_makan || 0), 0),
+        jumlah_kotor: employees.reduce((acc, e) => acc + (e.jumlah_kotor || 0), 0),
+        potongan_pph: employees.reduce((acc, e) => acc + (e.potongan_pph || 0), 0),
+        jumlah_bersih: employees.reduce((acc, e) => acc + (e.jumlah_bersih || 0), 0),
+    };
+
+    // Cell styles (same as DafnomLembur)
     const thStyle = { 
         border: '1px solid #000', 
         textAlign: 'center', 
         verticalAlign: 'middle', 
-        padding: '4px 3px', 
-        fontSize: '8px',
-        backgroundColor: '#f0f0f0',
+        padding: '2px 1px', 
+        fontSize: '7px',
+        backgroundColor: '#fff',
         fontWeight: 'bold',
-        lineHeight: '1.3'
+        lineHeight: '1.2'
     };
     const tdStyle = { 
         border: '1px solid #000', 
         textAlign: 'center', 
         verticalAlign: 'middle', 
-        padding: '3px 2px', 
-        fontSize: '8px',
+        padding: '2px 1px', 
+        fontSize: '7px',
         backgroundColor: '#fff'
     };
-    const totalRowStyle = { ...tdStyle, backgroundColor: '#c8e6c9', fontWeight: 'bold' };
-    const grandTotalStyle = { ...tdStyle, backgroundColor: '#81c784', fontWeight: 'bold', fontSize: '9px' };
-
-    // Calculate grand totals
-    const grandTotals = displayBatches.reduce((acc, batch) => ({
-        participants: acc.participants + (batch.participants?.length || 0),
-        gross: acc.gross + (batch.total_gross || 0),
-        tax: acc.tax + (batch.total_tax || 0),
-        net: acc.net + (batch.total_net || 0),
-        meal: acc.meal + (batch.participants?.reduce((m, p) => m + (p.meal_allowance || 0), 0) || 0)
-    }), { participants: 0, gross: 0, tax: 0, net: 0, meal: 0 });
+    const splColStyle = { ...thStyle, width: '40px', minWidth: '40px', maxWidth: '40px', padding: '1px', fontSize: '5px' };
+    const totalRowStyle = { ...tdStyle, backgroundColor: '#c8e6c9', fontWeight: 'bold', fontSize: '8px' };
 
     if (loading) {
         return <div className="text-center py-8">Memuat data Dafnom SPL...</div>;
@@ -116,180 +157,200 @@ const DafnomSPL = ({ month, year }) => {
                 </Button>
             </div>
 
-            {batches.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 border rounded-lg">
-                    Tidak ada data SPL untuk bulan ini
-                </div>
-            ) : (
-                <div className="bg-white border shadow-sm overflow-x-auto" ref={componentRef}>
-                    <div style={{ padding: '10px', minWidth: '1000px', fontFamily: 'Arial, sans-serif', fontSize: '8px' }}>
-                        {/* Title */}
-                        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                            <div style={{ fontWeight: 'bold', fontSize: '11px' }}>DAFTAR NOMINATIF LEMBUR BERDASARKAN NOMOR SPL</div>
-                            <div style={{ fontWeight: 'bold', fontSize: '10px' }}>LEMBUR KEGIATAN INVENTARISASI DAN PELABELAN BMN TAHUNAN</div>
+            <div className="bg-white border shadow-sm overflow-x-auto" ref={componentRef}>
+                <div style={{ padding: '10px', minWidth: '1100px', fontFamily: 'Arial, sans-serif', fontSize: '8px' }}>
+                    {/* Title */}
+                    <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '10px' }}>DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR</div>
+                        <div style={{ fontWeight: 'bold', fontSize: '9px' }}>LEMBUR KEGIATAN INVENTARISASI DAN PELABELAN BMN TAHUNAN</div>
+                        <div style={{ fontWeight: 'bold', fontSize: '9px', color: '#1e40af' }}>(BERDASARKAN NOMOR SPL)</div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '8px' }}>
+                        <div style={{ fontWeight: 'bold' }}>
+                            <div>SATUAN KERJA : OTORITA IBU KOTA NUSANTARA (621001)</div>
+                            <div>BULAN : {monthName} {year}</div>
                         </div>
-                        
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '9px' }}>
-                            <div style={{ fontWeight: 'bold' }}>
-                                <div>SATUAN KERJA : OTORITA IBU KOTA NUSANTARA (621001)</div>
-                                <div>BULAN : {monthName} {year}</div>
-                            </div>
-                            <div>Nusantara, {new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'})}</div>
+                        <div>Nusantara, {new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'})}</div>
+                    </div>
+
+                    {batches.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '30px', color: '#666', border: '1px solid #ddd', borderRadius: '4px' }}>
+                            Tidak ada data SPL untuk bulan ini
                         </div>
-
-                        {/* Per SPL Tables */}
-                        {displayBatches.map((batch, batchIdx) => (
-                            <div key={batch.id || batchIdx} className={batchIdx > 0 ? 'page-break' : ''} style={{ marginBottom: '20px' }}>
-                                {/* SPL Header */}
-                                <div style={{ 
-                                    backgroundColor: '#1e40af', 
-                                    color: 'white', 
-                                    padding: '6px 10px', 
-                                    fontWeight: 'bold',
-                                    fontSize: '10px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '0'
-                                }}>
-                                    <span>{batch.nomor_spl}</span>
-                                    <span style={{ fontSize: '9px', fontWeight: 'normal' }}>
-                                        Tanggal: {new Date(batch.date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})} | 
-                                        Waktu: {batch.start_time} - {batch.end_time} ({batch.duration_hours} jam) |
-                                        Status: {batch.status}
-                                    </span>
-                                </div>
-                                
-                                <div style={{ 
-                                    backgroundColor: '#dbeafe', 
-                                    padding: '5px 10px', 
-                                    fontSize: '9px',
-                                    borderLeft: '1px solid #000',
-                                    borderRight: '1px solid #000'
-                                }}>
-                                    <strong>Kegiatan:</strong> {batch.description}
-                                </div>
-
-                                {/* Table for this SPL */}
-                                <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-                                    <thead>
-                                        <tr>
-                                            <th style={{...thStyle, width: '30px'}}>NO</th>
-                                            <th style={{...thStyle, width: '180px'}}>NAMA PEGAWAI</th>
-                                            <th style={{...thStyle, width: '120px'}}>NIP</th>
-                                            <th style={{...thStyle, width: '60px'}}>TIPE</th>
-                                            <th style={{...thStyle, width: '50px'}}>GOL</th>
-                                            <th style={{...thStyle, width: '40px'}}>JAM</th>
-                                            <th style={{...thStyle, width: '90px'}}>UANG LEMBUR</th>
-                                            <th style={{...thStyle, width: '80px'}}>UANG MAKAN</th>
-                                            <th style={{...thStyle, width: '90px'}}>JUMLAH BRUTO</th>
-                                            <th style={{...thStyle, width: '70px'}}>POT. PPH</th>
-                                            <th style={{...thStyle, width: '100px'}}>JUMLAH NETO</th>
-                                        </tr>
-                                        <tr>
-                                            <th style={thStyle}>(1)</th>
-                                            <th style={thStyle}>(2)</th>
-                                            <th style={thStyle}>(3)</th>
-                                            <th style={thStyle}>(4)</th>
-                                            <th style={thStyle}>(5)</th>
-                                            <th style={thStyle}>(6)</th>
-                                            <th style={thStyle}>(7)</th>
-                                            <th style={thStyle}>(8)</th>
-                                            <th style={thStyle}>(9)=(7+8)</th>
-                                            <th style={thStyle}>(10)</th>
-                                            <th style={thStyle}>(11)=(9-10)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {batch.participants?.map((p, idx) => {
-                                            const uangLembur = (p.gross_pay || 0) - (p.meal_allowance || 0);
-                                            return (
-                                                <tr key={idx}>
-                                                    <td style={tdStyle}>{idx + 1}</td>
-                                                    <td style={{...tdStyle, textAlign: 'left', paddingLeft: '5px'}}>{p.nama_lengkap}</td>
-                                                    <td style={{...tdStyle, fontSize: '7px'}}>{p.nip || '-'}</td>
-                                                    <td style={tdStyle}>
-                                                        <span style={{
-                                                            padding: '1px 4px',
-                                                            borderRadius: '3px',
-                                                            backgroundColor: p.employee_type === 'ASN' ? '#dbeafe' : '#fed7aa',
-                                                            color: p.employee_type === 'ASN' ? '#1e40af' : '#c2410c',
-                                                            fontSize: '7px'
-                                                        }}>
-                                                            {p.employee_type}
-                                                        </span>
-                                                    </td>
-                                                    <td style={tdStyle}>{p.grade || '-'}</td>
-                                                    <td style={tdStyle}>{p.duration_hours}</td>
-                                                    <td style={{...tdStyle, textAlign: 'right', paddingRight: '5px'}}>{formatRupiah(uangLembur)}</td>
-                                                    <td style={{...tdStyle, textAlign: 'right', paddingRight: '5px'}}>{formatRupiah(p.meal_allowance)}</td>
-                                                    <td style={{...tdStyle, textAlign: 'right', paddingRight: '5px', fontWeight: 'bold'}}>{formatRupiah(p.gross_pay)}</td>
-                                                    <td style={{...tdStyle, textAlign: 'right', paddingRight: '5px'}}>{formatRupiah(p.tax_amount)}</td>
-                                                    <td style={{...tdStyle, textAlign: 'right', paddingRight: '5px', fontWeight: 'bold'}}>{formatRupiah(p.net_pay)}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                        
-                                        {/* Sub Total for this SPL */}
-                                        <tr>
-                                            <td colSpan={6} style={{...totalRowStyle, textAlign: 'right', paddingRight: '10px'}}>
-                                                SUB TOTAL {batch.nomor_spl} ({batch.participants?.length || 0} orang):
-                                            </td>
-                                            <td style={{...totalRowStyle, textAlign: 'right', paddingRight: '5px'}}>
-                                                {formatRupiah((batch.total_gross || 0) - (batch.participants?.reduce((m, p) => m + (p.meal_allowance || 0), 0) || 0))}
-                                            </td>
-                                            <td style={{...totalRowStyle, textAlign: 'right', paddingRight: '5px'}}>
-                                                {formatRupiah(batch.participants?.reduce((m, p) => m + (p.meal_allowance || 0), 0) || 0)}
-                                            </td>
-                                            <td style={{...totalRowStyle, textAlign: 'right', paddingRight: '5px'}}>{formatRupiah(batch.total_gross)}</td>
-                                            <td style={{...totalRowStyle, textAlign: 'right', paddingRight: '5px'}}>{formatRupiah(batch.total_tax)}</td>
-                                            <td style={{...totalRowStyle, textAlign: 'right', paddingRight: '5px'}}>{formatRupiah(batch.total_net)}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        ))}
-
-                        {/* Grand Total */}
-                        {displayBatches.length > 0 && (
-                            <table style={{ borderCollapse: 'collapse', width: '100%', marginTop: '10px' }}>
-                                <tbody>
+                    ) : (
+                        <>
+                            {/* Table */}
+                            <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}>
+                                <colgroup>
+                                    <col style={{ width: '22px' }} /> {/* NO URT */}
+                                    <col style={{ width: '70px' }} /> {/* Nama */}
+                                    <col style={{ width: '80px' }} /> {/* NIP */}
+                                    <col style={{ width: '22px' }} /> {/* GOL */}
+                                    {Array(16).fill(null).map((_, i) => <col key={i} style={{ width: '40px' }} />)} {/* 16 SPL columns */}
+                                    <col style={{ width: '30px' }} /> {/* Total Jam */}
+                                    <col style={{ width: '26px' }} /> {/* Jml Makan */}
+                                    <col style={{ width: '55px' }} /> {/* Uang Lembur */}
+                                    <col style={{ width: '50px' }} /> {/* Uang Makan */}
+                                    <col style={{ width: '58px' }} /> {/* Jumlah Kolom */}
+                                    <col style={{ width: '45px' }} /> {/* Pot PPH */}
+                                    <col style={{ width: '58px' }} /> {/* Jml Bersih */}
+                                    <col style={{ width: '55px' }} /> {/* TTD/NoRek */}
+                                </colgroup>
+                                <thead>
+                                    {/* Row 1: Main Headers */}
                                     <tr>
-                                        <td colSpan={6} style={{...grandTotalStyle, textAlign: 'right', paddingRight: '10px', width: '480px'}}>
-                                            GRAND TOTAL {selectedBatch === 'all' ? `(${displayBatches.length} SPL, ${grandTotals.participants} orang)` : ''}:
-                                        </td>
-                                        <td style={{...grandTotalStyle, textAlign: 'right', paddingRight: '5px', width: '90px'}}>
-                                            {formatRupiah(grandTotals.gross - grandTotals.meal)}
-                                        </td>
-                                        <td style={{...grandTotalStyle, textAlign: 'right', paddingRight: '5px', width: '80px'}}>
-                                            {formatRupiah(grandTotals.meal)}
-                                        </td>
-                                        <td style={{...grandTotalStyle, textAlign: 'right', paddingRight: '5px', width: '90px'}}>
-                                            {formatRupiah(grandTotals.gross)}
-                                        </td>
-                                        <td style={{...grandTotalStyle, textAlign: 'right', paddingRight: '5px', width: '70px'}}>
-                                            {formatRupiah(grandTotals.tax)}
-                                        </td>
-                                        <td style={{...grandTotalStyle, textAlign: 'right', paddingRight: '5px', width: '100px'}}>
-                                            {formatRupiah(grandTotals.net)}
-                                        </td>
+                                        <th rowSpan={3} style={thStyle}>NO.<br/>URT</th>
+                                        <th rowSpan={3} style={thStyle}>Nama</th>
+                                        <th rowSpan={3} style={thStyle}>NIP</th>
+                                        <th rowSpan={3} style={thStyle}>GOL</th>
+                                        <th colSpan={16} style={thStyle}>JUMLAH JAM KEGIATAN LEMBUR PADA NOMOR SPL</th>
+                                        <th rowSpan={3} style={thStyle}>TOTAL<br/>JAM</th>
+                                        <th rowSpan={3} style={thStyle}>JML<br/>MAKAN<br/>LEMBUR</th>
+                                        <th colSpan={2} style={thStyle}>JUMLAH UANG</th>
+                                        <th rowSpan={3} style={thStyle}>JUMLAH<br/>DARI<br/>KOLOM<br/>(8+9)</th>
+                                        <th rowSpan={3} style={thStyle}>POT.<br/>PPH</th>
+                                        <th rowSpan={3} style={thStyle}>JUMLAH<br/>BERSIH<br/>(10-11)</th>
+                                        <th rowSpan={3} style={thStyle}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
+                                    </tr>
+
+                                    {/* Row 2: SPL Numbers Row 1 (1-16) + Sub-headers */}
+                                    <tr>
+                                        {splRow1.map((spl, idx) => (
+                                            <th key={idx} style={{...splColStyle, backgroundColor: spl ? '#e0f2fe' : '#fff'}}>
+                                                {spl ? spl.replace('SPL-', '').replace(`${year}-`, '') : ''}
+                                            </th>
+                                        ))}
+                                        <th rowSpan={2} style={thStyle}>LEMBUR</th>
+                                        <th rowSpan={2} style={thStyle}>MAKAN</th>
+                                    </tr>
+
+                                    {/* Row 3: SPL Numbers Row 2 (17-31) + empty */}
+                                    <tr>
+                                        {splRow2.map((spl, idx) => (
+                                            <th key={idx} style={{...splColStyle, backgroundColor: spl ? '#e0f2fe' : '#fff'}}>
+                                                {spl ? spl.replace('SPL-', '').replace(`${year}-`, '') : ''}
+                                            </th>
+                                        ))}
+                                        {/* 1 empty cell to make 16 columns */}
+                                        <th style={splColStyle}></th>
+                                    </tr>
+
+                                    {/* Row 4: All Column Identifiers */}
+                                    <tr>
+                                        <th style={thStyle}>(1)</th>
+                                        <th style={thStyle}>(2)</th>
+                                        <th style={thStyle}>(3)</th>
+                                        <th style={thStyle}>(4)</th>
+                                        <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(5) Jam lembur per nomor SPL</th>
+                                        <th style={thStyle}>(6)</th>
+                                        <th style={thStyle}>(7)</th>
+                                        <th style={thStyle}>(8)</th>
+                                        <th style={thStyle}>(9)</th>
+                                        <th style={thStyle}>(10)=(8+9)</th>
+                                        <th style={thStyle}>(11)</th>
+                                        <th style={thStyle}>(12)</th>
+                                        <th style={thStyle}>(13)</th>
+                                    </tr>
+                                </thead>
+                                
+                                <tbody>
+                                    {employees.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={28} style={{...tdStyle, padding: '15px', color: '#666'}}>
+                                                Tidak ada data lembur yang disetujui untuk bulan ini
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        employees.map((emp, idx) => (
+                                            <React.Fragment key={emp.nip || idx}>
+                                                {/* Data Row 1: SPL 1-16 */}
+                                                <tr>
+                                                    <td rowSpan={2} style={tdStyle}>{idx + 1}</td>
+                                                    <td rowSpan={2} style={{...tdStyle, textAlign: 'left', fontSize: '6px'}}>{emp.nama}</td>
+                                                    <td rowSpan={2} style={{...tdStyle, textAlign: 'left', fontSize: '6px'}}>{emp.nip || '-'}</td>
+                                                    <td rowSpan={2} style={tdStyle}>{emp.grade?.split('/')[0] || '-'}</td>
+                                                    
+                                                    {splRow1.map((spl, sIdx) => {
+                                                        const hours = spl ? (emp.spl_hours[spl] || 0) : 0;
+                                                        return (
+                                                            <td key={sIdx} style={{...tdStyle, ...splColStyle, backgroundColor: spl && hours > 0 ? '#e0f2fe' : '#fff'}}>
+                                                                {spl ? (hours > 0 ? Math.round(hours) : '-') : ''}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    
+                                                    <td rowSpan={2} style={tdStyle}>{Math.round(emp.total_jam || 0)}</td>
+                                                    <td rowSpan={2} style={tdStyle}>{emp.jumlah_makan || 0}</td>
+                                                    <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.uang_lembur)}</td>
+                                                    <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.uang_makan)}</td>
+                                                    <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_kotor)}</td>
+                                                    <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px'}}>{formatRupiah(emp.potongan_pph)}</td>
+                                                    <td rowSpan={2} style={{...tdStyle, textAlign: 'right', fontSize: '6px', fontWeight: 'bold'}}>{formatRupiah(emp.jumlah_bersih)}</td>
+                                                    <td rowSpan={2} style={{...tdStyle, fontSize: '5px'}}>-<br/>Mandiri</td>
+                                                </tr>
+                                                
+                                                {/* Data Row 2: SPL 17-31 + empty */}
+                                                <tr>
+                                                    {splRow2.map((spl, sIdx) => {
+                                                        const hours = spl ? (emp.spl_hours[spl] || 0) : 0;
+                                                        return (
+                                                            <td key={sIdx} style={{...tdStyle, ...splColStyle, backgroundColor: spl && hours > 0 ? '#e0f2fe' : '#fff'}}>
+                                                                {spl ? (hours > 0 ? Math.round(hours) : '-') : ''}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    {/* 1 empty cell */}
+                                                    <td style={{...tdStyle, ...splColStyle}}></td>
+                                                </tr>
+                                            </React.Fragment>
+                                        ))
+                                    )}
+                                    
+                                    {/* Total Row */}
+                                    <tr>
+                                        <td colSpan={4} style={totalRowStyle}>JUMLAH TOTAL</td>
+                                        <td colSpan={16} style={totalRowStyle}></td>
+                                        <td style={totalRowStyle}>{Math.round(totals.total_jam)}</td>
+                                        <td style={totalRowStyle}>{totals.jumlah_makan}</td>
+                                        <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.uang_lembur)}</td>
+                                        <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.uang_makan)}</td>
+                                        <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.jumlah_kotor)}</td>
+                                        <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.potongan_pph)}</td>
+                                        <td style={{...totalRowStyle, textAlign: 'right'}}>{formatRupiah(totals.jumlah_bersih)}</td>
+                                        <td style={totalRowStyle}></td>
                                     </tr>
                                 </tbody>
                             </table>
-                        )}
 
-                        {/* Footer */}
-                        <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end' }}>
-                            <div style={{ textAlign: 'center', fontSize: '9px', width: '180px' }}>
-                                <div>Mengetahui:</div>
-                                <div style={{ fontWeight: 'bold', marginBottom: '40px' }}>Pejabat Pembuat Komitmen</div>
-                                <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>AMBAR TRI BAWONO</div>
-                                <div>NIP. 198112082009011008</div>
+                            {/* SPL Legend */}
+                            <div style={{ marginTop: '10px', padding: '8px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '7px' }}>
+                                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Keterangan Nomor SPL:</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {allSPLs.map((spl, idx) => {
+                                        const batch = batches.find(b => b.nomor_spl === spl);
+                                        return (
+                                            <span key={idx} style={{ backgroundColor: '#e0f2fe', padding: '2px 6px', borderRadius: '3px' }}>
+                                                <strong>{spl.replace('SPL-', '').replace(`${year}-`, '')}</strong>: {batch?.date} ({batch?.start_time}-{batch?.end_time})
+                                            </span>
+                                        );
+                                    })}
+                                </div>
                             </div>
+                        </>
+                    )}
+
+                    {/* Footer */}
+                    <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <div style={{ textAlign: 'center', fontSize: '8px', width: '160px' }}>
+                            <div>Mengetahui:</div>
+                            <div style={{ fontWeight: 'bold', marginBottom: '35px' }}>Pejabat Pembuat Komitmen</div>
+                            <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>AMBAR TRI BAWONO</div>
+                            <div>NIP. 198112082009011008</div>
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 };
