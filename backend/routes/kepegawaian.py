@@ -353,6 +353,7 @@ async def update_holiday(
         "name": holiday.get('name', existing['name']),
         "description": holiday.get('description', existing.get('description', '')),
         "is_national": holiday.get('is_national', existing.get('is_national', True)),
+        "is_cuti_nasional": holiday.get('is_cuti_nasional', existing.get('is_cuti_nasional', False)),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
