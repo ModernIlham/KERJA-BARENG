@@ -1249,9 +1249,6 @@ async def recap_overtime_by_spl(month: str = None, include_pending: bool = False
     year, mon = map(int, month.split("-"))
     days_in_month = calendar.monthrange(year, mon)[1]
     
-    # Get holidays for the month
-    holidays_in_month = await get_holidays_for_month(year, mon)
-    
     # Get approved batches for the month (or all if include_pending)
     batch_query = {"$or": [
         {"date": {"$regex": f"^{month}"}},
