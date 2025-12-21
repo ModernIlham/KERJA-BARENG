@@ -334,6 +334,7 @@ const DafnomLembur = ({ month, year }) => {
 
     const daysInMonth = data?.days_in_month || 31;
     const holidays = data?.holidays || [];
+    const cutiNasional = data?.cuti_nasional || [];
     const employees = data?.employees || [];
 
     // Get selected PPK object
@@ -381,7 +382,8 @@ const DafnomLembur = ({ month, year }) => {
                 <TabsContent value="ASN" className="mt-4">
                     <DafnomTable 
                         employees={employees} 
-                        holidays={holidays} 
+                        holidays={holidays}
+                        cutiNasional={cutiNasional}
                         daysInMonth={daysInMonth}
                         employeeType="ASN"
                         month={month}
@@ -393,7 +395,8 @@ const DafnomLembur = ({ month, year }) => {
                 <TabsContent value="NON_ASN" className="mt-4">
                     <DafnomTable 
                         employees={employees} 
-                        holidays={holidays} 
+                        holidays={holidays}
+                        cutiNasional={cutiNasional}
                         daysInMonth={daysInMonth}
                         employeeType="NON-ASN"
                         month={month}
