@@ -12709,10 +12709,10 @@ def main():
 
 
 def main():
-    """Main function to run the Overtime Calculation System test"""
+    """Main function to run the Updated Overtime Calculation Formula test"""
     tester = APITester()
     
-    print("🚀 Starting Overtime Calculation System Testing...")
+    print("🚀 Starting Updated Overtime Calculation Formula Testing...")
     print("=" * 60)
     
     # Test login first
@@ -12720,9 +12720,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Overtime Calculation System test as requested in review
-    if not tester.test_overtime_calculation_system():
-        print("❌ Overtime Calculation System test failed")
+    # Run the Updated Overtime Calculation Formula test as requested in review
+    if not tester.test_updated_overtime_calculation_formula():
+        print("❌ Updated Overtime Calculation Formula test failed")
         return 1
     
     # Print summary
