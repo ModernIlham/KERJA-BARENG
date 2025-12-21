@@ -71,7 +71,7 @@ const DafnomLembur = ({ month, year }) => {
     
     // Days split: 1-16 (first row), 17-31+1empty (second row) = 16 columns each
     const days1to16 = Array.from({ length: 16 }, (_, i) => i + 1);
-    const days17to31 = Array.from({ length: 15 }, (_, i) => i + 17); // 17-31 = 15 days + 1 empty = 16
+    const days17to31 = Array.from({ length: 15 }, (_, i) => i + 17);
 
     // Cell styles
     const thStyle = { 
@@ -145,21 +145,21 @@ const DafnomLembur = ({ month, year }) => {
                         <thead>
                             {/* Row 1: Main Headers */}
                             <tr>
-                                <th rowSpan={3} style={thStyle}>NO.<br/>URT</th>
-                                <th rowSpan={3} style={thStyle}>Nama</th>
-                                <th rowSpan={3} style={thStyle}>NIP</th>
-                                <th rowSpan={3} style={thStyle}>GOL</th>
+                                <th rowSpan={4} style={thStyle}>NO.<br/>URT</th>
+                                <th rowSpan={4} style={thStyle}>Nama</th>
+                                <th rowSpan={4} style={thStyle}>NIP</th>
+                                <th rowSpan={4} style={thStyle}>GOL</th>
                                 <th colSpan={16} style={thStyle}>JUMLAH JAM KEGIATAN LEMBUR PADA TANGGAL</th>
                                 <th colSpan={2} style={thStyle}>JUMLAH JAM</th>
-                                <th rowSpan={2} style={thStyle}>JML<br/>MAKAN<br/>LEMBUR</th>
+                                <th rowSpan={3} style={thStyle}>JML<br/>MAKAN<br/>LEMBUR</th>
                                 <th colSpan={2} style={thStyle}>JUMLAH UANG</th>
-                                <th rowSpan={2} style={thStyle}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
-                                <th rowSpan={2} style={thStyle}>POT.<br/>PPH</th>
-                                <th rowSpan={2} style={thStyle}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
-                                <th rowSpan={3} style={thStyle}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
+                                <th rowSpan={3} style={thStyle}>JUMLAH<br/>DARI<br/>KOLOM<br/>(9+10)</th>
+                                <th rowSpan={3} style={thStyle}>POT.<br/>PPH</th>
+                                <th rowSpan={3} style={thStyle}>JUMLAH<br/>BERSIH<br/>(11-12)</th>
+                                <th rowSpan={4} style={thStyle}>TANDA<br/>TANGAN<br/>/<br/>NO REK</th>
                             </tr>
 
-                            {/* Row 2: Days 1-16 + Sub-headers */}
+                            {/* Row 2: Days 1-16 + Sub-headers (rowSpan=2) */}
                             <tr>
                                 {days1to16.map(day => {
                                     const valid = day <= daysInMonth;
@@ -170,13 +170,13 @@ const DafnomLembur = ({ month, year }) => {
                                         </th>
                                     );
                                 })}
-                                <th style={thStyle}>HARI<br/>KERJA</th>
-                                <th style={thStyle}>HARI<br/>LIBUR</th>
-                                <th style={thStyle}>LEMBUR</th>
-                                <th style={thStyle}>MAKAN</th>
+                                <th rowSpan={2} style={thStyle}>HARI<br/>KERJA</th>
+                                <th rowSpan={2} style={thStyle}>HARI<br/>LIBUR</th>
+                                <th rowSpan={2} style={thStyle}>LEMBUR</th>
+                                <th rowSpan={2} style={thStyle}>MAKAN</th>
                             </tr>
 
-                            {/* Row 3: Days 17-31 + 1 empty cell + Column Numbers */}
+                            {/* Row 3: Days 17-31 + 1 empty cell */}
                             <tr>
                                 {days17to31.map(day => {
                                     const valid = day <= daysInMonth;
@@ -187,8 +187,13 @@ const DafnomLembur = ({ month, year }) => {
                                         </th>
                                     );
                                 })}
-                                {/* 1 empty cell to make 16 columns (15 days + 1 empty) */}
+                                {/* 1 empty cell to make 16 columns */}
                                 <th style={dayColStyle}></th>
+                            </tr>
+
+                            {/* Row 4: All Column Identifiers */}
+                            <tr>
+                                <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(5) tanda "-" = Libur ; tanda "+" = Kerja</th>
                                 <th style={thStyle}>(6)</th>
                                 <th style={thStyle}>(7)</th>
                                 <th style={thStyle}>(8)</th>
@@ -197,17 +202,6 @@ const DafnomLembur = ({ month, year }) => {
                                 <th style={thStyle}>(11)=(9+10)</th>
                                 <th style={thStyle}>(12)</th>
                                 <th style={thStyle}>(13)</th>
-                            </tr>
-
-                            {/* Row 4: Column Identifiers */}
-                            <tr>
-                                <th style={thStyle}>(1)</th>
-                                <th style={thStyle}>(2)</th>
-                                <th style={thStyle}>(3)</th>
-                                <th style={thStyle}>(4)</th>
-                                <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(5) tanda "-" = Libur ; tanda "+" = Kerja</th>
-                                <th colSpan={8} style={thStyle}></th>
-                                <th style={thStyle}>(14)</th>
                             </tr>
                         </thead>
                         
