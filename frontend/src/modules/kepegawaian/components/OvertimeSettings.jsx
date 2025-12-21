@@ -170,6 +170,171 @@ const OvertimeSettings = () => {
                                 </p>
                             </div>
 
+                            {/* POTONGAN PPH SECTION */}
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-bold text-red-700 uppercase border-b pb-1">Potongan PPH (Persentase)</h3>
+                                
+                                <h4 className="text-xs font-semibold text-red-600">Tarif PPH ASN per Golongan</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Golongan I</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                value={(settings.tax_asn_gol_1 || 0) * 100} 
+                                                onChange={e => handleChange('tax_asn_gol_1', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Golongan II</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                value={(settings.tax_asn_gol_2 || 0) * 100} 
+                                                onChange={e => handleChange('tax_asn_gol_2', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Golongan III</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                value={(settings.tax_asn_gol_3 || 0) * 100} 
+                                                onChange={e => handleChange('tax_asn_gol_3', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Golongan IV</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                value={(settings.tax_asn_gol_4 || 0) * 100} 
+                                                onChange={e => handleChange('tax_asn_gol_4', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 className="text-xs font-semibold text-red-600 mt-3">Tarif PPH Non-ASN per Kategori</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">PPNPN (Umum)</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                className="h-8"
+                                                value={(settings.tax_non_asn_ppnpn || 0) * 100} 
+                                                onChange={e => handleChange('tax_non_asn_ppnpn', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">Satpam</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                className="h-8"
+                                                value={(settings.tax_non_asn_satpam || 0) * 100} 
+                                                onChange={e => handleChange('tax_non_asn_satpam', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">Supir</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                className="h-8"
+                                                value={(settings.tax_non_asn_supir || 0) * 100} 
+                                                onChange={e => handleChange('tax_non_asn_supir', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">Pramubakti</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                className="h-8"
+                                                value={(settings.tax_non_asn_pramubakti || 0) * 100} 
+                                                onChange={e => handleChange('tax_non_asn_pramubakti', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">Konsultan</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                className="h-8"
+                                                value={(settings.tax_non_asn_konsultan || 0) * 100} 
+                                                onChange={e => handleChange('tax_non_asn_konsultan', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">Tenaga Ahli</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                className="h-8"
+                                                value={(settings.tax_non_asn_tenaga_ahli || 0) * 100} 
+                                                onChange={e => handleChange('tax_non_asn_tenaga_ahli', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">Teknisi</Label>
+                                        <div className="flex items-center gap-1">
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                className="h-8"
+                                                value={(settings.tax_non_asn_teknisi || 0) * 100} 
+                                                onChange={e => handleChange('tax_non_asn_teknisi', parseFloat(e.target.value) / 100)} 
+                                            />
+                                            <span className="text-xs text-slate-500">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <p className="text-[10px] text-slate-500 bg-red-50 p-2 rounded mt-2">
+                                    *PPH dihitung dari (Uang Lembur + Uang Makan) × Tarif PPH. Masukkan nilai dalam persen (misal: 5 untuk 5%).
+                                </p>
+                            </div>
+
+                            {/* FORMULA INFO */}
+                            <div className="space-y-2 bg-blue-50 p-3 rounded-lg">
+                                <h4 className="text-xs font-bold text-blue-800">Formula Perhitungan Lembur (Depnaker/PMK):</h4>
+                                <div className="text-[10px] text-blue-700 space-y-1">
+                                    <p><strong>Hari Kerja:</strong> Jam 1 = 1.5× tarif, Jam 2+ = 2× tarif</p>
+                                    <p><strong>Hari Libur:</strong> Jam 1-7 = 2× tarif, Jam 8 = 3× tarif, Jam 9+ = 4× tarif</p>
+                                </div>
+                            </div>
+
                             <div className="flex justify-end pt-4 border-t">
                                 <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
                                     <Save className="w-4 h-4 mr-2"/>
