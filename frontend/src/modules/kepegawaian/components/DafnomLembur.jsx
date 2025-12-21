@@ -216,10 +216,9 @@ const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeT
                                         
                                         {days1to16.map(day => {
                                             const valid = day <= daysInMonth;
-                                            const holiday = valid && isHoliday(day);
                                             const dayData = emp.daily_hours?.[String(day)] || { hours: 0 };
                                             return (
-                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...getDayBgStyle(day)}}>
                                                     {valid ? (dayData.hours > 0 ? Math.round(dayData.hours) : 0) : ''}
                                                 </td>
                                             );
@@ -247,10 +246,9 @@ const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeT
                                     <tr>
                                         {days17to31.map(day => {
                                             const valid = day <= daysInMonth;
-                                            const holiday = valid && isHoliday(day);
                                             const dayData = emp.daily_hours?.[String(day)] || { hours: 0 };
                                             return (
-                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...(holiday ? holidayBg : {})}}>
+                                                <td key={day} style={{...tdStyle, ...dayColStyle, ...getDayBgStyle(day)}}>
                                                     {valid ? (dayData.hours > 0 ? Math.round(dayData.hours) : 0) : ''}
                                                 </td>
                                             );
