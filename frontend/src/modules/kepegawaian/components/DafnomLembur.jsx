@@ -177,15 +177,10 @@ const DafnomLembur = ({ month, year }) => {
                                 <td style={{...cell, fontWeight: 'bold'}}>13</td>
                             </tr>
 
-                            {/* Row 6: Column numbers 1-4, 14 */}
+                            {/* Row 6: Empty row - columns 1-4 already covered by rowSpan=6 */}
                             <tr>
-                                <td style={{...cell, fontWeight: 'bold'}}>1</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>2</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>3</td>
-                                <td style={{...cell, fontWeight: 'bold'}}>4</td>
                                 <td colSpan={16} style={cell}></td>
                                 <td colSpan={8} style={cell}></td>
-                                <td style={{...cell, fontWeight: 'bold'}}>14</td>
                             </tr>
                         </thead>
                         
