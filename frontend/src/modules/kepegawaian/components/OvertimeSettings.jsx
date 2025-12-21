@@ -16,6 +16,12 @@ const OvertimeSettings = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('tarif');
+    
+    // Reset states
+    const [resetDialogOpen, setResetDialogOpen] = useState(false);
+    const [resetType, setResetType] = useState(null);
+    const [confirmText, setConfirmText] = useState('');
+    const [resetting, setResetting] = useState(false);
 
     useEffect(() => {
         fetchSettings();
