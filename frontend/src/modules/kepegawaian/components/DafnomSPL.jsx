@@ -12,7 +12,7 @@ const formatRupiah = (num) => {
     return `Rp ${Math.round(num).toLocaleString('id-ID')}`;
 };
 
-const DafnomSPLTable = ({ batches, holidays, daysInMonth, employeeType, month, year, selectedPPK, reportTitle }) => {
+const DafnomSPLTable = ({ batches, holidays, cutiNasional, daysInMonth, employeeType, month, year, selectedPPK, reportTitle }) => {
     const componentRef = useRef();
     
     const handlePrint = useReactToPrint({
@@ -30,6 +30,7 @@ const DafnomSPLTable = ({ batches, holidays, daysInMonth, employeeType, month, y
     const monthName = monthNames[parseInt(month) - 1] || "-";
 
     const isHoliday = (day) => holidays.includes(day);
+    const isCutiNasional = (day) => (cutiNasional || []).includes(day);
 
     // Filter batches by employee type
     const filteredBatches = batches.map(batch => ({
@@ -79,10 +80,18 @@ const DafnomSPLTable = ({ batches, holidays, daysInMonth, employeeType, month, y
         backgroundColor: '#fff'
     };
     const dayColStyle = { ...thStyle, width: '18px', minWidth: '18px', maxWidth: '18px', padding: '1px' };
-    const holidayBg = { backgroundColor: '#ffcccc' };
+    const holidayBg = { backgroundColor: '#ffcccc' };  // Regular holiday - red
+    const cutiNasionalBg = { backgroundColor: '#fff0f0' };  // Cuti Nasional - faded red
     const totalRowStyle = { ...tdStyle, backgroundColor: '#c8e6c9', fontWeight: 'bold', fontSize: '8px' };
     const grandTotalStyle = { ...tdStyle, backgroundColor: '#81c784', fontWeight: 'bold', fontSize: '8px' };
     const splColStyle = { ...tdStyle, backgroundColor: '#e3f2fd' };
+
+    // Helper to get day background style
+    const getDayBgStyle = (day) => {
+        if (!isHoliday(day)) return {};
+        if (isCutiNasional(day)) return cutiNasionalBg;
+        return holidayBg;
+    };
 
     if (filteredBatches.length === 0) {
         return (
