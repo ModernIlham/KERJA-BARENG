@@ -343,12 +343,12 @@ const DafnomLembur = ({ month, year }) => {
                 <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">Penanda Tangan (PPK):</span>
-                        <Select value={selectedPPKId} onValueChange={setSelectedPPKId}>
+                        <Select value={selectedPPKId || "none"} onValueChange={(val) => setSelectedPPKId(val === "none" ? "" : val)}>
                             <SelectTrigger className="w-56 h-9">
                                 <SelectValue placeholder="Pilih PPK..." />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">-- Pilih PPK --</SelectItem>
+                                <SelectItem value="none">-- Pilih PPK --</SelectItem>
                                 {ppkList.map(p => (
                                     <SelectItem key={p.id || p._id} value={p.id || p._id}>
                                         {p.nama_lengkap}
