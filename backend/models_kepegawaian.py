@@ -41,9 +41,22 @@ class OvertimeSettings(MongoBaseModel):
     # Legacy/Fallback
     meal_non_asn: float = 30000
     
-    # Tax Rates
-    tax_asn_gol_3: float = 0.05
-    tax_asn_gol_4: float = 0.15
+    # Tax Rates ASN per Golongan
+    tax_asn_gol_1: float = 0.0   # Golongan I - 0%
+    tax_asn_gol_2: float = 0.0   # Golongan II - 0%
+    tax_asn_gol_3: float = 0.05  # Golongan III - 5%
+    tax_asn_gol_4: float = 0.15  # Golongan IV - 15%
+    
+    # Tax Rates NON-ASN per Kategori
+    tax_non_asn_ppnpn: float = 0.0
+    tax_non_asn_konsultan: float = 0.0
+    tax_non_asn_tenaga_ahli: float = 0.0
+    tax_non_asn_teknisi: float = 0.0
+    tax_non_asn_pramubakti: float = 0.0
+    tax_non_asn_satpam: float = 0.0
+    tax_non_asn_supir: float = 0.0
+    
+    # Legacy/Fallback Tax
     tax_non_asn: float = 0.0
     
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
