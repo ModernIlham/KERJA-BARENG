@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { RefreshCw, Printer, FileText, Users, Calendar, DollarSign } from 'lucide-react';
+import { RefreshCw, Printer, FileText, Users, Calendar, DollarSign, Download } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
+import * as XLSX from 'xlsx';
 import api from '../../../api/axios';
 import { formatCurrency } from '../../../lib/utils';
 
@@ -26,6 +27,38 @@ const RekapSPL = () => {
             }
         `
     });
+
+    // Export to Excel function
+    const handleExportExcel = () => {
+        const exportData = [];
+        
+        data.forEach((batch) => {
+            const participants = batch.participants || [];
+            participants.forEach((p, pIdx) => {
+                exportData.push({
+                    'No SPL': batch.nomor_spl,
+                    'Status': batch.status,
+                    'Tanggal': batch.date,
+                    'Kegiatan': batch.description,
+                    'No': pIdx + 1,
+                    'Nama': p.nama_lengkap,
+                    'NIP': p.nip || '-',
+                    'Tipe': p.employee_type,
+                    'Golongan': p.grade || '-',
+                    'Jam': p.duration_hours,
+                    'Bruto': p.gross_pay || 0,
+                    'Uang Makan': p.meal_allowance || 0,
+                    'Pajak': p.tax_amount || 0,
+                    'Neto': p.net_pay || 0,
+                });
+            });
+        });
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Rekap SPL');
+        XLSX.writeFile(wb, `Rekap_SPL_${selectedMonth}_${selectedYear}.xlsx`);
+    };
 
     const months = [
         { value: '01', label: 'Januari' },
