@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Printer, RefreshCw } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+import api from '../../../api/axios';
 
 const formatRupiah = (num) => {
     if (num === null || num === undefined) return '-';
@@ -12,7 +12,7 @@ const formatRupiah = (num) => {
     return `Rp ${Math.round(num).toLocaleString('id-ID')}`;
 };
 
-const DafnomTable = ({ employees, holidays, daysInMonth, employeeType, month, year }) => {
+const DafnomTable = ({ employees, holidays, daysInMonth, employeeType, month, year, selectedPPK }) => {
     const componentRef = useRef();
     
     const handlePrint = useReactToPrint({
@@ -100,6 +100,7 @@ const DafnomTable = ({ employees, holidays, daysInMonth, employeeType, month, ye
                     <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                         <div style={{ fontWeight: 'bold', fontSize: '10px' }}>DAFTAR/REKAP PEMBAYARAN PERHITUNGAN LEMBUR DAN UANG MAKAN LEMBUR</div>
                         <div style={{ fontWeight: 'bold', fontSize: '9px' }}>PEGAWAI {employeeType}</div>
+                        <div style={{ fontWeight: 'bold', fontSize: '9px', marginTop: '4px' }}>PER PEGAWAI</div>
                     </div>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '8px' }}>
@@ -267,13 +268,22 @@ const DafnomTable = ({ employees, holidays, daysInMonth, employeeType, month, ye
                         </tbody>
                     </table>
 
-                    {/* Footer */}
+                    {/* Footer - PPK Signature */}
                     <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <div style={{ textAlign: 'center', fontSize: '8px', width: '160px' }}>
+                        <div style={{ textAlign: 'center', fontSize: '8px', width: '180px' }}>
                             <div>Mengetahui:</div>
                             <div style={{ fontWeight: 'bold', marginBottom: '35px' }}>Pejabat Pembuat Komitmen</div>
-                            <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>AMBAR TRI BAWONO</div>
-                            <div>NIP. 198112082009011008</div>
+                            {selectedPPK ? (
+                                <>
+                                    <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>{selectedPPK.nama_lengkap}</div>
+                                    <div>NIP. {selectedPPK.nip || '-'}</div>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{ fontWeight: 'bold', textDecoration: 'underline' }}>_____________________</div>
+                                    <div>NIP. _____________________</div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -286,32 +296,41 @@ const DafnomLembur = ({ month, year }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [employeeTypeFilter, setEmployeeTypeFilter] = useState('ASN');
+    const [ppkList, setPpkList] = useState([]);
+    const [selectedPPKId, setSelectedPPKId] = useState('');
 
     useEffect(() => {
         fetchDafnomData();
+        fetchPPKList();
     }, [month, year]);
 
     const fetchDafnomData = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
             const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-            const res = await fetch(`${API_URL}/api/kepegawaian/overtime/dafnom?month=${monthStr}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const json = await res.json();
-                setData(json);
-            }
+            const res = await api.get(`/api/kepegawaian/overtime/dafnom?month=${monthStr}`);
+            setData(res.data || {});
         } catch (err) {
             console.error('Error fetching dafnom:', err);
         }
         setLoading(false);
     };
 
+    const fetchPPKList = async () => {
+        try {
+            const res = await api.get('/api/pegawai/pejabat?role=PPK');
+            setPpkList(res.data || []);
+        } catch (err) {
+            console.error('Error fetching PPK list:', err);
+        }
+    };
+
     const daysInMonth = data?.days_in_month || 31;
     const holidays = data?.holidays || [];
     const employees = data?.employees || [];
+
+    // Get selected PPK object
+    const selectedPPK = ppkList.find(p => p.id === selectedPPKId || p._id === selectedPPKId);
 
     if (loading) {
         return <div className="text-center py-8">Memuat data Dafnom...</div>;
@@ -319,11 +338,30 @@ const DafnomLembur = ({ month, year }) => {
 
     return (
         <div className="space-y-4">
-            {/* Refresh Button */}
-            <div className="flex justify-end print:hidden">
-                <Button variant="ghost" size="icon" onClick={fetchDafnomData}>
-                    <RefreshCw size={16} />
-                </Button>
+            {/* Filters */}
+            <div className="flex flex-wrap justify-between items-center gap-3 print:hidden">
+                <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">Penanda Tangan (PPK):</span>
+                        <Select value={selectedPPKId} onValueChange={setSelectedPPKId}>
+                            <SelectTrigger className="w-56 h-9">
+                                <SelectValue placeholder="Pilih PPK..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">-- Pilih PPK --</SelectItem>
+                                {ppkList.map(p => (
+                                    <SelectItem key={p.id || p._id} value={p.id || p._id}>
+                                        {p.nama_lengkap}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    
+                    <Button variant="ghost" size="icon" onClick={fetchDafnomData}>
+                        <RefreshCw size={16} />
+                    </Button>
+                </div>
             </div>
 
             {/* Tabs for ASN/NON-ASN */}
@@ -341,6 +379,7 @@ const DafnomLembur = ({ month, year }) => {
                         employeeType="ASN"
                         month={month}
                         year={year}
+                        selectedPPK={selectedPPK}
                     />
                 </TabsContent>
                 
@@ -352,6 +391,7 @@ const DafnomLembur = ({ month, year }) => {
                         employeeType="NON-ASN"
                         month={month}
                         year={year}
+                        selectedPPK={selectedPPK}
                     />
                 </TabsContent>
             </Tabs>
