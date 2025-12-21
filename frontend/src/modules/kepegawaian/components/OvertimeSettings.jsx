@@ -430,6 +430,177 @@ const OvertimeSettings = () => {
             <TabsContent value="libur">
                 <HolidayManagement />
             </TabsContent>
+
+            {/* RESET DATA TAB */}
+            <TabsContent value="reset">
+                <Card className="border-red-200 shadow-sm">
+                    <CardHeader className="border-b border-red-100 bg-red-50">
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-red-600" />
+                            <CardTitle className="text-base font-bold text-red-700">Reset Data Kepegawaian</CardTitle>
+                        </div>
+                        <CardDescription className="text-red-600">
+                            Perhatian! Aksi ini tidak dapat dibatalkan. Pastikan Anda sudah membackup data sebelum melakukan reset.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-4">
+                        {/* Reset Overtime Data */}
+                        <div className={`p-4 rounded-lg border ${resetConfig.overtime.borderColor} ${resetConfig.overtime.bgColor}`}>
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3">
+                                    <Clock className={`w-8 h-8 ${resetConfig.overtime.color} mt-0.5`} />
+                                    <div>
+                                        <h4 className={`font-semibold ${resetConfig.overtime.color}`}>{resetConfig.overtime.title}</h4>
+                                        <p className="text-sm text-slate-600 mt-1">{resetConfig.overtime.description}</p>
+                                        <div className="text-xs text-slate-500 mt-2">
+                                            Termasuk: <span className="font-medium">overtime_requests, overtime_batches, attendance</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <Button 
+                                    variant="outline" 
+                                    className="border-orange-400 text-orange-700 hover:bg-orange-100"
+                                    onClick={() => openResetDialog('overtime')}
+                                >
+                                    <Trash2 className="w-4 h-4 mr-2" /> Reset Lembur
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Reset Employee Data */}
+                        <div className={`p-4 rounded-lg border ${resetConfig.employees.borderColor} ${resetConfig.employees.bgColor}`}>
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3">
+                                    <Users className={`w-8 h-8 ${resetConfig.employees.color} mt-0.5`} />
+                                    <div>
+                                        <h4 className={`font-semibold ${resetConfig.employees.color}`}>{resetConfig.employees.title}</h4>
+                                        <p className="text-sm text-slate-600 mt-1">{resetConfig.employees.description}</p>
+                                        <div className="text-xs text-slate-500 mt-2">
+                                            Termasuk: <span className="font-medium">pegawai (semua data karyawan)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <Button 
+                                    variant="outline" 
+                                    className="border-red-400 text-red-700 hover:bg-red-100"
+                                    onClick={() => openResetDialog('employees')}
+                                >
+                                    <Trash2 className="w-4 h-4 mr-2" /> Reset Pegawai
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Reset All Data */}
+                        <div className={`p-4 rounded-lg border-2 ${resetConfig.all.borderColor} ${resetConfig.all.bgColor}`}>
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3">
+                                    <Database className={`w-8 h-8 ${resetConfig.all.color} mt-0.5`} />
+                                    <div>
+                                        <h4 className={`font-bold ${resetConfig.all.color}`}>{resetConfig.all.title}</h4>
+                                        <p className="text-sm text-slate-600 mt-1">{resetConfig.all.description}</p>
+                                        <div className="text-xs text-slate-500 mt-2">
+                                            Termasuk: <span className="font-medium">pegawai, overtime_requests, overtime_batches, attendance, holidays</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <Button 
+                                    variant="destructive" 
+                                    className="bg-red-600 hover:bg-red-700"
+                                    onClick={() => openResetDialog('all')}
+                                >
+                                    <Trash2 className="w-4 h-4 mr-2" /> Reset Semua
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Warning Box */}
+                        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                                <div className="text-sm text-yellow-800">
+                                    <p className="font-semibold">Peringatan Penting:</p>
+                                    <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
+                                        <li>Data yang dihapus tidak dapat dikembalikan</li>
+                                        <li>Pastikan sudah melakukan backup sebelum reset</li>
+                                        <li>Pengaturan tarif lembur tidak akan terpengaruh oleh reset</li>
+                                        <li>User login dan role tetap dipertahankan</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            {/* Reset Confirmation Dialog */}
+            <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-red-600">
+                            <AlertTriangle className="w-5 h-5" />
+                            {resetType && resetConfig[resetType]?.title}
+                        </DialogTitle>
+                        <DialogDescription className="text-slate-600">
+                            {resetType && resetConfig[resetType]?.description}
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p className="text-sm text-red-700 font-medium">
+                                Aksi ini tidak dapat dibatalkan!
+                            </p>
+                            <p className="text-xs text-red-600 mt-1">
+                                Semua data yang dipilih akan dihapus secara permanen.
+                            </p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="confirm" className="text-sm font-medium">
+                                Ketik <span className="font-bold text-red-600">CONFIRM</span> untuk melanjutkan:
+                            </Label>
+                            <Input
+                                id="confirm"
+                                value={confirmText}
+                                onChange={(e) => setConfirmText(e.target.value)}
+                                placeholder="Ketik CONFIRM"
+                                className="border-red-200 focus:border-red-400"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => {
+                                setResetDialogOpen(false);
+                                setConfirmText('');
+                            }}
+                            disabled={resetting}
+                        >
+                            Batal
+                        </Button>
+                        <Button 
+                            variant="destructive"
+                            onClick={handleReset}
+                            disabled={confirmText !== 'CONFIRM' || resetting}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            {resetting ? (
+                                <>
+                                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                    Menghapus...
+                                </>
+                            ) : (
+                                <>
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Hapus Data
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Tabs>
     );
 };
