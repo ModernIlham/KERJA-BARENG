@@ -22,6 +22,33 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # --- HELPERS ---
+
+# Get holidays for a specific month (custom holidays + weekends)
+async def get_holidays_for_month(year: int, month: int):
+    """Get all holidays for a month: custom holidays + weekends (Sat/Sun)"""
+    days_in_month = calendar.monthrange(year, month)[1]
+    holidays = set()
+    
+    # Add weekends (Saturday=5, Sunday=6)
+    for d in range(1, days_in_month + 1):
+        weekday = calendar.weekday(year, month, d)
+        if weekday >= 5:
+            holidays.add(d)
+    
+    # Add custom holidays from database
+    start_date = f"{year}-{month:02d}-01"
+    end_date = f"{year}-{month:02d}-{days_in_month:02d}"
+    
+    custom_holidays = await db.holidays.find({
+        "date": {"$gte": start_date, "$lte": end_date}
+    }).to_list(100)
+    
+    for h in custom_holidays:
+        day = int(h['date'].split('-')[2])
+        holidays.add(day)
+    
+    return sorted(list(holidays))
+
 async def get_overtime_settings():
     settings = await db.overtime_settings.find_one({"key": "overtime_rates"})
     if not settings:
