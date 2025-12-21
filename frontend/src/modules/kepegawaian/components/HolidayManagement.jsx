@@ -72,7 +72,7 @@ const HolidayManagement = () => {
             toast.success("Hari libur berhasil diupdate");
             setIsEditDialogOpen(false);
             setEditingHoliday(null);
-            setFormData({ date: '', name: '', description: '', is_national: true });
+            setFormData({ date: '', name: '', description: '', is_national: true, is_cuti_nasional: false });
             fetchHolidays();
         } catch (e) {
             toast.error(e.response?.data?.detail || "Gagal mengupdate hari libur");
