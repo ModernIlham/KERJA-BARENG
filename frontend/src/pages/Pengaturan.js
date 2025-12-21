@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download, PackageX } from 'lucide-react';
+import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download, PackageX, Users, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
@@ -16,6 +16,107 @@ import DeleteTransactionDialog from '../components/DeleteTransactionDialog';
 import UnitKerjaManager from '../components/pegawai/UnitKerjaManager';
 import InstansiSettings from '../components/pegawai/InstansiSettings';
 import DeleteMasterDataDialog from '../components/DeleteMasterDataDialog';
+
+// Kepegawaian Reset Dialog Component
+const KepegawaianResetDialog = ({ type, onConfirm, loading }) => {
+    const [open, setOpen] = useState(false);
+    const [confirmText, setConfirmText] = useState('');
+
+    const config = {
+        overtime: {
+            title: 'Reset Data Lembur',
+            description: 'Hapus semua data pengajuan lembur, SPL batch, dan data absensi. Data tarif dan hari libur tidak akan dihapus.',
+            buttonText: 'Reset Lembur',
+            icon: Clock,
+            color: 'text-orange-600',
+            buttonClass: 'border-orange-400 text-orange-700 hover:bg-orange-100'
+        },
+        employees: {
+            title: 'Reset Data Pegawai',
+            description: 'Hapus semua data pegawai dari database. Perhatian: Ini akan menghapus semua pegawai yang terdaftar!',
+            buttonText: 'Reset Pegawai',
+            icon: Users,
+            color: 'text-red-600',
+            buttonClass: 'border-red-400 text-red-700 hover:bg-red-100'
+        },
+        all_kepegawaian: {
+            title: 'Reset Semua Data Kepegawaian',
+            description: 'Hapus SEMUA data kepegawaian termasuk pegawai, lembur, absensi, dan hari libur kustom. Hanya pengaturan tarif yang dipertahankan.',
+            buttonText: 'Reset Kepegawaian',
+            icon: Database,
+            color: 'text-red-700',
+            buttonClass: 'bg-red-600 hover:bg-red-700 text-white'
+        }
+    };
+
+    const cfg = config[type];
+    const Icon = cfg.icon;
+
+    const handleConfirm = async () => {
+        if (confirmText !== 'CONFIRM') {
+            toast.error('Ketik "CONFIRM" untuk melanjutkan');
+            return;
+        }
+        await onConfirm(type);
+        setOpen(false);
+        setConfirmText('');
+    };
+
+    return (
+        <>
+            <Button
+                variant={type === 'all_kepegawaian' ? 'default' : 'outline'}
+                className={`w-full justify-start ${cfg.buttonClass}`}
+                onClick={() => setOpen(true)}
+                disabled={loading}
+            >
+                <Icon size={16} className="mr-2" />
+                {cfg.buttonText}
+            </Button>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className={`flex items-center gap-2 ${cfg.color}`}>
+                            <AlertTriangle className="w-5 h-5" />
+                            {cfg.title}
+                        </DialogTitle>
+                        <DialogDescription>{cfg.description}</DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p className="text-sm text-red-700 font-medium">Aksi ini tidak dapat dibatalkan!</p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label>Ketik <span className="font-bold text-red-600">CONFIRM</span> untuk melanjutkan:</Label>
+                            <Input
+                                value={confirmText}
+                                onChange={(e) => setConfirmText(e.target.value)}
+                                placeholder="Ketik CONFIRM"
+                                className="border-red-200"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => { setOpen(false); setConfirmText(''); }} disabled={loading}>
+                            Batal
+                        </Button>
+                        <Button 
+                            variant="destructive"
+                            onClick={handleConfirm}
+                            disabled={confirmText !== 'CONFIRM' || loading}
+                        >
+                            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Menghapus...</> : <><Trash className="w-4 h-4 mr-2" /> Hapus Data</>}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
 export default function Pengaturan() {
   const [users, setUsers] = useState([]);
   const [units, setUnits] = useState([]);
