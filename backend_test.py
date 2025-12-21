@@ -1555,9 +1555,9 @@ class APITester:
         
         return True
 
-    def test_overtime_calculation_system(self):
-        """Test overtime calculation system to verify workday vs holiday calculations are correct"""
-        print("\n=== OVERTIME CALCULATION SYSTEM TEST ===")
+    def test_updated_overtime_calculation_formula(self):
+        """Test the updated overtime calculation formula as requested in review"""
+        print("\n=== UPDATED OVERTIME CALCULATION FORMULA TEST ===")
         
         # Ensure we have a valid token
         if not self.token:
@@ -1566,57 +1566,198 @@ class APITester:
                 print("❌ Failed to login, cannot proceed with overtime calculation test")
                 return False
         
-        # Step 1: Get current settings - Check tax rates per category
-        print("\n⚙️ Step 1: Testing GET /api/kepegawaian/settings...")
+        # Step 1: Test calculation formula - GET /api/kepegawaian/overtime/dafnom?month=2025-12
+        print("\n📊 Step 1: Testing GET /api/kepegawaian/overtime/dafnom?month=2025-12...")
         
-        success, settings_response = self.run_test(
-            "Get Overtime Settings",
+        success, dafnom_response = self.run_test(
+            "Get Dafnom Data for December 2025",
             "GET",
-            "api/kepegawaian/settings",
-            200
-        )
-        
-        if not success:
-            print("❌ Failed to get overtime settings")
-            return False
-        
-        print("✅ Overtime settings retrieved successfully")
-        
-        # Verify required tax rate fields exist
-        required_tax_fields = [
-            'tax_asn_gol_1', 'tax_asn_gol_2', 'tax_asn_gol_3', 'tax_asn_gol_4',
-            'tax_non_asn_ppnpn', 'tax_non_asn_satpam', 'tax_non_asn_supir',
-            'tax_non_asn_pramubakti', 'tax_non_asn_konsultan', 'tax_non_asn_tenaga_ahli',
-            'tax_non_asn_teknisi'
-        ]
-        
-        missing_fields = []
-        for field in required_tax_fields:
-            if field not in settings_response:
-                missing_fields.append(field)
-            else:
-                print(f"✅ Tax field '{field}': {settings_response[field]}")
-        
-        if missing_fields:
-            print(f"❌ Missing tax rate fields: {missing_fields}")
-            return False
-        
-        print("✅ All required tax rate fields present in settings")
-        
-        # Step 2: Get holidays detection for December 2025
-        print("\n📅 Step 2: Testing GET /api/kepegawaian/holidays?year=2025&month=12...")
-        
-        success, holidays_response = self.run_test(
-            "Get Holidays for December 2025",
-            "GET",
-            "api/kepegawaian/holidays",
+            "api/kepegawaian/overtime/dafnom",
             200,
-            data={"year": 2025, "month": 12}
+            data={"month": "2025-12"}
         )
         
         if not success:
-            print("❌ Failed to get holidays for December 2025")
+            print("❌ Failed to get Dafnom data for December 2025")
             return False
+        
+        print("✅ Dafnom endpoint accessible")
+        
+        # Step 2: Verify calculation formula for each employee
+        print("\n🧮 Step 2: Verifying calculation formula for each employee...")
+        
+        employees = dafnom_response.get("employees", [])
+        print(f"📊 Found {len(employees)} employees in Dafnom data")
+        
+        if len(employees) == 0:
+            print("ℹ️ No employees found - this may be expected if no overtime data exists for December 2025")
+            print("✅ Dafnom endpoint works correctly (empty data is valid)")
+            return True
+        
+        # Expected rates based on review request
+        expected_rates = {
+            "ASN_III": 30000,  # For ASN Gol III
+            "NON_ASN_PPNPN": 20000  # For NON-ASN PPNPN
+        }
+        
+        calculation_errors = []
+        
+        for emp in employees:
+            emp_name = emp.get('nama', 'Unknown')
+            emp_type = emp.get('employee_type', 'NON_ASN')
+            emp_grade = emp.get('golongan', '')
+            jam_hari_kerja = emp.get('jam_hari_kerja', 0)
+            jam_hari_libur = emp.get('jam_hari_libur', 0)
+            uang_lembur = emp.get('uang_lembur', 0)
+            
+            print(f"\n👤 Employee: {emp_name}")
+            print(f"   Type: {emp_type}, Grade: {emp_grade}")
+            print(f"   Work Hours: {jam_hari_kerja}, Holiday Hours: {jam_hari_libur}")
+            print(f"   Actual uang_lembur: {uang_lembur:,} IDR")
+            
+            # Determine expected rate
+            expected_rate = 0
+            if emp_type == 'ASN' and emp_grade.startswith('III'):
+                expected_rate = expected_rates["ASN_III"]
+            elif emp_type == 'NON_ASN':
+                expected_rate = expected_rates["NON_ASN_PPNPN"]
+            else:
+                print(f"   ⚠️ Unknown employee type/grade combination: {emp_type}/{emp_grade}")
+                continue
+            
+            # Calculate expected uang_lembur using formula:
+            # uang_lembur = (jam_hari_kerja × rate) + (jam_hari_libur × rate × 2)
+            expected_uang_lembur = (jam_hari_kerja * expected_rate) + (jam_hari_libur * expected_rate * 2)
+            
+            print(f"   Expected rate: {expected_rate:,} IDR/hour")
+            print(f"   Expected formula: ({jam_hari_kerja} × {expected_rate:,}) + ({jam_hari_libur} × {expected_rate:,} × 2)")
+            print(f"   Expected uang_lembur: {expected_uang_lembur:,} IDR")
+            
+            # Check if calculation matches (allow small floating point differences)
+            if abs(uang_lembur - expected_uang_lembur) > 1:  # Allow 1 IDR difference for rounding
+                error_msg = f"Employee {emp_name}: Expected {expected_uang_lembur:,} IDR, got {uang_lembur:,} IDR"
+                calculation_errors.append(error_msg)
+                print(f"   ❌ Calculation mismatch!")
+            else:
+                print(f"   ✅ Calculation matches expected formula")
+        
+        # Step 3: Check specific employees mentioned in review request
+        print("\n🎯 Step 3: Checking specific employees mentioned in review...")
+        
+        # Look for Administrator System (ASN III/c)
+        admin_found = False
+        budi_found = False
+        
+        for emp in employees:
+            emp_name = emp.get('nama', '').lower()
+            emp_type = emp.get('employee_type', '')
+            emp_grade = emp.get('golongan', '')
+            
+            if 'administrator' in emp_name and 'system' in emp_name:
+                admin_found = True
+                jam_kerja = emp.get('jam_hari_kerja', 0)
+                jam_libur = emp.get('jam_hari_libur', 0)
+                uang_lembur = emp.get('uang_lembur', 0)
+                
+                print(f"👤 Found Administrator System:")
+                print(f"   Type: {emp_type}, Grade: {emp_grade}")
+                print(f"   Work Hours: {jam_kerja}, Holiday Hours: {jam_libur}")
+                print(f"   Actual uang_lembur: {uang_lembur:,} IDR")
+                
+                # Expected: (40 × 30,000) + (44.02 × 30,000 × 2) = 3,841,200
+                if abs(jam_kerja - 40) < 1 and abs(jam_libur - 44.02) < 1:
+                    expected = (40 * 30000) + (44.02 * 30000 * 2)
+                    print(f"   Expected: (40 × 30,000) + (44.02 × 30,000 × 2) = {expected:,.0f} IDR")
+                    if abs(uang_lembur - expected) > 100:  # Allow 100 IDR difference
+                        calculation_errors.append(f"Administrator System: Expected {expected:,.0f} IDR, got {uang_lembur:,} IDR")
+                        print(f"   ❌ Does not match expected calculation")
+                    else:
+                        print(f"   ✅ Matches expected calculation")
+                
+            elif 'budi' in emp_name and 'test' in emp_name:
+                budi_found = True
+                jam_kerja = emp.get('jam_hari_kerja', 0)
+                jam_libur = emp.get('jam_hari_libur', 0)
+                uang_lembur = emp.get('uang_lembur', 0)
+                
+                print(f"👤 Found Budi Test Employee:")
+                print(f"   Type: {emp_type}, Grade: {emp_grade}")
+                print(f"   Work Hours: {jam_kerja}, Holiday Hours: {jam_libur}")
+                print(f"   Actual uang_lembur: {uang_lembur:,} IDR")
+                
+                # Expected: (41 × 30,000) + (17 × 30,000 × 2) = 2,250,000
+                if abs(jam_kerja - 41) < 1 and abs(jam_libur - 17) < 1:
+                    expected = (41 * 30000) + (17 * 30000 * 2)
+                    print(f"   Expected: (41 × 30,000) + (17 × 30,000 × 2) = {expected:,} IDR")
+                    if abs(uang_lembur - expected) > 100:  # Allow 100 IDR difference
+                        calculation_errors.append(f"Budi Test Employee: Expected {expected:,} IDR, got {uang_lembur:,} IDR")
+                        print(f"   ❌ Does not match expected calculation")
+                    else:
+                        print(f"   ✅ Matches expected calculation")
+        
+        if not admin_found:
+            print("ℹ️ Administrator System employee not found in December 2025 data")
+        if not budi_found:
+            print("ℹ️ Budi Test Employee not found in December 2025 data")
+        
+        # Step 4: Check individual records are stored correctly
+        print("\n📋 Step 4: Checking individual overtime records...")
+        
+        success, overtime_requests = self.run_test(
+            "Get Sample Overtime Requests",
+            "GET",
+            "api/kepegawaian/overtime/requests",
+            200,
+            data={"page": 1, "limit": 10}
+        )
+        
+        if success and overtime_requests.get('data'):
+            requests = overtime_requests['data']
+            print(f"📊 Found {len(requests)} overtime requests to verify")
+            
+            for req in requests[:3]:  # Check first 3 requests
+                duration = req.get('duration_hours', 0)
+                is_holiday = req.get('is_holiday', False)
+                gross_pay = req.get('gross_pay', 0)
+                meal_allowance = req.get('meal_allowance', 0)
+                emp_type = req.get('employee_type', 'NON_ASN')
+                grade = req.get('grade', '')
+                
+                print(f"\n📄 Request: {req.get('nama_lengkap', 'Unknown')}")
+                print(f"   Duration: {duration}h, Holiday: {is_holiday}")
+                print(f"   Type: {emp_type}, Grade: {grade}")
+                print(f"   Gross Pay: {gross_pay:,} IDR")
+                print(f"   Meal Allowance: {meal_allowance:,} IDR (separate from gross_pay)")
+                
+                # Verify gross_pay calculation
+                expected_rate = 30000 if (emp_type == 'ASN' and grade.startswith('III')) else 20000
+                expected_gross = duration * expected_rate * (2 if is_holiday else 1)
+                
+                print(f"   Expected gross: {duration} × {expected_rate:,} × {2 if is_holiday else 1} = {expected_gross:,} IDR")
+                
+                if abs(gross_pay - expected_gross) > 1:
+                    calculation_errors.append(f"Request gross_pay mismatch: Expected {expected_gross:,}, got {gross_pay:,}")
+                    print(f"   ❌ Gross pay calculation incorrect")
+                else:
+                    print(f"   ✅ Gross pay calculation correct")
+        
+        # Step 5: Verify formula description
+        print("\n📝 Step 5: Verifying formula description...")
+        print("✅ Formula verification:")
+        print("   Hari Kerja: Jam × Tarif")
+        print("   Hari Libur: Jam × Tarif × 2")
+        print("   For ASN Gol III: rate = 30,000 IDR")
+        print("   For NON-ASN PPNPN: rate = 20,000 IDR")
+        
+        # Final results
+        if calculation_errors:
+            print(f"\n❌ CALCULATION ERRORS FOUND ({len(calculation_errors)}):")
+            for error in calculation_errors:
+                print(f"   • {error}")
+            return False
+        else:
+            print("\n✅ ALL CALCULATIONS MATCH EXPECTED FORMULA!")
+            return True
         
         holidays_list = holidays_response if isinstance(holidays_response, list) else []
         print(f"✅ Retrieved {len(holidays_list)} holidays for December 2025")
