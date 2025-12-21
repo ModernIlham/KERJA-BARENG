@@ -173,13 +173,9 @@ const DafnomLembur = ({ month, year }) => {
                                 <td style={cell}><b>13</b></td>
                             </tr>
 
-                            {/* Row 6: Column IDs 1-4, 14 */}
+                            {/* Row 6: Column IDs 1-4, 5, 14 */}
                             <tr style={{ fontSize: '5px' }}>
-                                <td style={cell}><b>1</b></td>
-                                <td style={cell}><b>2</b></td>
-                                <td style={cell}><b>3</b></td>
-                                <td style={cell}><b>4</b></td>
-                                <td colSpan="16" style={cell}></td>
+                                <td colSpan="16" style={cell}><b>5</b></td>
                                 <td colSpan="8" style={cell}></td>
                                 <td style={cell}><b>14</b></td>
                             </tr>
