@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 class ActivityFlexiTester:
-    def __init__(self, base_url="https://employee-manager-32.preview.emergentagent.com"):
+    def __init__(self, base_url="https://workflex-system.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
