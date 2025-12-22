@@ -16,17 +16,24 @@ const formatRupiah = (num) => {
 
 const DafnomSPLTable = ({ batches, holidays, cutiNasional, daysInMonth, employeeType, month, year, selectedPPK, reportTitle }) => {
     const componentRef = useRef(null);
+    const [exporting, setExporting] = useState(false);
     
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: `DAFNOM_SPL_${employeeType}_${month}_${year}`,
-        pageStyle: `
-            @page { size: A4 landscape; margin: 5mm; }
-            @media print {
-                body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            }
-        `
-    });
+    const handleExportPDF = async () => {
+        if (!componentRef.current) return;
+        setExporting(true);
+        try {
+            await exportToPdf(
+                componentRef.current, 
+                `DAFNOM_SPL_${employeeType}_${month}_${year}`,
+                { margin: [5, 5, 5, 5] }
+            );
+            toast.success('PDF berhasil diexport');
+        } catch (error) {
+            toast.error('Gagal mengexport PDF');
+        } finally {
+            setExporting(false);
+        }
+    };
 
     const monthNames = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
     const monthName = monthNames[parseInt(month) - 1] || "-";
