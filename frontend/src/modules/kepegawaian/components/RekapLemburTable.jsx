@@ -87,8 +87,12 @@ const RekapLemburTable = ({ data, month, year }) => {
           <Button variant="outline" size="sm" onClick={handleExportExcel} className="text-green-700 border-green-600 hover:bg-green-50">
             <Download className="w-4 h-4 mr-2" /> Excel
           </Button>
-          <Button size="sm" onClick={handlePrint} className="bg-slate-800 text-white hover:bg-slate-700">
-            <Printer className="w-4 h-4 mr-2" /> Cetak
+          <Button size="sm" onClick={handleExportPDF} disabled={exporting} className="bg-red-700 text-white hover:bg-red-800">
+            {exporting ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Mengexport...</>
+            ) : (
+              <><FileDown className="w-4 h-4 mr-2" /> Export PDF</>
+            )}
           </Button>
         </div>
       </CardHeader>
