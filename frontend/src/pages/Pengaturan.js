@@ -613,6 +613,10 @@ export default function Pengaturan() {
             <TabsContent value="unit" className="mt-4">
                 <UnitKerjaManager />
             </TabsContent>
+            
+            <TabsContent value="bank" className="mt-4">
+                <BankManager />
+            </TabsContent>
         </Tabs>
     </div>
   );
