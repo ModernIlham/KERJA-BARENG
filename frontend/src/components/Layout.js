@@ -166,6 +166,7 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 <SidebarItem to="/organisasi" icon={Network} label="Struktur Organisasi" collapsed={collapsed} />
                 <SidebarItem to="/referensi" icon={Book} label="Referensi Kode" end collapsed={collapsed} />
                 <SidebarItem to="/banding" icon={ArrowRightLeft} label="Banding Data" collapsed={collapsed} />
+                <SidebarItem to="/aktivitas" icon={Activity} label="Log Aktivitas" collapsed={collapsed} />
                 <SidebarItem to="/pengaturan" icon={Settings} label="Pengaturan" collapsed={collapsed} />
             </div>
           </div>
