@@ -157,40 +157,223 @@ async def mutasi_pegawai(id: str, mutasi: MutasiPegawai, current_user: str = Dep
     
 @router.get("/import/template")
 async def get_import_template(current_user: str = Depends(get_current_user)):
-    # Create DataFrame for template
-    data = {
-        "NIP": ["198001012005011001 (Wajib)"],
-        "Nama Lengkap": ["Budi Santoso (Wajib)"],
-        "NIK": ["3201010101010001"],
-        "NPWP": ["12.345.678.9-012.000"],
-        "Jabatan": ["Kepala Seksi Umum"],
-        "Eselon 1": ["Sekretariat Jenderal"],
-        "Eselon 2": ["Biro Keuangan"],
-        "Eselon 3": ["Bagian Perbendaharaan"],
-        "Eselon 4": ["Subbagian Verifikasi"],
-        "Pangkat/Golongan": ["Penata (III/c)"],
-        "Status Kepegawaian": ["PNS"],
-        "No Telp": ["08123456789"],
-        "Email": ["budi@example.com"],
-        "Nama Bank": ["BRI"],
-        "No Rekening": ["1234567890"],
-        "Gelar Depan": ["Dr."],
-        "Gelar Belakang": ["S.E., M.M."]
-    }
-    df = pd.DataFrame(data)
+    """Generate Excel template with dropdown validations matching website options"""
     
-    # Save to Excel in memory
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Template Import')
+    # --- REFERENCE DATA ---
+    PANGKAT_ASN = [
+        "Juru Muda (I/a)", "Juru Muda Tingkat I (I/b)", "Juru (I/c)", "Juru Tingkat I (I/d)",
+        "Pengatur Muda (II/a)", "Pengatur Muda Tingkat I (II/b)", "Pengatur (II/c)", "Pengatur Tingkat I (II/d)",
+        "Penata Muda (III/a)", "Penata Muda Tingkat I (III/b)", "Penata (III/c)", "Penata Tingkat I (III/d)",
+        "Pembina (IV/a)", "Pembina Tingkat I (IV/b)", "Pembina Utama Muda (IV/c)", "Pembina Utama Madya (IV/d)", "Pembina Utama (IV/e)"
+    ]
+    
+    STATUS_KEPEGAWAIAN = ["PNS", "PPPK", "Non-ASN", "Honorer", "TNI", "POLRI"]
+    JENIS_KELAMIN = ["Laki-laki", "Perempuan"]
+    AGAMA = ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu", "Lainnya"]
+    STATUS_PERKAWINAN = ["Belum Kawin", "Kawin", "Cerai Hidup", "Cerai Mati"]
+    PENDIDIKAN = ["SD", "SMP", "SMA/SMK", "D1", "D2", "D3", "D4/S1", "S2", "S3"]
+    KEWARGANEGARAAN = ["WNI", "WNA"]
+    STATUS_AKTIF = ["AKTIF", "PENSIUN", "MUTASI KELUAR", "MENINGGAL"]
+    NAMA_BANK = ["BRI", "BNI", "Mandiri", "BTN", "Bank Syariah Indonesia (BSI)", "BCA", "CIMB Niaga", "Danamon", "Permata", "OCBC NISP", "Maybank", "Lainnya"]
+    JENIS_NON_ASN = ["PPNPN", "Satpam", "Supir", "Pramubakti", "Konsultan Individu", "Tenaga Ahli", "Teknisi", "Kontrak", "Magang"]
+    
+    # Fetch unit kerja from database
+    units = await db.unit_kerja.find({}).to_list(1000)
+    eselon1_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '1' and u.get('nama_unit'))))
+    eselon2_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '2' and u.get('nama_unit'))))
+    eselon3_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '3' and u.get('nama_unit'))))
+    eselon4_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '4' and u.get('nama_unit'))))
+    
+    # Create Workbook
+    wb = Workbook()
+    
+    # --- SHEET 1: Template Import ---
+    ws = wb.active
+    ws.title = "Template Import"
+    
+    # Define columns with headers
+    columns = [
+        ("A", "NIP", 25, True),
+        ("B", "Nama Lengkap", 30, True),
+        ("C", "NIK", 20, False),
+        ("D", "NPWP", 20, False),
+        ("E", "Jenis Kelamin", 15, False),
+        ("F", "Tempat Lahir", 20, False),
+        ("G", "Tanggal Lahir", 15, False),
+        ("H", "Agama", 12, False),
+        ("I", "Status Perkawinan", 18, False),
+        ("J", "Pendidikan Terakhir", 20, False),
+        ("K", "Kewarganegaraan", 15, False),
+        ("L", "Status Kepegawaian", 18, False),
+        ("M", "Jenis Non-ASN", 20, False),
+        ("N", "Pangkat/Golongan", 25, False),
+        ("O", "Jabatan", 35, False),
+        ("P", "Eselon 1", 40, False),
+        ("Q", "Eselon 2", 40, False),
+        ("R", "Eselon 3", 40, False),
+        ("S", "Eselon 4", 40, False),
+        ("T", "No Telp", 15, False),
+        ("U", "Email", 30, False),
+        ("V", "Nama Bank", 25, False),
+        ("W", "No Rekening", 20, False),
+        ("X", "Gelar Depan", 12, False),
+        ("Y", "Gelar Belakang", 15, False),
+        ("Z", "Status", 15, False),
+    ]
+    
+    # Styles
+    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=10)
+    required_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Write Headers
+    for col, (col_letter, header, width, is_required) in enumerate(columns, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = required_fill if is_required else header_fill
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        cell.border = border
+        ws.column_dimensions[col_letter].width = width
+    
+    # Add example row (row 2)
+    example_data = [
+        "198001012005011001", "Budi Santoso", "3201010101010001", "12.345.678.9-012.000",
+        "Laki-laki", "Jakarta", "01/01/1980", "Islam", "Kawin", "D4/S1", "WNI",
+        "PNS", "", "Penata (III/c)", "Kepala Seksi Umum",
+        eselon1_list[0] if eselon1_list else "", eselon2_list[0] if eselon2_list else "", 
+        eselon3_list[0] if eselon3_list else "", eselon4_list[0] if eselon4_list else "",
+        "08123456789", "budi@example.com", "BRI", "1234567890", "Dr.", "S.E., M.M.", "AKTIF"
+    ]
+    
+    example_fill = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")
+    for col, value in enumerate(example_data, 1):
+        cell = ws.cell(row=2, column=col, value=value)
+        cell.fill = example_fill
+        cell.border = border
+        cell.alignment = Alignment(horizontal='left', vertical='center')
+    
+    # Set row height
+    ws.row_dimensions[1].height = 30
+    ws.row_dimensions[2].height = 20
+    
+    # --- ADD DATA VALIDATIONS (Dropdowns) ---
+    # Helper to create validation
+    def add_dropdown(col_letter, options, row_start=3, row_end=1000):
+        if not options:
+            return
+        formula = '"' + ','.join(options[:250]) + '"'  # Excel has 255 char limit per formula
+        dv = DataValidation(type="list", formula1=formula, allow_blank=True)
+        dv.error = "Pilih dari daftar yang tersedia"
+        dv.errorTitle = "Input Tidak Valid"
+        dv.prompt = "Pilih dari dropdown"
+        dv.promptTitle = "Pilihan"
+        ws.add_data_validation(dv)
+        dv.add(f"{col_letter}{row_start}:{col_letter}{row_end}")
+    
+    # Add validations
+    add_dropdown("E", JENIS_KELAMIN)
+    add_dropdown("H", AGAMA)
+    add_dropdown("I", STATUS_PERKAWINAN)
+    add_dropdown("J", PENDIDIKAN)
+    add_dropdown("K", KEWARGANEGARAAN)
+    add_dropdown("L", STATUS_KEPEGAWAIAN)
+    add_dropdown("M", JENIS_NON_ASN)
+    add_dropdown("N", PANGKAT_ASN)
+    add_dropdown("V", NAMA_BANK)
+    add_dropdown("Z", STATUS_AKTIF)
+    
+    # Unit kerja dropdowns (if data exists)
+    if eselon1_list:
+        add_dropdown("P", eselon1_list)
+    if eselon2_list:
+        add_dropdown("Q", eselon2_list)
+    if eselon3_list:
+        add_dropdown("R", eselon3_list)
+    if eselon4_list:
+        add_dropdown("S", eselon4_list)
+    
+    # --- SHEET 2: Referensi Data ---
+    ws_ref = wb.create_sheet("Referensi Data")
+    ws_ref.sheet_properties.tabColor = "0070C0"
+    
+    ref_data = [
+        ("Status Kepegawaian", STATUS_KEPEGAWAIAN),
+        ("Jenis Non-ASN", JENIS_NON_ASN),
+        ("Pangkat/Golongan ASN", PANGKAT_ASN),
+        ("Jenis Kelamin", JENIS_KELAMIN),
+        ("Agama", AGAMA),
+        ("Status Perkawinan", STATUS_PERKAWINAN),
+        ("Pendidikan", PENDIDIKAN),
+        ("Kewarganegaraan", KEWARGANEGARAAN),
+        ("Nama Bank", NAMA_BANK),
+        ("Status", STATUS_AKTIF),
+        ("Eselon 1", eselon1_list),
+        ("Eselon 2", eselon2_list),
+        ("Eselon 3", eselon3_list),
+        ("Eselon 4", eselon4_list),
+    ]
+    
+    col_offset = 1
+    for title, items in ref_data:
+        # Header
+        cell = ws_ref.cell(row=1, column=col_offset, value=title)
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center')
         
-        # Adjust column width
-        worksheet = writer.sheets['Template Import']
-        for column in df:
-            column_width = max(df[column].astype(str).map(len).max(), len(column)) + 2
-            col_idx = df.columns.get_loc(column) + 1
-            worksheet.column_dimensions[chr(64 + col_idx)].width = column_width
-            
+        # Items
+        for row_idx, item in enumerate(items, 2):
+            ws_ref.cell(row=row_idx, column=col_offset, value=item)
+        
+        # Set width
+        ws_ref.column_dimensions[chr(64 + col_offset)].width = max(len(title) + 5, 20)
+        col_offset += 1
+    
+    # --- SHEET 3: Petunjuk ---
+    ws_help = wb.create_sheet("Petunjuk Pengisian")
+    ws_help.sheet_properties.tabColor = "00B050"
+    
+    instructions = [
+        ("PETUNJUK IMPORT DATA PEGAWAI", ""),
+        ("", ""),
+        ("1. KOLOM WAJIB (Kuning)", "NIP dan Nama Lengkap HARUS diisi"),
+        ("2. FORMAT TANGGAL", "Gunakan format DD/MM/YYYY (contoh: 01/01/1980)"),
+        ("3. DROPDOWN", "Kolom dengan dropdown akan menampilkan pilihan saat diklik"),
+        ("4. JENIS NON-ASN", "Hanya diisi jika Status Kepegawaian = Non-ASN atau Honorer"),
+        ("5. PANGKAT/GOLONGAN", "Diisi sesuai status (ASN gunakan golongan I-IV)"),
+        ("6. ESELON", "Pilih dari dropdown sesuai struktur organisasi yang ada"),
+        ("7. DUPLIKAT", "Data dengan NIP/NIK/NPWP yang sudah ada akan dilewati"),
+        ("8. SHEET REFERENSI", "Lihat sheet 'Referensi Data' untuk daftar lengkap pilihan"),
+        ("", ""),
+        ("TIPS:", ""),
+        ("- Pastikan semua kolom dropdown menggunakan nilai yang tersedia", ""),
+        ("- Hapus baris contoh (baris 2 hijau) sebelum import", ""),
+        ("- Simpan file dalam format .xlsx", ""),
+    ]
+    
+    for row_idx, (col1, col2) in enumerate(instructions, 1):
+        cell1 = ws_help.cell(row=row_idx, column=1, value=col1)
+        cell2 = ws_help.cell(row=row_idx, column=2, value=col2)
+        if row_idx == 1:
+            cell1.font = Font(bold=True, size=14, color="1F4E79")
+        elif col1.startswith(("1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.")):
+            cell1.font = Font(bold=True)
+    
+    ws_help.column_dimensions['A'].width = 35
+    ws_help.column_dimensions['B'].width = 60
+    
+    # Freeze panes
+    ws.freeze_panes = "A2"
+    
+    # Save to bytes
+    output = BytesIO()
+    wb.save(output)
     output.seek(0)
     
     return StreamingResponse(
