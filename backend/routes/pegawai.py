@@ -402,11 +402,13 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     if eselon1_list:
         add_dropdown("AC", eselon1_list)
     if eselon2_list:
-        add_dropdown("Q", eselon2_list)
+        add_dropdown("AD", eselon2_list)
     if eselon3_list:
-        add_dropdown("R", eselon3_list)
+        add_dropdown("AE", eselon3_list)
     if eselon4_list:
-        add_dropdown("S", eselon4_list)
+        add_dropdown("AF", eselon4_list)
+    if eselon5_list:
+        add_dropdown("AG", eselon5_list)
     
     # --- SHEET 2: Referensi Data ---
     ws_ref = wb.create_sheet("Referensi Data")
@@ -414,19 +416,26 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     
     ref_data = [
         ("Status Kepegawaian", STATUS_KEPEGAWAIAN),
+        ("Pangkat ASN", PANGKAT_ASN),
+        ("Pangkat TNI", PANGKAT_TNI),
+        ("Pangkat POLRI", PANGKAT_POLRI),
         ("Jenis Non-ASN", JENIS_NON_ASN),
-        ("Pangkat/Golongan ASN", PANGKAT_ASN),
+        ("Sub-Kategori Non-ASN", SUB_KATEGORI_NON_ASN),
+        ("Status Penempatan", STATUS_PENEMPATAN),
+        ("Status Jabatan", STATUS_JABATAN),
         ("Jenis Kelamin", JENIS_KELAMIN),
         ("Agama", AGAMA),
         ("Status Perkawinan", STATUS_PERKAWINAN),
         ("Pendidikan", PENDIDIKAN),
         ("Kewarganegaraan", KEWARGANEGARAAN),
+        ("Jenis ID WNA", JENIS_IDENTITAS_WNA),
         ("Nama Bank", NAMA_BANK),
-        ("Status", STATUS_AKTIF),
+        ("Status Sistem", STATUS_AKTIF),
         ("Eselon 1", eselon1_list),
         ("Eselon 2", eselon2_list),
         ("Eselon 3", eselon3_list),
         ("Eselon 4", eselon4_list),
+        ("Eselon 5", eselon5_list),
     ]
     
     col_offset = 1
