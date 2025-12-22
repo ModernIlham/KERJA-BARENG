@@ -337,56 +337,79 @@ class PegawaiDocument(BaseModel):
     file_type: str = "document" # pdf, image, etc.
 
 class Pegawai(MongoBaseModel):
-    # Informasi Utama
-    nip: str
-    nik: Optional[str] = None
-    npwp: Optional[str] = None
-    # Signature
-    signature_url: Optional[str] = None # URL to signature image
-    
+    # ========== IDENTITAS UTAMA (A-H) ==========
     nama_lengkap: str
     gelar_depan: Optional[str] = None
     gelar_belakang: Optional[str] = None
     kewarganegaraan: str = "WNI"
     
-    # Kontak
-    no_telp: Optional[str] = None
-    email: Optional[str] = None
+    # Identitas WNI
+    nip: Optional[str] = None  # untuk ASN
+    nrp: Optional[str] = None  # untuk TNI/POLRI
+    nik: Optional[str] = None  # KTP
+    npwp: Optional[str] = None
     
-    # Bank
-    nama_bank: Optional[str] = None
-    no_rekening: Optional[str] = None
+    # ========== IDENTITAS WNA (I-J) ==========
+    jenis_identitas_wna: Optional[str] = None  # PASPOR/KITAS/KITAP
+    nomor_identitas_wna: Optional[str] = None
     
-    # Jabatan & Unit Kerja
-    jabatan: str # Jabatan Struktural Utama
+    # ========== DATA PRIBADI (K-P) ==========
+    jenis_kelamin: Optional[str] = None
+    tempat_lahir: Optional[str] = None
+    tanggal_lahir: Optional[str] = None  # ISO format
+    agama: Optional[str] = None
+    status_perkawinan: Optional[str] = None
+    pendidikan_terakhir: Optional[str] = None
+    
+    # ========== STATUS KEPEGAWAIAN (Q-V) ==========
+    status_kepegawaian: Optional[str] = None  # PNS, PPPK, TNI, POLRI, Non-ASN, Honorer
+    pangkat_golongan: Optional[str] = None  # e.g. Penata Muda (III/a)
+    status_penempatan: Optional[str] = None  # Definitif, Mutasi, Penugasan
+    instansi_asal: Optional[str] = None  # untuk Penugasan
+    masa_penugasan_end: Optional[str] = None  # tanggal selesai penugasan
+    status_jabatan: Optional[str] = None  # Definitif, Plt, Plh, Pj
+    
+    # ========== NON-ASN DETAIL (W-Z) ==========
+    jenis_non_asn: Optional[str] = None  # Kontrak, Outsourcing
+    sub_kategori_non_asn: Optional[str] = None  # PPNPN, Satpam, Supir, dll
+    tgl_mulai_kontrak: Optional[str] = None
+    tgl_selesai_kontrak: Optional[str] = None
+    
+    # Legacy field mapping
+    sub_kategori: Optional[str] = None  # alias for sub_kategori_non_asn
+    
+    # ========== JABATAN & UNIT KERJA (AA-AG) ==========
+    jabatan: Optional[str] = None  # Jabatan Struktural Utama
+    jabatan_melekat: Optional[str] = None  # Jabatan Fungsional Melekat (string, comma separated)
     eselon1: Optional[str] = None
     eselon2: Optional[str] = None
     eselon3: Optional[str] = None
     eselon4: Optional[str] = None
     eselon5: Optional[str] = None
-    jabatan_melekat: List[str] = [] # Jabatan Fungsional Melekat
     
-    # Leadership
-    is_pimpinan_tertinggi: bool = False # Kepala / Wakil Kepala
-    jenis_pimpinan: Optional[str] = None # "Kepala", "Wakil"
+    # Kategori Pegawai
+    kategori_pegawai: Optional[str] = None  # Struktural, Fungsional, Pelaksana
     
-    # Photo
-    foto_url: Optional[str] = None
-    foto_thumbnail_url: Optional[str] = None
+    # ========== KONTAK & BANK (AH-AK) ==========
+    no_telp: Optional[str] = None
+    email: Optional[str] = None
+    nama_bank: Optional[str] = None
+    no_rekening: Optional[str] = None
     
-    # Atribut & Status
-    status_kepegawaian: Optional[str] = None # PNS, PPPK, Non-ASN
-    sub_kategori: Optional[str] = None # NEW: Satpam, Supir, PPNPN, etc.
-    kategori_pegawai: Optional[str] = None # Struktural, Fungsional, Pelaksana
-    status_penempatan: Optional[str] = None # Pusat, Daerah, Penugasan
-    status_jabatan: Optional[str] = None # Definitif, Plt, Plh
-    pangkat_golongan: Optional[str] = None # e.g. Penata Muda (III/a)
-    
-    # System Status
-    status: str = "AKTIF" # AKTIF, CUTI, PENSIUN, KELUAR
+    # ========== STATUS & LAINNYA (AL-AM) ==========
+    status: str = "AKTIF"  # AKTIF, CUTI, TUGAS_BELAJAR, KELUAR, PENSIUN, dll
     keterangan: Optional[str] = None
     
-    # History
+    # ========== LEADERSHIP ==========
+    is_pimpinan_tertinggi: bool = False
+    jenis_pimpinan: Optional[str] = None  # "Kepala", "Wakil"
+    
+    # ========== PHOTO & SIGNATURE ==========
+    foto_url: Optional[str] = None
+    foto_thumbnail_url: Optional[str] = None
+    signature_url: Optional[str] = None
+    
+    # ========== HISTORY ==========
     riwayat_karir: List[RiwayatKarir] = []
     dokumen: List[PegawaiDocument] = []
     
