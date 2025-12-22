@@ -275,8 +275,6 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ("AL", "Status", 15, False),  # AKTIF/CUTI/dll
         ("AM", "Keterangan", 30, False),
     ]
-        ("Z", "Status", 15, False),
-    ]
     
     # Styles
     header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
@@ -296,16 +294,68 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         cell.fill = required_fill if is_required else header_fill
         cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         cell.border = border
-        ws.column_dimensions[col_letter].width = width
+        # Handle column letters for AA, AB, etc.
+        if len(col_letter) == 1:
+            ws.column_dimensions[col_letter].width = width
+        else:
+            ws.column_dimensions[col_letter].width = width
     
-    # Add example row (row 2)
+    # Add example row (row 2) - 39 columns matching new structure
     example_data = [
-        "198001012005011001", "Budi Santoso", "3201010101010001", "12.345.678.9-012.000",
-        "Laki-laki", "Jakarta", "01/01/1980", "Islam", "Kawin", "D4/S1", "WNI",
-        "PNS", "", "Penata (III/c)", "Kepala Seksi Umum",
-        eselon1_list[0] if eselon1_list else "", eselon2_list[0] if eselon2_list else "", 
-        eselon3_list[0] if eselon3_list else "", eselon4_list[0] if eselon4_list else "",
-        "08123456789", "budi@example.com", "BRI", "1234567890", "Dr.", "S.E., M.M.", "AKTIF"
+        # A-H: Identitas Utama
+        "Budi Santoso",  # Nama Lengkap
+        "Dr.",  # Gelar Depan
+        "S.E., M.M.",  # Gelar Belakang
+        "WNI",  # Kewarganegaraan
+        "198001012005011001",  # NIP
+        "",  # NRP (untuk TNI/POLRI)
+        "3201010101010001",  # NIK
+        "12.345.678.9-012.000",  # NPWP
+        
+        # I-J: WNA (kosong untuk WNI)
+        "",  # Jenis Identitas WNA
+        "",  # Nomor Identitas WNA
+        
+        # K-P: Data Pribadi
+        "Laki-laki",  # Jenis Kelamin
+        "Jakarta",  # Tempat Lahir
+        "01/01/1980",  # Tanggal Lahir
+        "Islam",  # Agama
+        "Kawin",  # Status Perkawinan
+        "D4/S1",  # Pendidikan Terakhir
+        
+        # Q-V: Status Kepegawaian
+        "PNS",  # Status Kepegawaian
+        "Penata (III/c)",  # Pangkat/Golongan
+        "Definitif",  # Status Penempatan
+        "",  # Instansi Asal
+        "",  # Masa Penugasan Berakhir
+        "Definitif",  # Status Jabatan
+        
+        # W-Z: Non-ASN Detail (kosong untuk ASN)
+        "",  # Jenis Non-ASN
+        "",  # Sub-Kategori Non-ASN
+        "",  # Tgl Mulai Kontrak
+        "",  # Tgl Selesai Kontrak
+        
+        # AA-AG: Jabatan & Unit Kerja
+        "Kepala Seksi Umum",  # Jabatan
+        "PPK, Bendahara",  # Jabatan Fungsional Melekat
+        eselon1_list[0] if eselon1_list else "",  # Eselon 1
+        eselon2_list[0] if eselon2_list else "",  # Eselon 2
+        eselon3_list[0] if eselon3_list else "",  # Eselon 3
+        eselon4_list[0] if eselon4_list else "",  # Eselon 4
+        eselon5_list[0] if eselon5_list else "",  # Eselon 5
+        
+        # AH-AK: Kontak & Bank
+        "08123456789",  # No Telp
+        "budi@example.com",  # Email
+        "BRI",  # Nama Bank
+        "1234567890",  # No Rekening
+        
+        # AL-AM: Lainnya
+        "AKTIF",  # Status
+        "",  # Keterangan
     ]
     
     example_fill = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")
@@ -320,11 +370,10 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     ws.row_dimensions[2].height = 20
     
     # --- ADD DATA VALIDATIONS (Dropdowns) ---
-    # Helper to create validation
     def add_dropdown(col_letter, options, row_start=3, row_end=1000):
         if not options:
             return
-        formula = '"' + ','.join(options[:250]) + '"'  # Excel has 255 char limit per formula
+        formula = '"' + ','.join(str(o) for o in options[:250]) + '"'
         dv = DataValidation(type="list", formula1=formula, allow_blank=True)
         dv.error = "Pilih dari daftar yang tersedia"
         dv.errorTitle = "Input Tidak Valid"
@@ -333,21 +382,25 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ws.add_data_validation(dv)
         dv.add(f"{col_letter}{row_start}:{col_letter}{row_end}")
     
-    # Add validations
-    add_dropdown("E", JENIS_KELAMIN)
-    add_dropdown("H", AGAMA)
-    add_dropdown("I", STATUS_PERKAWINAN)
-    add_dropdown("J", PENDIDIKAN)
-    add_dropdown("K", KEWARGANEGARAAN)
-    add_dropdown("L", STATUS_KEPEGAWAIAN)
-    add_dropdown("M", JENIS_NON_ASN)
-    add_dropdown("N", PANGKAT_ASN)
-    add_dropdown("V", NAMA_BANK)
-    add_dropdown("Z", STATUS_AKTIF)
+    # Add ALL validations matching PegawaiForm.js
+    add_dropdown("D", KEWARGANEGARAAN)  # Kewarganegaraan
+    add_dropdown("I", JENIS_IDENTITAS_WNA)  # Jenis Identitas WNA
+    add_dropdown("K", JENIS_KELAMIN)  # Jenis Kelamin
+    add_dropdown("N", AGAMA)  # Agama
+    add_dropdown("O", STATUS_PERKAWINAN)  # Status Perkawinan
+    add_dropdown("P", PENDIDIKAN)  # Pendidikan Terakhir
+    add_dropdown("Q", STATUS_KEPEGAWAIAN)  # Status Kepegawaian
+    add_dropdown("R", ALL_PANGKAT)  # Pangkat/Golongan (semua)
+    add_dropdown("S", STATUS_PENEMPATAN)  # Status Penempatan
+    add_dropdown("V", STATUS_JABATAN)  # Status Jabatan
+    add_dropdown("W", JENIS_NON_ASN)  # Jenis Non-ASN
+    add_dropdown("X", SUB_KATEGORI_NON_ASN)  # Sub-Kategori Non-ASN
+    add_dropdown("AJ", NAMA_BANK)  # Nama Bank
+    add_dropdown("AL", STATUS_AKTIF)  # Status
     
-    # Unit kerja dropdowns (if data exists)
+    # Unit kerja dropdowns
     if eselon1_list:
-        add_dropdown("P", eselon1_list)
+        add_dropdown("AC", eselon1_list)
     if eselon2_list:
         add_dropdown("Q", eselon2_list)
     if eselon3_list:
