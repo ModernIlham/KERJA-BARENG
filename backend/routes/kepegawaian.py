@@ -501,17 +501,23 @@ async def clock_in(req: ClockInRequest, current_user: User = Depends(get_current
     })
     if existing:
         raise HTTPException(status_code=400, detail="Already clocked in today")
-        
-    pegawai = await db.pegawai.find_one({"_id": ObjectId(current_user.pegawai_id)})
-    if not pegawai:
-        raise HTTPException(status_code=404, detail="Pegawai profile not found")
+    
+    # Handle users with or without pegawai profile
+    pegawai = None
+    nama_lengkap = current_user.full_name or current_user.email
+    pegawai_id = current_user.pegawai_id
+    
+    if current_user.pegawai_id:
+        pegawai = await db.pegawai.find_one({"_id": ObjectId(current_user.pegawai_id)})
+        if pegawai:
+            nama_lengkap = pegawai['nama_lengkap']
     
     photo_url = save_base64_image(req.photo, "in")
     
     new_att = Attendance(
         user_id=str(current_user.id),
-        pegawai_id=str(current_user.pegawai_id),
-        nama_lengkap=pegawai['nama_lengkap'],
+        pegawai_id=str(pegawai_id) if pegawai_id else str(current_user.id),
+        nama_lengkap=nama_lengkap,
         date=today,
         clock_in=datetime.now(timezone.utc),
         clock_in_photo=photo_url,
