@@ -200,7 +200,7 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     
     # Status Fields
     STATUS_PENEMPATAN = ["Definitif", "Mutasi", "Penugasan"]
-    STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj"]
+    STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj", "Pjs"]
     JENIS_IDENTITAS_WNA = ["PASPOR", "KITAS", "KITAP"]
     
     # Fetch unit kerja from database

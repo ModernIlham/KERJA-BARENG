@@ -50,7 +50,7 @@ const NAMA_BANK = ["BRI", "BNI", "Mandiri", "BTN", "Bank Syariah Indonesia (BSI)
 const JENIS_NON_ASN = ["Kontrak", "Outsourcing"];
 const SUB_KATEGORI_NON_ASN = ["PPNPN", "Konsultan Individu", "Tenaga Ahli", "Teknisi", "Pramubakti", "Satpam", "Supir", "Magang"];
 const STATUS_PENEMPATAN = ["Definitif", "Mutasi", "Penugasan"];
-const STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj"];
+const STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj", "Pjs"];
 const JENIS_IDENTITAS_WNA = ["PASPOR", "KITAS", "KITAP"];
 const KATEGORI_PEGAWAI = ["Struktural", "Fungsional", "Pelaksana"];
 
