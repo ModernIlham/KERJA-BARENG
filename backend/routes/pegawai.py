@@ -192,8 +192,6 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     PENDIDIKAN = ["SD", "SMP", "SMA/SMK", "D1", "D2", "D3", "D4/S1", "S2", "S3"]
     KEWARGANEGARAAN = ["WNI", "WNA"]
     STATUS_AKTIF = ["AKTIF", "CUTI", "TUGAS_BELAJAR", "KELUAR", "PENSIUN", "MUTASI KELUAR", "MENINGGAL"]
-    NAMA_BANK = ["BRI", "BNI", "Mandiri", "BTN", "Bank Syariah Indonesia (BSI)", "BCA", "CIMB Niaga", "Danamon", "Permata", "OCBC NISP", "Maybank", "Lainnya"]
-    
     # Non-ASN Fields
     JENIS_NON_ASN = ["Kontrak", "Outsourcing"]
     SUB_KATEGORI_NON_ASN = ["PPNPN", "Konsultan Individu", "Tenaga Ahli", "Teknisi", "Pramubakti", "Satpam", "Supir", "Magang"]
@@ -210,6 +208,14 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     eselon3_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '3' and u.get('nama_unit'))))
     eselon4_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '4' and u.get('nama_unit'))))
     eselon5_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '5' and u.get('nama_unit'))))
+    
+    # Fetch banks from database (dynamic)
+    banks = await db.banks.find().sort("nama_bank", 1).to_list(1000)
+    if not banks:
+        # Use default if no banks in DB
+        NAMA_BANK = ["BRI", "BNI", "Mandiri", "BTN", "Bank Syariah Indonesia (BSI)", "BCA", "CIMB Niaga", "Danamon", "Permata", "OCBC NISP", "Maybank", "Lainnya"]
+    else:
+        NAMA_BANK = [b.get('nama_bank') for b in banks if b.get('nama_bank')]
     
     # Create Workbook
     wb = Workbook()
