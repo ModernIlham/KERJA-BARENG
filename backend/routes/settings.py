@@ -26,6 +26,13 @@ class UnitKerja(BaseModel):
     eselon: str
     parent_id: Optional[str] = None
     order: Optional[int] = 0
+
+class BankModel(BaseModel):
+    id: Optional[str] = None
+    nama_bank: str
+    kode_bank: Optional[str] = None
+    is_default: bool = False
+    created_at: Optional[str] = None
     
 class UserSettings(BaseModel):
     email: str
