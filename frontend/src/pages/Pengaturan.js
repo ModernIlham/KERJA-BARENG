@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download, PackageX, Users, Clock } from 'lucide-react';
+import { Loader2, Plus, Trash, User, Building, Database, RefreshCw, AlertTriangle, Eraser, Download, PackageX, Users, Clock, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
@@ -16,6 +16,7 @@ import DeleteTransactionDialog from '../components/DeleteTransactionDialog';
 import UnitKerjaManager from '../components/pegawai/UnitKerjaManager';
 import InstansiSettings from '../components/pegawai/InstansiSettings';
 import DeleteMasterDataDialog from '../components/DeleteMasterDataDialog';
+import BankManager from '../components/pegawai/BankManager';
 
 // Kepegawaian Reset Dialog Component
 const KepegawaianResetDialog = ({ type, onConfirm, loading }) => {
