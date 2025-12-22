@@ -189,11 +189,11 @@ class OvertimeCreate(BaseModel):
 
 class ClockInRequest(BaseModel):
     photo: str # Base64 string or URL if handled separately
-    location: Optional[Dict[str, float]] = None
+    location: Optional[Dict[str, Any]] = None  # {lat, lng, accuracy, address}
 
 class ClockOutRequest(BaseModel):
     photo: Optional[str] = None
-    location: Optional[Dict[str, float]] = None
+    location: Optional[Dict[str, Any]] = None  # {lat, lng, accuracy, address}
 
 
 
