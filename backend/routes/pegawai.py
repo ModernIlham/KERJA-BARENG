@@ -8,6 +8,7 @@ from bson import ObjectId
 from datetime import datetime, timezone
 import os
 import math
+from lib.activity_logger import log_activity
 
 import pandas as pd
 import uuid
