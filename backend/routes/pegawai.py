@@ -134,10 +134,26 @@ async def get_pegawai_detail(id: str, current_user: str = Depends(get_current_us
     return pegawai
 
 @router.delete("/{id}")
-async def delete_pegawai(id: str, current_user: str = Depends(get_current_user)):
+async def delete_pegawai(id: str, current_user: dict = Depends(get_current_user)):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
+    
+    # Get pegawai info before delete for logging
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    
     res = await db.pegawai.delete_one({"_id": ObjectId(id)})
     if res.deleted_count == 0: raise HTTPException(status_code=404)
+    
+    # Log activity
+    await log_activity(
+        db=db,
+        user_id=str(current_user.get("_id", "")),
+        user_name=current_user.get("full_name", "Unknown"),
+        action="DELETE",
+        module="Pegawai",
+        target_id=id,
+        details=f"Menghapus pegawai: {pegawai.get('nama_lengkap', 'Unknown') if pegawai else 'Unknown'}"
+    )
+    
     return {"message": "Pegawai deleted"}
 
 @router.post("/{id}/mutasi", response_model=Pegawai)
