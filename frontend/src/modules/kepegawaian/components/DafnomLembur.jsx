@@ -2,10 +2,11 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Printer, RefreshCw, Download } from 'lucide-react';
-import { useReactToPrint } from 'react-to-print';
+import { FileDown, RefreshCw, Download, Loader2 } from 'lucide-react';
+import { exportToPdf } from '../../../utils/pdfExport';
 import * as XLSX from 'xlsx';
 import api from '../../../api/axios';
+import { toast } from 'sonner';
 
 const formatRupiah = (num) => {
     if (num === null || num === undefined) return '-';
