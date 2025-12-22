@@ -18,6 +18,7 @@ import PersediaanTable from '../components/barang/PersediaanTable';
 import PersediaanTransactionModal from '../components/barang/PersediaanTransactionModal';
 import KartuStokModal from '../components/barang/KartuStokModal';
 import FotoManager from '../components/barang/FotoManager';
+import KIBModal from '../components/barang/KIBModal';
 
 export default function BarangList() {
   const location = useLocation();
