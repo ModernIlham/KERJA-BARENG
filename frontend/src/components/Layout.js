@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -28,30 +28,113 @@ const SidebarItem = ({ to, icon: Icon, label, end = false, collapsed = false }) 
     <Icon size={18} strokeWidth={2} className={cn("shrink-0", collapsed ? "w-6 h-6" : "w-[18px] h-[18px]")} />
     {!collapsed && <span>{label}</span>}
     {collapsed && (
-        <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">
+        <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none transition-opacity duration-200">
             {label}
         </div>
     )}
   </NavLink>
 );
 
-// Helper for Sidebar Groups (Collapsible)
-const SidebarGroup = ({ icon: Icon, label, children, activePaths = [], collapsed = false }) => {
+// Popup Menu for Collapsed Sidebar Groups
+const PopupMenu = ({ isOpen, position, children, onMouseEnter, onMouseLeave }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div 
+      className="fixed z-[100] bg-slate-900 border border-slate-700 rounded-lg shadow-2xl py-2 min-w-[200px] animate-in fade-in slide-in-from-left-2 duration-200"
+      style={{ left: position.x, top: position.y }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {children}
+    </div>
+  );
+};
+
+// Popup Menu Item
+const PopupMenuItem = ({ to, icon: Icon, label }) => (
+  <NavLink 
+    to={to}
+    className={({ isActive }) => cn(
+      "flex items-center gap-3 px-4 py-2 text-sm font-medium transition-all duration-150",
+      isActive 
+        ? "bg-blue-600 text-white" 
+        : "text-slate-300 hover:bg-slate-800 hover:text-white"
+    )}
+  >
+    <Icon size={16} />
+    <span>{label}</span>
+  </NavLink>
+);
+
+// Helper for Sidebar Groups (Collapsible) with Popup on Collapsed State
+const SidebarGroup = ({ icon: Icon, label, children, activePaths = [], collapsed = false, items = [] }) => {
     const location = useLocation();
     const isOpenDefault = activePaths.some(path => location.pathname.startsWith(path));
     const [isOpen, setIsOpen] = useState(isOpenDefault);
+    const [showPopup, setShowPopup] = useState(false);
+    const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+    const triggerRef = useRef(null);
+    const timeoutRef = useRef(null);
+
+    const handleMouseEnter = () => {
+      if (collapsed && triggerRef.current) {
+        clearTimeout(timeoutRef.current);
+        const rect = triggerRef.current.getBoundingClientRect();
+        setPopupPosition({ x: rect.right + 8, y: rect.top });
+        setShowPopup(true);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      if (collapsed) {
+        timeoutRef.current = setTimeout(() => {
+          setShowPopup(false);
+        }, 150);
+      }
+    };
+
+    const keepPopupOpen = () => {
+      clearTimeout(timeoutRef.current);
+    };
+
+    const closePopup = () => {
+      timeoutRef.current = setTimeout(() => {
+        setShowPopup(false);
+      }, 150);
+    };
 
     if (collapsed) {
         return (
-            <div className="space-y-1">
-                 <div className="flex justify-center p-2 text-slate-400 hover:bg-slate-800/50 rounded-md cursor-pointer group relative">
+            <>
+                <div 
+                    ref={triggerRef}
+                    className="flex justify-center p-2 text-slate-400 hover:bg-slate-800/50 rounded-md cursor-pointer group relative"
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                >
                     <Icon size={20} />
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">
-                        {label} (Expand to view items)
+                    {!showPopup && (
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none transition-opacity">
+                          {label}
+                      </div>
+                    )}
+                </div>
+                <PopupMenu 
+                    isOpen={showPopup} 
+                    position={popupPosition}
+                    onMouseEnter={keepPopupOpen}
+                    onMouseLeave={closePopup}
+                >
+                    <div className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-700 mb-1">
+                        {label}
                     </div>
-                 </div>
-            </div>
-        )
+                    {items.map((item, idx) => (
+                        <PopupMenuItem key={idx} to={item.to} icon={item.icon} label={item.label} />
+                    ))}
+                </PopupMenu>
+            </>
+        );
     }
 
     return (
@@ -76,11 +159,32 @@ const SidebarGroup = ({ icon: Icon, label, children, activePaths = [], collapsed
 const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
   const { logout } = useAuth();
 
+  // Define menu items for groups to pass to popup
+  const asetTetapItems = [
+    { to: '/barang?tab=aset-tetap', icon: ClipboardList, label: 'Daftar Aset' },
+    { to: '/transaksi-aset', icon: ArrowRightLeft, label: 'Transaksi Aset' },
+    { to: '/opname', icon: FileCheck, label: 'Stock Opname' },
+  ];
+
+  const persediaanItems = [
+    { to: '/barang?tab=persediaan', icon: ClipboardList, label: 'Daftar Barang' },
+    { to: '/transaksi-persediaan/masuk', icon: ArrowRightLeft, label: 'Barang Masuk' },
+    { to: '/transaksi-persediaan/keluar', icon: ArrowRightLeft, label: 'Barang Keluar' },
+    { to: '/transaksi-persediaan/riwayat', icon: FileText, label: 'Riwayat Transaksi' },
+  ];
+
+  const laporanItems = [
+    { to: '/laporan/bmn', icon: FileText, label: 'Laporan Inti' },
+    { to: '/laporan/posisi', icon: FileText, label: 'Posisi Stok' },
+    { to: '/laporan/mutasi', icon: FileText, label: 'Mutasi Barang' },
+    { to: '/laporan/kartu', icon: FileText, label: 'Kartu Gudang' },
+  ];
+
   return (
     <aside className={cn(
         "fixed inset-y-0 left-0 z-50 bg-slate-950 text-slate-100 transition-all duration-300 ease-in-out border-r border-slate-800 flex flex-col shadow-2xl",
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-        collapsed ? "w-20" : "w-64"
+        collapsed ? "w-[70px]" : "w-64"
     )}>
       {/* Header */}
       <div className={cn("h-16 flex items-center border-b border-slate-800/50 shrink-0 bg-slate-950 transition-all", collapsed ? "justify-center px-0" : "px-6")}>
@@ -113,9 +217,9 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 <SidebarItem to="/kepegawaian/lembur" icon={Clock} label="Manajemen Lembur" collapsed={collapsed} />
                 <SidebarItem to="/pegawai" icon={Users} label="Data Pegawai" collapsed={collapsed} />
                 <SidebarItem to="/kepegawaian/tugas" icon={ClipboardList} label="Tugas Tim" collapsed={collapsed} />
+                <SidebarItem to="/kepegawaian/absensi" icon={Calendar} label="Riwayat Absensi" collapsed={collapsed} />
             </div>
 
-                <SidebarItem to="/kepegawaian/absensi" icon={Calendar} label="Riwayat Absensi" collapsed={collapsed} />
             {/* Aset & Inventaris */}
             <div className="space-y-1">
                 {!collapsed && (
@@ -124,13 +228,25 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                     </div>
                 )}
                 
-                <SidebarGroup icon={Package} label="Aset Tetap (BMN)" activePaths={['/barang', '/transaksi-aset', '/opname']} collapsed={collapsed}>
+                <SidebarGroup 
+                    icon={Package} 
+                    label="Aset Tetap (BMN)" 
+                    activePaths={['/barang', '/transaksi-aset', '/opname']} 
+                    collapsed={collapsed}
+                    items={asetTetapItems}
+                >
                     <SidebarItem to="/barang?tab=aset-tetap" icon={ClipboardList} label="Daftar Aset" />
                     <SidebarItem to="/transaksi-aset" icon={ArrowRightLeft} label="Transaksi Aset" />
                     <SidebarItem to="/opname" icon={FileCheck} label="Stock Opname" />
                 </SidebarGroup>
 
-                <SidebarGroup icon={Box} label="Persediaan (Gudang)" activePaths={['/barang', '/transaksi-persediaan']} collapsed={collapsed}>
+                <SidebarGroup 
+                    icon={Box} 
+                    label="Persediaan (Gudang)" 
+                    activePaths={['/barang', '/transaksi-persediaan']} 
+                    collapsed={collapsed}
+                    items={persediaanItems}
+                >
                     <SidebarItem to="/barang?tab=persediaan" icon={ClipboardList} label="Daftar Barang" />
                     <SidebarItem to="/transaksi-persediaan/masuk" icon={ArrowRightLeft} label="Barang Masuk" />
                     <SidebarItem to="/transaksi-persediaan/keluar" icon={ArrowRightLeft} label="Barang Keluar" />
@@ -148,7 +264,13 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 <SidebarItem to="/surat" icon={Mail} label="Persuratan" collapsed={collapsed} />
                 <SidebarItem to="/referensi/dokumen" icon={FileSpreadsheet} label="Dokumen Sumber" collapsed={collapsed} />
                 
-                <SidebarGroup icon={FileText} label="Laporan" activePaths={['/laporan']} collapsed={collapsed}>
+                <SidebarGroup 
+                    icon={FileText} 
+                    label="Laporan" 
+                    activePaths={['/laporan']} 
+                    collapsed={collapsed}
+                    items={laporanItems}
+                >
                     <SidebarItem to="/laporan/bmn" icon={FileText} label="Laporan Inti" />
                     <SidebarItem to="/laporan/posisi" icon={FileText} label="Posisi Stok" />
                     <SidebarItem to="/laporan/mutasi" icon={FileText} label="Mutasi Barang" />
@@ -195,10 +317,18 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    // Load from localStorage
+    const saved = localStorage.getItem('sidebar_collapsed');
+    return saved === 'true';
+  });
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  const toggleCollapse = () => setCollapsed(!collapsed);
+  const toggleCollapse = () => {
+    const newState = !collapsed;
+    setCollapsed(newState);
+    localStorage.setItem('sidebar_collapsed', String(newState));
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -213,7 +343,7 @@ const Layout = () => {
       )}
       
       {/* Main content */}
-      <div className={cn("min-h-screen flex flex-col transition-all duration-300", collapsed ? "md:ml-20" : "md:ml-64")}>
+      <div className={cn("min-h-screen flex flex-col transition-all duration-300", collapsed ? "md:ml-[70px]" : "md:ml-64")}>
         {/* Top bar */}
         <header className="bg-white border-b border-slate-200 px-6 py-3 sticky top-0 z-30 shadow-sm">
           <div className="flex items-center justify-between">
