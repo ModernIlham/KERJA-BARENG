@@ -13,20 +13,27 @@ import { formatCurrency } from '../../../lib/utils';
 const RekapSPL = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
     const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear()));
     const componentRef = useRef(null);
 
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: `Rekap_SPL_${selectedMonth}_${selectedYear}`,
-        pageStyle: `
-            @page { size: A4 landscape; margin: 10mm; }
-            @media print {
-                body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            }
-        `
-    });
+    const handleExportPDF = async () => {
+        if (!componentRef.current) return;
+        setExporting(true);
+        try {
+            await exportToPdf(
+                componentRef.current, 
+                `Rekap_SPL_${selectedMonth}_${selectedYear}`,
+                { margin: [10, 10, 10, 10] }
+            );
+            toast.success('PDF berhasil diexport');
+        } catch (error) {
+            toast.error('Gagal mengexport PDF');
+        } finally {
+            setExporting(false);
+        }
+    };
 
     // Export to Excel function
     const handleExportExcel = () => {
