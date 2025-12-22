@@ -351,6 +351,7 @@ export default function Pengaturan() {
                 <TabsTrigger value="users"><User size={14} className="mr-2"/> Manajemen User</TabsTrigger>
                 <TabsTrigger value="unit"><Building size={14} className="mr-2"/> Unit Kerja</TabsTrigger>
                 <TabsTrigger value="bank"><CreditCard size={14} className="mr-2"/> Bank</TabsTrigger>
+                <TabsTrigger value="flexi"><Clock size={14} className="mr-2"/> Flexi-Time</TabsTrigger>
             </TabsList>
             
             <TabsContent value="instansi" className="mt-4">
