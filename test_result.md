@@ -1,53 +1,83 @@
 # Test Result Documentation
 
-## Latest Test Session - December 22, 2025
+## Latest Test Session - December 22, 2025 (Fork Session)
 
-### New Features Implemented:
-1. **Activity Logging System (Smart Resume)** - TESTED ✅
-   - Backend endpoints all working
-   - Frontend page at /aktivitas functional
+### New Features Implemented in This Fork:
 
-2. **Flexi-Time Configuration** - TESTED ✅
-   - Backend endpoints working
-   - Frontend settings page functional
+1. **Collapsible Sidebar with Popup Menus** - IMPLEMENTED ✅
+   - Sidebar can be collapsed/expanded
+   - When collapsed, hover on menu shows popup submenu
+   - State persisted in localStorage
+   - Smooth animations
 
-3. **Export PDF Feature** - IMPLEMENTED ✅
-   - Replaced `react-to-print` with `html2pdf.js`
-   - 4 report components updated: DafnomLembur, DafnomSPL, RekapLemburTable, RekapSPL
-   - PDF export with landscape A4, narrow margins
-   - Created reusable utility: `/app/frontend/src/utils/pdfExport.js`
+2. **Selfie & Location Capture for Attendance** - IMPLEMENTED ✅
+   - Face detection with @vladmandic/face-api
+   - Real-time location with reverse geocoding
+   - Clock In/Out modals with photo capture
+   - Location stored with lat/lng/address
 
-4. **Data Reset Feature** - VERIFIED ✅
-   - Located in Pengaturan → Database & Data tab
-   - Reset Lembur, Reset Pegawai, Reset Kepegawaian buttons available
+3. **KIB (Kartu Inventarisasi Barang)** - IMPLEMENTED ✅
+   - 5 KIB types supported (Tanah, Bangunan, Peralatan, dll)
+   - PDF export with reportlab
+   - Organization settings (UAPB, UAPPB, UAKPB)
+   - 4 photo slots
 
-5. **Struktur Organisasi** - VERIFIED ✅
-   - Tree view with hierarchical display
-   - Drag-and-drop enabled
-   - Expand/Collapse all buttons
-   - Data sudah ada (unit_kerja collection populated)
+4. **Kartu Gudang Persediaan** - ENHANCED ✅
+   - Filter by barang and date range
+   - Show saldo awal, mutasi, saldo akhir
+   - PDF export support
+
+5. **Pagination** - APPLIED ✅
+   - Posisi Stok report with pagination
+   - Mutasi report with pagination
 
 ### Test Credentials:
 - Email: admin@example.com
 - Password: admin
 
 ### Features to Test:
-1. **Activity Log Page** - Navigate to /aktivitas
-   - Verify summary cards (Total Aktivitas, Pengguna Aktif, Modul Aktif, Rata-rata/Hari)
-   - Verify log table with filters (Modul, Aksi, Search)
-   - Verify Per Pengguna tab shows user list
-   - Verify Statistik tab shows charts
 
-2. **Flexi-Time Settings** - Navigate to /pengaturan → Tab Flexi-Time
-   - Verify toggle Aktif/Nonaktif
-   - Verify jam kerja settings
-   - Verify hari kerja checkboxes
-   - Test save functionality
+1. **Collapsible Sidebar**
+   - Click "Collapse" button at bottom of sidebar
+   - Verify sidebar collapses to icons only
+   - Hover on grouped menu icons (Aset Tetap, Persediaan, Laporan)
+   - Verify popup submenu appears with full menu items
+   - Click to expand sidebar again
 
-3. **Bank Management** - Navigate to /pengaturan → Tab Bank  
-   - Verify bank list is displayed
-   - Test add new bank
-   - Test edit bank
+2. **Riwayat Absensi - Selfie & Location** (URL: /kepegawaian/absensi)
+   - Click "Clock In" button
+   - Verify face detection indicator appears
+   - Verify location section shows current location
+   - Verify "Ambil Foto" button works when face detected
+
+3. **KIB Modal** (URL: /barang)
+   - Click action menu (⋯) on any aset row
+   - Click "Lihat KIB"
+   - Verify KIB modal opens with all sections:
+     - Identitas Barang
+     - Nilai & Perolehan
+     - Lokasi
+     - Informasi Tambahan
+     - Foto Barang (4 slots)
+   - Click "Download PDF" to generate KIB PDF
+
+4. **Kartu Gudang** (URL: /laporan/kartu)
+   - Select barang from dropdown
+   - Set date range
+   - Click "Tampilkan"
+   - Verify kartu gudang data displayed
+   - Test PDF export
+
+5. **Pagination on Reports** (URL: /laporan/posisi)
+   - Verify pagination controls visible
+   - Test page navigation
+
+### Previous Features (from handoff):
+1. Activity Logging System - TESTED ✅
+2. Flexi-Time Configuration - TESTED ✅  
+3. Export PDF Feature - IMPLEMENTED ✅
+4. Data Reset Feature - VERIFIED ✅
+5. Struktur Organisasi - VERIFIED ✅
    - Verify Default vs Custom badges
 
 backend:
