@@ -1,26 +1,72 @@
 # Test Result Documentation
 
-## Latest Test Session - December 21, 2025
+## Latest Test Session - December 22, 2025
 
-### Features to Test:
-1. **Cuti Nasional Feature** - New holiday type with faded color
-   - Navigate to Manajemen Lembur → Aturan → Hari Libur
-   - Click "Tambah Hari Libur" button
-   - Verify there are 2 checkboxes: "Hari Libur Nasional" and "Cuti Nasional (Warna Pudar)"
-   - Test adding a new Cuti Nasional entry
+### New Features Implemented:
+1. **Activity Logging System (Smart Resume)** 
+   - Backend: `/api/activity/logs`, `/api/activity/summary`, `/api/activity/users`, `/api/activity/user/{userId}`
+   - Frontend: `/aktivitas` page with activity logs, summary cards, filters
+   - User activity report: `/aktivitas/user/:userId`
+   - Activity logging on login, pegawai CRUD operations
 
-2. **PDF Print & Excel Export on All Report Pages**
-   - Navigate to Manajemen Lembur → Laporan
-   - Check Rekap per SPL - should have Excel and Cetak buttons
-   - Check Rekap per Pegawai - should have Excel and Cetak buttons  
-   - Check Dafnom per Pegawai - should have Export Excel and Cetak buttons
-   - Check Dafnom per SPL - should have Export Excel and Cetak buttons
+2. **Flexi-Time Configuration**
+   - Backend: `/api/activity/flexi-time` (GET/PUT)
+   - Frontend: Tab "Flexi-Time" di halaman Pengaturan
+   - Settings: Jam masuk/pulang normal, toleransi, range flexi-time, hari kerja
+
+3. **Bank Management Enhancement**
+   - Already existed, verified working at `/pengaturan` → Tab Bank
+   - CRUD operations for bank list
+   - Integration with Excel template
 
 ### Test Credentials:
 - Email: admin@example.com
 - Password: admin
 
+### Features to Test:
+1. **Activity Log Page** - Navigate to /aktivitas
+   - Verify summary cards (Total Aktivitas, Pengguna Aktif, Modul Aktif, Rata-rata/Hari)
+   - Verify log table with filters (Modul, Aksi, Search)
+   - Verify Per Pengguna tab shows user list
+   - Verify Statistik tab shows charts
+
+2. **Flexi-Time Settings** - Navigate to /pengaturan → Tab Flexi-Time
+   - Verify toggle Aktif/Nonaktif
+   - Verify jam kerja settings
+   - Verify hari kerja checkboxes
+   - Test save functionality
+
+3. **Bank Management** - Navigate to /pengaturan → Tab Bank  
+   - Verify bank list is displayed
+   - Test add new bank
+   - Test edit bank
+   - Verify Default vs Custom badges
+
 backend:
+  - task: "Activity Logging API"
+    implemented: true
+    working: needs_testing
+    file: "/app/backend/routes/activity.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "needs_testing"
+        agent: "main"
+        comment: "Created activity logging system with endpoints for logs, summary, users, and per-user reports. Integrated login activity logging in auth.py and CRUD logging in pegawai.py."
+
+  - task: "Flexi-Time Settings API"
+    implemented: true
+    working: needs_testing
+    file: "/app/backend/routes/activity.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "needs_testing"
+        agent: "main"
+        comment: "Created flexi-time settings endpoints GET/PUT at /api/activity/flexi-time. Returns default settings if not configured."
+
   - task: "Clock In and Clock Out flow"
     implemented: true
     working: true
