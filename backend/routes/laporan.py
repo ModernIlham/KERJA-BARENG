@@ -5,11 +5,39 @@ from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from bson import ObjectId
+import math
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+def sanitize_doc(doc):
+    """Sanitize MongoDB document for JSON serialization"""
+    if doc is None:
+        return None
+    if isinstance(doc, dict):
+        result = {}
+        for k, v in doc.items():
+            if k == '_id':
+                result['id'] = str(v)
+            elif isinstance(v, ObjectId):
+                result[k] = str(v)
+            elif isinstance(v, float):
+                if math.isnan(v) or math.isinf(v):
+                    result[k] = None
+                else:
+                    result[k] = v
+            elif isinstance(v, dict):
+                result[k] = sanitize_doc(v)
+            elif isinstance(v, list):
+                result[k] = [sanitize_doc(item) if isinstance(item, (dict, list)) else item for item in v]
+            else:
+                result[k] = v
+        return result
+    elif isinstance(doc, list):
+        return [sanitize_doc(item) for item in doc]
+    return doc
 
 @router.get("/mutasi")
 async def get_laporan_mutasi(
