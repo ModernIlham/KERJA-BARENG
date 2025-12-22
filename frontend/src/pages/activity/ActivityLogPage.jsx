@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import {
     Activity, Search, Filter, Clock, User, FileText, Loader2, 
     ChevronLeft, ChevronRight, Calendar, BarChart3, Users, 
     Eye, Download, RefreshCw, TrendingUp, Package, Settings,
-    Database, Shield, Pencil, Trash, PlusCircle, LogIn, FileDown
+    Database, Shield, Pencil, Trash, PlusCircle, LogIn, FileDown, ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
