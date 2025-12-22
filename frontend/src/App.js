@@ -77,6 +77,7 @@ export default function App() {
             
             <Route path="banding" element={<BandingData />} />
             <Route path="pengaturan" element={<Pengaturan />} />
+            <Route path="aktivitas" element={<ActivityLogPage />} />
           </Route>
         </Routes>
       </AuthProvider>
