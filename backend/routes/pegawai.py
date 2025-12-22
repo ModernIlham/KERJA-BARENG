@@ -73,13 +73,26 @@ async def get_pegawai_list(
     }
 
 @router.post("", response_model=Pegawai)
-async def create_pegawai(pegawai_in: PegawaiCreate, current_user: str = Depends(get_current_user)):
+async def create_pegawai(pegawai_in: PegawaiCreate, current_user: dict = Depends(get_current_user)):
     existing = await db.pegawai.find_one({"nip": pegawai_in.nip})
     if existing:
         raise HTTPException(status_code=400, detail="NIP already exists")
         
     new_pegawai = Pegawai(**pegawai_in.dict())
     result = await db.pegawai.insert_one(new_pegawai.model_dump(by_alias=True, exclude=["id"]))
+    
+    # Log activity
+    await log_activity(
+        db=db,
+        user_id=str(current_user.get("_id", "")),
+        user_name=current_user.get("full_name", "Unknown"),
+        action="CREATE",
+        module="Pegawai",
+        target_id=str(result.inserted_id),
+        details=f"Menambahkan pegawai baru: {pegawai_in.nama_lengkap}",
+        metadata={"nama": pegawai_in.nama_lengkap, "nip": pegawai_in.nip}
+    )
+    
     return await db.pegawai.find_one({"_id": result.inserted_id})
 
 @router.put("/{id}", response_model=Pegawai)
