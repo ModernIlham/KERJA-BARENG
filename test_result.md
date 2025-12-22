@@ -238,8 +238,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Activity Logging API"
-    - "Flexi-Time Settings API"
+    - "Activity Log Page UI"
+    - "Flexi-Time Settings UI" 
+    - "Bank Management UI"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
