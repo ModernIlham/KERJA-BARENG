@@ -64,6 +64,7 @@ const getModuleColor = (module) => {
 };
 
 export default function ActivityLogPage() {
+    const navigate = useNavigate();
     const [logs, setLogs] = useState([]);
     const [summary, setSummary] = useState(null);
     const [users, setUsers] = useState([]);
