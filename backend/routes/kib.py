@@ -79,6 +79,21 @@ async def update_kib_settings(
     )
     return {"message": "Settings updated"}
 
+import math
+
+def sanitize_for_json(obj):
+    """Sanitize object for JSON serialization (handle nan/inf floats)"""
+    if isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(item) for item in obj]
+    elif isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    else:
+        return obj
+
 @router.get("/kib/{aset_id}")
 async def get_kib_data(aset_id: str, current_user: str = Depends(get_current_user)):
     """Get KIB data for a specific asset"""
@@ -90,6 +105,9 @@ async def get_kib_data(aset_id: str, current_user: str = Depends(get_current_use
         raise HTTPException(status_code=404, detail="Asset not found")
     
     aset["_id"] = str(aset["_id"])
+    
+    # Sanitize float values to avoid JSON serialization errors
+    aset = sanitize_for_json(aset)
     
     # Get KIB settings
     settings = await db.system_settings.find_one({"key": "kib_settings"})
