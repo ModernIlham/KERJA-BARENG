@@ -18,22 +18,29 @@ const formatCurrency = (amount) => {
 
 const RekapLemburTable = ({ data, month, year }) => {
   const componentRef = useRef(null);
+  const [exporting, setExporting] = useState(false);
   const totalNetPay = data.reduce((acc, curr) => acc + (curr.netPay || 0), 0);
   const totalGross = data.reduce((acc, curr) => acc + (curr.totalGross || 0), 0);
   const totalTax = data.reduce((acc, curr) => acc + (curr.tax || 0), 0);
   const totalMeal = data.reduce((acc, curr) => acc + (curr.mealAllowance || 0), 0);
   const totalHours = data.reduce((acc, curr) => acc + (curr.totalHours || 0), 0);
 
-  const handlePrint = useReactToPrint({
-    contentRef: componentRef,
-    documentTitle: `Rekap_Lembur_${month}_${year}`,
-    pageStyle: `
-      @page { size: A4 landscape; margin: 10mm; }
-      @media print {
-        body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-      }
-    `
-  });
+  const handleExportPDF = async () => {
+    if (!componentRef.current) return;
+    setExporting(true);
+    try {
+      await exportToPdf(
+        componentRef.current, 
+        `Rekap_Lembur_${month}_${year}`,
+        { margin: [10, 10, 10, 10] }
+      );
+      toast.success('PDF berhasil diexport');
+    } catch (error) {
+      toast.error('Gagal mengexport PDF');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleExportExcel = () => {
     const exportData = data.map((row, idx) => ({
