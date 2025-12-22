@@ -417,41 +417,71 @@ class Pegawai(MongoBaseModel):
 
 class PegawaiCreate(BaseModel):
     # Mandatory
-    nip: str
     nama_lengkap: str
-    jabatan: str
     
-    # Optional Fields
-    nik: Optional[str] = None
-    npwp: Optional[str] = None
+    # ========== IDENTITAS UTAMA ==========
     gelar_depan: Optional[str] = None
     gelar_belakang: Optional[str] = None
-    is_pimpinan_tertinggi: Optional[bool] = False
-    jenis_pimpinan: Optional[str] = None
-    foto_url: Optional[str] = None
-    foto_thumbnail_url: Optional[str] = None
     kewarganegaraan: Optional[str] = "WNI"
+    nip: Optional[str] = None
+    nrp: Optional[str] = None
+    nik: Optional[str] = None
+    npwp: Optional[str] = None
     
-    no_telp: Optional[str] = None
-    email: Optional[str] = None
-    nama_bank: Optional[str] = None
-    no_rekening: Optional[str] = None
+    # ========== IDENTITAS WNA ==========
+    jenis_identitas_wna: Optional[str] = None
+    nomor_identitas_wna: Optional[str] = None
     
+    # ========== DATA PRIBADI ==========
+    jenis_kelamin: Optional[str] = None
+    tempat_lahir: Optional[str] = None
+    tanggal_lahir: Optional[str] = None
+    agama: Optional[str] = None
+    status_perkawinan: Optional[str] = None
+    pendidikan_terakhir: Optional[str] = None
+    
+    # ========== STATUS KEPEGAWAIAN ==========
+    status_kepegawaian: Optional[str] = None
+    pangkat_golongan: Optional[str] = None
+    status_penempatan: Optional[str] = None
+    instansi_asal: Optional[str] = None
+    masa_penugasan_end: Optional[str] = None
+    status_jabatan: Optional[str] = None
+    
+    # ========== NON-ASN DETAIL ==========
+    jenis_non_asn: Optional[str] = None
+    sub_kategori_non_asn: Optional[str] = None
+    sub_kategori: Optional[str] = None  # legacy alias
+    tgl_mulai_kontrak: Optional[str] = None
+    tgl_selesai_kontrak: Optional[str] = None
+    
+    # ========== JABATAN & UNIT KERJA ==========
+    jabatan: Optional[str] = None
+    jabatan_melekat: Optional[str] = None
     eselon1: Optional[str] = None
     eselon2: Optional[str] = None
     eselon3: Optional[str] = None
     eselon4: Optional[str] = None
     eselon5: Optional[str] = None
-    jabatan_melekat: List[str] = []
-    
-    status_kepegawaian: Optional[str] = None
-    sub_kategori: Optional[str] = None # NEW
     kategori_pegawai: Optional[str] = None
-    status_penempatan: Optional[str] = None
-    status_jabatan: Optional[str] = None
-    pangkat_golongan: Optional[str] = None
     
+    # ========== KONTAK & BANK ==========
+    no_telp: Optional[str] = None
+    email: Optional[str] = None
+    nama_bank: Optional[str] = None
+    no_rekening: Optional[str] = None
+    
+    # ========== STATUS & LAINNYA ==========
+    status: Optional[str] = "AKTIF"
     keterangan: Optional[str] = None
+    
+    # ========== LEADERSHIP ==========
+    is_pimpinan_tertinggi: Optional[bool] = False
+    jenis_pimpinan: Optional[str] = None
+    
+    # ========== PHOTO ==========
+    foto_url: Optional[str] = None
+    foto_thumbnail_url: Optional[str] = None
 
 class MutasiPegawai(BaseModel):
     jenis_mutasi: str # "Internal", "Eksternal", "Promosi", "Demosi"
