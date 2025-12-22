@@ -237,6 +237,51 @@ backend:
         agent: "testing"
         comment: "INDEPENDENT NON-ASN OVERTIME RATES VERIFIED: Successfully tested independent overtime rates for different Non-ASN employee categories. ✅ Updated overtime settings: Satpam rate set to 15000 IDR/hour, Pramubakti rate set to 12000 IDR/hour with different meal allowances (Satpam: 32000 IDR, Pramubakti: 28000 IDR). ✅ Created dummy employees: Test Satpam employee with sub_kategori='Satpam' and Test Pramubakti employee with sub_kategori='Pramubakti'. ✅ Submitted overtime requests: Both 3-hour overtime requests submitted successfully. ✅ Rate verification: Satpam overtime calculated at 15000 IDR/hour (gross: 82500 IDR, net: 114500 IDR), Pramubakti overtime calculated at 12000 IDR/hour (gross: 66000 IDR, net: 94000 IDR). ✅ Meal allowance verification: Different meal allowances applied correctly based on sub_kategori. ✅ Calculation accuracy: Overtime calculations use correct rates based on employee sub_kategori field. The system fully supports independent rates for different Non-ASN categories as requested in the review."
 
+  - task: "KIB (Kartu Inventarisasi Barang) APIs"
+    implemented: true
+    working: true
+    file: "routes/kib.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "KIB APIs implemented - GET/PUT settings, GET data, GET PDF generation. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ All KIB APIs working correctly: GET /api/aset/kib/settings (200), PUT /api/aset/kib/settings (200), GET /api/aset/kib/{id} (200), GET /api/aset/kib/{id}/pdf (200). Settings can be updated and retrieved, KIB data generation works, PDF export functional."
+
+  - task: "Attendance APIs with Location"
+    implemented: true
+    working: false
+    file: "routes/kepegawaian.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Attendance APIs with photo and location implemented. Needs testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ Attendance APIs failing: Clock-in returns 404 'Pegawai profile not found'. The admin user needs to be linked to a pegawai record for attendance functionality to work. GET /api/kepegawaian/attendance/today works (200), but POST clock-in/clock-out fail without pegawai profile."
+
+  - task: "Reports with Pagination"
+    implemented: true
+    working: true
+    file: "routes/laporan.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced reports with pagination implemented. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ All report APIs working correctly: GET /api/laporan/posisi-stok with pagination (200), GET /api/laporan/mutasi with pagination and date filters (200), GET /api/laporan/kartu-gudang with barang_id and date filters (200). Pagination parameters working properly."
+
 frontend:
   - task: "Activity Log Page UI"
     implemented: true
