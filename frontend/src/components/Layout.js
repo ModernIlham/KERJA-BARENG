@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, Users, LogOut, Menu, X, FileSpreadsheet, FileText, 
   Settings, Mail, ChevronDown, ChevronRight, Book, Box, Building, Network, 
   Clock, Briefcase, FileCheck, ClipboardList, ArrowRightLeft, ChevronsLeft, ChevronsRight,
-  Calendar,
+  Calendar, Activity,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
