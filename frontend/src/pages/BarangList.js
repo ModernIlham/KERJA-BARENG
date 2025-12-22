@@ -553,6 +553,7 @@ export default function BarangList() {
                     openEditModal={openEditModal}
                     handleDelete={handleDelete}
                     openFotoManager={(item) => { setFotoManagerItem(item); setFotoManagerType('barang'); }}
+                    openKIBModal={(id) => setKibAsetId(id)}
                 />
             </CardContent>
           </Card>
