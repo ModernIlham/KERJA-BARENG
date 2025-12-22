@@ -3,21 +3,29 @@
 ## Latest Test Session - December 22, 2025
 
 ### New Features Implemented:
-1. **Activity Logging System (Smart Resume)** 
-   - Backend: `/api/activity/logs`, `/api/activity/summary`, `/api/activity/users`, `/api/activity/user/{userId}`
-   - Frontend: `/aktivitas` page with activity logs, summary cards, filters
-   - User activity report: `/aktivitas/user/:userId`
-   - Activity logging on login, pegawai CRUD operations
+1. **Activity Logging System (Smart Resume)** - TESTED ✅
+   - Backend endpoints all working
+   - Frontend page at /aktivitas functional
 
-2. **Flexi-Time Configuration**
-   - Backend: `/api/activity/flexi-time` (GET/PUT)
-   - Frontend: Tab "Flexi-Time" di halaman Pengaturan
-   - Settings: Jam masuk/pulang normal, toleransi, range flexi-time, hari kerja
+2. **Flexi-Time Configuration** - TESTED ✅
+   - Backend endpoints working
+   - Frontend settings page functional
 
-3. **Bank Management Enhancement**
-   - Already existed, verified working at `/pengaturan` → Tab Bank
-   - CRUD operations for bank list
-   - Integration with Excel template
+3. **Export PDF Feature** - IMPLEMENTED ✅
+   - Replaced `react-to-print` with `html2pdf.js`
+   - 4 report components updated: DafnomLembur, DafnomSPL, RekapLemburTable, RekapSPL
+   - PDF export with landscape A4, narrow margins
+   - Created reusable utility: `/app/frontend/src/utils/pdfExport.js`
+
+4. **Data Reset Feature** - VERIFIED ✅
+   - Located in Pengaturan → Database & Data tab
+   - Reset Lembur, Reset Pegawai, Reset Kepegawaian buttons available
+
+5. **Struktur Organisasi** - VERIFIED ✅
+   - Tree view with hierarchical display
+   - Drag-and-drop enabled
+   - Expand/Collapse all buttons
+   - Data sudah ada (unit_kerja collection populated)
 
 ### Test Credentials:
 - Email: admin@example.com
