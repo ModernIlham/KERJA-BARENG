@@ -254,9 +254,9 @@ backend:
 
   - task: "Attendance APIs with Location"
     implemented: true
-    working: false
+    working: true
     file: "routes/kepegawaian.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -266,6 +266,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ Attendance APIs failing: Clock-in returns 404 'Pegawai profile not found'. The admin user needs to be linked to a pegawai record for attendance functionality to work. GET /api/kepegawaian/attendance/today works (200), but POST clock-in/clock-out fail without pegawai profile."
+      - working: true
+        agent: "main"
+        comment: "✅ Fixed: Clock-in/out now works for users without pegawai profile. Backend handles both cases (with/without pegawai). Tested successfully with admin user. Photo, location (lat/lng/address) all stored correctly."
 
   - task: "Reports with Pagination"
     implemented: true
