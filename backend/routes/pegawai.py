@@ -392,23 +392,15 @@ async def import_pegawai(
         
     try:
         contents = await file.read()
-        df = pd.read_excel(BytesIO(contents))
+        df = pd.read_excel(BytesIO(contents), sheet_name=0)  # Read first sheet only
         
-        # 1. Validate Columns
-        expected_columns = {
-            "NIP", "Nama Lengkap", "NIK", "NPWP", "Jabatan", 
-            "Eselon 1", "Eselon 2", "Eselon 3", "Eselon 4", 
-            "Pangkat/Golongan", "Status Kepegawaian", 
-            "No Telp", "Email", "Nama Bank", "No Rekening",
-            "Gelar Depan", "Gelar Belakang"
-        }
-        
-        # Check if all expected columns are present (case insensitive check)
+        # 1. Required columns (minimal)
+        required_columns = {"NIP", "Nama Lengkap"}
         file_cols = [c.strip() for c in df.columns]
-        missing = [c for c in expected_columns if c not in file_cols]
+        missing_required = [c for c in required_columns if c not in file_cols]
         
-        if missing:
-            raise HTTPException(status_code=400, detail=f"Struktur kolom tidak sesuai. Kolom hilang: {', '.join(missing)}")
+        if missing_required:
+            raise HTTPException(status_code=400, detail=f"Kolom wajib tidak ditemukan: {', '.join(missing_required)}")
             
         # 2. Process Data
         success_count = 0
@@ -419,26 +411,32 @@ async def import_pegawai(
         # Clean data: Trim whitespace from all string columns
         df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
         
+        # Helper to get cell value
+        def get_val(row, col, default=None):
+            val = row.get(col)
+            if pd.isna(val) or str(val).lower() in ['nan', 'none', '']:
+                return default
+            return str(val).strip() if isinstance(val, (str, int, float)) else default
+        
         # Iterate rows
         for index, row in df.iterrows():
             try:
                 # Basic Validation
-                nip = str(row.get("NIP", "")).strip()
-                if not nip or nip == "nan" or "Wajib" in nip: # Skip example row
+                nip = get_val(row, "NIP")
+                if not nip or "Wajib" in nip or "198001012005011001" in nip:  # Skip example row
                     continue
                     
-                nama = row.get("Nama Lengkap", "")
-                if not nama or str(nama) == "nan": 
-                    failed_count += 1
-                    errors.append(f"Baris {index+2}: Nama Lengkap kosong")
+                nama = get_val(row, "Nama Lengkap")
+                if not nama or "Budi Santoso" in nama:  # Skip example row
+                    if not nama:
+                        failed_count += 1
+                        errors.append(f"Baris {index+2}: Nama Lengkap kosong")
                     continue
 
-                # Uniqueness Check (Trim System)
-                # Check NIP, NIK, NPWP
-                nik = str(row.get("NIK", "")).strip() if pd.notna(row.get("NIK")) else None
-                npwp = str(row.get("NPWP", "")).strip() if pd.notna(row.get("NPWP")) else None
+                # Uniqueness Check
+                nik = get_val(row, "NIK")
+                npwp = get_val(row, "NPWP")
                 
-                # Check DB for existing
                 query = {"$or": [{"nip": nip}]}
                 if nik: query["$or"].append({"nik": nik})
                 if npwp: query["$or"].append({"npwp": npwp})
@@ -447,29 +445,51 @@ async def import_pegawai(
                 
                 if existing:
                     skipped_count += 1
-                    # errors.append(f"Baris {index+2}: Dilewati (Duplikat NIP/NIK/NPWP)") # Optional: Don't treat as error
                     continue
+                
+                # Parse date fields
+                tanggal_lahir = None
+                tgl_str = get_val(row, "Tanggal Lahir")
+                if tgl_str:
+                    try:
+                        # Try various date formats
+                        for fmt in ["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]:
+                            try:
+                                tanggal_lahir = datetime.strptime(tgl_str, fmt).isoformat()
+                                break
+                            except:
+                                continue
+                    except:
+                        pass
                     
-                # Construct Object
+                # Construct Object with all new fields
                 new_pegawai = Pegawai(
                     nip=nip,
                     nama_lengkap=nama,
                     nik=nik,
                     npwp=npwp,
-                    jabatan=row.get("Jabatan") if pd.notna(row.get("Jabatan")) else None,
-                    eselon1=row.get("Eselon 1") if pd.notna(row.get("Eselon 1")) else None,
-                    eselon2=row.get("Eselon 2") if pd.notna(row.get("Eselon 2")) else None,
-                    eselon3=row.get("Eselon 3") if pd.notna(row.get("Eselon 3")) else None,
-                    eselon4=row.get("Eselon 4") if pd.notna(row.get("Eselon 4")) else None,
-                    pangkat_golongan=row.get("Pangkat/Golongan") if pd.notna(row.get("Pangkat/Golongan")) else None,
-                    status_kepegawaian=row.get("Status Kepegawaian") if pd.notna(row.get("Status Kepegawaian")) else None,
-                    no_telp=str(row.get("No Telp")) if pd.notna(row.get("No Telp")) else None,
-                    email=row.get("Email") if pd.notna(row.get("Email")) else None,
-                    nama_bank=row.get("Nama Bank") if pd.notna(row.get("Nama Bank")) else None,
-                    no_rekening=str(row.get("No Rekening")) if pd.notna(row.get("No Rekening")) else None,
-                    gelar_depan=row.get("Gelar Depan") if pd.notna(row.get("Gelar Depan")) else None,
-                    gelar_belakang=row.get("Gelar Belakang") if pd.notna(row.get("Gelar Belakang")) else None,
-                    status="AKTIF"
+                    jenis_kelamin=get_val(row, "Jenis Kelamin"),
+                    tempat_lahir=get_val(row, "Tempat Lahir"),
+                    tanggal_lahir=tanggal_lahir,
+                    agama=get_val(row, "Agama"),
+                    status_perkawinan=get_val(row, "Status Perkawinan"),
+                    pendidikan_terakhir=get_val(row, "Pendidikan Terakhir"),
+                    kewarganegaraan=get_val(row, "Kewarganegaraan", "WNI"),
+                    status_kepegawaian=get_val(row, "Status Kepegawaian"),
+                    jenis_non_asn=get_val(row, "Jenis Non-ASN"),
+                    pangkat_golongan=get_val(row, "Pangkat/Golongan"),
+                    jabatan=get_val(row, "Jabatan"),
+                    eselon1=get_val(row, "Eselon 1"),
+                    eselon2=get_val(row, "Eselon 2"),
+                    eselon3=get_val(row, "Eselon 3"),
+                    eselon4=get_val(row, "Eselon 4"),
+                    no_telp=get_val(row, "No Telp"),
+                    email=get_val(row, "Email"),
+                    nama_bank=get_val(row, "Nama Bank"),
+                    no_rekening=get_val(row, "No Rekening"),
+                    gelar_depan=get_val(row, "Gelar Depan"),
+                    gelar_belakang=get_val(row, "Gelar Belakang"),
+                    status=get_val(row, "Status", "AKTIF")
                 )
                 
                 # Insert
@@ -485,7 +505,7 @@ async def import_pegawai(
             "success": success_count,
             "skipped": skipped_count,
             "failed": failed_count,
-            "errors": errors
+            "errors": errors[:50]  # Limit error messages
         }
         
     except Exception as e:
