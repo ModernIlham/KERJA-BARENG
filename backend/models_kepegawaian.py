@@ -61,6 +61,13 @@ class OvertimeSettings(MongoBaseModel):
     
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class LocationData(BaseModel):
+    """Extended location data with address"""
+    lat: float
+    lng: float
+    accuracy: Optional[float] = None
+    address: Optional[str] = None
+
 class Attendance(MongoBaseModel):
     user_id: str
     pegawai_id: str
@@ -73,8 +80,9 @@ class Attendance(MongoBaseModel):
     clock_in_photo: Optional[str] = None
     clock_out_photo: Optional[str] = None
     
-    location_in: Optional[Dict[str, float]] = None # {lat: 0.0, lng: 0.0}
-    location_out: Optional[Dict[str, float]] = None
+    # Enhanced location with address
+    location_in: Optional[Dict[str, Any]] = None # {lat, lng, accuracy, address}
+    location_out: Optional[Dict[str, Any]] = None
     
     status: str = "Hadir" # Hadir, Telat, Pulang Cepat
     keterangan: Optional[str] = None
