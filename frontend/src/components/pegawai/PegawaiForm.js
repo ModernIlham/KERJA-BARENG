@@ -417,7 +417,7 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
 
                     <h4 className="text-xs font-bold text-slate-700">Informasi Rekening Bank</h4>
                     <div className="grid grid-cols-2 gap-3">
-                        {renderSelect("nama_bank", "Nama Bank", NAMA_BANK)}
+                        {renderSelect("nama_bank", "Nama Bank", banks)}
                         {renderInput("no_rekening", "No Rekening", "text", "1234567890")}
                     </div>
                 </TabsContent>
