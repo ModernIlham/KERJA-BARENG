@@ -57,6 +57,7 @@ export default function BarangList() {
   const [transactionItem, setTransactionItem] = useState(null);
   const [fotoManagerItem, setFotoManagerItem] = useState(null);
   const [kartuStokItem, setKartuStokItem] = useState(null);
+  const [kibAsetId, setKibAsetId] = useState(null);
 
   const [fotoManagerType, setFotoManagerType] = useState('barang');
 
