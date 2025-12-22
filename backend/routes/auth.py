@@ -4,6 +4,7 @@ from auth import verify_password, create_access_token, get_password_hash, get_cu
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -23,6 +24,22 @@ async def login(login_data: UserLogin):
         )
     
     access_token = create_access_token(data={"sub": user['email']})
+    
+    # Log login activity
+    try:
+        await db.activity_logs.insert_one({
+            "user_id": str(user['_id']),
+            "user_name": user.get('full_name', 'Unknown'),
+            "action": "LOGIN",
+            "module": "Auth",
+            "target_id": None,
+            "details": f"User {user['email']} berhasil login",
+            "metadata": {"email": user['email'], "role": user.get('role', 'user')},
+            "timestamp": datetime.now(timezone.utc)
+        })
+    except Exception as e:
+        print(f"Failed to log login activity: {e}")
+    
     return {"access_token": access_token, "token_type": "bearer"}
 
 from bson import ObjectId
