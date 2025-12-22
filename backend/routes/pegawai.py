@@ -540,11 +540,7 @@ async def import_pegawai(
         # Iterate rows
         for index, row in df.iterrows():
             try:
-                # Basic Validation
-                nip = get_val(row, "NIP")
-                if not nip or "Wajib" in nip or "198001012005011001" in nip:  # Skip example row
-                    continue
-                    
+                # Basic Validation - Nama Lengkap is required
                 nama = get_val(row, "Nama Lengkap")
                 if not nama or "Budi Santoso" in nama:  # Skip example row
                     if not nama:
@@ -552,63 +548,96 @@ async def import_pegawai(
                         errors.append(f"Baris {index+2}: Nama Lengkap kosong")
                     continue
 
-                # Uniqueness Check
+                # Get identity fields
+                nip = get_val(row, "NIP")
+                nrp = get_val(row, "NRP")
                 nik = get_val(row, "NIK")
                 npwp = get_val(row, "NPWP")
                 
-                query = {"$or": [{"nip": nip}]}
-                if nik: query["$or"].append({"nik": nik})
-                if npwp: query["$or"].append({"npwp": npwp})
-                
-                existing = await db.pegawai.find_one(query)
-                
-                if existing:
-                    skipped_count += 1
+                # Skip example rows
+                if nip and "198001012005011001" in nip:
                     continue
+
+                # Uniqueness Check
+                query_conditions = []
+                if nip: query_conditions.append({"nip": nip})
+                if nrp: query_conditions.append({"nrp": nrp})
+                if nik: query_conditions.append({"nik": nik})
+                if npwp: query_conditions.append({"npwp": npwp})
                 
-                # Parse date fields
-                tanggal_lahir = None
-                tgl_str = get_val(row, "Tanggal Lahir")
-                if tgl_str:
-                    try:
-                        # Try various date formats
-                        for fmt in ["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]:
-                            try:
-                                tanggal_lahir = datetime.strptime(tgl_str, fmt).isoformat()
-                                break
-                            except:
-                                continue
-                    except:
-                        pass
+                if query_conditions:
+                    existing = await db.pegawai.find_one({"$or": query_conditions})
+                    if existing:
+                        skipped_count += 1
+                        continue
+                
+                # Parse date fields helper
+                def parse_date(date_str):
+                    if not date_str:
+                        return None
+                    for fmt in ["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%Y/%m/%d"]:
+                        try:
+                            return datetime.strptime(date_str, fmt).isoformat()
+                        except:
+                            continue
+                    return None
                     
-                # Construct Object with all new fields
+                # Construct Object with ALL fields matching PegawaiForm.js
                 new_pegawai = Pegawai(
-                    nip=nip,
+                    # Identitas Utama
                     nama_lengkap=nama,
+                    gelar_depan=get_val(row, "Gelar Depan"),
+                    gelar_belakang=get_val(row, "Gelar Belakang"),
+                    kewarganegaraan=get_val(row, "Kewarganegaraan", "WNI"),
+                    nip=nip,
+                    nrp=nrp,
                     nik=nik,
                     npwp=npwp,
+                    
+                    # WNA Identity
+                    jenis_identitas_wna=get_val(row, "Jenis Identitas WNA"),
+                    nomor_identitas_wna=get_val(row, "Nomor Identitas WNA"),
+                    
+                    # Data Pribadi
                     jenis_kelamin=get_val(row, "Jenis Kelamin"),
                     tempat_lahir=get_val(row, "Tempat Lahir"),
-                    tanggal_lahir=tanggal_lahir,
+                    tanggal_lahir=parse_date(get_val(row, "Tanggal Lahir")),
                     agama=get_val(row, "Agama"),
                     status_perkawinan=get_val(row, "Status Perkawinan"),
                     pendidikan_terakhir=get_val(row, "Pendidikan Terakhir"),
-                    kewarganegaraan=get_val(row, "Kewarganegaraan", "WNI"),
+                    
+                    # Status Kepegawaian
                     status_kepegawaian=get_val(row, "Status Kepegawaian"),
-                    jenis_non_asn=get_val(row, "Jenis Non-ASN"),
                     pangkat_golongan=get_val(row, "Pangkat/Golongan"),
+                    status_penempatan=get_val(row, "Status Penempatan"),
+                    instansi_asal=get_val(row, "Instansi Asal"),
+                    masa_penugasan_end=parse_date(get_val(row, "Masa Penugasan Berakhir")),
+                    status_jabatan=get_val(row, "Status Jabatan"),
+                    
+                    # Non-ASN Detail
+                    jenis_non_asn=get_val(row, "Jenis Non-ASN"),
+                    sub_kategori_non_asn=get_val(row, "Sub-Kategori Non-ASN"),
+                    tgl_mulai_kontrak=parse_date(get_val(row, "Tgl Mulai Kontrak")),
+                    tgl_selesai_kontrak=parse_date(get_val(row, "Tgl Selesai Kontrak")),
+                    
+                    # Jabatan & Unit Kerja
                     jabatan=get_val(row, "Jabatan"),
+                    jabatan_melekat=get_val(row, "Jabatan Fungsional Melekat"),
                     eselon1=get_val(row, "Eselon 1"),
                     eselon2=get_val(row, "Eselon 2"),
                     eselon3=get_val(row, "Eselon 3"),
                     eselon4=get_val(row, "Eselon 4"),
+                    eselon5=get_val(row, "Eselon 5"),
+                    
+                    # Kontak & Bank
                     no_telp=get_val(row, "No Telp"),
                     email=get_val(row, "Email"),
                     nama_bank=get_val(row, "Nama Bank"),
                     no_rekening=get_val(row, "No Rekening"),
-                    gelar_depan=get_val(row, "Gelar Depan"),
-                    gelar_belakang=get_val(row, "Gelar Belakang"),
-                    status=get_val(row, "Status", "AKTIF")
+                    
+                    # Status & Lainnya
+                    status=get_val(row, "Status", "AKTIF"),
+                    keterangan=get_val(row, "Keterangan")
                 )
                 
                 # Insert
