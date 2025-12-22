@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -7,12 +7,12 @@ import { DialogFooter } from '../ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Separator } from '../ui/separator';
-import { User, Briefcase, BadgeCheck, Phone, Info } from 'lucide-react';
+import { User, Briefcase, BadgeCheck, Phone, Info, Building2, Calendar, CreditCard } from 'lucide-react';
 import api from '../../api/axios';
 import { toast } from 'sonner';
 import PegawaiPhotoUpload from './PegawaiPhotoUpload';
 
-// --- REF DATA ---
+// === REFERENCE DATA (Sama dengan template Excel) ===
 const PANGKAT_GOLONGAN = {
     'ASN': [
         "Juru Muda (I/a)", "Juru Muda Tingkat I (I/b)", "Juru (I/c)", "Juru Tingkat I (I/d)",
@@ -35,49 +35,51 @@ const PANGKAT_GOLONGAN = {
         "Brigadir Polisi Dua", "Brigadir Polisi Satu", "Brigadir Polisi", "Brigadir Polisi Kepala",
         "Ajun Inspektur Polisi Dua", "Ajun Inspektur Polisi Satu",
         "Inspektur Polisi Dua", "Inspektur Polisi Satu", "Ajun Komisaris Polisi",
-        "Komisaris Polisi", "Ajun Komisaris Besar Polisi", "Komisaris Besar Polisi",
-        "Brigadir Jenderal Polisi", "Inspektur Jenderal Polisi", "Komisaris Jenderal Polisi", "Jenderal Polisi"
+        "Komisaris Polisi", "Ajun Komisaris Besar Polisi", "Komisaris Besar Polisi"
     ]
 };
 
+const STATUS_KEPEGAWAIAN = ["PNS", "PPPK", "TNI", "POLRI", "Non-ASN", "Honorer"];
+const JENIS_KELAMIN = ["Laki-laki", "Perempuan"];
+const AGAMA = ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu", "Lainnya"];
+const STATUS_PERKAWINAN = ["Belum Kawin", "Kawin", "Cerai Hidup", "Cerai Mati"];
+const PENDIDIKAN = ["SD", "SMP", "SMA/SMK", "D1", "D2", "D3", "D4/S1", "S2", "S3"];
+const KEWARGANEGARAAN = ["WNI", "WNA"];
+const STATUS_AKTIF = ["AKTIF", "CUTI", "TUGAS_BELAJAR", "KELUAR", "PENSIUN", "MUTASI KELUAR", "MENINGGAL"];
+const NAMA_BANK = ["BRI", "BNI", "Mandiri", "BTN", "Bank Syariah Indonesia (BSI)", "BCA", "CIMB Niaga", "Danamon", "Permata", "OCBC NISP", "Maybank", "Lainnya"];
+const JENIS_NON_ASN = ["Kontrak", "Outsourcing"];
+const SUB_KATEGORI_NON_ASN = ["PPNPN", "Konsultan Individu", "Tenaga Ahli", "Teknisi", "Pramubakti", "Satpam", "Supir", "Magang"];
+const STATUS_PENEMPATAN = ["Definitif", "Mutasi", "Penugasan"];
+const STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj"];
+const JENIS_IDENTITAS_WNA = ["PASPOR", "KITAS", "KITAP"];
+const KATEGORI_PEGAWAI = ["Struktural", "Fungsional", "Pelaksana"];
+
 export default function PegawaiForm({ initialData, onSuccess, onClose }) {
-    const { register, handleSubmit, reset, setValue, watch, control, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
         defaultValues: initialData || {
             kewarganegaraan: 'WNI',
             status_kepegawaian: 'PNS',
             status: 'AKTIF',
-            jenis_non_asn: 'Kontrak'
+            jenis_non_asn: 'Kontrak',
+            status_penempatan: 'Definitif',
+            status_jabatan: 'Definitif'
         }
     });
 
+    // Watchers
     const kewarganegaraan = watch('kewarganegaraan');
     const statusKepegawaian = watch('status_kepegawaian');
     const jenisNonAsn = watch('jenis_non_asn');
     const statusPenempatan = watch('status_penempatan');
-                    {/* --- TAB 0: SIDEBAR / PHOTO (Custom Layout) --- */}
-                    <div className="mb-4 flex justify-center">
-                        {initialData && (
-                            <PegawaiPhotoUpload 
-                                pegawai={initialData} 
-                                onSuccess={onSuccess}
-                            />
-                        )}
-                        {!initialData && (
-                            <div className="text-center p-4 bg-slate-50 rounded border border-dashed border-slate-300 text-slate-400 text-xs w-full">
-                                Simpan data terlebih dahulu untuk upload foto.
-                            </div>
-                        )}
-                    </div>
-
     const kategoriPegawai = watch('kategori_pegawai');
 
-    // Unit Watchers for Cascading
+    // Unit Watchers
     const watchEselon1 = watch('eselon1');
     const watchEselon2 = watch('eselon2');
     const watchEselon3 = watch('eselon3');
     const watchEselon4 = watch('eselon4');
 
-    // Unit Options State
+    // States
     const [units, setUnits] = useState([]);
     const [optEselon1, setOptEselon1] = useState([]);
     const [optEselon2, setOptEselon2] = useState([]);
@@ -85,60 +87,47 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
     const [optEselon4, setOptEselon4] = useState([]);
     const [optEselon5, setOptEselon5] = useState([]);
 
-    // Dynamic Logic for Identity
+    // Derived States
     const isWNI = kewarganegaraan === 'WNI';
     const isASN = ['PNS', 'PPPK'].includes(statusKepegawaian);
     const isTNI_POLRI = ['TNI', 'POLRI'].includes(statusKepegawaian);
     const isNonASN = ['Non-ASN', 'Honorer'].includes(statusKepegawaian);
+    const isPenugasan = statusPenempatan === 'Penugasan';
 
-    useEffect(() => {
-        fetchUnits();
-    }, []);
+    useEffect(() => { fetchUnits(); }, []);
 
     const fetchUnits = async () => {
         try {
             const res = await api.get('/api/settings/unit-kerja');
             setUnits(res.data);
             setOptEselon1(res.data.filter(u => u.eselon === "1"));
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e) { console.error(e); }
     };
 
-    // Filter Logic for Cascading Dropdowns
+    // Cascading Dropdowns
     useEffect(() => {
         if (!watchEselon1) { setOptEselon2([]); return; }
-        // Find ID of selected Eselon 1 Name
         const parent = units.find(u => u.nama_unit === watchEselon1 && u.eselon === "1");
-        if (parent) {
-            setOptEselon2(units.filter(u => u.parent_id === parent.id && u.eselon === "2"));
-        } else { setOptEselon2([]); }
+        setOptEselon2(parent ? units.filter(u => u.parent_id === parent.id && u.eselon === "2") : []);
     }, [watchEselon1, units]);
 
     useEffect(() => {
         if (!watchEselon2) { setOptEselon3([]); return; }
         const parent = units.find(u => u.nama_unit === watchEselon2 && u.eselon === "2");
-        if (parent) {
-            setOptEselon3(units.filter(u => u.parent_id === parent.id && u.eselon === "3"));
-        } else { setOptEselon3([]); }
+        setOptEselon3(parent ? units.filter(u => u.parent_id === parent.id && u.eselon === "3") : []);
     }, [watchEselon2, units]);
 
     useEffect(() => {
         if (!watchEselon3) { setOptEselon4([]); return; }
         const parent = units.find(u => u.nama_unit === watchEselon3 && u.eselon === "3");
-        if (parent) {
-            setOptEselon4(units.filter(u => u.parent_id === parent.id && u.eselon === "4"));
-        } else { setOptEselon4([]); }
+        setOptEselon4(parent ? units.filter(u => u.parent_id === parent.id && u.eselon === "4") : []);
     }, [watchEselon3, units]);
 
     useEffect(() => {
         if (!watchEselon4) { setOptEselon5([]); return; }
         const parent = units.find(u => u.nama_unit === watchEselon4 && u.eselon === "4");
-        if (parent) {
-            setOptEselon5(units.filter(u => u.parent_id === parent.id && u.eselon === "5"));
-        } else { setOptEselon5([]); }
+        setOptEselon5(parent ? units.filter(u => u.parent_id === parent.id && u.eselon === "5") : []);
     }, [watchEselon4, units]);
-
 
     useEffect(() => {
         if (initialData) {
@@ -148,12 +137,6 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
 
     const onSubmit = async (data) => {
         try {
-            // Manual Validation Logic if needed
-            if(isWNI) {
-                if (isASN && data.nip.length !== 18) return toast.error("NIP ASN wajib 18 digit");
-                if (isNonASN && data.nik && data.nik.length !== 16) return toast.error("NIK wajib 16 digit");
-            }
-
             if (initialData) {
                 await api.put(`/api/pegawai/${initialData._id}`, data);
                 toast.success("Data pegawai diperbarui");
@@ -161,368 +144,277 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
                 await api.post('/api/pegawai', data);
                 toast.success("Pegawai berhasil ditambahkan");
             }
-                        {kategoriPegawai === 'Struktural' && (
-                            <div className="bg-blue-50 p-3 rounded border border-blue-200 mt-2">
-                                <Label className="text-xs font-bold text-blue-800 mb-2 block">Status Pimpinan (Khusus Kepala/Wakil)</Label>
-                                <div className="flex gap-4">
-                                    <div className="flex items-center space-x-2">
-                                        <input 
-                                            type="checkbox" 
-                                            {...register("is_pimpinan_tertinggi")} 
-                                            id="chk_pimpinan"
-                                            className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
-                                        />
-                                        <Label htmlFor="chk_pimpinan" className="text-xs cursor-pointer">Set sebagai Pimpinan Tertinggi / Wakil</Label>
-                                    </div>
-                                    
-                                    {watch('is_pimpinan_tertinggi') && (
-                                        <select {...register("jenis_pimpinan")} className="h-7 border rounded px-2 text-xs bg-white">
-                                            <option value="Kepala">Kepala</option>
-                                            <option value="Wakil">Wakil Kepala</option>
-                                        </select>
-                                    )}
-                                </div>
-                                <p className="text-[10px] text-blue-600 mt-1">
-                                    Centang jika pegawai ini adalah Kepala atau Wakil Kepala Instansi (bukan sekadar Eselon).
-                                </p>
-                            </div>
-                        )}
             onSuccess();
         } catch (error) {
             toast.error(error.response?.data?.detail || "Gagal menyimpan pegawai");
         }
     };
 
+    // Helper: Render Select
+    const renderSelect = (name, label, options, placeholder = "Pilih...") => (
+        <div className="space-y-1">
+            <Label className="text-xs">{label}</Label>
+            <select {...register(name)} className="w-full h-9 border rounded px-2 text-sm bg-white">
+                <option value="">{placeholder}</option>
+                {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+        </div>
+    );
+
+    // Helper: Render Input
+    const renderInput = (name, label, type = "text", placeholder = "") => (
+        <div className="space-y-1">
+            <Label className="text-xs">{label}</Label>
+            <Input {...register(name)} type={type} placeholder={placeholder} className="h-9" />
+        </div>
+    );
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Tabs defaultValue="utama" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 bg-slate-100">
-                    <TabsTrigger value="utama" className="text-xs"><User size={14} className="mr-2"/> Utama</TabsTrigger>
-                    <TabsTrigger value="jabatan" className="text-xs"><Briefcase size={14} className="mr-2"/> Jabatan</TabsTrigger>
-                    <TabsTrigger value="status" className="text-xs"><BadgeCheck size={14} className="mr-2"/> Atribut</TabsTrigger>
-                    <TabsTrigger value="kontak" className="text-xs"><Phone size={14} className="mr-2"/> Kontak</TabsTrigger>
+            <Tabs defaultValue="identitas" className="w-full">
+                <TabsList className="grid w-full grid-cols-5 bg-slate-100 h-auto">
+                    <TabsTrigger value="identitas" className="text-[11px] py-2"><User size={12} className="mr-1"/> Identitas</TabsTrigger>
+                    <TabsTrigger value="pribadi" className="text-[11px] py-2"><Info size={12} className="mr-1"/> Pribadi</TabsTrigger>
+                    <TabsTrigger value="kepegawaian" className="text-[11px] py-2"><BadgeCheck size={12} className="mr-1"/> Kepegawaian</TabsTrigger>
+                    <TabsTrigger value="jabatan" className="text-[11px] py-2"><Building2 size={12} className="mr-1"/> Jabatan</TabsTrigger>
+                    <TabsTrigger value="kontak" className="text-[11px] py-2"><Phone size={12} className="mr-1"/> Kontak</TabsTrigger>
                 </TabsList>
 
-                <div className="mt-4 max-h-[60vh] overflow-y-auto px-1">
-                    {/* --- TAB 1: INFORMASI UTAMA --- */}
-                    <TabsContent value="utama" className="space-y-4">
-                        <div className="grid grid-cols-12 gap-2">
-                            <div className="col-span-3">
-                                <Label className="text-xs">Gelar Depan</Label>
-                                <Input {...register("gelar_depan")} placeholder="Dr." className="h-8"/>
-                            </div>
-                            <div className="col-span-6">
-                                <Label className="text-xs">Nama Lengkap *</Label>
-                                <Input {...register("nama_lengkap", { required: true })} placeholder="Nama Lengkap" className="h-8"/>
-                            </div>
-                            <div className="col-span-3">
-                                <Label className="text-xs">Gelar Belakang</Label>
-                                <Input {...register("gelar_belakang")} placeholder="S.Kom" className="h-8"/>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label className="text-xs">Kewarganegaraan</Label>
-                                <select {...register("kewarganegaraan")} className="w-full h-8 border rounded px-2 text-sm bg-white">
-                                    <option value="WNI">WNI</option>
-                                    <option value="WNA">WNA</option>
-                                </select>
-                            </div>
-                            
-                            {/* Dynamic Identity Field */}
-                            {isWNI ? (
-                                <div>
-                                    <Label className="text-xs font-bold text-blue-700">
-                                        {isASN ? "NIP (18 Digit) *" : isTNI_POLRI ? "NRP *" : "NIK (16 Digit) *"}
-                                    </Label>
-                                    <Input 
-                                        {...register(isASN ? "nip" : isTNI_POLRI ? "nrp" : "nik", { required: true })} 
-                                        placeholder={isASN ? "1980xxxxxxxxxxxx" : "Nomor Identitas"} 
-                                        className="h-8 font-mono bg-blue-50/50"
-                                        maxLength={isASN ? 18 : isTNI_POLRI ? 20 : 16}
-                                    />
-                                </div>
-                            ) : (
-                                <div>
-                                    <Label className="text-xs font-bold text-amber-700">Jenis Identitas WNA</Label>
-                                    <div className="flex gap-2">
-                                        <select {...register("jenis_identitas_wna")} className="w-1/3 h-8 border rounded px-2 text-sm bg-white">
-                                            <option value="PASPOR">PASPOR</option>
-                                            <option value="KITAS">KITAS</option>
-                                            <option value="KITAP">KITAP</option>
-                                        </select>
-                                        <Input {...register("nomor_identitas_wna", {required: true})} placeholder="Nomor..." className="flex-1 h-8 font-mono"/>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Additional WNI Fields */}
-                        {isWNI && (
-                            <div className="grid grid-cols-2 gap-4">
-                                {isASN && (
-                                    <div>
-                                        <Label className="text-xs">NIK (KTP)</Label>
-                                        <Input {...register("nik")} placeholder="16 digit NIK" className="h-8 font-mono" maxLength={16}/>
-                                    </div>
-                                )}
-                                <div>
-                                    <Label className="text-xs">NPWP</Label>
-                                    <Input {...register("npwp")} placeholder="15/16 digit NPWP" className="h-8 font-mono"/>
-                                </div>
-                            </div>
-                        )}
-                    </TabsContent>
-
-                    {/* --- TAB 2: JABATAN & UNIT KERJA --- */}
-                    <TabsContent value="jabatan" className="space-y-4">
-                        <div>
-                            <Label className="text-xs">Jabatan Struktural Utama *</Label>
-                            {/* This could be a dropdown from Master Jabatan in future */}
-                            <Input {...register("jabatan", { required: true })} placeholder="Contoh: Kepala Biro Umum" className="h-8"/>
-                        </div>
-
-                        <Separator className="my-2"/>
-                        <Label className="text-xs font-bold text-slate-500">Unit Kerja (Struktur Organisasi Bertingkat)</Label>
-                        
-                        <div className="grid grid-cols-1 gap-3 bg-slate-50 p-3 rounded border border-slate-200">
-                            {/* Eselon I */}
-                            <div className="grid grid-cols-2 gap-3 items-center">
-                                <Label className="text-[10px] text-slate-500">Unit Eselon I</Label>
-                                <select 
-                                    {...register("eselon1")} 
-                                    className="w-full h-8 border rounded px-2 text-xs bg-white"
-                                    onChange={(e) => {
-                                        setValue('eselon1', e.target.value);
-                                        setValue('eselon2', '');
-                                        setValue('eselon3', '');
-                                        setValue('eselon4', '');
-                                        setValue('eselon5', '');
-                                    }}
-                                >
-                                    <option value="">-- Pilih Eselon I --</option>
-                                    {optEselon1.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
-                                </select>
-                            </div>
-
-                            {/* Eselon II */}
-                            <div className="grid grid-cols-2 gap-3 items-center">
-                                <Label className="text-[10px] text-slate-500">Unit Eselon II</Label>
-                                <select 
-                                    {...register("eselon2")} 
-                                    disabled={!watchEselon1}
-                                    className="w-full h-8 border rounded px-2 text-xs bg-white disabled:bg-slate-100"
-                                    onChange={(e) => {
-                                        setValue('eselon2', e.target.value);
-                                        setValue('eselon3', '');
-                                        setValue('eselon4', '');
-                                        setValue('eselon5', '');
-                                    }}
-                                >
-                                    <option value="">-- Pilih Eselon II --</option>
-                                    {optEselon2.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
-                                </select>
-                            </div>
-
-                            {/* Eselon III */}
-                            <div className="grid grid-cols-2 gap-3 items-center">
-                                <Label className="text-[10px] text-slate-500">Unit Eselon III</Label>
-                                <select 
-                                    {...register("eselon3")} 
-                                    disabled={!watchEselon2}
-                                    className="w-full h-8 border rounded px-2 text-xs bg-white disabled:bg-slate-100"
-                                    onChange={(e) => {
-                                        setValue('eselon3', e.target.value);
-                                        setValue('eselon4', '');
-                                        setValue('eselon5', '');
-                                    }}
-                                >
-                                    <option value="">-- Pilih Eselon III --</option>
-                                    {optEselon3.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
-                                </select>
-                            </div>
-
-                            {/* Eselon IV */}
-                            <div className="grid grid-cols-2 gap-3 items-center">
-                                <Label className="text-[10px] text-slate-500">Unit Eselon IV</Label>
-                                <select 
-                                    {...register("eselon4")} 
-                                    disabled={!watchEselon3}
-                                    className="w-full h-8 border rounded px-2 text-xs bg-white disabled:bg-slate-100"
-                                    onChange={(e) => {
-                                        setValue('eselon4', e.target.value);
-                                        setValue('eselon5', '');
-                                    }}
-                                >
-                                    <option value="">-- Pilih Eselon IV --</option>
-                                    {optEselon4.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
-                                </select>
-                            </div>
-
-                            {/* Eselon V */}
-                            <div className="grid grid-cols-2 gap-3 items-center">
-                                <Label className="text-[10px] text-slate-500">Unit Eselon V</Label>
-                                <select 
-                                    {...register("eselon5")} 
-                                    disabled={!watchEselon4}
-                                    className="w-full h-8 border rounded px-2 text-xs bg-white disabled:bg-slate-100"
-                                >
-                                    <option value="">-- Pilih Eselon V --</option>
-                                    {optEselon5.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="mt-4">
-                            <Label className="text-xs">Jabatan Fungsional Melekat</Label>
-                            <Input {...register("jabatan_melekat")} placeholder="Contoh: PPK, Bendahara (Pisahkan dengan koma)" className="h-8"/>
-                        </div>
-                    </TabsContent>
-
-                    {/* --- TAB 3: ATRIBUT & STATUS --- */}
-                    <TabsContent value="status" className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label className="text-xs">Status Kepegawaian</Label>
-                                <select {...register("status_kepegawaian")} className="w-full h-8 border rounded px-2 text-sm bg-white">
-                                    <option value="PNS">PNS</option>
-                                    <option value="PPPK">PPPK</option>
-                                    <option value="TNI">TNI</option>
-                                    <option value="POLRI">POLRI</option>
-                                    <option value="Non-ASN">Non-ASN / Honorer</option>
-                                </select>
-                            </div>
-                            <div>
-                                <Label className="text-xs">Status Penempatan</Label>
-                                <select {...register("status_penempatan")} className="w-full h-8 border rounded px-2 text-sm bg-white">
-                                    <option value="Definitif">Definitif (Menetap)</option>
-                                    <option value="Mutasi">Mutasi Antar Instansi</option>
-                                    <option value="Penugasan">Penugasan (Sementara)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {statusPenempatan === 'Penugasan' && (
-                            <div className="bg-yellow-50 p-3 rounded border border-yellow-200 grid grid-cols-2 gap-3">
-                                <div>
-                                    <Label className="text-[10px] text-yellow-800">Instansi Asal</Label>
-                                    <Input {...register("instansi_asal")} placeholder="Asal Instansi..." className="h-7 text-xs"/>
-                                </div>
-                                <div>
-                                    <Label className="text-[10px] text-yellow-800">Masa Penugasan Berakhir</Label>
-                                    <Input type="date" {...register("masa_penugasan_end")} className="h-7 text-xs"/>
-                                </div>
-                            </div>
-                        )}
-
-                        {isNonASN ? (
-                            <div className="bg-slate-50 p-3 rounded border border-slate-200 space-y-3">
-                                <Label className="text-xs font-bold text-slate-700 flex items-center"><Info size={12} className="mr-1"/> Detail Non-ASN</Label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <Label className="text-[10px]">Jenis</Label>
-                                        <select {...register("jenis_non_asn")} className="w-full h-8 border rounded px-2 text-xs">
-                                            <option value="Kontrak">Kontrak</option>
-                                            <option value="Outsourcing">Outsourcing</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <Label className="text-[10px]">Sub-Kategori</Label>
-                                        <select {...register("sub_kategori_non_asn")} className="w-full h-8 border rounded px-2 text-xs">
-                                            <option value="PPNPN">PPNPN</option>
-                                            <option value="Konsultan Individu">Konsultan Individu</option>
-                                            <option value="Tenaga Ahli">Tenaga Ahli</option>
-                                            <option value="Teknisi">Teknisi</option>
-                                            <option value="Pramubakti">Pramubakti</option>
-                                            <option value="Satpam">Satpam</option>
-                                            <option value="Supir">Supir</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <Label className="text-[10px]">Mulai Kontrak</Label>
-                                        <Input type="date" {...register("tgl_mulai_kontrak")} className="h-8 text-xs"/>
-                                    </div>
-                                    <div>
-                                        <Label className="text-[10px]">Selesai Kontrak</Label>
-                                        <Input type="date" {...register("tgl_selesai_kontrak")} className="h-8 text-xs"/>
-                                    </div>
-                                </div>
-                            </div>
+                {/* ========== TAB 1: IDENTITAS UTAMA ========== */}
+                <TabsContent value="identitas" className="space-y-4 mt-4">
+                    {/* Photo Upload */}
+                    <div className="flex justify-center mb-4">
+                        {initialData ? (
+                            <PegawaiPhotoUpload pegawai={initialData} onSuccess={onSuccess} />
                         ) : (
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label className="text-xs">Pangkat / Golongan</Label>
-                                    <select {...register("pangkat_golongan")} className="w-full h-8 border rounded px-2 text-sm bg-white">
-                                        <option value="">-- Pilih Pangkat --</option>
-                                        {(isTNI_POLRI ? (PANGKAT_GOLONGAN[statusKepegawaian] || []) : PANGKAT_GOLONGAN['ASN']).map(p => (
-                                            <option key={p} value={p}>{p}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label className="text-xs">Status Jabatan</Label>
-                                    <select {...register("status_jabatan")} className="w-full h-8 border rounded px-2 text-sm bg-white">
-                                        <option value="Definitif">Definitif</option>
-                                        <option value="Plt">Plt. (Pelaksana Tugas)</option>
-                                        <option value="Plh">Plh. (Pelaksana Harian)</option>
-                                        <option value="Pj">Pj. (Penjabat)</option>
-                                    </select>
-                                </div>
+                            <div className="text-center p-4 bg-slate-50 rounded border border-dashed text-slate-400 text-xs w-40">
+                                Simpan dulu untuk upload foto
                             </div>
                         )}
+                    </div>
+
+                    {/* Nama & Gelar */}
+                    <div className="grid grid-cols-4 gap-3">
+                        <div className="space-y-1">
+                            <Label className="text-xs">Gelar Depan</Label>
+                            <Input {...register("gelar_depan")} placeholder="Dr." className="h-9" />
+                        </div>
+                        <div className="col-span-2 space-y-1">
+                            <Label className="text-xs">Nama Lengkap <span className="text-red-500">*</span></Label>
+                            <Input {...register("nama_lengkap", { required: true })} className="h-9" />
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs">Gelar Belakang</Label>
+                            <Input {...register("gelar_belakang")} placeholder="S.E., M.M." className="h-9" />
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Kewarganegaraan */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderSelect("kewarganegaraan", "Kewarganegaraan", KEWARGANEGARAAN)}
+                    </div>
+
+                    {/* WNI Fields */}
+                    {isWNI && (
+                        <div className="space-y-3 p-3 bg-blue-50 rounded border border-blue-200">
+                            <h4 className="text-xs font-bold text-blue-800">Identitas WNI</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                {(isASN) && renderInput("nip", "NIP (18 digit)", "text", "198001012005011001")}
+                                {(isTNI_POLRI) && renderInput("nrp", "NRP", "text", "Nomor Registrasi Pokok")}
+                                {renderInput("nik", "NIK (16 digit)", "text", "3201010101010001")}
+                                {renderInput("npwp", "NPWP", "text", "12.345.678.9-012.000")}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* WNA Fields */}
+                    {!isWNI && (
+                        <div className="space-y-3 p-3 bg-orange-50 rounded border border-orange-200">
+                            <h4 className="text-xs font-bold text-orange-800">Identitas WNA</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                {renderSelect("jenis_identitas_wna", "Jenis Identitas", JENIS_IDENTITAS_WNA)}
+                                {renderInput("nomor_identitas_wna", "Nomor Identitas", "text", "Nomor PASPOR/KITAS/KITAP")}
+                                {renderInput("npwp", "NPWP (opsional)", "text")}
+                            </div>
+                        </div>
+                    )}
+                </TabsContent>
+
+                {/* ========== TAB 2: DATA PRIBADI ========== */}
+                <TabsContent value="pribadi" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderSelect("jenis_kelamin", "Jenis Kelamin", JENIS_KELAMIN)}
+                        {renderSelect("agama", "Agama", AGAMA)}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderInput("tempat_lahir", "Tempat Lahir", "text", "Jakarta")}
+                        {renderInput("tanggal_lahir", "Tanggal Lahir", "date")}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderSelect("status_perkawinan", "Status Perkawinan", STATUS_PERKAWINAN)}
+                        {renderSelect("pendidikan_terakhir", "Pendidikan Terakhir", PENDIDIKAN)}
+                    </div>
+                </TabsContent>
+
+                {/* ========== TAB 3: STATUS KEPEGAWAIAN ========== */}
+                <TabsContent value="kepegawaian" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderSelect("status_kepegawaian", "Status Kepegawaian", STATUS_KEPEGAWAIAN)}
                         
-                        <div>
-                            <Label className="text-xs">Status Sistem</Label>
-                            <select {...register("status")} className="w-full h-8 border rounded px-2 text-sm bg-white font-bold text-blue-700">
-                                <option value="AKTIF">AKTIF</option>
-                                <option value="CUTI">CUTI</option>
-                                <option value="TUGAS_BELAJAR">TUGAS BELAJAR</option>
-                                <option value="KELUAR">KELUAR / PENSIUN</option>
+                        {/* Pangkat/Golongan berdasarkan status */}
+                        <div className="space-y-1">
+                            <Label className="text-xs">Pangkat/Golongan</Label>
+                            <select {...register("pangkat_golongan")} className="w-full h-9 border rounded px-2 text-sm bg-white">
+                                <option value="">Pilih Pangkat...</option>
+                                {(PANGKAT_GOLONGAN[statusKepegawaian] || PANGKAT_GOLONGAN['ASN']).map(p => (
+                                    <option key={p} value={p}>{p}</option>
+                                ))}
                             </select>
                         </div>
-                    </TabsContent>
+                    </div>
 
-                    {/* --- TAB 4: KONTAK & LAINNYA --- */}
-                    <TabsContent value="kontak" className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label className="text-xs">Nomor Telepon / HP</Label>
-                                <Input {...register("no_telp")} placeholder="08xxxxxxxx" className="h-8"/>
-                            </div>
-                            <div>
-                                <Label className="text-xs">Email</Label>
-                                <Input {...register("email")} type="email" placeholder="email@example.com" className="h-8"/>
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderSelect("status_penempatan", "Status Penempatan", STATUS_PENEMPATAN)}
+                        {renderSelect("status_jabatan", "Status Jabatan", STATUS_JABATAN)}
+                    </div>
 
-                        <Separator className="my-2"/>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label className="text-xs">Nama Bank</Label>
-                                <Input {...register("nama_bank")} placeholder="BSI / Mandiri" className="h-8"/>
-                            </div>
-                            <div>
-                                <Label className="text-xs">Nomor Rekening</Label>
-                                <Input {...register("no_rekening")} placeholder="xxxxxxxxxx" className="h-8"/>
+                    {/* Penugasan Fields */}
+                    {isPenugasan && (
+                        <div className="p-3 bg-purple-50 rounded border border-purple-200 space-y-3">
+                            <h4 className="text-xs font-bold text-purple-800">Detail Penugasan</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                {renderInput("instansi_asal", "Instansi Asal", "text", "Nama instansi asal")}
+                                {renderInput("masa_penugasan_end", "Masa Penugasan Berakhir", "date")}
                             </div>
                         </div>
+                    )}
 
-                        <div>
-                            <Label className="text-xs">Keterangan Tambahan</Label>
-                            <Input {...register("keterangan")} placeholder="Catatan khusus..." className="h-8"/>
+                    {/* Non-ASN Fields */}
+                    {isNonASN && (
+                        <div className="p-3 bg-green-50 rounded border border-green-200 space-y-3">
+                            <h4 className="text-xs font-bold text-green-800">Detail Non-ASN</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                {renderSelect("jenis_non_asn", "Jenis Non-ASN", JENIS_NON_ASN)}
+                                {renderSelect("sub_kategori_non_asn", "Sub-Kategori", SUB_KATEGORI_NON_ASN)}
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {renderInput("tgl_mulai_kontrak", "Tgl Mulai Kontrak", "date")}
+                                {renderInput("tgl_selesai_kontrak", "Tgl Selesai Kontrak", "date")}
+                            </div>
                         </div>
-                    </TabsContent>
-                </div>
+                    )}
 
-                <DialogFooter className="mt-6">
-                    <Button type="button" variant="outline" onClick={onClose}>Batal</Button>
-                    <Button type="submit" className="bg-slate-900 text-white">Simpan Data</Button>
-                </DialogFooter>
+                    <Separator />
+
+                    {/* Status Sistem */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderSelect("status", "Status Sistem", STATUS_AKTIF)}
+                        {renderInput("keterangan", "Keterangan", "text", "Catatan tambahan...")}
+                    </div>
+                </TabsContent>
+
+                {/* ========== TAB 4: JABATAN & UNIT KERJA ========== */}
+                <TabsContent value="jabatan" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderInput("jabatan", "Jabatan Struktural", "text", "Kepala Seksi Umum")}
+                        {renderInput("jabatan_melekat", "Jabatan Fungsional Melekat", "text", "PPK, Bendahara")}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderSelect("kategori_pegawai", "Kategori Pegawai", KATEGORI_PEGAWAI)}
+                    </div>
+
+                    {/* Pimpinan Checkbox */}
+                    {kategoriPegawai === 'Struktural' && (
+                        <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                            <div className="flex gap-4 items-center">
+                                <div className="flex items-center space-x-2">
+                                    <input type="checkbox" {...register("is_pimpinan_tertinggi")} id="chk_pimpinan" className="rounded" />
+                                    <Label htmlFor="chk_pimpinan" className="text-xs cursor-pointer">Pimpinan Tertinggi / Wakil</Label>
+                                </div>
+                                {watch('is_pimpinan_tertinggi') && (
+                                    <select {...register("jenis_pimpinan")} className="h-7 border rounded px-2 text-xs bg-white">
+                                        <option value="Kepala">Kepala</option>
+                                        <option value="Wakil">Wakil Kepala</option>
+                                    </select>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <Separator />
+
+                    {/* Unit Kerja (Eselon) */}
+                    <h4 className="text-xs font-bold text-slate-700">Unit Kerja</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label className="text-xs">Eselon 1</Label>
+                            <select {...register("eselon1")} className="w-full h-9 border rounded px-2 text-sm bg-white">
+                                <option value="">Pilih Eselon 1...</option>
+                                {optEselon1.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs">Eselon 2</Label>
+                            <select {...register("eselon2")} className="w-full h-9 border rounded px-2 text-sm bg-white" disabled={!watchEselon1}>
+                                <option value="">Pilih Eselon 2...</option>
+                                {optEselon2.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                            <Label className="text-xs">Eselon 3</Label>
+                            <select {...register("eselon3")} className="w-full h-9 border rounded px-2 text-sm bg-white" disabled={!watchEselon2}>
+                                <option value="">Pilih Eselon 3...</option>
+                                {optEselon3.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs">Eselon 4</Label>
+                            <select {...register("eselon4")} className="w-full h-9 border rounded px-2 text-sm bg-white" disabled={!watchEselon3}>
+                                <option value="">Pilih Eselon 4...</option>
+                                {optEselon4.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs">Eselon 5</Label>
+                            <select {...register("eselon5")} className="w-full h-9 border rounded px-2 text-sm bg-white" disabled={!watchEselon4}>
+                                <option value="">Pilih Eselon 5...</option>
+                                {optEselon5.map(u => <option key={u.id} value={u.nama_unit}>{u.nama_unit}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                </TabsContent>
+
+                {/* ========== TAB 5: KONTAK & BANK ========== */}
+                <TabsContent value="kontak" className="space-y-4 mt-4">
+                    <h4 className="text-xs font-bold text-slate-700">Informasi Kontak</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderInput("no_telp", "No Telepon", "tel", "08123456789")}
+                        {renderInput("email", "Email", "email", "nama@example.com")}
+                    </div>
+
+                    <Separator />
+
+                    <h4 className="text-xs font-bold text-slate-700">Informasi Rekening Bank</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        {renderSelect("nama_bank", "Nama Bank", NAMA_BANK)}
+                        {renderInput("no_rekening", "No Rekening", "text", "1234567890")}
+                    </div>
+                </TabsContent>
             </Tabs>
+
+            <DialogFooter className="pt-4 border-t">
+                <Button type="button" variant="outline" onClick={onClose}>Batal</Button>
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                    {initialData ? "Simpan Perubahan" : "Tambah Pegawai"}
+                </Button>
+            </DialogFooter>
         </form>
     );
 }
