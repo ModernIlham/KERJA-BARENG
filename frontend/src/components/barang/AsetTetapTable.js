@@ -184,6 +184,8 @@ export default function AsetTetapTable({
                       <DropdownMenuTrigger asChild><Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openKIBModal && openKIBModal(item._id)} className="text-xs text-blue-600"><FileText size={12} className="mr-2"/> Lihat KIB</DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleDelete(item._id)} className="text-xs text-red-600"><Trash size={12} className="mr-2"/> Hapus</DropdownMenuItem>
                       </DropdownMenuContent>
                   </DropdownMenu>
