@@ -238,9 +238,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Print Functionality on Overtime Reports (Laporan Lembur) Pages"
-  stuck_tasks:
-    - "Print Functionality on Overtime Reports (Laporan Lembur) Pages"
+    - "Activity Logging API"
+    - "Flexi-Time Settings API"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
