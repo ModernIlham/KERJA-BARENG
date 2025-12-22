@@ -159,23 +159,49 @@ async def mutasi_pegawai(id: str, mutasi: MutasiPegawai, current_user: str = Dep
 async def get_import_template(current_user: str = Depends(get_current_user)):
     """Generate Excel template with dropdown validations matching website options"""
     
-    # --- REFERENCE DATA ---
+    # --- REFERENCE DATA (Sesuai dengan PegawaiForm.js) ---
     PANGKAT_ASN = [
         "Juru Muda (I/a)", "Juru Muda Tingkat I (I/b)", "Juru (I/c)", "Juru Tingkat I (I/d)",
         "Pengatur Muda (II/a)", "Pengatur Muda Tingkat I (II/b)", "Pengatur (II/c)", "Pengatur Tingkat I (II/d)",
         "Penata Muda (III/a)", "Penata Muda Tingkat I (III/b)", "Penata (III/c)", "Penata Tingkat I (III/d)",
         "Pembina (IV/a)", "Pembina Tingkat I (IV/b)", "Pembina Utama Muda (IV/c)", "Pembina Utama Madya (IV/d)", "Pembina Utama (IV/e)"
     ]
+    PANGKAT_TNI = [
+        "Prajurit Dua", "Prajurit Satu", "Prajurit Kepala", 
+        "Kopral Dua", "Kopral Satu", "Kopral Kepala",
+        "Sersan Dua", "Sersan Satu", "Sersan Kepala", "Sersan Mayor",
+        "Pembantu Letnan Dua", "Pembantu Letnan Satu",
+        "Letnan Dua", "Letnan Satu", "Kapten",
+        "Mayor", "Letnan Kolonel", "Kolonel",
+        "Brigadir Jenderal", "Mayor Jenderal", "Letnan Jenderal", "Jenderal"
+    ]
+    PANGKAT_POLRI = [
+        "Bhayangkara Dua", "Bhayangkara Satu", "Bhayangkara Kepala",
+        "Ajun Brigadir Polisi Dua", "Ajun Brigadir Polisi Satu", "Ajun Brigadir Polisi",
+        "Brigadir Polisi Dua", "Brigadir Polisi Satu", "Brigadir Polisi", "Brigadir Polisi Kepala",
+        "Ajun Inspektur Polisi Dua", "Ajun Inspektur Polisi Satu",
+        "Inspektur Polisi Dua", "Inspektur Polisi Satu", "Ajun Komisaris Polisi",
+        "Komisaris Polisi", "Ajun Komisaris Besar Polisi", "Komisaris Besar Polisi"
+    ]
+    ALL_PANGKAT = PANGKAT_ASN + PANGKAT_TNI + PANGKAT_POLRI
     
-    STATUS_KEPEGAWAIAN = ["PNS", "PPPK", "Non-ASN", "Honorer", "TNI", "POLRI"]
+    STATUS_KEPEGAWAIAN = ["PNS", "PPPK", "TNI", "POLRI", "Non-ASN", "Honorer"]
     JENIS_KELAMIN = ["Laki-laki", "Perempuan"]
     AGAMA = ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu", "Lainnya"]
     STATUS_PERKAWINAN = ["Belum Kawin", "Kawin", "Cerai Hidup", "Cerai Mati"]
     PENDIDIKAN = ["SD", "SMP", "SMA/SMK", "D1", "D2", "D3", "D4/S1", "S2", "S3"]
     KEWARGANEGARAAN = ["WNI", "WNA"]
-    STATUS_AKTIF = ["AKTIF", "PENSIUN", "MUTASI KELUAR", "MENINGGAL"]
+    STATUS_AKTIF = ["AKTIF", "CUTI", "TUGAS_BELAJAR", "KELUAR", "PENSIUN", "MUTASI KELUAR", "MENINGGAL"]
     NAMA_BANK = ["BRI", "BNI", "Mandiri", "BTN", "Bank Syariah Indonesia (BSI)", "BCA", "CIMB Niaga", "Danamon", "Permata", "OCBC NISP", "Maybank", "Lainnya"]
-    JENIS_NON_ASN = ["PPNPN", "Satpam", "Supir", "Pramubakti", "Konsultan Individu", "Tenaga Ahli", "Teknisi", "Kontrak", "Magang"]
+    
+    # Non-ASN Fields
+    JENIS_NON_ASN = ["Kontrak", "Outsourcing"]
+    SUB_KATEGORI_NON_ASN = ["PPNPN", "Konsultan Individu", "Tenaga Ahli", "Teknisi", "Pramubakti", "Satpam", "Supir", "Magang"]
+    
+    # Status Fields
+    STATUS_PENEMPATAN = ["Definitif", "Mutasi", "Penugasan"]
+    STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj"]
+    JENIS_IDENTITAS_WNA = ["PASPOR", "KITAS", "KITAP"]
     
     # Fetch unit kerja from database
     units = await db.unit_kerja.find({}).to_list(1000)
@@ -183,6 +209,7 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     eselon2_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '2' and u.get('nama_unit'))))
     eselon3_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '3' and u.get('nama_unit'))))
     eselon4_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '4' and u.get('nama_unit'))))
+    eselon5_list = sorted(list(set(u.get('nama_unit', '') for u in units if u.get('eselon') == '5' and u.get('nama_unit'))))
     
     # Create Workbook
     wb = Workbook()
@@ -191,33 +218,63 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     ws = wb.active
     ws.title = "Template Import"
     
-    # Define columns with headers
+    # Define ALL columns matching PegawaiForm.js - 35 columns total
     columns = [
-        ("A", "NIP", 25, True),
-        ("B", "Nama Lengkap", 30, True),
-        ("C", "NIK", 20, False),
-        ("D", "NPWP", 20, False),
-        ("E", "Jenis Kelamin", 15, False),
-        ("F", "Tempat Lahir", 20, False),
-        ("G", "Tanggal Lahir", 15, False),
-        ("H", "Agama", 12, False),
-        ("I", "Status Perkawinan", 18, False),
-        ("J", "Pendidikan Terakhir", 20, False),
-        ("K", "Kewarganegaraan", 15, False),
-        ("L", "Status Kepegawaian", 18, False),
-        ("M", "Jenis Non-ASN", 20, False),
-        ("N", "Pangkat/Golongan", 25, False),
-        ("O", "Jabatan", 35, False),
-        ("P", "Eselon 1", 40, False),
-        ("Q", "Eselon 2", 40, False),
-        ("R", "Eselon 3", 40, False),
-        ("S", "Eselon 4", 40, False),
-        ("T", "No Telp", 15, False),
-        ("U", "Email", 30, False),
-        ("V", "Nama Bank", 25, False),
-        ("W", "No Rekening", 20, False),
-        ("X", "Gelar Depan", 12, False),
-        ("Y", "Gelar Belakang", 15, False),
+        # Identitas Utama (A-H)
+        ("A", "Nama Lengkap", 30, True),
+        ("B", "Gelar Depan", 12, False),
+        ("C", "Gelar Belakang", 15, False),
+        ("D", "Kewarganegaraan", 15, False),
+        ("E", "NIP", 20, False),  # WNI ASN
+        ("F", "NRP", 20, False),  # WNI TNI/POLRI
+        ("G", "NIK", 20, False),  # WNI Non-ASN atau KTP
+        ("H", "NPWP", 20, False),
+        
+        # Identitas WNA (I-J)
+        ("I", "Jenis Identitas WNA", 18, False),  # PASPOR/KITAS/KITAP
+        ("J", "Nomor Identitas WNA", 20, False),
+        
+        # Data Pribadi (K-O)
+        ("K", "Jenis Kelamin", 15, False),
+        ("L", "Tempat Lahir", 20, False),
+        ("M", "Tanggal Lahir", 15, False),
+        ("N", "Agama", 12, False),
+        ("O", "Status Perkawinan", 18, False),
+        ("P", "Pendidikan Terakhir", 20, False),
+        
+        # Status Kepegawaian (Q-V)
+        ("Q", "Status Kepegawaian", 18, False),
+        ("R", "Pangkat/Golongan", 25, False),
+        ("S", "Status Penempatan", 18, False),  # Definitif/Mutasi/Penugasan
+        ("T", "Instansi Asal", 25, False),  # Jika Penugasan
+        ("U", "Masa Penugasan Berakhir", 20, False),  # Jika Penugasan
+        ("V", "Status Jabatan", 15, False),  # Definitif/Plt/Plh/Pj
+        
+        # Non-ASN Detail (W-Z)
+        ("W", "Jenis Non-ASN", 15, False),  # Kontrak/Outsourcing
+        ("X", "Sub-Kategori Non-ASN", 20, False),  # PPNPN/Satpam/dll
+        ("Y", "Tgl Mulai Kontrak", 18, False),
+        ("Z", "Tgl Selesai Kontrak", 18, False),
+        
+        # Jabatan & Unit Kerja (AA-AF)
+        ("AA", "Jabatan", 35, False),
+        ("AB", "Jabatan Fungsional Melekat", 30, False),
+        ("AC", "Eselon 1", 40, False),
+        ("AD", "Eselon 2", 40, False),
+        ("AE", "Eselon 3", 40, False),
+        ("AF", "Eselon 4", 40, False),
+        ("AG", "Eselon 5", 40, False),
+        
+        # Kontak & Bank (AH-AL)
+        ("AH", "No Telp", 15, False),
+        ("AI", "Email", 30, False),
+        ("AJ", "Nama Bank", 25, False),
+        ("AK", "No Rekening", 20, False),
+        
+        # Lainnya (AL-AM)
+        ("AL", "Status", 15, False),  # AKTIF/CUTI/dll
+        ("AM", "Keterangan", 30, False),
+    ]
         ("Z", "Status", 15, False),
     ]
     
