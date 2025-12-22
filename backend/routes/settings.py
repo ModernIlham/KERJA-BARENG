@@ -100,6 +100,83 @@ async def delete_unit_kerja(id: str, current_user: str = Depends(get_current_use
     await db.unit_kerja.delete_one({"_id": ObjectId(id)})
     return {"message": "Unit Kerja deleted"}
 
+# ========== BANK MANAGEMENT ==========
+
+# Default banks (akan di-seed jika collection kosong)
+DEFAULT_BANKS = [
+    {"nama_bank": "BRI", "kode_bank": "002", "is_default": True},
+    {"nama_bank": "BNI", "kode_bank": "009", "is_default": True},
+    {"nama_bank": "Mandiri", "kode_bank": "008", "is_default": True},
+    {"nama_bank": "BTN", "kode_bank": "200", "is_default": True},
+    {"nama_bank": "Bank Syariah Indonesia (BSI)", "kode_bank": "451", "is_default": True},
+    {"nama_bank": "BCA", "kode_bank": "014", "is_default": True},
+    {"nama_bank": "CIMB Niaga", "kode_bank": "022", "is_default": True},
+    {"nama_bank": "Danamon", "kode_bank": "011", "is_default": True},
+    {"nama_bank": "Permata", "kode_bank": "013", "is_default": True},
+    {"nama_bank": "OCBC NISP", "kode_bank": "028", "is_default": True},
+    {"nama_bank": "Maybank", "kode_bank": "016", "is_default": True},
+    {"nama_bank": "Lainnya", "kode_bank": "999", "is_default": True},
+]
+
+@router.get("/banks")
+async def get_banks(current_user: str = Depends(get_current_user)):
+    """Get all banks. If empty, seed with defaults."""
+    count = await db.banks.count_documents({})
+    
+    if count == 0:
+        # Seed default banks
+        for bank in DEFAULT_BANKS:
+            bank['created_at'] = datetime.now(timezone.utc).isoformat()
+            await db.banks.insert_one(bank)
+    
+    banks = await db.banks.find().sort("nama_bank", 1).to_list(1000)
+    result = []
+    for b in banks:
+        b['id'] = str(b['_id'])
+        del b['_id']
+        result.append(b)
+    return result
+
+@router.post("/banks")
+async def add_bank(bank: BankModel, current_user: str = Depends(get_current_user)):
+    """Add a new bank"""
+    # Check if already exists
+    existing = await db.banks.find_one({"nama_bank": {"$regex": f"^{bank.nama_bank}$", "$options": "i"}})
+    if existing:
+        raise HTTPException(status_code=400, detail="Bank dengan nama tersebut sudah ada")
+    
+    new_bank = {
+        "nama_bank": bank.nama_bank,
+        "kode_bank": bank.kode_bank or "",
+        "is_default": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    res = await db.banks.insert_one(new_bank)
+    return {"message": "Bank berhasil ditambahkan", "id": str(res.inserted_id)}
+
+@router.put("/banks/{id}")
+async def update_bank(id: str, bank: BankModel, current_user: str = Depends(get_current_user)):
+    """Update a bank"""
+    update_data = {"nama_bank": bank.nama_bank}
+    if bank.kode_bank:
+        update_data["kode_bank"] = bank.kode_bank
+    
+    await db.banks.update_one({"_id": ObjectId(id)}, {"$set": update_data})
+    return {"message": "Bank berhasil diperbarui"}
+
+@router.delete("/banks/{id}")
+async def delete_bank(id: str, current_user: str = Depends(get_current_user)):
+    """Delete a bank (only non-default banks can be deleted)"""
+    bank = await db.banks.find_one({"_id": ObjectId(id)})
+    if not bank:
+        raise HTTPException(status_code=404, detail="Bank tidak ditemukan")
+    
+    if bank.get('is_default'):
+        raise HTTPException(status_code=400, detail="Bank default tidak dapat dihapus")
+    
+    await db.banks.delete_one({"_id": ObjectId(id)})
+    return {"message": "Bank berhasil dihapus"}
+
 @router.put("/unit-kerja/{id}")
 async def update_unit_kerja(id: str, unit: UnitKerja, current_user: str = Depends(get_current_user)):
     """Update unit kerja - supports name, parent, eselon, and order changes"""
