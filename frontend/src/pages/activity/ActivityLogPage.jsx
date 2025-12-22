@@ -426,7 +426,8 @@ export default function ActivityLogPage() {
                                     {users.map((user, idx) => (
                                         <div 
                                             key={user.user_id} 
-                                            className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
+                                            className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+                                            onClick={() => navigate(`/aktivitas/user/${user.user_id}`)}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
@@ -439,9 +440,14 @@ export default function ActivityLogPage() {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-lg font-bold text-blue-600">{user.activity_count}</p>
-                                                <p className="text-xs text-slate-500">aktivitas</p>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-right">
+                                                    <p className="text-lg font-bold text-blue-600">{user.activity_count}</p>
+                                                    <p className="text-xs text-slate-500">aktivitas</p>
+                                                </div>
+                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                    <ExternalLink size={16} className="text-slate-400" />
+                                                </Button>
                                             </div>
                                         </div>
                                     ))}
