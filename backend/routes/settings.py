@@ -25,6 +25,7 @@ class UnitKerja(BaseModel):
     nama_unit: str
     eselon: str
     parent_id: Optional[str] = None
+    order: Optional[int] = 0
     
 class UserSettings(BaseModel):
     email: str
