@@ -60,8 +60,10 @@ export default function StrukturOrganisasi() {
     const buildHierarchy = (units, employees) => {
         const unitMap = {};
         
-        // 1. Initialize Map & Buckets
+        // 1. Initialize Map & Buckets - Only for units with valid names
         units.forEach(u => {
+            if (!u.nama_unit || u.nama_unit.trim() === '') return; // Skip empty names
+            
             unitMap[u.id] = { 
                 ...u, 
                 children: [], 
