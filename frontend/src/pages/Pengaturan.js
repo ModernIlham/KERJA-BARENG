@@ -349,6 +349,7 @@ export default function Pengaturan() {
                 <TabsTrigger value="db"><Database size={14} className="mr-2"/> Database & Data</TabsTrigger>
                 <TabsTrigger value="users"><User size={14} className="mr-2"/> Manajemen User</TabsTrigger>
                 <TabsTrigger value="unit"><Building size={14} className="mr-2"/> Unit Kerja</TabsTrigger>
+                <TabsTrigger value="bank"><CreditCard size={14} className="mr-2"/> Bank</TabsTrigger>
             </TabsList>
             
             <TabsContent value="instansi" className="mt-4">
