@@ -96,7 +96,7 @@ async def create_pegawai(pegawai_in: PegawaiCreate, current_user: dict = Depends
     return await db.pegawai.find_one({"_id": result.inserted_id})
 
 @router.put("/{id}", response_model=Pegawai)
-async def update_pegawai(id: str, pegawai_in: PegawaiCreate, current_user: str = Depends(get_current_user)):
+async def update_pegawai(id: str, pegawai_in: PegawaiCreate, current_user: dict = Depends(get_current_user)):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
     
     # Check NIP conflict if changed
@@ -112,6 +112,18 @@ async def update_pegawai(id: str, pegawai_in: PegawaiCreate, current_user: str =
         return_document=True
     )
     if not res: raise HTTPException(status_code=404)
+    
+    # Log activity
+    await log_activity(
+        db=db,
+        user_id=str(current_user.get("_id", "")),
+        user_name=current_user.get("full_name", "Unknown"),
+        action="UPDATE",
+        module="Pegawai",
+        target_id=id,
+        details=f"Mengupdate data pegawai: {pegawai_in.nama_lengkap}"
+    )
+    
     return res
 
 @router.get("/{id}", response_model=Pegawai)
