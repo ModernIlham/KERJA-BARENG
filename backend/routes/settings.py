@@ -92,6 +92,59 @@ async def delete_unit_kerja(id: str, current_user: str = Depends(get_current_use
     await db.unit_kerja.delete_one({"_id": ObjectId(id)})
     return {"message": "Unit Kerja deleted"}
 
+@router.put("/unit-kerja/{id}")
+async def update_unit_kerja(id: str, unit: UnitKerja, current_user: str = Depends(get_current_user)):
+    """Update unit kerja - supports name, parent, eselon, and order changes"""
+    update_data = {}
+    if unit.nama_unit:
+        update_data["nama_unit"] = unit.nama_unit
+    if unit.eselon:
+        update_data["eselon"] = unit.eselon
+    if unit.parent_id is not None:
+        update_data["parent_id"] = unit.parent_id if unit.parent_id != "" else None
+    if unit.order is not None:
+        update_data["order"] = unit.order
+    
+    if update_data:
+        await db.unit_kerja.update_one({"_id": ObjectId(id)}, {"$set": update_data})
+    return {"message": "Unit Kerja updated", "id": id}
+
+@router.put("/unit-kerja/{id}/move")
+async def move_unit_kerja(id: str, data: dict, current_user: str = Depends(get_current_user)):
+    """Move unit to new parent or reorder within same parent"""
+    new_parent_id = data.get("parent_id")
+    new_order = data.get("order", 0)
+    new_eselon = data.get("eselon")
+    
+    update_data = {"order": new_order}
+    
+    if new_parent_id is not None:
+        update_data["parent_id"] = new_parent_id if new_parent_id != "" else None
+    
+    if new_eselon:
+        update_data["eselon"] = new_eselon
+    
+    await db.unit_kerja.update_one({"_id": ObjectId(id)}, {"$set": update_data})
+    return {"message": "Unit moved successfully", "id": id}
+
+@router.post("/unit-kerja/reorder")
+async def reorder_unit_kerja(data: dict, current_user: str = Depends(get_current_user)):
+    """Bulk reorder units - receives array of {id, order, parent_id}"""
+    items = data.get("items", [])
+    
+    for item in items:
+        unit_id = item.get("id")
+        order = item.get("order", 0)
+        parent_id = item.get("parent_id")
+        
+        update_data = {"order": order}
+        if parent_id is not None:
+            update_data["parent_id"] = parent_id if parent_id != "" else None
+        
+        await db.unit_kerja.update_one({"_id": ObjectId(unit_id)}, {"$set": update_data})
+    
+    return {"message": f"Reordered {len(items)} units"}
+
 # --- DATABASE MAINTENANCE ROUTES ---
 
 @router.post("/database/normalize")
