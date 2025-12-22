@@ -81,6 +81,7 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
 
     // States
     const [units, setUnits] = useState([]);
+    const [banks, setBanks] = useState([]);
     const [optEselon1, setOptEselon1] = useState([]);
     const [optEselon2, setOptEselon2] = useState([]);
     const [optEselon3, setOptEselon3] = useState([]);
@@ -94,7 +95,10 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
     const isNonASN = ['Non-ASN', 'Honorer'].includes(statusKepegawaian);
     const isPenugasan = statusPenempatan === 'Penugasan';
 
-    useEffect(() => { fetchUnits(); }, []);
+    useEffect(() => { 
+        fetchUnits(); 
+        fetchBanks();
+    }, []);
 
     const fetchUnits = async () => {
         try {
@@ -102,6 +106,16 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
             setUnits(res.data);
             setOptEselon1(res.data.filter(u => u.eselon === "1"));
         } catch (e) { console.error(e); }
+    };
+
+    const fetchBanks = async () => {
+        try {
+            const res = await api.get('/api/settings/banks');
+            setBanks(res.data.map(b => b.nama_bank));
+        } catch (e) { 
+            // Fallback to default
+            setBanks(["BRI", "BNI", "Mandiri", "BTN", "Bank Syariah Indonesia (BSI)", "BCA", "CIMB Niaga", "Danamon", "Permata", "OCBC NISP", "Maybank", "Lainnya"]);
+        }
     };
 
     // Cascading Dropdowns
