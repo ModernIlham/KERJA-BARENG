@@ -140,6 +140,9 @@ async def get_kartu_gudang(
     barang = await db.barang.find_one({"_id": ObjectId(barang_id)})
     if not barang:
         raise HTTPException(status_code=404, detail="Barang not found")
+    
+    # Sanitize barang document
+    barang = sanitize_doc(barang)
         
     sd = datetime.strptime(start_date, "%Y-%m-%d") if start_date else datetime.min
     ed = datetime.strptime(end_date, "%Y-%m-%d").replace(hour=23, minute=59) if end_date else datetime.max
@@ -190,7 +193,7 @@ async def get_kartu_gudang(
             current_saldo = target
             
         mutasi.append({
-            "tanggal": tx['timestamp'],
+            "tanggal": tx['timestamp'].isoformat() if hasattr(tx['timestamp'], 'isoformat') else str(tx['timestamp']),
             "no_dokumen": tx.get('dokumen_ref', '-'),
             "keterangan": tx.get('keterangan', '-'),
             "masuk": m_in,
