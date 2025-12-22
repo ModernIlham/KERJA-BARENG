@@ -619,6 +619,10 @@ export default function Pengaturan() {
             <TabsContent value="bank" className="mt-4">
                 <BankManager />
             </TabsContent>
+            
+            <TabsContent value="flexi" className="mt-4">
+                <FlexiTimeSettings />
+            </TabsContent>
         </Tabs>
     </div>
   );
