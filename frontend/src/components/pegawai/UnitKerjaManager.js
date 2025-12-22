@@ -1,22 +1,95 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Trash, Plus, Network } from 'lucide-react';
+import { Trash, Plus, Network, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Separate form component to ensure clean state on each render
+const AddUnitForm = ({ level, parentOptions, onSuccess }) => {
+    const [namaUnit, setNamaUnit] = useState('');
+    const [parentId, setParentId] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const levelInt = parseInt(level);
+    const parentLevel = (levelInt - 1).toString();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (!namaUnit.trim()) {
+            toast.error("Nama unit tidak boleh kosong");
+            return;
+        }
+        
+        if (levelInt > 1 && !parentId) {
+            toast.error("Pilih induk unit terlebih dahulu");
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            await api.post('/api/settings/unit-kerja', {
+                nama_unit: namaUnit.trim(),
+                parent_id: levelInt > 1 ? parentId : null,
+                eselon: level
+            });
+            toast.success("Unit Kerja ditambahkan");
+            setNamaUnit('');
+            setParentId('');
+            onSuccess();
+        } catch (e) {
+            toast.error(e.response?.data?.detail || "Gagal menyimpan unit kerja");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="flex gap-4 items-end">
+            {levelInt > 1 && (
+                <div className="flex-1 space-y-1">
+                    <label className="text-xs font-medium">Induk (Eselon {parentLevel})</label>
+                    <select 
+                        value={parentId}
+                        onChange={(e) => setParentId(e.target.value)}
+                        className="w-full h-10 border rounded px-3 text-sm bg-white"
+                        required
+                    >
+                        <option value="">-- Pilih Induk --</option>
+                        {parentOptions.map(p => (
+                            <option key={p.id} value={p.id}>{p.nama_unit}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
+            <div className="flex-[2] space-y-1">
+                <label className="text-xs font-medium">Nama Unit Eselon {level}</label>
+                <Input 
+                    value={namaUnit}
+                    onChange={(e) => setNamaUnit(e.target.value)}
+                    placeholder={`Contoh: ${levelInt === 1 ? 'Sekretariat Jenderal' : 'Bagian Umum'}`}
+                    required
+                />
+            </div>
+            <Button type="submit" className="bg-slate-900 text-white min-w-[100px]" disabled={submitting}>
+                {submitting ? (
+                    <><Loader2 size={16} className="mr-2 animate-spin"/> Menyimpan...</>
+                ) : (
+                    <><Plus size={16} className="mr-2"/> Tambah</>
+                )}
+            </Button>
+        </form>
+    );
+};
 
 export default function UnitKerjaManager() {
     const [units, setUnits] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("1"); // Eselon Level 1-5
-
-    const { register, handleSubmit, reset, watch, setValue } = useForm();
-    const selectedParent = watch('parent_id');
+    const [activeTab, setActiveTab] = useState("1");
 
     useEffect(() => {
         fetchUnits();
@@ -30,20 +103,6 @@ export default function UnitKerjaManager() {
             toast.error("Gagal memuat data unit kerja");
         } finally {
             setLoading(false);
-        }
-    };
-
-    const onSubmit = async (data) => {
-        try {
-            await api.post('/api/settings/unit-kerja', {
-                ...data,
-                eselon: activeTab // Force current tab level
-            });
-            toast.success("Unit Kerja ditambahkan");
-            reset();
-            fetchUnits();
-        } catch (e) {
-            toast.error("Gagal menyimpan unit kerja");
         }
     };
 
@@ -80,29 +139,12 @@ export default function UnitKerjaManager() {
                         )}
                     </CardHeader>
                     <CardContent className="pt-4">
-                        <form onSubmit={handleSubmit(onSubmit)} className="flex gap-4 items-end">
-                            {levelInt > 1 && (
-                                <div className="flex-1 space-y-1">
-                                    <label className="text-xs font-medium">Induk (Eselon {parentLevel})</label>
-                                    <select 
-                                        {...register('parent_id', { required: true })} 
-                                        className="w-full h-10 border rounded px-3 text-sm bg-white"
-                                    >
-                                        <option value="">-- Pilih Induk --</option>
-                                        {parentOptions.map(p => (
-                                            <option key={p.id} value={p.id}>{p.nama_unit}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-                            <div className="flex-[2] space-y-1">
-                                <label className="text-xs font-medium">Nama Unit Eselon {level}</label>
-                                <Input {...register('nama_unit', { required: true })} placeholder={`Contoh: ${levelInt === 1 ? 'Sekretariat Jenderal' : 'Bagian Umum'}`} />
-                            </div>
-                            <Button type="submit" className="bg-slate-900 text-white min-w-[100px]">
-                                <Plus size={16} className="mr-2"/> Tambah
-                            </Button>
-                        </form>
+                        <AddUnitForm 
+                            key={`form-${level}-${currentUnits.length}`}
+                            level={level}
+                            parentOptions={parentOptions}
+                            onSuccess={fetchUnits}
+                        />
                     </CardContent>
                 </Card>
 
@@ -167,7 +209,7 @@ export default function UnitKerjaManager() {
                 </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); reset(); }} className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-5 bg-slate-100 p-1">
                     <TabsTrigger value="1">Eselon I</TabsTrigger>
                     <TabsTrigger value="2">Eselon II</TabsTrigger>
