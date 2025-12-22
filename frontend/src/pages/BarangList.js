@@ -698,6 +698,7 @@ export default function BarangList() {
         <PersediaanTransactionModal isOpen={!!transactionItem} onClose={() => setTransactionItem(null)} item={transactionItem} onSuccess={() => { fetchBarang(); setTransactionItem(null); }} />
         <KartuStokModal isOpen={!!kartuStokItem} onClose={() => setKartuStokItem(null)} item={kartuStokItem} />
         <FotoManager isOpen={!!fotoManagerItem} onClose={() => setFotoManagerItem(null)} item={fotoManagerItem} type={fotoManagerType} onSuccess={fetchBarang} />
+        <KIBModal isOpen={!!kibAsetId} onClose={() => setKibAsetId(null)} asetId={kibAsetId} />
     </PageContainer>
   );
 }
