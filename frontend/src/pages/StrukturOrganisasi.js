@@ -101,25 +101,14 @@ export default function StrukturOrganisasi() {
 
         // 3. Build Tree Structure
         const roots = [];
-        units.forEach(u => {
-            // Skip units without valid name
-            if (!u.nama_unit || u.nama_unit.trim() === '') return;
-            
+        Object.values(unitMap).forEach(u => {
             if (u.parent_id && unitMap[u.parent_id]) {
-                unitMap[u.parent_id].children.push(unitMap[u.id]);
-            } else if (!u.parent_id) {
-                roots.push(unitMap[u.id]);
+                unitMap[u.parent_id].children.push(u);
+            } else {
+                // It's a root if no parent_id or parent doesn't exist in map
+                roots.push(u);
             }
         });
-
-        // Filter out empty children
-        const filterEmptyChildren = (node) => {
-            if (node.children && node.children.length > 0) {
-                node.children = node.children.filter(c => c.nama_unit && c.nama_unit.trim() !== '');
-                node.children.forEach(filterEmptyChildren);
-            }
-        };
-        roots.forEach(filterEmptyChildren);
 
         // Sort children alphabetically
         const sortChildren = (node) => {
@@ -128,12 +117,10 @@ export default function StrukturOrganisasi() {
                 node.children.forEach(sortChildren);
             }
         };
-        
-        // Filter roots with valid names and sort
-        const validRoots = roots.filter(r => r.nama_unit && r.nama_unit.trim() !== '');
-        validRoots.forEach(sortChildren);
+        roots.sort((a, b) => a.nama_unit.localeCompare(b.nama_unit));
+        roots.forEach(sortChildren);
 
-        return validRoots;
+        return roots;
     };
 
     const handleNodeClick = (node) => {
