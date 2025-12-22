@@ -22,6 +22,7 @@ import DashboardKepegawaian from './modules/kepegawaian/pages/DashboardKepegawai
 import ManajemenLembur from './modules/kepegawaian/pages/ManajemenLembur';
 import ManajemenTugas from './modules/kepegawaian/pages/ManajemenTugas';
 import RiwayatAbsensi from './modules/kepegawaian/pages/RiwayatAbsensi';
+import ActivityLogPage from './pages/activity/ActivityLogPage';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
