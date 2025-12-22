@@ -17,6 +17,7 @@ import UnitKerjaManager from '../components/pegawai/UnitKerjaManager';
 import InstansiSettings from '../components/pegawai/InstansiSettings';
 import DeleteMasterDataDialog from '../components/DeleteMasterDataDialog';
 import BankManager from '../components/pegawai/BankManager';
+import FlexiTimeSettings from '../components/kepegawaian/FlexiTimeSettings';
 
 // Kepegawaian Reset Dialog Component
 const KepegawaianResetDialog = ({ type, onConfirm, loading }) => {
