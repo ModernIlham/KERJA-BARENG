@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Printer } from 'lucide-react';
+import { Download, FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useReactToPrint } from 'react-to-print';
+import { exportToPdf } from '../../../utils/pdfExport';
 import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
 
 // Helper to format currency
 const formatCurrency = (amount) => {
