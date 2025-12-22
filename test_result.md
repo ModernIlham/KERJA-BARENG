@@ -251,6 +251,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ All KIB APIs working correctly: GET /api/aset/kib/settings (200), PUT /api/aset/kib/settings (200), GET /api/aset/kib/{id} (200), GET /api/aset/kib/{id}/pdf (200). Settings can be updated and retrieved, KIB data generation works, PDF export functional."
+      - working: true
+        agent: "main"
+        comment: "✅ Fixed JSON serialization error (nan/inf float values). Added sanitize_for_json helper function. KIB data and PDF generation both working."
 
   - task: "Attendance APIs with Location"
     implemented: true
