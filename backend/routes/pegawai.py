@@ -380,14 +380,15 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ("U", "Masa Penugasan Berakhir", 22, False),
         ("V", "Status Jabatan", 15, False),
         
-        # W-Z: Non-ASN Detail
+        # W-AA: Non-ASN Detail
         ("W", "Jenis Non-ASN", 15, False),
         ("X", "Sub-Kategori Non-ASN", 22, False),
-        ("Y", "Tgl Mulai Kontrak", 18, False),
-        ("Z", "Tgl Selesai Kontrak", 18, False),
+        ("Y", "Nama Perusahaan (PT/CV)", 30, False),  # Untuk Outsourcing
+        ("Z", "Tgl Mulai Kontrak", 18, False),
+        ("AA", "Tgl Selesai Kontrak", 18, False),
         
-        # AA-AK: Jabatan & Unit Kerja
-        ("AA", "Jabatan Struktural", 35, False),
+        # AB-AL: Jabatan & Unit Kerja
+        ("AB", "Jabatan Struktural", 35, False),
         ("AB", "Jabatan Fungsional Melekat", 30, False),
         ("AC", "Kategori Pegawai", 18, False),
         ("AD", "Pimpinan K/L", 15, False),  # Pimpinan Kementerian/Lembaga
