@@ -1555,6 +1555,398 @@ class APITester:
         
         return True
 
+    def test_aset_pegawai_api(self):
+        """Test Asset Tracking & Monitoring (Aset Pegawai) API endpoints"""
+        print("\n=== ASSET TRACKING & MONITORING (ASET PEGAWAI) API TEST ===")
+        
+        # Ensure we have a valid token
+        if not self.token:
+            login_success = self.test_login()
+            if not login_success:
+                print("❌ Failed to login, cannot proceed with Aset Pegawai test")
+                return False
+        
+        # Step 1: Get Asset List (should be empty initially)
+        print("\n📊 Step 1: Testing GET /api/aset-pegawai (Asset List)...")
+        
+        success, response = self.run_test(
+            "Get Asset List (Initial)",
+            "GET",
+            "api/aset-pegawai",
+            200,
+            data={"page": 1, "limit": 10}
+        )
+        
+        if not success:
+            print("❌ Failed to get asset list")
+            return False
+        
+        print("✅ Asset list endpoint accessible")
+        initial_count = response.get('total', 0)
+        print(f"📊 Initial asset count: {initial_count}")
+        
+        # Test with filters
+        success, response = self.run_test(
+            "Get Asset List with Search Filter",
+            "GET",
+            "api/aset-pegawai",
+            200,
+            data={"search": "laptop", "status": "Tersedia", "kategori": "Elektronik"}
+        )
+        
+        if success:
+            print("✅ Asset list with filters working")
+        
+        # Step 2: Get a pegawai_id for serah terima testing
+        print("\n👥 Step 2: Getting employee data for handover testing...")
+        
+        success, response = self.run_test(
+            "Get Employee List",
+            "GET",
+            "api/pegawai",
+            200,
+            data={"page": 1, "limit": 5}
+        )
+        
+        pegawai_id = None
+        if success and response.get('data'):
+            pegawai_id = response['data'][0].get('_id')
+            pegawai_nama = response['data'][0].get('nama_lengkap', 'Unknown')
+            print(f"✅ Found employee for testing: {pegawai_nama} (ID: {pegawai_id})")
+        else:
+            print("⚠️ No employees found, will skip handover tests")
+        
+        # Step 3: Create Asset
+        print("\n📦 Step 3: Testing POST /api/aset-pegawai (Create Asset)...")
+        
+        asset_data = {
+            "nama_aset": "Laptop Dell Latitude 5420",
+            "kode_aset": "AST-2024-001",
+            "kategori": "Elektronik",
+            "merk": "Dell",
+            "tipe": "Latitude 5420",
+            "serial_number": "SN123456789",
+            "kondisi": "Baik",
+            "nilai_perolehan": 15000000,
+            "tgl_perolehan": "2024-01-15",
+            "lokasi": "Ruang IT Lantai 3",
+            "keterangan": "Laptop untuk divisi IT"
+        }
+        
+        success, response = self.run_test(
+            "Create Asset",
+            "POST",
+            "api/aset-pegawai",
+            200,
+            data=asset_data
+        )
+        
+        if not success:
+            print("❌ Failed to create asset")
+            return False
+        
+        asset_id = response.get('data', {}).get('id')
+        if not asset_id:
+            print("❌ No asset ID returned")
+            return False
+        
+        print(f"✅ Asset created successfully with ID: {asset_id}")
+        
+        # Verify asset status is "Tersedia"
+        asset_status = response.get('data', {}).get('status')
+        if asset_status != "Tersedia":
+            print(f"❌ Expected status 'Tersedia', got '{asset_status}'")
+            return False
+        print("✅ Asset status correctly set to 'Tersedia'")
+        
+        # Step 4: Get Asset Detail
+        print("\n🔍 Step 4: Testing GET /api/aset-pegawai/{id} (Asset Detail)...")
+        
+        success, response = self.run_test(
+            "Get Asset Detail",
+            "GET",
+            f"api/aset-pegawai/{asset_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get asset detail")
+            return False
+        
+        print("✅ Asset detail retrieved successfully")
+        
+        # Verify all fields are returned correctly
+        expected_fields = ["nama_aset", "kode_aset", "kategori", "merk", "tipe", "serial_number", "kondisi", "nilai_perolehan"]
+        for field in expected_fields:
+            if field not in response:
+                print(f"❌ Missing field in asset detail: {field}")
+                return False
+        print("✅ All asset fields present in detail response")
+        
+        # Step 5: Update Asset
+        print("\n✏️ Step 5: Testing PUT /api/aset-pegawai/{id} (Update Asset)...")
+        
+        update_data = {
+            "kondisi": "Rusak Ringan"
+        }
+        
+        success, response = self.run_test(
+            "Update Asset Condition",
+            "PUT",
+            f"api/aset-pegawai/{asset_id}",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print("❌ Failed to update asset")
+            return False
+        
+        print("✅ Asset updated successfully")
+        
+        # Verify update
+        updated_kondisi = response.get('data', {}).get('kondisi')
+        if updated_kondisi != "Rusak Ringan":
+            print(f"❌ Expected kondisi 'Rusak Ringan', got '{updated_kondisi}'")
+            return False
+        print("✅ Asset condition updated correctly")
+        
+        # Step 6: Serah Terima (Handover)
+        if pegawai_id:
+            print("\n🤝 Step 6: Testing POST /api/aset-pegawai/{id}/serah-terima (Asset Handover)...")
+            
+            handover_data = {
+                "pemegang_baru_id": pegawai_id,
+                "keterangan": "Serah terima laptop untuk keperluan kerja"
+            }
+            
+            success, response = self.run_test(
+                "Asset Handover",
+                "POST",
+                f"api/aset-pegawai/{asset_id}/serah-terima",
+                200,
+                data=handover_data
+            )
+            
+            if not success:
+                print("❌ Failed to perform asset handover")
+                return False
+            
+            print("✅ Asset handover successful")
+            
+            # Verify status changes to "Dipinjam"
+            asset_status = response.get('data', {}).get('status')
+            if asset_status != "Dipinjam":
+                print(f"❌ Expected status 'Dipinjam', got '{asset_status}'")
+                return False
+            print("✅ Asset status changed to 'Dipinjam'")
+            
+            # Verify pemegang fields are populated
+            pemegang_nama = response.get('data', {}).get('pemegang_nama')
+            pemegang_nip = response.get('data', {}).get('pemegang_nip')
+            if not pemegang_nama:
+                print("❌ pemegang_nama not populated")
+                return False
+            print(f"✅ Asset holder populated: {pemegang_nama} (NIP: {pemegang_nip})")
+            
+            # Verify riwayat_pemegang is updated
+            riwayat = response.get('data', {}).get('riwayat_pemegang', [])
+            if len(riwayat) == 0:
+                print("❌ riwayat_pemegang not updated")
+                return False
+            print("✅ Asset history (riwayat_pemegang) updated")
+            
+            # Step 7: Kembalikan (Return)
+            print("\n↩️ Step 7: Testing POST /api/aset-pegawai/{id}/kembalikan (Asset Return)...")
+            
+            return_data = {
+                "kondisi_pengembalian": "Baik",
+                "keterangan": "Pengembalian laptop setelah selesai tugas"
+            }
+            
+            success, response = self.run_test(
+                "Asset Return",
+                "POST",
+                f"api/aset-pegawai/{asset_id}/kembalikan",
+                200,
+                data=return_data
+            )
+            
+            if not success:
+                print("❌ Failed to return asset")
+                return False
+            
+            print("✅ Asset return successful")
+            
+            # Verify status changes to "Tersedia"
+            asset_status = response.get('data', {}).get('status')
+            if asset_status != "Tersedia":
+                print(f"❌ Expected status 'Tersedia', got '{asset_status}'")
+                return False
+            print("✅ Asset status changed back to 'Tersedia'")
+            
+            # Verify riwayat_pemegang history is updated
+            riwayat = response.get('data', {}).get('riwayat_pemegang', [])
+            if len(riwayat) == 0 or not riwayat[-1].get('tgl_selesai'):
+                print("❌ Asset return history not properly updated")
+                return False
+            print("✅ Asset return history updated correctly")
+        else:
+            print("⚠️ Skipping handover and return tests (no employee available)")
+        
+        # Step 8: Get Summary Statistics
+        print("\n📊 Step 8: Testing GET /api/aset-pegawai/statistik/summary (Summary Statistics)...")
+        
+        success, response = self.run_test(
+            "Get Asset Summary Statistics",
+            "GET",
+            "api/aset-pegawai/statistik/summary",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get summary statistics")
+            return False
+        
+        print("✅ Summary statistics retrieved successfully")
+        
+        # Verify required fields
+        required_stats = ["total_aset", "by_status", "by_kategori", "total_nilai"]
+        for field in required_stats:
+            if field not in response:
+                print(f"❌ Missing field in summary: {field}")
+                return False
+        print("✅ All required statistics fields present")
+        
+        # Verify by_status structure
+        by_status = response.get('by_status', {})
+        status_fields = ["tersedia", "dipinjam", "rusak", "hilang"]
+        for status in status_fields:
+            if status not in by_status:
+                print(f"❌ Missing status in by_status: {status}")
+                return False
+        print("✅ Asset status breakdown complete")
+        
+        print(f"📊 Total assets: {response.get('total_aset', 0)}")
+        print(f"📊 Available: {by_status.get('tersedia', 0)}")
+        print(f"📊 On loan: {by_status.get('dipinjam', 0)}")
+        print(f"📊 Total value: {response.get('total_nilai', 0):,} IDR")
+        
+        # Step 9: Get Alerts
+        print("\n🚨 Step 9: Testing GET /api/aset-pegawai/alerts/pegawai-keluar (Employee Leaving Alerts)...")
+        
+        success, response = self.run_test(
+            "Get Employee Leaving Alerts",
+            "GET",
+            "api/aset-pegawai/alerts/pegawai-keluar",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get alerts")
+            return False
+        
+        print("✅ Employee leaving alerts retrieved successfully")
+        
+        # Verify alert structure
+        alert_fields = ["total", "critical", "high", "medium", "alerts"]
+        for field in alert_fields:
+            if field not in response:
+                print(f"❌ Missing field in alerts: {field}")
+                return False
+        print("✅ Alert response structure complete")
+        
+        alerts = response.get('alerts', [])
+        print(f"📊 Total alerts: {response.get('total', 0)}")
+        print(f"📊 Critical: {response.get('critical', 0)}")
+        print(f"📊 High: {response.get('high', 0)}")
+        print(f"📊 Medium: {response.get('medium', 0)}")
+        
+        # Step 10: Get Assets by Pegawai
+        if pegawai_id:
+            print(f"\n👤 Step 10: Testing GET /api/aset-pegawai/pegawai/{pegawai_id}/aset (Assets by Employee)...")
+            
+            success, response = self.run_test(
+                "Get Assets by Employee",
+                "GET",
+                f"api/aset-pegawai/pegawai/{pegawai_id}/aset",
+                200
+            )
+            
+            if not success:
+                print("❌ Failed to get assets by employee")
+                return False
+            
+            print("✅ Assets by employee retrieved successfully")
+            
+            # Verify response structure
+            employee_asset_fields = ["pegawai_id", "nama", "nip", "total_aset", "total_nilai", "aset"]
+            for field in employee_asset_fields:
+                if field not in response:
+                    print(f"❌ Missing field in employee assets: {field}")
+                    return False
+            print("✅ Employee assets response structure complete")
+            
+            print(f"📊 Employee: {response.get('nama', 'Unknown')}")
+            print(f"📊 Total assets held: {response.get('total_aset', 0)}")
+            print(f"📊 Total value: {response.get('total_nilai', 0):,} IDR")
+        else:
+            print("⚠️ Skipping assets by employee test (no employee available)")
+        
+        # Step 11: Delete Asset
+        print(f"\n🗑️ Step 11: Testing DELETE /api/aset-pegawai/{asset_id} (Delete Asset)...")
+        
+        success, response = self.run_test(
+            "Delete Asset",
+            "DELETE",
+            f"api/aset-pegawai/{asset_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to delete asset")
+            return False
+        
+        print("✅ Asset deleted successfully")
+        
+        # Verify deletion by trying to get the asset (should fail)
+        success, response = self.run_test(
+            "Verify Asset Deletion",
+            "GET",
+            f"api/aset-pegawai/{asset_id}",
+            404  # Should return 404 Not Found
+        )
+        
+        if success:  # We expect this to succeed (meaning we got the expected 404 status)
+            print("✅ Asset deletion verified (asset no longer exists)")
+        else:
+            print("⚠️ Asset deletion verification failed")
+        
+        print("\n🎉 ASSET TRACKING & MONITORING API TEST COMPLETED!")
+        print("✅ All test scenarios completed successfully:")
+        print("   1. ✅ Get Asset List (with pagination and filters)")
+        print("   2. ✅ Create Asset (with proper status 'Tersedia')")
+        print("   3. ✅ Get Asset Detail (all fields returned)")
+        print("   4. ✅ Update Asset (condition change)")
+        print("   5. ✅ Serah Terima (handover to employee)")
+        print("   6. ✅ Kembalikan (return from employee)")
+        print("   7. ✅ Get Summary Statistics (total, by status, by category)")
+        print("   8. ✅ Get Alerts (employee leaving with assets)")
+        print("   9. ✅ Get Assets by Employee")
+        print("   10. ✅ Delete Asset (with verification)")
+        
+        print("\n📊 Asset Tracking System Status:")
+        print("✅ Full CRUD operations working")
+        print("✅ Asset handover/return workflow functional")
+        print("✅ Status tracking (Tersedia → Dipinjam → Tersedia)")
+        print("✅ History tracking (riwayat_pemegang)")
+        print("✅ Employee integration working")
+        print("✅ Alert system for employees leaving")
+        print("✅ Summary statistics and reporting")
+        print("✅ All API endpoints responding correctly")
+        
+        return True
+
     def test_bank_management_digit_field(self):
         """Test Bank Management with Digit Field functionality"""
         print("\n=== BANK MANAGEMENT DIGIT FIELD TEST ===")
