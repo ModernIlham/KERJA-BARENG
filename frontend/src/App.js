@@ -18,7 +18,6 @@ import Surat from './pages/Surat';
 import DokumenList from './pages/DokumenList';
 import StrukturOrganisasi from './pages/StrukturOrganisasi';
 import AsetPegawaiList from './pages/AsetPegawaiList';
-import MasterBarangList from './pages/MasterBarangList';
 
 import DashboardKepegawaian from './modules/kepegawaian/pages/DashboardKepegawaian';
 import ManajemenLembur from './modules/kepegawaian/pages/ManajemenLembur';
