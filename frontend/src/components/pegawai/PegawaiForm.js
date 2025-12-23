@@ -39,7 +39,7 @@ const PANGKAT_GOLONGAN = {
     ]
 };
 
-const STATUS_KEPEGAWAIAN = ["PNS", "PPPK", "TNI", "POLRI", "Non-ASN", "Honorer"];
+const STATUS_KEPEGAWAIAN = ["PNS", "CPNS", "PPPK", "TNI", "POLRI", "Non-ASN", "Honorer"];
 const JENIS_KELAMIN = ["Laki-laki", "Perempuan"];
 const AGAMA = ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu", "Lainnya"];
 const STATUS_PERKAWINAN = ["Belum Kawin", "Kawin", "Cerai Hidup", "Cerai Mati"];
@@ -90,7 +90,7 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
 
     // Derived States
     const isWNI = kewarganegaraan === 'WNI';
-    const isASN = ['PNS', 'PPPK'].includes(statusKepegawaian);
+    const isASN = ['PNS', 'CPNS', 'PPPK'].includes(statusKepegawaian);
     const isTNI_POLRI = ['TNI', 'POLRI'].includes(statusKepegawaian);
     const isNonASN = ['Non-ASN', 'Honorer'].includes(statusKepegawaian);
     const isPenugasan = statusPenempatan === 'Penugasan';
