@@ -168,6 +168,30 @@ backend:
         comment: "✅ PASSED - Asset Tracking & Monitoring API fully functional. All 10 test scenarios completed successfully: 1) GET /api/aset-pegawai (asset list with pagination and filters) ✅ 2) POST /api/aset-pegawai (create asset with proper status 'Tersedia') ✅ 3) GET /api/aset-pegawai/{id} (asset detail with all fields) ✅ 4) PUT /api/aset-pegawai/{id} (update asset condition) ✅ 5) POST /api/aset-pegawai/{id}/serah-terima (handover to employee, status → 'Dipinjam') ✅ 6) POST /api/aset-pegawai/{id}/kembalikan (return from employee, status → 'Tersedia') ✅ 7) GET /api/aset-pegawai/statistik/summary (summary statistics) ✅ 8) GET /api/aset-pegawai/alerts/pegawai-keluar (employee leaving alerts) ✅ 9) GET /api/aset-pegawai/pegawai/{id}/aset (assets by employee) ✅ 10) DELETE /api/aset-pegawai/{id} (delete asset with verification) ✅. Full CRUD operations working, asset handover/return workflow functional, status tracking (Tersedia → Dipinjam → Tersedia), history tracking (riwayat_pemegang), employee integration working, alert system operational, summary statistics and reporting complete. 14/15 API calls successful (93.3% success rate)."
 
 frontend:
+  - task: "Master Data Barang Frontend"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/MasterBarangList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Master Data Barang frontend fully functional. All test scenarios completed successfully: 1) Navigation to /master-barang page via sidebar menu under Kepegawaian section ✅ 2) Page title 'Master Data Barang' displays correctly ✅ 3) All 4 summary cards present with correct titles (Jenis Barang, Stok Tersedia, Dipegang Pegawai, Total Nilai) ✅ 4) Add new barang functionality working - modal opens, form fields functional, realistic data entry successful (Laptop HP EliteBook 840) ✅ 5) Filter functionality working - filter panel opens, Elektronik category selection works ✅ 6) Search functionality working - search term 'HP' returns 2 rows of results ✅ 7) Assign to employee functionality working - modal opens, pegawai selection works, assignment completed successfully ✅. All CRUD operations functional, auto-generated asset codes working, stock tracking operational, employee assignment workflow complete. Integration with backend API working correctly."
+
+  - task: "Updated Aset Pegawai Page"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/AsetPegawaiList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Updated Aset Pegawai page working correctly. Key changes verified: 1) Page title updated to 'Aset yang Dipegang Pegawai' ✅ 2) 'Tambah Aset' button successfully removed ✅ 3) 'Peringatan' button present ✅ 4) Master Data Barang link present in description text ✅ 5) Link navigation to /master-barang working ✅ 6) Data flow verification - assets appear in list with correct pemegang information, 'Dipinjam' status showing for assigned assets ✅ 7) 5 summary cards present (Total Aset, Tersedia, Dipinjam, Rusak/Hilang, Total Nilai) ✅. Page successfully redirects asset creation to Master Data Barang page as intended. Asset tracking and employee assignment integration working correctly."
+
   - task: "Enhanced Filter Panel"
     implemented: true
     working: true
