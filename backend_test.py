@@ -14999,7 +14999,7 @@ if __name__ == "__main__":
         return True
 
 if __name__ == "__main__":
-    print("🚀 Starting SIMAN-G New Features Backend API Tests...")
+    print("🚀 Starting Asset Tracking & Monitoring (Aset Pegawai) API Testing...")
     print("=" * 60)
     
     tester = APITester()
@@ -15012,50 +15012,38 @@ if __name__ == "__main__":
     
     print(f"✅ Authentication successful. Token: {tester.token[:20]}...")
     
-    # Run the specific tests for new features
-    tests_to_run = [
-        ("Bank Management with Digit Field", tester.test_bank_management_digit_field),
-        ("Pimpinan Struktural Auto-Transfer", tester.test_pimpinan_struktural_auto_transfer),
-        ("Employee API with New Fields", tester.test_employee_api_new_fields)
-    ]
+    # Run the Asset Pegawai API test
+    test_name = "Asset Tracking & Monitoring (Aset Pegawai) API"
     
-    results = {}
+    print(f"\n{'='*60}")
+    print(f"🧪 Running: {test_name}")
+    print(f"{'='*60}")
     
-    for test_name, test_func in tests_to_run:
-        print(f"\n{'='*60}")
-        print(f"🧪 Running: {test_name}")
-        print(f"{'='*60}")
-        
-        try:
-            result = test_func()
-            results[test_name] = result
-            if result:
-                print(f"✅ {test_name}: PASSED")
-            else:
-                print(f"❌ {test_name}: FAILED")
-        except Exception as e:
-            print(f"💥 {test_name}: ERROR - {str(e)}")
-            results[test_name] = False
+    try:
+        result = tester.test_aset_pegawai_api()
+        if result:
+            print(f"✅ {test_name}: PASSED")
+        else:
+            print(f"❌ {test_name}: FAILED")
+    except Exception as e:
+        print(f"💥 {test_name}: ERROR - {str(e)}")
+        result = False
     
     # Final Summary
     print(f"\n{'='*60}")
-    print("📊 FINAL TEST RESULTS")
+    print("📊 ASSET PEGAWAI API TEST RESULTS")
     print(f"{'='*60}")
     
-    passed = sum(1 for result in results.values() if result)
-    total = len(results)
+    status = "✅ PASSED" if result else "❌ FAILED"
+    print(f"{status} - {test_name}")
     
-    for test_name, result in results.items():
-        status = "✅ PASSED" if result else "❌ FAILED"
-        print(f"{status} - {test_name}")
+    print(f"\n📈 API Calls Made: {tester.tests_run}")
+    print(f"📈 API Calls Successful: {tester.tests_passed}")
+    print(f"📈 Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
     
-    print(f"\n📈 Summary: {passed}/{total} tests passed")
-    print(f"API Calls Made: {tester.tests_run}")
-    print(f"API Calls Successful: {tester.tests_passed}")
-    
-    if passed == total:
-        print("🎉 All tests passed! New features are working correctly.")
+    if result:
+        print("🎉 Asset Pegawai API test passed! All endpoints are working correctly.")
         exit(0)
     else:
-        print("⚠️ Some tests failed. Please check the implementation.")
+        print("⚠️ Asset Pegawai API test failed. Please check the implementation.")
         exit(1)
