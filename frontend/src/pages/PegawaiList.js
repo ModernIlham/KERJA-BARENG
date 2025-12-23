@@ -283,17 +283,32 @@ export default function PegawaiList() {
 
       <Card>
         <CardHeader className="pb-3">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-            <Input 
-              placeholder="Cari NIP, Nama, atau Unit Kerja..." 
-              className="pl-9 max-w-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+              <Input 
+                placeholder="Cari NIP, Nama, atau Unit Kerja..." 
+                className="pl-9 max-w-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Button 
+              variant={showNotifications ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowNotifications(!showNotifications)}
+              className={notificationCount > 0 ? "relative" : ""}
+            >
+              <Bell className="h-4 w-4 mr-1" />
+              Notifikasi
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-5 w-5 flex items-center justify-center">
+                  {notificationCount}
+                </span>
+              )}
+            </Button>
           </div>
         </CardHeader>
-        <CardContent>
           <div className="rounded-md border border-slate-200 overflow-hidden">
             <Table>
               <TableHeader className="bg-slate-50">
