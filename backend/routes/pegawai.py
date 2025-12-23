@@ -120,9 +120,20 @@ async def create_pegawai(pegawai_in: PegawaiCreate, current_user: dict = Depends
 async def update_pegawai(id: str, pegawai_in: PegawaiCreate, current_user: dict = Depends(get_current_user)):
     if not ObjectId.is_valid(id): raise HTTPException(status_code=400)
     
-    # Check NIP conflict if changed
-    existing = await db.pegawai.find_one({"nip": pegawai_in.nip, "_id": {"$ne": ObjectId(id)}})
-    if existing: raise HTTPException(status_code=400, detail="NIP already used by another employee")
+    # Check NIP conflict if changed - ONLY if NIP is not empty
+    if pegawai_in.nip and pegawai_in.nip.strip():
+        existing = await db.pegawai.find_one({"nip": pegawai_in.nip, "_id": {"$ne": ObjectId(id)}})
+        if existing: raise HTTPException(status_code=400, detail="NIP sudah digunakan oleh pegawai lain")
+    
+    # Check NIK conflict if changed - ONLY if NIK is not empty
+    if pegawai_in.nik and pegawai_in.nik.strip():
+        existing_nik = await db.pegawai.find_one({"nik": pegawai_in.nik, "_id": {"$ne": ObjectId(id)}})
+        if existing_nik: raise HTTPException(status_code=400, detail="NIK sudah digunakan oleh pegawai lain")
+    
+    # Check NRP conflict if changed - ONLY if NRP is not empty
+    if pegawai_in.nrp and pegawai_in.nrp.strip():
+        existing_nrp = await db.pegawai.find_one({"nrp": pegawai_in.nrp, "_id": {"$ne": ObjectId(id)}})
+        if existing_nrp: raise HTTPException(status_code=400, detail="NRP sudah digunakan oleh pegawai lain")
     
     update_data = pegawai_in.dict(exclude_unset=True)
     
