@@ -1,10 +1,28 @@
 # Test Result Documentation
 
-## Session: December 23, 2025 (Fork 3)
+## Session: December 23, 2025 (Fork 3 - Continued)
 
 ### New Features to Test:
 
-9. **Master Data Barang (NEW)** - IMPLEMENTED ✅
+12. **Transfer Masuk Form (NEW)** - IMPLEMENTED ✅
+    - Tab "Transfer Masuk" di halaman Transaksi Aset
+    - Form untuk penerimaan aset dari Satker/Instansi lain
+    - Fields: Satker Asal, Kode Satker, Instansi Asal, NUP Asal, Register Asal
+    - BAST Transfer section with document selection
+    - Backend: Uses existing /api/transaksi and /api/barang endpoints
+
+13. **KDP Perolehan Form (NEW)** - IMPLEMENTED ✅
+    - Tab "KDP Perolehan" di halaman Transaksi Aset  
+    - Form untuk Konstruksi Dalam Pengerjaan
+    - Section "RINCIAN LAIN KDP": Nama Pembangunan, Jenis, Lokasi KDP, Alamat
+    - Section "KONTRAK": Nomor, Tanggal, Nilai Kontrak, Kontraktor
+    - Section "PEMBAYARAN / TERMIN": Uang Muka vs Termin, Nilai, Persentase, Catatan
+    - Auto-calculate percentage from contract value
+    - Backend: Uses existing endpoints with source='kdp'
+
+### Previously Implemented Features:
+
+9. **Aset Integration (BMN ↔ Transaksi ↔ Aset Pegawai)** - IMPLEMENTED ✅
    - New page `/master-barang` for managing asset catalog
    - CRUD operations for master assets
    - Auto-generated asset codes (e.g., ELK-2025-0001)
