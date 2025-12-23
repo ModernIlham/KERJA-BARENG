@@ -456,6 +456,7 @@ class PegawaiCreate(BaseModel):
     jenis_non_asn: Optional[str] = None
     sub_kategori_non_asn: Optional[str] = None
     sub_kategori: Optional[str] = None  # legacy alias
+    nama_perusahaan: Optional[str] = None  # Nama PT/CV untuk Outsourcing
     tgl_mulai_kontrak: Optional[str] = None
     tgl_selesai_kontrak: Optional[str] = None
     
