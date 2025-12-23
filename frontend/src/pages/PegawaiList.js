@@ -309,6 +309,7 @@ export default function PegawaiList() {
             </Button>
           </div>
         </CardHeader>
+        <CardContent>
           <div className="rounded-md border border-slate-200 overflow-hidden">
             <Table>
               <TableHeader className="bg-slate-50">
