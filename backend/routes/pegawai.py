@@ -357,68 +357,68 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         cell.fill = required_fill if is_required else header_fill
         cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         cell.border = border
-        # Handle column letters for AA, AB, etc.
-        if len(col_letter) == 1:
-            ws.column_dimensions[col_letter].width = width
-        else:
-            ws.column_dimensions[col_letter].width = width
+        ws.column_dimensions[col_letter].width = width
     
-    # Add example row (row 2) - 39 columns matching new structure
+    # Add example row (row 2) - matching new LENGKAP structure
     example_data = [
         # A-H: Identitas Utama
-        "Budi Santoso",  # Nama Lengkap
-        "Dr.",  # Gelar Depan
-        "S.E., M.M.",  # Gelar Belakang
-        "WNI",  # Kewarganegaraan
-        "198001012005011001",  # NIP
-        "",  # NRP (untuk TNI/POLRI)
-        "3201010101010001",  # NIK
-        "12.345.678.9-012.000",  # NPWP
+        "Budi Santoso",  # A: Nama Lengkap
+        "Dr.",  # B: Gelar Depan
+        "S.E., M.M.",  # C: Gelar Belakang
+        "WNI",  # D: Kewarganegaraan
+        "198001012005011001",  # E: NIP
+        "",  # F: NRP (untuk TNI/POLRI)
+        "3201010101010001",  # G: NIK
+        "12.345.678.9-012.000",  # H: NPWP
         
         # I-J: WNA (kosong untuk WNI)
-        "",  # Jenis Identitas WNA
-        "",  # Nomor Identitas WNA
+        "",  # I: Jenis Identitas WNA
+        "",  # J: Nomor Identitas WNA
         
         # K-P: Data Pribadi
-        "Laki-laki",  # Jenis Kelamin
-        "Jakarta",  # Tempat Lahir
-        "01/01/1980",  # Tanggal Lahir
-        "Islam",  # Agama
-        "Kawin",  # Status Perkawinan
-        "D4/S1",  # Pendidikan Terakhir
+        "Laki-laki",  # K: Jenis Kelamin
+        "Jakarta",  # L: Tempat Lahir
+        "01/01/1980",  # M: Tanggal Lahir
+        "Islam",  # N: Agama
+        "Kawin",  # O: Status Perkawinan
+        "D4/S1",  # P: Pendidikan Terakhir
         
-        # Q-V: Status Kepegawaian
-        "PNS",  # Status Kepegawaian
-        "Penata (III/c)",  # Pangkat/Golongan
-        "Definitif",  # Status Penempatan
-        "",  # Instansi Asal
-        "",  # Masa Penugasan Berakhir
-        "Definitif",  # Status Jabatan
+        # Q-W: Status Kepegawaian
+        "PNS",  # Q: Status Kepegawaian
+        "Penata (III/c)",  # R: Pangkat/Golongan ASN
+        "",  # S: Golongan PPPK (kosong untuk PNS)
+        "Definitif",  # T: Status Penempatan
+        "",  # U: Instansi Asal
+        "",  # V: Masa Penugasan Berakhir
+        "Definitif",  # W: Status Jabatan
         
-        # W-Z: Non-ASN Detail (kosong untuk ASN)
-        "",  # Jenis Non-ASN
-        "",  # Sub-Kategori Non-ASN
-        "",  # Tgl Mulai Kontrak
-        "",  # Tgl Selesai Kontrak
+        # X-AA: Non-ASN Detail (kosong untuk ASN)
+        "",  # X: Jenis Non-ASN
+        "",  # Y: Sub-Kategori Non-ASN
+        "",  # Z: Tgl Mulai Kontrak
+        "",  # AA: Tgl Selesai Kontrak
         
-        # AA-AG: Jabatan & Unit Kerja
-        "Kepala Seksi Umum",  # Jabatan
-        "PPK, Bendahara",  # Jabatan Fungsional Melekat
-        eselon1_list[0] if eselon1_list else "",  # Eselon 1
-        eselon2_list[0] if eselon2_list else "",  # Eselon 2
-        eselon3_list[0] if eselon3_list else "",  # Eselon 3
-        eselon4_list[0] if eselon4_list else "",  # Eselon 4
-        eselon5_list[0] if eselon5_list else "",  # Eselon 5
+        # AB-AK: Jabatan & Unit Kerja
+        "Kepala Seksi Umum",  # AB: Jabatan Struktural
+        "PPK, Bendahara",  # AC: Jabatan Fungsional Melekat
+        "Struktural",  # AD: Kategori Pegawai
+        "Tidak",  # AE: Pimpinan Tertinggi
+        "",  # AF: Jenis Pimpinan (kosong jika bukan pimpinan)
+        eselon1_list[0] if eselon1_list else "",  # AG: Eselon 1
+        eselon2_list[0] if eselon2_list else "",  # AH: Eselon 2
+        eselon3_list[0] if eselon3_list else "",  # AI: Eselon 3
+        eselon4_list[0] if eselon4_list else "",  # AJ: Eselon 4
+        eselon5_list[0] if eselon5_list else "",  # AK: Eselon 5
         
-        # AH-AK: Kontak & Bank
-        "08123456789",  # No Telp
-        "budi@example.com",  # Email
-        "BRI",  # Nama Bank
-        "1234567890",  # No Rekening
+        # AL-AO: Kontak & Bank
+        "08123456789",  # AL: No Telepon
+        "budi@example.com",  # AM: Email
+        "BRI",  # AN: Nama Bank
+        "1234567890",  # AO: No Rekening
         
-        # AL-AM: Lainnya
-        "AKTIF",  # Status
-        "",  # Keterangan
+        # AP-AQ: Status & Lainnya
+        "AKTIF",  # AP: Status Sistem
+        "",  # AQ: Keterangan
     ]
     
     example_fill = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")
@@ -445,7 +445,7 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ws.add_data_validation(dv)
         dv.add(f"{col_letter}{row_start}:{col_letter}{row_end}")
     
-    # Add ALL validations matching PegawaiForm.js
+    # Add ALL validations matching PegawaiForm.js - LENGKAP
     add_dropdown("D", KEWARGANEGARAAN)  # Kewarganegaraan
     add_dropdown("I", JENIS_IDENTITAS_WNA)  # Jenis Identitas WNA
     add_dropdown("K", JENIS_KELAMIN)  # Jenis Kelamin
@@ -453,25 +453,29 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     add_dropdown("O", STATUS_PERKAWINAN)  # Status Perkawinan
     add_dropdown("P", PENDIDIKAN)  # Pendidikan Terakhir
     add_dropdown("Q", STATUS_KEPEGAWAIAN)  # Status Kepegawaian
-    add_dropdown("R", ALL_PANGKAT)  # Pangkat/Golongan (semua)
-    add_dropdown("S", STATUS_PENEMPATAN)  # Status Penempatan
-    add_dropdown("V", STATUS_JABATAN)  # Status Jabatan
-    add_dropdown("W", JENIS_NON_ASN)  # Jenis Non-ASN
-    add_dropdown("X", SUB_KATEGORI_NON_ASN)  # Sub-Kategori Non-ASN
-    add_dropdown("AJ", NAMA_BANK)  # Nama Bank
-    add_dropdown("AL", STATUS_AKTIF)  # Status
+    add_dropdown("R", PANGKAT_ASN + PANGKAT_TNI + PANGKAT_POLRI)  # Pangkat ASN/TNI/POLRI
+    add_dropdown("S", PANGKAT_PPPK)  # Golongan PPPK (I-XIX)
+    add_dropdown("T", STATUS_PENEMPATAN)  # Status Penempatan
+    add_dropdown("W", STATUS_JABATAN)  # Status Jabatan
+    add_dropdown("X", JENIS_NON_ASN)  # Jenis Non-ASN
+    add_dropdown("Y", SUB_KATEGORI_NON_ASN)  # Sub-Kategori Non-ASN
+    add_dropdown("AD", KATEGORI_PEGAWAI)  # Kategori Pegawai
+    add_dropdown("AE", YA_TIDAK)  # Pimpinan Tertinggi
+    add_dropdown("AF", JENIS_PIMPINAN)  # Jenis Pimpinan
+    add_dropdown("AN", NAMA_BANK)  # Nama Bank
+    add_dropdown("AP", STATUS_AKTIF)  # Status Sistem
     
     # Unit kerja dropdowns
     if eselon1_list:
-        add_dropdown("AC", eselon1_list)
+        add_dropdown("AG", eselon1_list)
     if eselon2_list:
-        add_dropdown("AD", eselon2_list)
+        add_dropdown("AH", eselon2_list)
     if eselon3_list:
-        add_dropdown("AE", eselon3_list)
+        add_dropdown("AI", eselon3_list)
     if eselon4_list:
-        add_dropdown("AF", eselon4_list)
+        add_dropdown("AJ", eselon4_list)
     if eselon5_list:
-        add_dropdown("AG", eselon5_list)
+        add_dropdown("AK", eselon5_list)
     
     # --- SHEET 2: Referensi Data ---
     ws_ref = wb.create_sheet("Referensi Data")
