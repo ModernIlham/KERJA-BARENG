@@ -273,6 +273,13 @@ export default function PegawaiList() {
             </DialogContent>
         </Dialog>
       </div>
+      {/* Notification Panel */}
+      {showNotifications && (
+        <div className="mb-4">
+          <ContractNotifications onRefresh={() => { fetchPegawai(); fetchNotificationCount(); }} />
+        </div>
+      )}
+
 
       <Card>
         <CardHeader className="pb-3">
