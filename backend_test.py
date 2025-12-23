@@ -1800,7 +1800,7 @@ class APITester:
         
         non_asn_data = {
             "nama_lengkap": "Test Non-ASN Employee",
-            "nik": "3201010101990003",
+            "nik": f"32010101019900{unique_suffix[:-1]}4",
             "status_kepegawaian": "Non-ASN",
             "sub_kategori_non_asn": "PPNPN",
             "jenis_kelamin": "Laki-laki",
@@ -1812,7 +1812,7 @@ class APITester:
             "jabatan": "Staff Non-ASN",
             "eselon1": "SEKRETARIAT",
             "status": "AKTIF",
-            "email": "nonasn.test@example.com",
+            "email": f"nonasn.test{unique_suffix}@example.com",
             "no_telp": "08123456792"
         }
         
