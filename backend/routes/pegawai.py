@@ -116,8 +116,8 @@ async def update_pegawai(id: str, pegawai_in: PegawaiCreate, current_user: dict 
     # Log activity
     await log_activity(
         db=db,
-        user_id=str(current_user.get("_id", "")),
-        user_name=current_user.get("full_name", "Unknown"),
+        user_id=str(current_user.id),
+        user_name=current_user.full_name or "Unknown",
         action="UPDATE",
         module="Pegawai",
         target_id=id,
