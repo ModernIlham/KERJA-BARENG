@@ -289,8 +289,14 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj", "Pjs"]
     JENIS_IDENTITAS_WNA = ["PASPOR", "KITAS", "KITAP"]
     
-    # Kategori & Pimpinan
-    KATEGORI_PEGAWAI = ["Struktural", "Fungsional", "Pelaksana"]
+    # Kategori & Pimpinan - SESUAI UU ASN TERBARU
+    KATEGORI_PEGAWAI = [
+        "Jabatan Pimpinan Tinggi (JPT)",   # Eselon I & II
+        "Jabatan Administrator",            # Eselon III
+        "Jabatan Pengawas",                 # Eselon IV
+        "Pejabat Pelaksana",                # Staf/Pelaksana
+        "Jabatan Fungsional (JF)"           # Fungsional
+    ]
     JENIS_PIMPINAN = ["Kepala", "Wakil"]
     YA_TIDAK = ["Ya", "Tidak"]
     
