@@ -387,7 +387,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Settings and Export Functionality for SIMAN-G System"
+    - "CPNS Status Verification - Same Treatment as PNS"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
