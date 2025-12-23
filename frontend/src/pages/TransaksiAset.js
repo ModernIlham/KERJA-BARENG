@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { ArrowDownCircle, ArrowUpCircle, History, Package } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, History, Package, ArrowLeftRight, Construction } from 'lucide-react';
 import AssetIncomingForm from '../components/transaksi/AssetIncomingForm';
+import AssetTransferMasukForm from '../components/transaksi/AssetTransferMasukForm';
+import KDPIncomingForm from '../components/transaksi/KDPIncomingForm';
 import AssetOutgoingForm from '../components/transaksi/AssetOutgoingForm';
 import TransactionTable from '../components/transaksi/TransactionTable';
 import api from '../api/axios';
@@ -16,9 +18,6 @@ export default function TransaksiAset() {
     const fetchHistory = async () => {
         setLoading(true);
         try {
-            // Need a way to filter only Asset transactions if using shared endpoint?
-            // Currently endpoint returns all. We can filter client side or add param.
-            // For now, let's fetch all and filter client side if needed, or assume endpoint handles it.
             const res = await api.get('/api/transaksi?limit=100');
             setHistory(res.data.data);
         } catch (e) {
@@ -37,20 +36,26 @@ export default function TransaksiAset() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900">Transaksi Aset Tetap</h1>
-                <p className="text-sm text-slate-500">Pencatatan perolehan dan mutasi/distribusi aset tetap</p>
+                <h1 className="text-2xl font-bold text-slate-900">Transaksi Aset Tetap (BMN)</h1>
+                <p className="text-sm text-slate-500">Pencatatan perolehan, transfer masuk, KDP, dan mutasi/distribusi aset tetap</p>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                <TabsList className="bg-slate-100 p-1">
+                <TabsList className="bg-slate-100 p-1 flex-wrap h-auto">
                     <TabsTrigger value="riwayat" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                        <History size={16} className="mr-2"/> Riwayat Transaksi
+                        <History size={16} className="mr-2"/> Riwayat
                     </TabsTrigger>
                     <TabsTrigger value="masuk" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                        <ArrowDownCircle size={16} className="mr-2"/> Barang Masuk (Perolehan)
+                        <ArrowDownCircle size={16} className="mr-2"/> Pembelian
+                    </TabsTrigger>
+                    <TabsTrigger value="transfer" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                        <ArrowLeftRight size={16} className="mr-2"/> Transfer Masuk
+                    </TabsTrigger>
+                    <TabsTrigger value="kdp" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+                        <Construction size={16} className="mr-2"/> KDP Perolehan
                     </TabsTrigger>
                     <TabsTrigger value="keluar" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">
-                        <ArrowUpCircle size={16} className="mr-2"/> Barang Keluar (Mutasi/Distribusi)
+                        <ArrowUpCircle size={16} className="mr-2"/> Keluar (Distribusi)
                     </TabsTrigger>
                 </TabsList>
 
@@ -73,6 +78,14 @@ export default function TransaksiAset() {
 
                 <TabsContent value="masuk">
                     <AssetIncomingForm onSuccess={() => setActiveTab('riwayat')} />
+                </TabsContent>
+
+                <TabsContent value="transfer">
+                    <AssetTransferMasukForm onSuccess={() => setActiveTab('riwayat')} />
+                </TabsContent>
+
+                <TabsContent value="kdp">
+                    <KDPIncomingForm onSuccess={() => setActiveTab('riwayat')} />
                 </TabsContent>
 
                 <TabsContent value="keluar">
