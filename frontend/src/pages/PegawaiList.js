@@ -68,6 +68,35 @@ export default function PegawaiList() {
     }
   };
 
+  const fetchNotificationCount = async () => {
+    try {
+      const res = await api.get('/api/pegawai/notifications/expiring');
+      setNotificationCount(res.data.total || 0);
+    } catch (e) {
+      console.error('Failed to fetch notification count');
+    }
+  };
+
+  // Helper to check contract expiry status
+  const getContractStatus = (item) => {
+    const tglSelesai = item.tgl_selesai_kontrak || item.masa_penugasan_end;
+    if (!tglSelesai) return null;
+    
+    try {
+      const endDate = new Date(tglSelesai);
+      const today = new Date();
+      const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+      
+      if (daysRemaining < 0) return { status: 'expired', days: Math.abs(daysRemaining), label: 'Berakhir' };
+      if (daysRemaining <= 7) return { status: 'critical', days: daysRemaining, label: 'Kritis' };
+      if (daysRemaining <= 14) return { status: 'high', days: daysRemaining, label: 'Penting' };
+      if (daysRemaining <= 30) return { status: 'medium', days: daysRemaining, label: 'Perhatian' };
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
   useEffect(() => {
     const timeout = setTimeout(() => {
         if(search && currentPage !== 1) setCurrentPage(1);
@@ -75,6 +104,10 @@ export default function PegawaiList() {
     }, 500);
     return () => clearTimeout(timeout);
   }, [search, currentPage]);
+
+  useEffect(() => {
+    fetchNotificationCount();
+  }, []);
 
   const openAdd = () => {
       setSelectedItem(null);
