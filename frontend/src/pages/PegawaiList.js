@@ -331,8 +331,23 @@ export default function PegawaiList() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  pegawai.map((item) => (
-                    <TableRow key={item._id} className="hover:bg-slate-50">
+                  pegawai.map((item) => {
+                    // Determine row color based on status
+                    const getRowClassName = () => {
+                      const status = (item.status || '').toUpperCase();
+                      // Gray/faded for inactive statuses
+                      if (['KELUAR', 'PENSIUN', 'MUTASI_KELUAR', 'MENINGGAL', 'RESIGN', 'PHK'].includes(status)) {
+                        return 'bg-slate-100 opacity-60 hover:opacity-80';
+                      }
+                      // Yellow for temporary leave
+                      if (['CUTI', 'TUGAS_BELAJAR', 'TUGAS BELAJAR'].includes(status)) {
+                        return 'bg-amber-50 hover:bg-amber-100';
+                      }
+                      return 'hover:bg-slate-50';
+                    };
+                    
+                    return (
+                    <TableRow key={item._id} className={getRowClassName()}>
                       <TableCell>
                          <div className="flex items-center gap-3">
                              <div 
