@@ -208,6 +208,12 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         "Penata Muda (III/a)", "Penata Muda Tingkat I (III/b)", "Penata (III/c)", "Penata Tingkat I (III/d)",
         "Pembina (IV/a)", "Pembina Tingkat I (IV/b)", "Pembina Utama Muda (IV/c)", "Pembina Utama Madya (IV/d)", "Pembina Utama (IV/e)"
     ]
+    PANGKAT_PPPK = [
+        "Golongan I", "Golongan II", "Golongan III", "Golongan IV", "Golongan V",
+        "Golongan VI", "Golongan VII", "Golongan VIII", "Golongan IX", "Golongan X",
+        "Golongan XI", "Golongan XII", "Golongan XIII", "Golongan XIV", "Golongan XV",
+        "Golongan XVI", "Golongan XVII", "Golongan XVIII", "Golongan XIX"
+    ]
     PANGKAT_TNI = [
         "Prajurit Dua", "Prajurit Satu", "Prajurit Kepala", 
         "Kopral Dua", "Kopral Satu", "Kopral Kepala",
@@ -225,7 +231,7 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         "Inspektur Polisi Dua", "Inspektur Polisi Satu", "Ajun Komisaris Polisi",
         "Komisaris Polisi", "Ajun Komisaris Besar Polisi", "Komisaris Besar Polisi"
     ]
-    ALL_PANGKAT = PANGKAT_ASN + PANGKAT_TNI + PANGKAT_POLRI
+    ALL_PANGKAT = PANGKAT_ASN + PANGKAT_PPPK + PANGKAT_TNI + PANGKAT_POLRI
     
     STATUS_KEPEGAWAIAN = ["PNS", "CPNS", "PPPK", "TNI", "POLRI", "Non-ASN", "Honorer"]
     JENIS_KELAMIN = ["Laki-laki", "Perempuan"]
@@ -242,6 +248,11 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     STATUS_PENEMPATAN = ["Definitif", "Mutasi", "Penugasan"]
     STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj", "Pjs"]
     JENIS_IDENTITAS_WNA = ["PASPOR", "KITAS", "KITAP"]
+    
+    # Kategori & Pimpinan
+    KATEGORI_PEGAWAI = ["Struktural", "Fungsional", "Pelaksana"]
+    JENIS_PIMPINAN = ["Kepala", "Wakil"]
+    YA_TIDAK = ["Ya", "Tidak"]
     
     # Fetch unit kerja from database
     units = await db.unit_kerja.find({}).to_list(1000)
@@ -266,23 +277,23 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     ws = wb.active
     ws.title = "Template Import"
     
-    # Define ALL columns matching PegawaiForm.js - 35 columns total
+    # Define ALL columns matching PegawaiForm.js - LENGKAP
     columns = [
-        # Identitas Utama (A-H)
+        # A-H: Identitas Utama
         ("A", "Nama Lengkap", 30, True),
         ("B", "Gelar Depan", 12, False),
         ("C", "Gelar Belakang", 15, False),
         ("D", "Kewarganegaraan", 15, False),
-        ("E", "NIP", 20, False),  # WNI ASN
-        ("F", "NRP", 20, False),  # WNI TNI/POLRI
-        ("G", "NIK", 20, False),  # WNI Non-ASN atau KTP
-        ("H", "NPWP", 20, False),
+        ("E", "NIP", 20, False),
+        ("F", "NRP", 20, False),
+        ("G", "NIK", 20, False),
+        ("H", "NPWP", 22, False),
         
-        # Identitas WNA (I-J)
-        ("I", "Jenis Identitas WNA", 18, False),  # PASPOR/KITAS/KITAP
+        # I-J: Identitas WNA
+        ("I", "Jenis Identitas WNA", 18, False),
         ("J", "Nomor Identitas WNA", 20, False),
         
-        # Data Pribadi (K-O)
+        # K-P: Data Pribadi
         ("K", "Jenis Kelamin", 15, False),
         ("L", "Tempat Lahir", 20, False),
         ("M", "Tanggal Lahir", 15, False),
@@ -290,38 +301,42 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ("O", "Status Perkawinan", 18, False),
         ("P", "Pendidikan Terakhir", 20, False),
         
-        # Status Kepegawaian (Q-V)
+        # Q-V: Status Kepegawaian
         ("Q", "Status Kepegawaian", 18, False),
-        ("R", "Pangkat/Golongan", 25, False),
-        ("S", "Status Penempatan", 18, False),  # Definitif/Mutasi/Penugasan
-        ("T", "Instansi Asal", 25, False),  # Jika Penugasan
-        ("U", "Masa Penugasan Berakhir", 20, False),  # Jika Penugasan
-        ("V", "Status Jabatan", 15, False),  # Definitif/Plt/Plh/Pj
+        ("R", "Pangkat/Golongan ASN", 28, False),
+        ("S", "Golongan PPPK", 18, False),
+        ("T", "Status Penempatan", 18, False),
+        ("U", "Instansi Asal", 25, False),
+        ("V", "Masa Penugasan Berakhir", 22, False),
+        ("W", "Status Jabatan", 15, False),
         
-        # Non-ASN Detail (W-Z)
-        ("W", "Jenis Non-ASN", 15, False),  # Kontrak/Outsourcing
-        ("X", "Sub-Kategori Non-ASN", 20, False),  # PPNPN/Satpam/dll
-        ("Y", "Tgl Mulai Kontrak", 18, False),
-        ("Z", "Tgl Selesai Kontrak", 18, False),
+        # X-AA: Non-ASN Detail
+        ("X", "Jenis Non-ASN", 15, False),
+        ("Y", "Sub-Kategori Non-ASN", 22, False),
+        ("Z", "Tgl Mulai Kontrak", 18, False),
+        ("AA", "Tgl Selesai Kontrak", 18, False),
         
-        # Jabatan & Unit Kerja (AA-AF)
-        ("AA", "Jabatan", 35, False),
-        ("AB", "Jabatan Fungsional Melekat", 30, False),
-        ("AC", "Eselon 1", 40, False),
-        ("AD", "Eselon 2", 40, False),
-        ("AE", "Eselon 3", 40, False),
-        ("AF", "Eselon 4", 40, False),
-        ("AG", "Eselon 5", 40, False),
+        # AB-AH: Jabatan & Unit Kerja
+        ("AB", "Jabatan Struktural", 35, False),
+        ("AC", "Jabatan Fungsional Melekat", 30, False),
+        ("AD", "Kategori Pegawai", 18, False),
+        ("AE", "Pimpinan Tertinggi", 18, False),
+        ("AF", "Jenis Pimpinan", 15, False),
+        ("AG", "Eselon 1", 45, False),
+        ("AH", "Eselon 2", 45, False),
+        ("AI", "Eselon 3", 40, False),
+        ("AJ", "Eselon 4", 40, False),
+        ("AK", "Eselon 5", 40, False),
         
-        # Kontak & Bank (AH-AL)
-        ("AH", "No Telp", 15, False),
-        ("AI", "Email", 30, False),
-        ("AJ", "Nama Bank", 25, False),
-        ("AK", "No Rekening", 20, False),
+        # AL-AO: Kontak & Bank
+        ("AL", "No Telepon", 15, False),
+        ("AM", "Email", 30, False),
+        ("AN", "Nama Bank", 28, False),
+        ("AO", "No Rekening", 20, False),
         
-        # Lainnya (AL-AM)
-        ("AL", "Status", 15, False),  # AKTIF/CUTI/dll
-        ("AM", "Keterangan", 30, False),
+        # AP-AQ: Status & Lainnya
+        ("AP", "Status Sistem", 15, False),
+        ("AQ", "Keterangan", 35, False),
     ]
     
     # Styles
