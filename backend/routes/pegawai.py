@@ -636,6 +636,7 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ("Non-ASN / Honorer:", ""),
         ("- Isi kolom NIK", ""),
         ("- Isi kolom Jenis Non-ASN & Sub-Kategori", ""),
+        ("- Jika Outsourcing, isi kolom Nama Perusahaan (PT/CV)", ""),
         ("- Isi tanggal mulai & selesai kontrak", ""),
         ("", ""),
         ("WNA (Warga Negara Asing):", ""),
