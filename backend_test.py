@@ -14607,23 +14607,63 @@ if __name__ == "__main__":
         return True
 
 if __name__ == "__main__":
-    tester = APITester()
-    
-    print("🚀 Starting Excel Template and PPPK Golongan Testing...")
+    print("🚀 Starting SIMAN-G New Features Backend API Tests...")
     print("=" * 60)
     
-    # Run the specific test for Excel template and PPPK Golongan
-    success = tester.test_excel_template_and_pppk_golongan()
+    tester = APITester()
     
-    print("\n" + "=" * 60)
-    print(f"📊 FINAL TEST RESULTS:")
-    print(f"Tests Run: {tester.tests_run}")
-    print(f"Tests Passed: {tester.tests_passed}")
-    print(f"Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%" if tester.tests_run > 0 else "No tests run")
+    # Login first
+    print("\n🔐 Authenticating...")
+    if not tester.test_login():
+        print("❌ Authentication failed. Cannot proceed with tests.")
+        exit(1)
     
-    if success:
-        print("🎉 Excel Template and PPPK Golongan testing completed successfully!")
-        sys.exit(0)
+    print(f"✅ Authentication successful. Token: {tester.token[:20]}...")
+    
+    # Run the specific tests for new features
+    tests_to_run = [
+        ("Bank Management with Digit Field", tester.test_bank_management_digit_field),
+        ("Pimpinan Struktural Auto-Transfer", tester.test_pimpinan_struktural_auto_transfer),
+        ("Employee API with New Fields", tester.test_employee_api_new_fields)
+    ]
+    
+    results = {}
+    
+    for test_name, test_func in tests_to_run:
+        print(f"\n{'='*60}")
+        print(f"🧪 Running: {test_name}")
+        print(f"{'='*60}")
+        
+        try:
+            result = test_func()
+            results[test_name] = result
+            if result:
+                print(f"✅ {test_name}: PASSED")
+            else:
+                print(f"❌ {test_name}: FAILED")
+        except Exception as e:
+            print(f"💥 {test_name}: ERROR - {str(e)}")
+            results[test_name] = False
+    
+    # Final Summary
+    print(f"\n{'='*60}")
+    print("📊 FINAL TEST RESULTS")
+    print(f"{'='*60}")
+    
+    passed = sum(1 for result in results.values() if result)
+    total = len(results)
+    
+    for test_name, result in results.items():
+        status = "✅ PASSED" if result else "❌ FAILED"
+        print(f"{status} - {test_name}")
+    
+    print(f"\n📈 Summary: {passed}/{total} tests passed")
+    print(f"API Calls Made: {tester.tests_run}")
+    print(f"API Calls Successful: {tester.tests_passed}")
+    
+    if passed == total:
+        print("🎉 All tests passed! New features are working correctly.")
+        exit(0)
     else:
-        print("❌ Excel Template and PPPK Golongan testing failed!")
-        sys.exit(1)
+        print("⚠️ Some tests failed. Please check the implementation.")
+        exit(1)
