@@ -52,6 +52,33 @@ export default function PegawaiList() {
   const [totalItems, setTotalItems] = useState(0);
   const limit = 20;
   
+  // Filter & Sort States
+  const [filters, setFilters] = useState({
+    status: '',
+    status_kepegawaian: '',
+    eselon1: '',
+    kategori_pegawai: ''
+  });
+  const [sortBy, setSortBy] = useState('nama_lengkap');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [showFilters, setShowFilters] = useState(false);
+  const [unitKerjaOptions, setUnitKerjaOptions] = useState([]);
+  const [exporting, setExporting] = useState(false);
+  
+  // Fetch unit kerja for filter options
+  useEffect(() => {
+    const fetchUnitKerja = async () => {
+      try {
+        const res = await api.get('/api/settings/unit-kerja');
+        const eselon1 = res.data.filter(u => u.eselon === "1").map(u => u.nama_unit);
+        setUnitKerjaOptions(eselon1);
+      } catch (e) {}
+    };
+    fetchUnitKerja();
+  }, []);
+  
+  const fetchPegawai = async () => {
+  
   const fetchPegawai = async () => {
     setLoading(true);
     try {
