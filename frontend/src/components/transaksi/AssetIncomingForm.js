@@ -94,8 +94,8 @@ export default function AssetIncomingForm({ onSuccess }) {
     const handleOpenDocModal = async () => {
         setIsModalOpen(true);
         try {
-            // FILTER ONLY 'Aset Tetap' or 'Umum'
-            const res = await api.get('/api/dokumen-sumber', { params: { kategori: 'Aset Tetap' } });
+            // FILTER kategori 'Aset Tetap Pembelian'
+            const res = await api.get('/api/dokumen-sumber', { params: { kategori: 'Aset Tetap Pembelian' } });
             setDokumenList(res.data.data);
         } catch (e) { console.error(e); }
     };
