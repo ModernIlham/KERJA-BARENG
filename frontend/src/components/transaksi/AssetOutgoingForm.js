@@ -200,11 +200,11 @@ export default function AssetOutgoingForm({ onSuccess }) {
                         </div>
 
                         <div className="space-y-1">
-                            <Label className="text-xs">Pegawai Penerima (Opsional)</Label>
+                            <Label className="text-xs">Pegawai Penerima <span className="text-blue-600 font-normal">(akan otomatis tercatat di Aset Pegawai)</span></Label>
                             <Select onValueChange={v => setFormData({...formData, pegawai_id: v})}>
                                 <SelectTrigger className="bg-white"><SelectValue placeholder="Pilih Pegawai..."/></SelectTrigger>
                                 <SelectContent>
-                                    {pegawaiList.map(p => <SelectItem key={p._id} value={p._id}>{p.nama_lengkap}</SelectItem>)}
+                                    {pegawaiList.map(p => <SelectItem key={p._id} value={p._id}>{p.nama_lengkap} - {p.nip || p.nik || '-'}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
