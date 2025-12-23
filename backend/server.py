@@ -60,6 +60,7 @@ api_router.include_router(tasks.router, prefix="/tasks", tags=["Tasks (Kanban)"]
 api_router.include_router(kepegawaian.router, prefix="/kepegawaian", tags=["Kepegawaian (HR)"])
 api_router.include_router(activity.router, prefix="/activity", tags=["Activity Logging"])
 api_router.include_router(kib.router, prefix="/aset", tags=["KIB (Kartu Inventarisasi Barang)"])
+api_router.include_router(aset_pegawai.router, prefix="/aset-pegawai", tags=["Aset Pegawai (Tracking)"])
 @api_router.get("/")
 async def root():
     return {"message": "SIMAN-G API Ready"}
