@@ -15620,7 +15620,7 @@ if __name__ == "__main__":
         return True
 
 if __name__ == "__main__":
-    print("🚀 Starting Master Data Barang API Testing...")
+    print("🚀 Starting Aset Integration Testing...")
     print("=" * 60)
     
     tester = APITester()
@@ -15633,15 +15633,15 @@ if __name__ == "__main__":
     
     print(f"✅ Authentication successful. Token: {tester.token[:20]}...")
     
-    # Run the Master Barang API test
-    test_name = "Master Data Barang API"
+    # Run the Aset Integration test
+    test_name = "Aset Integration (BMN ↔ Transaksi ↔ Aset Pegawai)"
     
     print(f"\n{'='*60}")
     print(f"🧪 Running: {test_name}")
     print(f"{'='*60}")
     
     try:
-        result = tester.test_master_barang_api()
+        result = tester.test_aset_integration()
         if result:
             print(f"✅ {test_name}: PASSED")
         else:
@@ -15652,7 +15652,7 @@ if __name__ == "__main__":
     
     # Final Summary
     print(f"\n{'='*60}")
-    print("📊 MASTER DATA BARANG API TEST RESULTS")
+    print("📊 ASET INTEGRATION TEST RESULTS")
     print(f"{'='*60}")
     
     status = "✅ PASSED" if result else "❌ FAILED"
@@ -15663,8 +15663,8 @@ if __name__ == "__main__":
     print(f"📈 Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
     
     if result:
-        print("🎉 Master Data Barang API test passed! All endpoints are working correctly.")
+        print("🎉 Aset Integration test passed! All systems are working correctly.")
         exit(0)
     else:
-        print("⚠️ Asset Pegawai API test failed. Please check the implementation.")
+        print("⚠️ Aset Integration test failed. Please check the implementation.")
         exit(1)
