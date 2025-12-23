@@ -14788,10 +14788,10 @@ def main():
 
 
 def main():
-    """Main function to run the Asset Pegawai API test"""
+    """Main function to run the Master Data Barang API test"""
     tester = APITester()
     
-    print("🚀 Starting Asset Tracking & Monitoring (Aset Pegawai) API Testing...")
+    print("🚀 Starting Master Data Barang API Testing...")
     print("=" * 60)
     
     # Test login first
@@ -14799,23 +14799,23 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Asset Pegawai API test as requested in review
-    if not tester.test_aset_pegawai_api():
-        print("❌ Asset Pegawai API test failed")
+    # Run the Master Data Barang API test as requested in review
+    if not tester.test_master_barang_api():
+        print("❌ Master Data Barang API test failed")
         return 1
     
     # Print summary
     print("\n" + "=" * 60)
-    print(f"🎯 ASSET PEGAWAI API TESTING SUMMARY")
+    print(f"🎯 MASTER DATA BARANG API TESTING SUMMARY")
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 ALL ASSET PEGAWAI API TESTS PASSED!")
+        print("🎉 ALL MASTER DATA BARANG API TESTS PASSED!")
         return 0
     else:
-        print("❌ SOME ASSET PEGAWAI API TESTS FAILED!")
+        print("❌ SOME MASTER DATA BARANG API TESTS FAILED!")
         return 1
 
 if __name__ == "__main__":
