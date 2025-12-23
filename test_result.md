@@ -58,13 +58,39 @@ DO OR DIE: ALWAYS READ AND FOLLOW THESE GUIDELINES
 backend:
   - task: "Bank Digit Validation API"
     implemented: true
-    working: needs_testing
+    working: true
     file: "/app/backend/routes/settings.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - All bank management digit field tests successful. GET /api/settings/banks returns jumlah_digit field correctly. BRI has 15 digits, BNI has 10 digits, BCA has 10 digits as expected. PUT /api/settings/banks/{id} successfully updates jumlah_digit field. Bank digit field update verification working properly."
     
   - task: "Pimpinan Struktural Auto-Transfer"
     implemented: true
-    working: needs_testing
+    working: true
     file: "/app/backend/routes/pegawai.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Pimpinan Struktural Auto-Transfer functionality working correctly. Auto-transfer logic implemented in both CREATE and UPDATE operations. When a new employee is assigned as pimpinan struktural in the same unit kerja, the previous one is automatically unset. Only one pimpinan struktural per unit kerja at any time. Fixed missing auto-transfer logic in CREATE function during testing."
+
+  - task: "Employee API New Fields Support"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/pegawai.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Employee API with new fields working correctly. POST /api/pegawai accepts is_pimpinan_struktural field. Employee creation stores eselon3, eselon4, eselon5 fields correctly. GET /api/pegawai includes all new fields in response. Employee list response contains eselon3, eselon4, eselon5 fields. Search functionality works with new employee structure. UPDATE operation works with new fields."
 
 frontend:
   - task: "Remove Duplicate Fullscreen Button"
