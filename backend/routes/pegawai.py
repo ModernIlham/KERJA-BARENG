@@ -483,13 +483,17 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     
     ref_data = [
         ("Status Kepegawaian", STATUS_KEPEGAWAIAN),
-        ("Pangkat ASN", PANGKAT_ASN),
+        ("Pangkat ASN (PNS/CPNS)", PANGKAT_ASN),
+        ("Golongan PPPK (I-XIX)", PANGKAT_PPPK),
         ("Pangkat TNI", PANGKAT_TNI),
         ("Pangkat POLRI", PANGKAT_POLRI),
         ("Jenis Non-ASN", JENIS_NON_ASN),
         ("Sub-Kategori Non-ASN", SUB_KATEGORI_NON_ASN),
         ("Status Penempatan", STATUS_PENEMPATAN),
         ("Status Jabatan", STATUS_JABATAN),
+        ("Kategori Pegawai", KATEGORI_PEGAWAI),
+        ("Jenis Pimpinan", JENIS_PIMPINAN),
+        ("Ya/Tidak", YA_TIDAK),
         ("Jenis Kelamin", JENIS_KELAMIN),
         ("Agama", AGAMA),
         ("Status Perkawinan", STATUS_PERKAWINAN),
@@ -517,8 +521,9 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         for row_idx, item in enumerate(items, 2):
             ws_ref.cell(row=row_idx, column=col_offset, value=item)
         
-        # Set width
-        ws_ref.column_dimensions[chr(64 + col_offset)].width = max(len(title) + 5, 20)
+        # Set width dynamically
+        max_len = max(len(str(title)), max((len(str(i)) for i in items), default=10))
+        ws_ref.column_dimensions[get_column_letter(col_offset)].width = min(max_len + 5, 50)
         col_offset += 1
     
     # --- SHEET 3: Petunjuk ---
