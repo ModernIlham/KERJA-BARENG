@@ -542,8 +542,8 @@ export default function AssetIncomingForm({ onSuccess }) {
                         </div>
                         {dokumenList.length === 0 ? (
                             <div className="text-center py-8 text-slate-500">
-                                Tidak ada dokumen sumber khusus Aset tersimpan.<br/>
-                                <span className="text-xs">Silakan rekam dokumen dengan Kategori "Aset Tetap" atau "Umum" terlebih dahulu.</span>
+                                Tidak ada dokumen sumber tersimpan.<br/>
+                                <span className="text-xs">Silakan rekam dokumen dengan Kategori "Aset Tetap Pembelian" terlebih dahulu.</span>
                             </div>
                         ) : (
                             <table className="w-full text-sm border-collapse">
