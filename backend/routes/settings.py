@@ -418,9 +418,13 @@ async def get_instansi_config(current_user: str = Depends(get_current_user)):
 
 @router.put("/instansi")
 async def update_instansi_config(data: dict = Body(...), current_user: str = Depends(get_current_user)):
+    # Remove _id and key from data to prevent immutable field error
+    data_to_update = {k: v for k, v in data.items() if k not in ['_id', 'id', 'key']}
+    data_to_update['key'] = 'instansi'  # Ensure key is always set
+    
     await db.system_settings.update_one(
         {"key": "instansi"},
-        {"$set": data},
+        {"$set": data_to_update},
         upsert=True
     )
     return {"message": "Informasi Instansi diperbarui"}
