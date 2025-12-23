@@ -170,9 +170,12 @@ async def bulk_asset_transaction(
 ):
     """
     Handle bulk transactions for Aset Tetap (Moving multiple specific assets).
+    INTEGRATION: When assets are distributed to employees (KELUAR/DISTRIBUSI), 
+    automatically creates records in aset_pegawai collection.
+    
     Payload: {
         "asset_ids": ["id1", "id2"],
-        "jenis": "KELUAR" | "MASUK" | "MUTASI",
+        "jenis": "KELUAR" | "MASUK" | "MUTASI" | "DISTRIBUSI",
         "keterangan": "...",
         "dokumen_ref": "...",
         "pegawai_id": "...",
@@ -194,17 +197,21 @@ async def bulk_asset_transaction(
     
     # Process recipient info
     nama_pegawai = None
+    nip_pegawai = None
     unit_penerima = payload.get("unit_penerima")
+    pegawai_id = payload.get("pegawai_id")
     
-    if payload.get("pegawai_id") and ObjectId.is_valid(payload.get("pegawai_id")):
-        pegawai = await db.pegawai.find_one({"_id": ObjectId(payload.get("pegawai_id"))})
+    if pegawai_id and ObjectId.is_valid(pegawai_id):
+        pegawai = await db.pegawai.find_one({"_id": ObjectId(pegawai_id)})
         if pegawai:
-            nama_pegawai = pegawai['nama_lengkap']
+            nama_pegawai = pegawai.get('nama_lengkap')
+            nip_pegawai = pegawai.get('nip') or pegawai.get('nik') or pegawai.get('nrp')
             # If unit_penerima not manually provided, take from employee
             if not unit_penerima:
-                unit_penerima = pegawai.get('eselon3') or pegawai.get('eselon4')
+                unit_penerima = pegawai.get('eselon2') or pegawai.get('eselon3') or pegawai.get('eselon4')
 
     created_ids = []
+    aset_pegawai_ids = []
     
     for asset in assets:
         # Create Transaction Log
@@ -217,7 +224,7 @@ async def bulk_asset_transaction(
             jumlah=1, # Always 1 for specific asset movement
             nilai_satuan=asset.get('nilai_buku', 0),
             total_nilai=asset.get('nilai_buku', 0),
-            pegawai_id=payload.get("pegawai_id"),
+            pegawai_id=pegawai_id,
             nama_pegawai=nama_pegawai,
             unit_penerima=unit_penerima,
             keterangan=payload.get("keterangan"),
@@ -229,27 +236,125 @@ async def bulk_asset_transaction(
         res = await db.transaksi.insert_one(new_tx.model_dump(by_alias=True, exclude=["id"]))
         created_ids.append(str(res.inserted_id))
         
-        # Update Asset Status/Location if needed
+        # Update Asset Status/Location
         update_fields = {"updated_at": datetime.now(timezone.utc)}
         
-        if jenis == "KELUAR":
-            # Assume "Keluar" means it's still an asset but maybe status changes?
-            # Or is it "Penghapusan"? Let's assume generic "Keluar" updates location/holder
+        # INTEGRATION: Create aset_pegawai record when distributing to employee
+        if jenis in ["KELUAR", "DISTRIBUSI"] and pegawai_id:
+            update_fields["status_aset"] = "Dipinjamkan"
             if unit_penerima:
-                update_fields["lokasi_fisik"] = unit_penerima # Simple logic: location = unit
-            if payload.get("pegawai_id"):
-                update_fields["detail_lainnya.pemegang"] = nama_pegawai
+                update_fields["lokasi_fisik"] = unit_penerima
+            update_fields["detail_lainnya"] = asset.get("detail_lainnya", {})
+            update_fields["detail_lainnya"]["pemegang_id"] = pegawai_id
+            update_fields["detail_lainnya"]["pemegang_nama"] = nama_pegawai
+            
+            # Create/Update aset_pegawai record
+            existing_aset = await db.aset_pegawai.find_one({
+                "barang_id": str(asset["_id"]),
+                "status": "Dipinjam"
+            })
+            
+            if not existing_aset:
+                # Create new aset_pegawai record
+                golongan = asset.get('golongan_barang', '')
+                kategori = "Umum"
+                if golongan:
+                    if "Peralatan" in golongan or "Mesin" in golongan:
+                        kategori = "Elektronik"
+                    elif "Gedung" in golongan:
+                        kategori = "Bangunan"
+                    elif "Tanah" in golongan:
+                        kategori = "Tanah"
+                    elif "Kendaraan" in golongan:
+                        kategori = "Kendaraan"
+                
+                new_aset_pegawai = {
+                    "barang_id": str(asset["_id"]),
+                    "transaksi_id": str(res.inserted_id),
+                    "nama_aset": asset.get('nama_barang', ''),
+                    "kode_aset": f"{asset.get('kode_barang', '')}/{asset.get('nup', '')}",
+                    "kategori": kategori,
+                    "merk": asset.get('merk', ''),
+                    "tipe": asset.get('tipe', ''),
+                    "serial_number": asset.get('detail_lainnya', {}).get('serial_number'),
+                    "kondisi": asset.get('kondisi', 'Baik'),
+                    "nilai_perolehan": asset.get('nilai_perolehan', 0),
+                    "tgl_perolehan": asset.get('tgl_perolehan'),
+                    "lokasi": unit_penerima,
+                    "keterangan": payload.get("keterangan"),
+                    "pemegang_id": pegawai_id,
+                    "pemegang_nama": nama_pegawai,
+                    "pemegang_nip": nip_pegawai,
+                    "pemegang_unit_kerja": unit_penerima,
+                    "status": "Dipinjam",
+                    "tgl_penyerahan": datetime.now(timezone.utc).isoformat(),
+                    "riwayat_pemegang": [{
+                        "pemegang_id": pegawai_id,
+                        "pemegang_nama": nama_pegawai,
+                        "pemegang_nip": nip_pegawai,
+                        "tgl_mulai": datetime.now(timezone.utc).isoformat(),
+                        "tgl_selesai": None,
+                        "keterangan": payload.get("keterangan") or f"Distribusi dari Transaksi Aset"
+                    }],
+                    "created_at": datetime.now(timezone.utc),
+                    "updated_at": datetime.now(timezone.utc)
+                }
+                aset_result = await db.aset_pegawai.insert_one(new_aset_pegawai)
+                aset_pegawai_ids.append(str(aset_result.inserted_id))
+            else:
+                # Asset already held, update to new holder
+                await db.aset_pegawai.update_one(
+                    {"_id": existing_aset["_id"]},
+                    {
+                        "$set": {
+                            "pemegang_id": pegawai_id,
+                            "pemegang_nama": nama_pegawai,
+                            "pemegang_nip": nip_pegawai,
+                            "pemegang_unit_kerja": unit_penerima,
+                            "tgl_penyerahan": datetime.now(timezone.utc).isoformat(),
+                            "updated_at": datetime.now(timezone.utc)
+                        },
+                        "$push": {
+                            "riwayat_pemegang": {
+                                "pemegang_id": pegawai_id,
+                                "pemegang_nama": nama_pegawai,
+                                "pemegang_nip": nip_pegawai,
+                                "tgl_mulai": datetime.now(timezone.utc).isoformat(),
+                                "tgl_selesai": None,
+                                "keterangan": payload.get("keterangan") or "Transfer dari Transaksi Aset"
+                            }
+                        }
+                    }
+                )
+                aset_pegawai_ids.append(str(existing_aset["_id"]))
                 
         elif jenis == "MUTASI":
-             if unit_penerima:
+            if unit_penerima:
                 update_fields["lokasi_fisik"] = unit_penerima
-                update_fields["kode_satker"] = "MUTASI" # Example
+                update_fields["kode_satker"] = "MUTASI"
+        
+        elif jenis == "MASUK":
+            # When returning asset
+            update_fields["status_aset"] = "Aktif"
+            # Also update aset_pegawai if exists
+            await db.aset_pegawai.update_one(
+                {"barang_id": str(asset["_id"]), "status": "Dipinjam"},
+                {
+                    "$set": {
+                        "status": "Tersedia",
+                        "pemegang_id": None,
+                        "pemegang_nama": None,
+                        "updated_at": datetime.now(timezone.utc)
+                    }
+                }
+            )
                 
         await db.barang.update_one({"_id": asset["_id"]}, {"$set": update_fields})
 
     return {
         "message": f"Successfully processed {len(created_ids)} assets", 
         "ids": created_ids,
+        "aset_pegawai_ids": aset_pegawai_ids,
         "count": len(created_ids)
     }
 
