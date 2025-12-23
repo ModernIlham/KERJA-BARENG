@@ -7,12 +7,13 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Trash, Edit, AlertTriangle, ArrowRightLeft, UserCircle } from 'lucide-react';
+import { Plus, Search, Loader2, Trash, Edit, AlertTriangle, ArrowRightLeft, UserCircle, Clock, Package, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { Pagination } from '../components/ui/pagination';
 import { TableSkeleton } from '../components/ui/skeleton-table';
 import PegawaiForm from '../components/pegawai/PegawaiForm';
 import MutasiModal from '../components/pegawai/MutasiModal';
+import ContractNotifications from '../components/pegawai/ContractNotifications';
 
 import PegawaiPhotoModal from '../components/pegawai/PegawaiPhotoModal';
 import SignaturePad from '../components/pegawai/SignaturePad';
@@ -22,10 +23,14 @@ import PegawaiDocumentModal from '../components/pegawai/PegawaiDocumentModal';
 import { FileText } from 'lucide-react';
 import RiwayatKarirModal from '../components/pegawai/RiwayatKarirModal';
 import { Upload, History } from 'lucide-react';
+import { Badge } from '../components/ui/badge';
+
 export default function PegawaiList() {
   const [pegawai, setPegawai] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   
   // Modals
   const [isFormOpen, setIsFormOpen] = useState(false);
