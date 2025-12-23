@@ -199,7 +199,8 @@ async def create_aset_pegawai(
     
     result = await db.aset_pegawai.insert_one(new_aset)
     new_aset["id"] = str(result.inserted_id)
-    del new_aset["_id"] if "_id" in new_aset else None
+    if "_id" in new_aset:
+        del new_aset["_id"]
     
     return {"message": "Aset berhasil ditambahkan", "data": new_aset}
 
