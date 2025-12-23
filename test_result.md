@@ -21,6 +21,17 @@
    - Export supports all filter parameters
    - Exports filtered data only when filters are applied
 
+8. **Asset Tracking & Monitoring (Aset Pegawai)** - NEW ✅
+   - Full CRUD for employee assets at /aset-pegawai
+   - Track assets assigned to each employee
+   - Serah terima (handover) functionality
+   - Asset return (kembalikan) functionality
+   - Alert system for employees leaving/transferring with assets
+   - Asset history tracking (riwayat pemegang)
+   - Summary statistics dashboard
+   - Backend: /api/aset-pegawai endpoints
+   - Frontend: /aset-pegawai page with full UI
+
 ### Previously Implemented Features:
 
 1. **Removed Duplicate Fullscreen Button** - IMPLEMENTED ✅
