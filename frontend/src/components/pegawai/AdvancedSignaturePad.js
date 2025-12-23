@@ -229,7 +229,7 @@ export default function AdvancedSignaturePad({
       ctx.fill(path);
     }
     
-    // Draw transform boundary box in transform mode
+    // Draw transform boundary box ONLY in transform mode
     if (transformMode && allStrokes.length > 0) {
       // Calculate bounding box
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
