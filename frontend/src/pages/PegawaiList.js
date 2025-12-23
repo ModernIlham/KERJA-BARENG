@@ -312,12 +312,22 @@ export default function PegawaiList() {
                          </div>
                       </TableCell>
                       <TableCell className="text-slate-600 text-xs">
+                          {item.is_pimpinan_kl && item.jabatan_pimpinan_kl && (
+                              <div className="mb-1">
+                                  <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] rounded-full font-semibold border border-amber-300">
+                                      {item.jabatan_pimpinan_kl}
+                                  </span>
+                              </div>
+                          )}
                           <div className="font-semibold">{item.jabatan}</div>
                           {item.pangkat_golongan && <div className="text-slate-500">{item.pangkat_golongan}</div>}
                           {item.status_jabatan && <span className="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 text-[9px] rounded border border-yellow-200">{item.status_jabatan}</span>}
                       </TableCell>
                       <TableCell className="text-xs text-slate-600">
                           <div className="space-y-0.5">
+                            {item.is_pimpinan_kl && item.jabatan_pimpinan_kl && (
+                              <div className="font-bold text-amber-700 text-[10px] mb-1">★ Pimpinan K/L</div>
+                            )}
                             {item.eselon1 && <div className="font-semibold text-slate-800">{item.eselon1}</div>}
                             {item.eselon2 && <div className="text-slate-600 pl-2 text-[10px]">└ {item.eselon2}</div>}
                             {item.eselon3 && <div className="text-slate-500 pl-4 text-[10px]">└ {item.eselon3}</div>}
