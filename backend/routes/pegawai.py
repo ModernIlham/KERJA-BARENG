@@ -146,8 +146,8 @@ async def delete_pegawai(id: str, current_user: dict = Depends(get_current_user)
     # Log activity
     await log_activity(
         db=db,
-        user_id=str(current_user.get("_id", "")),
-        user_name=current_user.get("full_name", "Unknown"),
+        user_id=str(current_user.id),
+        user_name=current_user.full_name or "Unknown",
         action="DELETE",
         module="Pegawai",
         target_id=id,
