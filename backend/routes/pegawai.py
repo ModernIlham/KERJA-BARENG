@@ -52,6 +52,11 @@ async def get_pegawai_list(
     eselon1: Optional[str] = None,
     eselon2: Optional[str] = None,
     kategori_pegawai: Optional[str] = None,
+    jenis_kelamin: Optional[str] = None,
+    pendidikan_terakhir: Optional[str] = None,
+    agama: Optional[str] = None,
+    jenis_non_asn: Optional[str] = None,
+    pangkat_golongan: Optional[str] = None,
     sort_by: Optional[str] = "nama_lengkap",
     sort_order: Optional[str] = "asc",
     current_user: str = Depends(get_current_user)
@@ -95,6 +100,17 @@ async def get_pegawai_list(
         query["eselon2"] = eselon2
     if kategori_pegawai:
         query["kategori_pegawai"] = kategori_pegawai
+    if jenis_kelamin:
+        query["jenis_kelamin"] = jenis_kelamin
+    if pendidikan_terakhir:
+        query["pendidikan_terakhir"] = pendidikan_terakhir
+    if agama:
+        query["agama"] = agama
+    if jenis_non_asn:
+        query["jenis_non_asn"] = jenis_non_asn
+    if pangkat_golongan:
+        # Partial match for pangkat/golongan (e.g., "III/a" matches "Penata Muda (III/a)")
+        query["pangkat_golongan"] = {"$regex": pangkat_golongan, "$options": "i"}
     
     # Sorting
     sort_direction = 1 if sort_order == "asc" else -1
