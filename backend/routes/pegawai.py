@@ -447,7 +447,7 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         # AB-AK: Jabatan & Unit Kerja
         "Kepala Seksi Umum",  # AB: Jabatan Struktural
         "PPK, Bendahara",  # AC: Jabatan Fungsional Melekat
-        "Struktural",  # AD: Kategori Pegawai
+        "Jabatan Pengawas",  # AD: Kategori Pegawai (sesuai UU ASN Terbaru)
         "Tidak",  # AE: Pimpinan Tertinggi
         "",  # AF: Jenis Pimpinan (kosong jika bukan pimpinan)
         eselon1_list[0] if eselon1_list else "",  # AG: Eselon 1
