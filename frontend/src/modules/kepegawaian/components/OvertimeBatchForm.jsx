@@ -287,7 +287,7 @@ const OvertimeBatchForm = ({ onSuccess }) => {
                                                         <span>•</span>
                                                         <span>{pegawai.jabatan || '-'}</span>
                                                         <span>•</span>
-                                                        <span className={pegawai.status_kepegawaian === 'PNS' ? 'text-blue-600' : 'text-orange-600'}>
+                                                        <span className={['PNS', 'CPNS'].includes(pegawai.status_kepegawaian) ? 'text-blue-600' : 'text-orange-600'}>
                                                             {pegawai.status_kepegawaian || 'Non-ASN'}
                                                         </span>
                                                     </div>
