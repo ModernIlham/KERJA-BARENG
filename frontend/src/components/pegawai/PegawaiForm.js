@@ -20,6 +20,12 @@ const PANGKAT_GOLONGAN = {
         "Penata Muda (III/a)", "Penata Muda Tingkat I (III/b)", "Penata (III/c)", "Penata Tingkat I (III/d)",
         "Pembina (IV/a)", "Pembina Tingkat I (IV/b)", "Pembina Utama Muda (IV/c)", "Pembina Utama Madya (IV/d)", "Pembina Utama (IV/e)"
     ],
+    'PPPK': [
+        "Golongan I", "Golongan II", "Golongan III", "Golongan IV", "Golongan V",
+        "Golongan VI", "Golongan VII", "Golongan VIII", "Golongan IX", "Golongan X",
+        "Golongan XI", "Golongan XII", "Golongan XIII", "Golongan XIV", "Golongan XV",
+        "Golongan XVI", "Golongan XVII", "Golongan XVIII", "Golongan XIX"
+    ],
     'TNI': [
         "Prajurit Dua", "Prajurit Satu", "Prajurit Kepala", 
         "Kopral Dua", "Kopral Satu", "Kopral Kepala",
