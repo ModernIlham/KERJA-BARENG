@@ -533,31 +533,69 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     instructions = [
         ("PETUNJUK IMPORT DATA PEGAWAI", ""),
         ("", ""),
-        ("1. KOLOM WAJIB (Kuning)", "NIP dan Nama Lengkap HARUS diisi"),
-        ("2. FORMAT TANGGAL", "Gunakan format DD/MM/YYYY (contoh: 01/01/1980)"),
-        ("3. DROPDOWN", "Kolom dengan dropdown akan menampilkan pilihan saat diklik"),
-        ("4. JENIS NON-ASN", "Hanya diisi jika Status Kepegawaian = Non-ASN atau Honorer"),
-        ("5. PANGKAT/GOLONGAN", "Diisi sesuai status (ASN gunakan golongan I-IV)"),
-        ("6. ESELON", "Pilih dari dropdown sesuai struktur organisasi yang ada"),
-        ("7. DUPLIKAT", "Data dengan NIP/NIK/NPWP yang sudah ada akan dilewati"),
-        ("8. SHEET REFERENSI", "Lihat sheet 'Referensi Data' untuk daftar lengkap pilihan"),
+        ("KOLOM WAJIB (KUNING)", ""),
+        ("- Nama Lengkap", "Wajib diisi untuk semua pegawai"),
         ("", ""),
-        ("TIPS:", ""),
-        ("- Pastikan semua kolom dropdown menggunakan nilai yang tersedia", ""),
+        ("FORMAT TANGGAL", ""),
+        ("- Gunakan format DD/MM/YYYY", "Contoh: 01/01/1980"),
+        ("", ""),
+        ("DROPDOWN", ""),
+        ("- Kolom dengan dropdown akan menampilkan pilihan saat diklik", ""),
+        ("- Lihat sheet 'Referensi Data' untuk daftar lengkap pilihan", ""),
+        ("", ""),
+        ("PANDUAN PER STATUS KEPEGAWAIAN:", ""),
+        ("", ""),
+        ("PNS / CPNS:", ""),
+        ("- Isi kolom NIP", "198001012005011001"),
+        ("- Isi kolom Pangkat/Golongan ASN", "Juru Muda (I/a) s.d. Pembina Utama (IV/e)"),
+        ("- Kosongkan kolom Golongan PPPK", ""),
+        ("", ""),
+        ("PPPK:", ""),
+        ("- Isi kolom NIP", "Sama format dengan PNS"),
+        ("- Kosongkan kolom Pangkat/Golongan ASN", ""),
+        ("- Isi kolom Golongan PPPK", "Golongan I s.d. Golongan XIX"),
+        ("", ""),
+        ("TNI / POLRI:", ""),
+        ("- Isi kolom NRP", ""),
+        ("- Isi kolom Pangkat/Golongan ASN sesuai jenjang", ""),
+        ("", ""),
+        ("Non-ASN / Honorer:", ""),
+        ("- Isi kolom NIK", ""),
+        ("- Isi kolom Jenis Non-ASN & Sub-Kategori", ""),
+        ("- Isi tanggal mulai & selesai kontrak", ""),
+        ("", ""),
+        ("WNA (Warga Negara Asing):", ""),
+        ("- Pilih Kewarganegaraan = WNA", ""),
+        ("- Isi Jenis Identitas WNA (PASPOR/KITAS/KITAP)", ""),
+        ("- Isi Nomor Identitas WNA", ""),
+        ("", ""),
+        ("UNIT KERJA:", ""),
+        ("- Pilih dari Eselon 1 sampai Eselon 5 berurutan", ""),
+        ("- Data dropdown diambil dari database", ""),
+        ("", ""),
+        ("KATEGORI & PIMPINAN:", ""),
+        ("- Isi Kategori Pegawai: Struktural/Fungsional/Pelaksana", ""),
+        ("- Pimpinan Tertinggi: Ya/Tidak", ""),
+        ("- Jika Ya, pilih Jenis Pimpinan: Kepala/Wakil", ""),
+        ("", ""),
+        ("TIPS PENTING:", ""),
         ("- Hapus baris contoh (baris 2 hijau) sebelum import", ""),
         ("- Simpan file dalam format .xlsx", ""),
+        ("- Data dengan NIP/NIK/NRP duplikat akan dilewati", ""),
     ]
     
     for row_idx, (col1, col2) in enumerate(instructions, 1):
         cell1 = ws_help.cell(row=row_idx, column=1, value=col1)
         cell2 = ws_help.cell(row=row_idx, column=2, value=col2)
-        if row_idx == 1:
+        if "PETUNJUK" in col1:
             cell1.font = Font(bold=True, size=14, color="1F4E79")
-        elif col1.startswith(("1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.")):
-            cell1.font = Font(bold=True)
+        elif col1.endswith(":") and not col1.startswith("-"):
+            cell1.font = Font(bold=True, color="1F4E79")
+        elif col1.startswith("-"):
+            cell1.font = Font(italic=False)
     
-    ws_help.column_dimensions['A'].width = 35
-    ws_help.column_dimensions['B'].width = 60
+    ws_help.column_dimensions['A'].width = 45
+    ws_help.column_dimensions['B'].width = 55
     
     # Freeze panes
     ws.freeze_panes = "A2"
