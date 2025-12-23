@@ -87,7 +87,7 @@ export default function ImportPegawaiModal({ isOpen, onClose, onSuccess }) {
                                         Download template yang sudah dilengkapi dropdown pilihan sesuai data sistem.
                                     </p>
                                     <ul className="text-[11px] text-blue-600 mt-2 space-y-0.5">
-                                        <li>✓ Dropdown Status Kepegawaian (PNS, PPPK, Non-ASN, dll)</li>
+                                        <li>✓ Dropdown Status Kepegawaian (PNS, CPNS, PPPK, Non-ASN, dll)</li>
                                         <li>✓ Dropdown Pangkat/Golongan sesuai aturan</li>
                                         <li>✓ Dropdown Unit Kerja (Eselon 1-4) dari database</li>
                                         <li>✓ Sheet Referensi Data dan Petunjuk Pengisian</li>
