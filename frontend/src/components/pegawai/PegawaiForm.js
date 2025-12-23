@@ -361,10 +361,47 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
                                     {renderInput("nama_perusahaan", "Nama Perusahaan (PT/CV)", "text", "Contoh: PT. Sumber Daya Mandiri")}
                                 </div>
                             )}
+                            {/* Nomor Kontrak */}
+                            {renderInput("nomor_kontrak", "Nomor Kontrak", "text", "Contoh: 001/KONTRAK/2025")}
+                            
                             <div className="grid grid-cols-2 gap-3">
                                 {renderInput("tgl_mulai_kontrak", "Tgl Mulai Kontrak", "date")}
                                 {renderInput("tgl_selesai_kontrak", "Tgl Selesai Kontrak", "date")}
                             </div>
+                            
+                            {/* Durasi Kontrak Otomatis */}
+                            {watch('tgl_mulai_kontrak') && watch('tgl_selesai_kontrak') && (
+                                <div className="p-2 bg-blue-50 border border-blue-200 rounded">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs text-blue-700 font-medium">Durasi Kontrak:</span>
+                                        <span className="text-xs font-bold text-blue-800">
+                                            {(() => {
+                                                const start = new Date(watch('tgl_mulai_kontrak'));
+                                                const end = new Date(watch('tgl_selesai_kontrak'));
+                                                const diffTime = end - start;
+                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                const months = Math.floor(diffDays / 30);
+                                                const days = diffDays % 30;
+                                                if (diffDays < 0) return 'Tanggal tidak valid';
+                                                return `${months > 0 ? months + ' bulan ' : ''}${days > 0 ? days + ' hari' : ''}`.trim() || '0 hari';
+                                            })()}
+                                        </span>
+                                    </div>
+                                    {(() => {
+                                        const end = new Date(watch('tgl_selesai_kontrak'));
+                                        const today = new Date();
+                                        const daysRemaining = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+                                        if (daysRemaining <= 30 && daysRemaining >= 0) {
+                                            return (
+                                                <div className={`mt-1 p-1 rounded text-[10px] font-medium ${daysRemaining <= 7 ? 'bg-red-100 text-red-700' : daysRemaining <= 14 ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                    ⚠️ Kontrak akan berakhir dalam {daysRemaining} hari!
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+                                </div>
+                            )}
                         </div>
                     )}
 
