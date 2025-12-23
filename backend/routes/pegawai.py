@@ -1383,6 +1383,12 @@ async def export_pegawai_pdf(
     status: Optional[str] = None,
     status_kepegawaian: Optional[str] = None,
     eselon1: Optional[str] = None,
+    jenis_kelamin: Optional[str] = None,
+    pendidikan_terakhir: Optional[str] = None,
+    agama: Optional[str] = None,
+    jenis_non_asn: Optional[str] = None,
+    pangkat_golongan: Optional[str] = None,
+    kategori_pegawai: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Export pegawai data to PDF"""
@@ -1391,6 +1397,8 @@ async def export_pegawai_pdf(
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import cm
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
     from io import BytesIO
     
     # Build query
@@ -1402,6 +1410,8 @@ async def export_pegawai_pdf(
             {"nip": search_regex},
             {"nik": search_regex},
             {"jabatan": search_regex},
+            {"eselon1": search_regex},
+            {"eselon2": search_regex},
         ]
     if status:
         query["status"] = status
@@ -1409,6 +1419,18 @@ async def export_pegawai_pdf(
         query["status_kepegawaian"] = status_kepegawaian
     if eselon1:
         query["eselon1"] = eselon1
+    if jenis_kelamin:
+        query["jenis_kelamin"] = jenis_kelamin
+    if pendidikan_terakhir:
+        query["pendidikan_terakhir"] = pendidikan_terakhir
+    if agama:
+        query["agama"] = agama
+    if jenis_non_asn:
+        query["jenis_non_asn"] = jenis_non_asn
+    if pangkat_golongan:
+        query["pangkat_golongan"] = {"$regex": pangkat_golongan, "$options": "i"}
+    if kategori_pegawai:
+        query["kategori_pegawai"] = kategori_pegawai
     
     # Get all data
     cursor = db.pegawai.find(query).sort("nama_lengkap", 1)
@@ -1416,70 +1438,156 @@ async def export_pegawai_pdf(
     
     # Create PDF
     output = BytesIO()
-    doc = SimpleDocTemplate(output, pagesize=landscape(A4), leftMargin=1*cm, rightMargin=1*cm)
+    doc = SimpleDocTemplate(
+        output, 
+        pagesize=landscape(A4), 
+        leftMargin=0.5*cm, 
+        rightMargin=0.5*cm,
+        topMargin=1*cm,
+        bottomMargin=1*cm
+    )
     
     elements = []
     styles = getSampleStyleSheet()
     
     # Title
     title_style = ParagraphStyle(
-        'Title',
+        'CustomTitle',
         parent=styles['Heading1'],
-        fontSize=16,
+        fontSize=14,
         alignment=1,
-        spaceAfter=20
+        spaceAfter=10
     )
     elements.append(Paragraph("DAFTAR PEGAWAI", title_style))
-    elements.append(Paragraph(f"Tanggal Export: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
-    elements.append(Spacer(1, 20))
     
-    # Table data
+    # Subtitle with export date and filter info
+    subtitle_parts = [f"Tanggal Export: {datetime.now().strftime('%d/%m/%Y %H:%M')}"]
+    if status:
+        subtitle_parts.append(f"Status: {status}")
+    if status_kepegawaian:
+        subtitle_parts.append(f"Kepegawaian: {status_kepegawaian}")
+    if eselon1:
+        subtitle_parts.append(f"Unit: {eselon1[:30]}...")
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Normal'],
+        fontSize=8,
+        alignment=1,
+        spaceAfter=15
+    )
+    elements.append(Paragraph(" | ".join(subtitle_parts), subtitle_style))
+    
+    # Handle empty data
+    if not items:
+        elements.append(Paragraph("Tidak ada data pegawai yang ditemukan dengan filter yang dipilih.", styles['Normal']))
+        doc.build(elements)
+        output.seek(0)
+        filename = f"data_pegawai_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        return StreamingResponse(
+            output,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    
+    # Helper function to safely get string value
+    def safe_str(value, max_len=None):
+        if value is None:
+            return "-"
+        result = str(value).strip()
+        if not result:
+            return "-"
+        if max_len and len(result) > max_len:
+            return result[:max_len-3] + "..."
+        return result
+    
+    # Table Headers
     table_data = [
-        ["No", "NIP/NIK", "Nama Lengkap", "Status Kepegawaian", "Jabatan", "Unit Kerja", "Status"]
+        ["No", "NIP/NIK/NRP", "Nama Lengkap", "JK", "Status Kep.", "Jabatan", "Unit Kerja", "Status"]
     ]
     
+    # Add data rows
     for idx, item in enumerate(items, 1):
+        # Get identity number
+        identity = item.get("nip") or item.get("nik") or item.get("nrp") or "-"
+        
+        # Get unit kerja (prioritize eselon2, fallback to eselon1)
         unit_kerja = item.get("eselon2") or item.get("eselon1") or "-"
-        table_data.append([
+        
+        # Get jenis kelamin abbreviated
+        jk = item.get("jenis_kelamin", "-")
+        if jk == "Laki-laki":
+            jk = "L"
+        elif jk == "Perempuan":
+            jk = "P"
+        else:
+            jk = "-"
+        
+        row = [
             str(idx),
-            (item.get("nip") or item.get("nik") or item.get("nrp") or "-")[:20],
-            (item.get("nama_lengkap", "-"))[:30],
-            (item.get("status_kepegawaian", "-"))[:15],
-            (item.get("jabatan", "-"))[:25],
-            unit_kerja[:30] if unit_kerja else "-",
-            item.get("status", "AKTIF")
-        ])
+            safe_str(identity, 20),
+            safe_str(item.get("nama_lengkap"), 25),
+            jk,
+            safe_str(item.get("status_kepegawaian"), 12),
+            safe_str(item.get("jabatan"), 22),
+            safe_str(unit_kerja, 25),
+            safe_str(item.get("status", "AKTIF"), 10)
+        ]
+        table_data.append(row)
     
-    # Create table
-    table = Table(table_data, colWidths=[1*cm, 4*cm, 5*cm, 3*cm, 4.5*cm, 5.5*cm, 2*cm])
-    table.setStyle(TableStyle([
+    # Create table with adjusted column widths for landscape A4
+    col_widths = [0.8*cm, 3.5*cm, 4.5*cm, 1*cm, 2.5*cm, 4*cm, 5*cm, 2*cm]
+    
+    table = Table(table_data, colWidths=col_widths, repeatRows=1)
+    
+    # Table styling
+    table_style = TableStyle([
+        # Header styling
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1F4E79')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 9),
-        ('FONTSIZE', (0, 1), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTSIZE', (0, 0), (-1, 0), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        
+        # Data styling
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 7),
+        ('ALIGN', (0, 1), (0, -1), 'CENTER'),  # No column center
+        ('ALIGN', (3, 1), (3, -1), 'CENTER'),  # JK column center
+        ('ALIGN', (-1, 1), (-1, -1), 'CENTER'),  # Status column center
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 4),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-    ]))
+        
+        # Grid
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        
+        # Padding
+        ('LEFTPADDING', (0, 0), (-1, -1), 3),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+        ('TOPPADDING', (0, 1), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+    ])
     
     # Alternate row colors
     for i in range(1, len(table_data)):
         if i % 2 == 0:
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, i), (-1, i), colors.HexColor('#F5F5F5'))
-            ]))
+            table_style.add('BACKGROUND', (0, i), (-1, i), colors.HexColor('#F5F5F5'))
     
+    table.setStyle(table_style)
     elements.append(table)
     
-    # Footer
-    elements.append(Spacer(1, 20))
-    elements.append(Paragraph(f"Total: {len(items)} pegawai", styles['Normal']))
+    # Footer with summary
+    elements.append(Spacer(1, 15))
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        alignment=0
+    )
+    elements.append(Paragraph(f"<b>Total Data:</b> {len(items)} pegawai", footer_style))
     
+    # Build PDF
     doc.build(elements)
     output.seek(0)
     
