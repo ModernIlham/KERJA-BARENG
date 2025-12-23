@@ -394,23 +394,23 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ("AE", "Kategori Pegawai", 18, False),
         ("AF", "Pimpinan K/L", 15, False),  # Pimpinan Kementerian/Lembaga
         ("AG", "Jabatan Pimpinan K/L", 25, False),  # Menteri, Kepala Lembaga, dll
-        ("AG", "Pimpinan Tertinggi", 18, False),
-        ("AH", "Jenis Pimpinan", 15, False),
-        ("AI", "Eselon 1", 45, False),
-        ("AJ", "Eselon 2", 45, False),
-        ("AK", "Eselon 3", 40, False),
-        ("AL", "Eselon 4", 40, False),
-        ("AM", "Eselon 5", 40, False),
+        ("AH", "Pimpinan Tertinggi", 18, False),
+        ("AI", "Jenis Pimpinan", 15, False),
+        ("AJ", "Eselon 1", 45, False),
+        ("AK", "Eselon 2", 45, False),
+        ("AL", "Eselon 3", 40, False),
+        ("AM", "Eselon 4", 40, False),
+        ("AN", "Eselon 5", 40, False),
         
-        # AN-AQ: Kontak & Bank
-        ("AN", "No Telepon", 15, False),
-        ("AO", "Email", 30, False),
-        ("AP", "Nama Bank", 28, False),
-        ("AQ", "No Rekening", 20, False),
+        # AO-AR: Kontak & Bank
+        ("AO", "No Telepon", 15, False),
+        ("AP", "Email", 30, False),
+        ("AQ", "Nama Bank", 28, False),
+        ("AR", "No Rekening", 20, False),
         
-        # AR-AS: Status & Lainnya
-        ("AR", "Status Sistem", 15, False),
-        ("AS", "Keterangan", 35, False),
+        # AS-AT: Status & Lainnya
+        ("AS", "Status Sistem", 15, False),
+        ("AT", "Keterangan", 35, False),
     ]
     
     # Styles
