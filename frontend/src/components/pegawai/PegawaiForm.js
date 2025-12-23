@@ -355,6 +355,12 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
                                 {renderSelect("jenis_non_asn", "Jenis Non-ASN", JENIS_NON_ASN)}
                                 {renderSelect("sub_kategori_non_asn", "Sub-Kategori", SUB_KATEGORI_NON_ASN)}
                             </div>
+                            {/* Field Nama Perusahaan untuk Outsourcing */}
+                            {jenisNonAsn === 'Outsourcing' && (
+                                <div className="p-2 bg-green-100 rounded border border-green-300">
+                                    {renderInput("nama_perusahaan", "Nama Perusahaan (PT/CV)", "text", "Contoh: PT. Sumber Daya Mandiri")}
+                                </div>
+                            )}
                             <div className="grid grid-cols-2 gap-3">
                                 {renderInput("tgl_mulai_kontrak", "Tgl Mulai Kontrak", "date")}
                                 {renderInput("tgl_selesai_kontrak", "Tgl Selesai Kontrak", "date")}
