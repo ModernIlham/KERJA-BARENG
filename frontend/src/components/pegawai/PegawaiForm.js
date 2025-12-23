@@ -58,7 +58,14 @@ const SUB_KATEGORI_NON_ASN = ["PPNPN", "Konsultan Individu", "Tenaga Ahli", "Tek
 const STATUS_PENEMPATAN = ["Definitif", "Mutasi", "Penugasan"];
 const STATUS_JABATAN = ["Definitif", "Plt", "Plh", "Pj", "Pjs"];
 const JENIS_IDENTITAS_WNA = ["PASPOR", "KITAS", "KITAP"];
-const KATEGORI_PEGAWAI = ["Struktural", "Fungsional", "Pelaksana"];
+// Kategori Pegawai sesuai UU ASN Terbaru
+const KATEGORI_PEGAWAI = [
+    "Jabatan Pimpinan Tinggi (JPT)",      // Eselon I & II
+    "Jabatan Administrator",               // Eselon III
+    "Jabatan Pengawas",                    // Eselon IV
+    "Pejabat Pelaksana",                   // Staf/Pelaksana
+    "Jabatan Fungsional (JF)"              // Fungsional
+];
 
 export default function PegawaiForm({ initialData, onSuccess, onClose }) {
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
