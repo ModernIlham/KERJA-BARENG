@@ -1229,3 +1229,248 @@ async def get_pegawai_assets(id: str, current_user: dict = Depends(get_current_u
         "total_assets": len(assets),
         "assets": assets
     }
+
+# ========== EXPORT DATA ==========
+
+@router.get("/export/excel")
+async def export_pegawai_excel(
+    search: Optional[str] = None,
+    status: Optional[str] = None,
+    status_kepegawaian: Optional[str] = None,
+    eselon1: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Export pegawai data to Excel"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from io import BytesIO
+    
+    # Build query
+    query = {}
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        query["$or"] = [
+            {"nama_lengkap": search_regex},
+            {"nip": search_regex},
+            {"nik": search_regex},
+            {"jabatan": search_regex},
+            {"eselon1": search_regex},
+            {"eselon2": search_regex},
+        ]
+    if status:
+        query["status"] = status
+    if status_kepegawaian:
+        query["status_kepegawaian"] = status_kepegawaian
+    if eselon1:
+        query["eselon1"] = eselon1
+    
+    # Get all data
+    cursor = db.pegawai.find(query).sort("nama_lengkap", 1)
+    items = await cursor.to_list(length=10000)
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Data Pegawai"
+    
+    # Styles
+    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=10)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Headers
+    headers = [
+        "No", "NIP/NIK/NRP", "Nama Lengkap", "Jenis Kelamin", "Tempat Lahir", "Tgl Lahir",
+        "Status Kepegawaian", "Pangkat/Golongan", "Jabatan", "Kategori Pegawai",
+        "Eselon 1", "Eselon 2", "Eselon 3", "Eselon 4", "Eselon 5",
+        "No Telepon", "Email", "Nama Bank", "No Rekening",
+        "Nomor Kontrak", "Tgl Mulai Kontrak", "Tgl Selesai Kontrak",
+        "Status", "Keterangan"
+    ]
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+    
+    # Data rows
+    for row_idx, item in enumerate(items, 2):
+        data = [
+            row_idx - 1,
+            item.get("nip") or item.get("nik") or item.get("nrp") or "-",
+            item.get("nama_lengkap", "-"),
+            item.get("jenis_kelamin", "-"),
+            item.get("tempat_lahir", "-"),
+            item.get("tgl_lahir", "-"),
+            item.get("status_kepegawaian", "-"),
+            item.get("pangkat_golongan", "-"),
+            item.get("jabatan", "-"),
+            item.get("kategori_pegawai", "-"),
+            item.get("eselon1", "-"),
+            item.get("eselon2", "-"),
+            item.get("eselon3", "-"),
+            item.get("eselon4", "-"),
+            item.get("eselon5", "-"),
+            item.get("no_telp", "-"),
+            item.get("email", "-"),
+            item.get("nama_bank", "-"),
+            item.get("no_rekening", "-"),
+            item.get("nomor_kontrak", "-"),
+            item.get("tgl_mulai_kontrak", "-"),
+            item.get("tgl_selesai_kontrak", "-"),
+            item.get("status", "AKTIF"),
+            item.get("keterangan", "-"),
+        ]
+        for col, value in enumerate(data, 1):
+            cell = ws.cell(row=row_idx, column=col, value=value)
+            cell.border = border
+            cell.alignment = Alignment(vertical='center')
+    
+    # Auto-width columns
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[column].width = min(max_length + 2, 40)
+    
+    # Freeze header
+    ws.freeze_panes = "A2"
+    
+    # Save to bytes
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    filename = f"data_pegawai_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/export/pdf")
+async def export_pegawai_pdf(
+    search: Optional[str] = None,
+    status: Optional[str] = None,
+    status_kepegawaian: Optional[str] = None,
+    eselon1: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Export pegawai data to PDF"""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from io import BytesIO
+    
+    # Build query
+    query = {}
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        query["$or"] = [
+            {"nama_lengkap": search_regex},
+            {"nip": search_regex},
+            {"nik": search_regex},
+            {"jabatan": search_regex},
+        ]
+    if status:
+        query["status"] = status
+    if status_kepegawaian:
+        query["status_kepegawaian"] = status_kepegawaian
+    if eselon1:
+        query["eselon1"] = eselon1
+    
+    # Get all data
+    cursor = db.pegawai.find(query).sort("nama_lengkap", 1)
+    items = await cursor.to_list(length=10000)
+    
+    # Create PDF
+    output = BytesIO()
+    doc = SimpleDocTemplate(output, pagesize=landscape(A4), leftMargin=1*cm, rightMargin=1*cm)
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Heading1'],
+        fontSize=16,
+        alignment=1,
+        spaceAfter=20
+    )
+    elements.append(Paragraph("DAFTAR PEGAWAI", title_style))
+    elements.append(Paragraph(f"Tanggal Export: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    # Table data
+    table_data = [
+        ["No", "NIP/NIK", "Nama Lengkap", "Status Kepegawaian", "Jabatan", "Unit Kerja", "Status"]
+    ]
+    
+    for idx, item in enumerate(items, 1):
+        unit_kerja = item.get("eselon2") or item.get("eselon1") or "-"
+        table_data.append([
+            str(idx),
+            (item.get("nip") or item.get("nik") or item.get("nrp") or "-")[:20],
+            (item.get("nama_lengkap", "-"))[:30],
+            (item.get("status_kepegawaian", "-"))[:15],
+            (item.get("jabatan", "-"))[:25],
+            unit_kerja[:30] if unit_kerja else "-",
+            item.get("status", "AKTIF")
+        ])
+    
+    # Create table
+    table = Table(table_data, colWidths=[1*cm, 4*cm, 5*cm, 3*cm, 4.5*cm, 5.5*cm, 2*cm])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1F4E79')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    
+    # Alternate row colors
+    for i in range(1, len(table_data)):
+        if i % 2 == 0:
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, i), (-1, i), colors.HexColor('#F5F5F5'))
+            ]))
+    
+    elements.append(table)
+    
+    # Footer
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph(f"Total: {len(items)} pegawai", styles['Normal']))
+    
+    doc.build(elements)
+    output.seek(0)
+    
+    filename = f"data_pegawai_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
