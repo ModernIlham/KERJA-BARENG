@@ -13979,3 +13979,25 @@ if __name__ == "__main__":
         print("✅ System properly handles PPPK vs ASN golongan systems")
         
         return True
+
+if __name__ == "__main__":
+    tester = APITester()
+    
+    print("🚀 Starting Excel Template and PPPK Golongan Testing...")
+    print("=" * 60)
+    
+    # Run the specific test for Excel template and PPPK Golongan
+    success = tester.test_excel_template_and_pppk_golongan()
+    
+    print("\n" + "=" * 60)
+    print(f"📊 FINAL TEST RESULTS:")
+    print(f"Tests Run: {tester.tests_run}")
+    print(f"Tests Passed: {tester.tests_passed}")
+    print(f"Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%" if tester.tests_run > 0 else "No tests run")
+    
+    if success:
+        print("🎉 Excel Template and PPPK Golongan testing completed successfully!")
+        sys.exit(0)
+    else:
+        print("❌ Excel Template and PPPK Golongan testing failed!")
+        sys.exit(1)
