@@ -432,18 +432,20 @@ export default function PegawaiList() {
             {showFilters && (
               <div className="p-3 bg-slate-50 rounded-lg border space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700">Filter Data</span>
+                  <span className="text-sm font-medium text-slate-700">Filter Data Pegawai</span>
                   <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7">
-                    <X className="h-3 w-3 mr-1" /> Reset
+                    <X className="h-3 w-3 mr-1" /> Reset Semua
                   </Button>
                 </div>
-                <div className="grid grid-cols-4 gap-3">
+                
+                {/* Row 1 - Status & Kepegawaian */}
+                <div className="grid grid-cols-5 gap-3">
                   <select 
                     className="h-9 border rounded px-2 text-sm bg-white"
                     value={filters.status}
                     onChange={(e) => setFilters({...filters, status: e.target.value})}
                   >
-                    <option value="">Semua Status</option>
+                    <option value="">Status Keaktifan</option>
                     <option value="AKTIF">AKTIF</option>
                     <option value="CUTI">CUTI</option>
                     <option value="TUGAS_BELAJAR">TUGAS BELAJAR</option>
@@ -457,7 +459,7 @@ export default function PegawaiList() {
                     value={filters.status_kepegawaian}
                     onChange={(e) => setFilters({...filters, status_kepegawaian: e.target.value})}
                   >
-                    <option value="">Semua Status Kepegawaian</option>
+                    <option value="">Status Kepegawaian</option>
                     <option value="PNS">PNS</option>
                     <option value="CPNS">CPNS</option>
                     <option value="PPPK">PPPK</option>
@@ -468,27 +470,181 @@ export default function PegawaiList() {
                   </select>
                   <select 
                     className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.kategori_pegawai}
+                    onChange={(e) => setFilters({...filters, kategori_pegawai: e.target.value})}
+                  >
+                    <option value="">Kategori Jabatan</option>
+                    <option value="Jabatan Pimpinan Tinggi (JPT)">JPT (Eselon I & II)</option>
+                    <option value="Jabatan Administrator">Administrator (Eselon III)</option>
+                    <option value="Jabatan Pengawas">Pengawas (Eselon IV)</option>
+                    <option value="Pejabat Pelaksana">Pelaksana</option>
+                    <option value="Jabatan Fungsional (JF)">Fungsional</option>
+                  </select>
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.jenis_kelamin}
+                    onChange={(e) => setFilters({...filters, jenis_kelamin: e.target.value})}
+                  >
+                    <option value="">Jenis Kelamin</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                  </select>
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.agama}
+                    onChange={(e) => setFilters({...filters, agama: e.target.value})}
+                  >
+                    <option value="">Agama</option>
+                    <option value="Islam">Islam</option>
+                    <option value="Kristen">Kristen</option>
+                    <option value="Katolik">Katolik</option>
+                    <option value="Hindu">Hindu</option>
+                    <option value="Buddha">Buddha</option>
+                    <option value="Konghucu">Konghucu</option>
+                  </select>
+                </div>
+                
+                {/* Row 2 - Unit Kerja & Pendidikan */}
+                <div className="grid grid-cols-5 gap-3">
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
                     value={filters.eselon1}
                     onChange={(e) => setFilters({...filters, eselon1: e.target.value})}
                   >
-                    <option value="">Semua Unit Kerja (Eselon 1)</option>
+                    <option value="">Unit Kerja (Eselon 1)</option>
                     {unitKerjaOptions.map(u => (
                       <option key={u} value={u}>{u}</option>
                     ))}
                   </select>
                   <select 
                     className="h-9 border rounded px-2 text-sm bg-white"
-                    value={filters.kategori_pegawai}
-                    onChange={(e) => setFilters({...filters, kategori_pegawai: e.target.value})}
+                    value={filters.eselon2}
+                    onChange={(e) => setFilters({...filters, eselon2: e.target.value})}
                   >
-                    <option value="">Semua Kategori</option>
-                    <option value="Jabatan Pimpinan Tinggi (JPT)">JPT</option>
-                    <option value="Jabatan Administrator">Administrator</option>
-                    <option value="Jabatan Pengawas">Pengawas</option>
-                    <option value="Pejabat Pelaksana">Pelaksana</option>
-                    <option value="Jabatan Fungsional (JF)">Fungsional</option>
+                    <option value="">Unit Kerja (Eselon 2)</option>
+                    {unitKerjaEselon2.map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.pendidikan_terakhir}
+                    onChange={(e) => setFilters({...filters, pendidikan_terakhir: e.target.value})}
+                  >
+                    <option value="">Pendidikan Terakhir</option>
+                    <option value="SD">SD</option>
+                    <option value="SMP">SMP</option>
+                    <option value="SMA/SMK">SMA/SMK</option>
+                    <option value="D1">D1</option>
+                    <option value="D2">D2</option>
+                    <option value="D3">D3</option>
+                    <option value="D4/S1">D4/S1</option>
+                    <option value="S2">S2</option>
+                    <option value="S3">S3</option>
+                  </select>
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.jenis_non_asn}
+                    onChange={(e) => setFilters({...filters, jenis_non_asn: e.target.value})}
+                  >
+                    <option value="">Jenis Non-ASN</option>
+                    <option value="Kontrak">Kontrak</option>
+                    <option value="Outsourcing">Outsourcing</option>
+                  </select>
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.pangkat_golongan}
+                    onChange={(e) => setFilters({...filters, pangkat_golongan: e.target.value})}
+                  >
+                    <option value="">Pangkat/Golongan</option>
+                    <optgroup label="PNS/CPNS">
+                      <option value="I/a">I/a - Juru Muda</option>
+                      <option value="I/b">I/b - Juru Muda Tk. I</option>
+                      <option value="I/c">I/c - Juru</option>
+                      <option value="I/d">I/d - Juru Tk. I</option>
+                      <option value="II/a">II/a - Pengatur Muda</option>
+                      <option value="II/b">II/b - Pengatur Muda Tk. I</option>
+                      <option value="II/c">II/c - Pengatur</option>
+                      <option value="II/d">II/d - Pengatur Tk. I</option>
+                      <option value="III/a">III/a - Penata Muda</option>
+                      <option value="III/b">III/b - Penata Muda Tk. I</option>
+                      <option value="III/c">III/c - Penata</option>
+                      <option value="III/d">III/d - Penata Tk. I</option>
+                      <option value="IV/a">IV/a - Pembina</option>
+                      <option value="IV/b">IV/b - Pembina Tk. I</option>
+                      <option value="IV/c">IV/c - Pembina Utama Muda</option>
+                      <option value="IV/d">IV/d - Pembina Utama Madya</option>
+                      <option value="IV/e">IV/e - Pembina Utama</option>
+                    </optgroup>
                   </select>
                 </div>
+                
+                {/* Active Filters Display */}
+                {Object.values(filters).some(v => v) && (
+                  <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    <span className="text-xs text-slate-500">Filter aktif:</span>
+                    {filters.status && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                        Status: {filters.status}
+                        <button onClick={() => setFilters({...filters, status: ''})} className="ml-1 hover:text-blue-900">×</button>
+                      </span>
+                    )}
+                    {filters.status_kepegawaian && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                        {filters.status_kepegawaian}
+                        <button onClick={() => setFilters({...filters, status_kepegawaian: ''})} className="ml-1 hover:text-green-900">×</button>
+                      </span>
+                    )}
+                    {filters.kategori_pegawai && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                        {filters.kategori_pegawai.split(' ')[0]}
+                        <button onClick={() => setFilters({...filters, kategori_pegawai: ''})} className="ml-1 hover:text-purple-900">×</button>
+                      </span>
+                    )}
+                    {filters.jenis_kelamin && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-pink-100 text-pink-700 text-xs rounded-full">
+                        {filters.jenis_kelamin}
+                        <button onClick={() => setFilters({...filters, jenis_kelamin: ''})} className="ml-1 hover:text-pink-900">×</button>
+                      </span>
+                    )}
+                    {filters.agama && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">
+                        {filters.agama}
+                        <button onClick={() => setFilters({...filters, agama: ''})} className="ml-1 hover:text-amber-900">×</button>
+                      </span>
+                    )}
+                    {filters.eselon1 && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-700 text-xs rounded-full">
+                        Es.1: {filters.eselon1.substring(0, 20)}...
+                        <button onClick={() => setFilters({...filters, eselon1: ''})} className="ml-1 hover:text-slate-900">×</button>
+                      </span>
+                    )}
+                    {filters.eselon2 && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-700 text-xs rounded-full">
+                        Es.2: {filters.eselon2.substring(0, 20)}...
+                        <button onClick={() => setFilters({...filters, eselon2: ''})} className="ml-1 hover:text-slate-900">×</button>
+                      </span>
+                    )}
+                    {filters.pendidikan_terakhir && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-cyan-100 text-cyan-700 text-xs rounded-full">
+                        {filters.pendidikan_terakhir}
+                        <button onClick={() => setFilters({...filters, pendidikan_terakhir: ''})} className="ml-1 hover:text-cyan-900">×</button>
+                      </span>
+                    )}
+                    {filters.jenis_non_asn && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">
+                        {filters.jenis_non_asn}
+                        <button onClick={() => setFilters({...filters, jenis_non_asn: ''})} className="ml-1 hover:text-orange-900">×</button>
+                      </span>
+                    )}
+                    {filters.pangkat_golongan && (
+                      <span className="inline-flex items-center px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">
+                        Gol. {filters.pangkat_golongan}
+                        <button onClick={() => setFilters({...filters, pangkat_golongan: ''})} className="ml-1 hover:text-indigo-900">×</button>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
