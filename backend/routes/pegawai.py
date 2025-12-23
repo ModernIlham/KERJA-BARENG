@@ -773,7 +773,7 @@ async def import_pegawai(
                     
                     # Status Kepegawaian
                     status_kepegawaian=get_val(row, "Status Kepegawaian"),
-                    pangkat_golongan=get_val(row, "Pangkat/Golongan ASN") or get_val(row, "Golongan PPPK"),
+                    pangkat_golongan=get_val(row, "Pangkat/Golongan") or get_val(row, "Pangkat/Golongan ASN") or get_val(row, "Golongan PPPK"),
                     status_penempatan=get_val(row, "Status Penempatan"),
                     instansi_asal=get_val(row, "Instansi Asal"),
                     masa_penugasan_end=parse_date(get_val(row, "Masa Penugasan Berakhir")),
