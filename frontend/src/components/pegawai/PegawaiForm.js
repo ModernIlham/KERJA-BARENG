@@ -88,11 +88,13 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
     // States
     const [units, setUnits] = useState([]);
     const [banks, setBanks] = useState([]);
+    const [banksData, setBanksData] = useState([]); // Full bank data with digit info
     const [optEselon1, setOptEselon1] = useState([]);
     const [optEselon2, setOptEselon2] = useState([]);
     const [optEselon3, setOptEselon3] = useState([]);
     const [optEselon4, setOptEselon4] = useState([]);
     const [optEselon5, setOptEselon5] = useState([]);
+    const [rekeningWarning, setRekeningWarning] = useState('');
 
     // Derived States
     const isWNI = kewarganegaraan === 'WNI';
@@ -117,12 +119,35 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
     const fetchBanks = async () => {
         try {
             const res = await api.get('/api/settings/banks');
+            setBanksData(res.data); // Store full data
             setBanks(res.data.map(b => b.nama_bank));
         } catch (e) { 
             // Fallback to default
             setBanks(["BRI", "BNI", "Mandiri", "BTN", "Bank Syariah Indonesia (BSI)", "BCA", "CIMB Niaga", "Danamon", "Permata", "OCBC NISP", "Maybank", "Lainnya"]);
         }
     };
+    
+    // Validate rekening digit
+    const watchNamaBank = watch('nama_bank');
+    const watchNoRekening = watch('no_rekening');
+    
+    useEffect(() => {
+        if (watchNamaBank && watchNoRekening && banksData.length > 0) {
+            const selectedBank = banksData.find(b => b.nama_bank === watchNamaBank);
+            if (selectedBank && selectedBank.jumlah_digit) {
+                const rekeningClean = watchNoRekening.replace(/\D/g, '');
+                if (rekeningClean.length !== selectedBank.jumlah_digit) {
+                    setRekeningWarning(`No rekening ${selectedBank.nama_bank} harus ${selectedBank.jumlah_digit} digit (saat ini: ${rekeningClean.length} digit)`);
+                } else {
+                    setRekeningWarning('');
+                }
+            } else {
+                setRekeningWarning('');
+            }
+        } else {
+            setRekeningWarning('');
+        }
+    }, [watchNamaBank, watchNoRekening, banksData]);
 
     // Cascading Dropdowns
     useEffect(() => {
