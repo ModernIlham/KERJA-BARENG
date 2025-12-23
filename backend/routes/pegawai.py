@@ -349,20 +349,19 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         
         # Q-V: Status Kepegawaian
         ("Q", "Status Kepegawaian", 18, False),
-        ("R", "Pangkat/Golongan ASN", 28, False),
-        ("S", "Golongan PPPK", 18, False),
-        ("T", "Status Penempatan", 18, False),
-        ("U", "Instansi Asal", 25, False),
-        ("V", "Masa Penugasan Berakhir", 22, False),
-        ("W", "Status Jabatan", 15, False),
+        ("R", "Pangkat/Golongan", 28, False),  # ASN + PPPK + TNI + POLRI
+        ("S", "Status Penempatan", 18, False),
+        ("T", "Instansi Asal", 25, False),
+        ("U", "Masa Penugasan Berakhir", 22, False),
+        ("V", "Status Jabatan", 15, False),
         
-        # X-AA: Non-ASN Detail
-        ("X", "Jenis Non-ASN", 15, False),
-        ("Y", "Sub-Kategori Non-ASN", 22, False),
-        ("Z", "Tgl Mulai Kontrak", 18, False),
-        ("AA", "Tgl Selesai Kontrak", 18, False),
+        # W-Z: Non-ASN Detail
+        ("W", "Jenis Non-ASN", 15, False),
+        ("X", "Sub-Kategori Non-ASN", 22, False),
+        ("Y", "Tgl Mulai Kontrak", 18, False),
+        ("Z", "Tgl Selesai Kontrak", 18, False),
         
-        # AB-AM: Jabatan & Unit Kerja
+        # AA-AL: Jabatan & Unit Kerja
         ("AB", "Jabatan Struktural", 35, False),
         ("AC", "Jabatan Fungsional Melekat", 30, False),
         ("AD", "Kategori Pegawai", 18, False),
