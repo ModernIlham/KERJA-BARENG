@@ -84,8 +84,8 @@ async def create_pegawai(pegawai_in: PegawaiCreate, current_user: dict = Depends
     # Log activity
     await log_activity(
         db=db,
-        user_id=str(current_user.get("_id", "")),
-        user_name=current_user.get("full_name", "Unknown"),
+        user_id=str(current_user.id),
+        user_name=current_user.full_name or "Unknown",
         action="CREATE",
         module="Pegawai",
         target_id=str(result.inserted_id),
