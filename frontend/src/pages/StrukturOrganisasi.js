@@ -363,6 +363,45 @@ export default function StrukturOrganisasi() {
             {/* Tree View with DnD */}
             <Card className="border-slate-200">
                 <CardContent className="p-6">
+                    {/* Pimpinan Kementerian/Lembaga - Di atas struktur */}
+                    {pimpinanKL.length > 0 && (
+                        <div className="mb-6">
+                            <div className="bg-gradient-to-r from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl p-4 shadow-sm">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="p-2 bg-amber-200 rounded-lg">
+                                        <Network className="h-5 w-5 text-amber-700" />
+                                    </div>
+                                    <h3 className="font-bold text-amber-800 text-lg">Pimpinan Kementerian/Lembaga</h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {pimpinanKL.map(pimpinan => (
+                                        <div key={pimpinan.id} className="bg-white rounded-lg p-3 border border-amber-200 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-12 w-12 border-2 border-amber-300">
+                                                    <AvatarImage src={pimpinan.foto_thumbnail_url || pimpinan.foto_url} />
+                                                    <AvatarFallback className="bg-amber-100 text-amber-700 font-bold">
+                                                        {(pimpinan.nama_lengkap || '?').substring(0, 2).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <Badge className="bg-amber-500 text-white text-[10px] mb-1">
+                                                        {pimpinan.jabatan_pimpinan_kl}
+                                                    </Badge>
+                                                    <p className="font-semibold text-slate-800 text-sm truncate">{pimpinan.nama_lengkap}</p>
+                                                    <p className="text-xs text-slate-500 truncate">{pimpinan.nip || pimpinan.nik}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Connector line */}
+                            <div className="flex justify-center">
+                                <div className="w-0.5 h-6 bg-amber-300"></div>
+                            </div>
+                        </div>
+                    )}
+                    
                     {treeData.length === 0 ? (
                         <div className="text-center py-12 text-slate-500">
                             <Building2 className="h-12 w-12 mx-auto mb-3 text-slate-300" />
