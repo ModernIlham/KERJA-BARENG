@@ -147,6 +147,7 @@ export default function BankManager() {
                                 <TableHead className="w-12">No</TableHead>
                                 <TableHead>Nama Bank</TableHead>
                                 <TableHead>Kode Bank</TableHead>
+                                <TableHead className="w-24">Jumlah Digit</TableHead>
                                 <TableHead className="w-24">Tipe</TableHead>
                                 <TableHead className="text-right w-32">Aksi</TableHead>
                             </TableRow>
@@ -154,7 +155,7 @@ export default function BankManager() {
                         <TableBody>
                             {banks.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
                                         <Building className="h-10 w-10 mx-auto mb-2 text-slate-300" />
                                         Belum ada data bank
                                     </TableCell>
@@ -166,6 +167,9 @@ export default function BankManager() {
                                         <TableCell className="font-medium">{bank.nama_bank}</TableCell>
                                         <TableCell className="text-slate-500 font-mono text-sm">
                                             {bank.kode_bank || '-'}
+                                        </TableCell>
+                                        <TableCell className="text-slate-600 font-mono text-sm">
+                                            {bank.jumlah_digit ? `${bank.jumlah_digit} digit` : '-'}
                                         </TableCell>
                                         <TableCell>
                                             {bank.is_default ? (
