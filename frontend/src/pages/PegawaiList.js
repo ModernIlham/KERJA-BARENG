@@ -83,7 +83,7 @@ export default function PegawaiList() {
     setLoading(true);
     try {
       const res = await api.get('/api/pegawai', { 
-          params: { search, page: currentPage, limit } 
+          params: { search, page: currentPage, limit, sort_by: sortBy, sort_order: sortOrder, ...filters } 
       });
       setPegawai(res.data.data);
       setTotalPages(res.data.total_pages);
