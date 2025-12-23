@@ -31,6 +31,7 @@ class BankModel(BaseModel):
     id: Optional[str] = None
     nama_bank: str
     kode_bank: Optional[str] = None
+    jumlah_digit: Optional[int] = None  # Jumlah digit rekening standar
     is_default: bool = False
     created_at: Optional[str] = None
     
