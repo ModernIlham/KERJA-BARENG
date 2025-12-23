@@ -586,7 +586,9 @@ export default function AdvancedSignaturePad({
       
       {/* Draw Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl overflow-hidden" style={{ width: expandedCanvas ? '56rem' : '42rem', maxWidth: '95vw' }}>
+        <DialogContent 
+          className={`overflow-hidden transition-all duration-200 ${expandedCanvas ? 'sm:max-w-4xl' : 'sm:max-w-2xl'}`}
+        >
           <DialogHeader>
             <DialogTitle>Buat {itemLabel} Digital Baru</DialogTitle>
             <DialogDescription>
@@ -594,7 +596,7 @@ export default function AdvancedSignaturePad({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-x-hidden">
             {/* Mode Toggle */}
             <div className="flex gap-2 justify-center">
               <Button 
