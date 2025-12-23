@@ -586,7 +586,7 @@ export default function AdvancedSignaturePad({
       
       {/* Draw Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className={`${expandedCanvas ? 'max-w-4xl' : 'max-w-2xl'} transition-all`}>
+        <DialogContent className="max-w-2xl transition-all duration-300" style={{ maxWidth: expandedCanvas ? '56rem' : '42rem' }}>
           <DialogHeader>
             <DialogTitle>Buat {itemLabel} Digital Baru</DialogTitle>
             <DialogDescription>
