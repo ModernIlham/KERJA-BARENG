@@ -482,6 +482,8 @@ class PegawaiCreate(BaseModel):
     is_pimpinan_tertinggi: Optional[bool] = False
     jenis_pimpinan: Optional[str] = None
     is_pimpinan_struktural: Optional[bool] = False  # Pimpinan struktural instansi
+    is_pimpinan_kl: Optional[bool] = False  # Pimpinan Kementerian/Lembaga
+    jabatan_pimpinan_kl: Optional[str] = None  # Menteri, Wakil Menteri, dll
     
     # ========== PHOTO ==========
     foto_url: Optional[str] = None
