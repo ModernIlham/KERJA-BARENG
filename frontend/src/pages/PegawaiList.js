@@ -332,22 +332,39 @@ export default function PegawaiList() {
 
         {/* Signature Modal */}
         <Dialog open={isSigOpen} onOpenChange={setIsSigOpen}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Tanda Tangan Digital</DialogTitle>
+                    <DialogTitle>Tanda Tangan & Paraf Digital</DialogTitle>
                     <DialogDescription>
-                        Atur tanda tangan untuk {selectedItem?.nama_lengkap}. Digunakan untuk pengesahan dokumen digital.
+                        Kelola tanda tangan dan paraf digital untuk {selectedItem?.nama_lengkap}. Maksimal 3 tanda tangan dan 3 paraf.
                     </DialogDescription>
                 </DialogHeader>
                 {selectedItem && (
-                    <SignaturePad 
-                        pegawaiId={selectedItem._id} 
-                        existingSignature={selectedItem.signature_url}
-                        onSuccess={() => {
-                            setIsSigOpen(false);
-                            fetchPegawai();
-                        }}
-                    />
+                    <div className="space-y-6">
+                        {/* Signatures Section */}
+                        <AdvancedSignaturePad 
+                            pegawaiId={selectedItem._id} 
+                            existingSignatures={selectedItem.signatures || []}
+                            existingInitials={selectedItem.initials || []}
+                            type="signature"
+                            onSuccess={() => {
+                                fetchPegawai();
+                            }}
+                        />
+                        
+                        <hr className="border-slate-200" />
+                        
+                        {/* Initials Section */}
+                        <AdvancedSignaturePad 
+                            pegawaiId={selectedItem._id} 
+                            existingSignatures={selectedItem.signatures || []}
+                            existingInitials={selectedItem.initials || []}
+                            type="initial"
+                            onSuccess={() => {
+                                fetchPegawai();
+                            }}
+                        />
+                    </div>
                 )}
             </DialogContent>
         </Dialog>
