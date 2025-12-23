@@ -404,6 +404,8 @@ class Pegawai(MongoBaseModel):
     is_pimpinan_tertinggi: bool = False
     jenis_pimpinan: Optional[str] = None  # "Kepala", "Wakil"
     is_pimpinan_struktural: bool = False  # Pimpinan struktural instansi - otomatis berpindah saat pergantian jabatan
+    is_pimpinan_kl: bool = False  # Pimpinan Kementerian/Lembaga (di atas Eselon I)
+    jabatan_pimpinan_kl: Optional[str] = None  # Menteri, Wakil Menteri, Kepala Lembaga, dll
     
     # ========== PHOTO & SIGNATURE ==========
     foto_url: Optional[str] = None
