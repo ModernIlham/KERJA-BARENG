@@ -78,7 +78,9 @@ export default function PegawaiList() {
       try {
         const res = await api.get('/api/settings/unit-kerja');
         const eselon1 = res.data.filter(u => u.eselon === "1").map(u => u.nama_unit);
+        const eselon2 = res.data.filter(u => u.eselon === "2").map(u => u.nama_unit);
         setUnitKerjaOptions(eselon1);
+        setUnitKerjaEselon2(eselon2);
       } catch (e) {}
     };
     fetchUnitKerja();
