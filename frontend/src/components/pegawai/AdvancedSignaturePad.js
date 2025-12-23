@@ -48,7 +48,7 @@ export default function AdvancedSignaturePad({
 }) {
   const canvasRef = useRef(null);
   const [points, setPoints] = useState([]);
-  const [allStrokes, setAllStrokes] = useState([]); // Store all completed strokes
+  const [allStrokes, setAllStrokes] = useState([]); // Store points and color only (options applied dynamically)
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [mode, setMode] = useState('draw');
