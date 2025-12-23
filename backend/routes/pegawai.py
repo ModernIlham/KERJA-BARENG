@@ -78,8 +78,28 @@ async def create_pegawai(pegawai_in: PegawaiCreate, current_user: dict = Depends
     existing = await db.pegawai.find_one({"nip": pegawai_in.nip})
     if existing:
         raise HTTPException(status_code=400, detail="NIP already exists")
+    
+    # Handle pimpinan struktural auto-transfer before creating
+    pegawai_data = pegawai_in.dict()
+    if pegawai_data.get('is_pimpinan_struktural'):
+        # Cari unit kerja tertinggi yang dipilih
+        unit_key = None
+        for es in ['eselon5', 'eselon4', 'eselon3', 'eselon2', 'eselon1']:
+            if pegawai_data.get(es):
+                unit_key = (es, pegawai_data.get(es))
+                break
         
-    new_pegawai = Pegawai(**pegawai_in.dict())
+        if unit_key:
+            # Reset pimpinan struktural lainnya di unit kerja yang sama
+            await db.pegawai.update_many(
+                {
+                    unit_key[0]: unit_key[1],
+                    "is_pimpinan_struktural": True
+                },
+                {"$set": {"is_pimpinan_struktural": False}}
+            )
+        
+    new_pegawai = Pegawai(**pegawai_data)
     result = await db.pegawai.insert_one(new_pegawai.model_dump(by_alias=True, exclude=["id"]))
     
     # Log activity
