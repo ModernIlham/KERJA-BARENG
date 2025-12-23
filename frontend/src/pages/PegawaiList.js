@@ -78,8 +78,6 @@ export default function PegawaiList() {
   }, []);
   
   const fetchPegawai = async () => {
-  
-  const fetchPegawai = async () => {
     setLoading(true);
     try {
       const res = await api.get('/api/pegawai', { 
