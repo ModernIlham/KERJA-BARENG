@@ -6,54 +6,6 @@ import { toast } from 'sonner';
 import api from '../../api/axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 
-// Stroke smoothing helper using catmull-rom spline
-function getStroke(points, options = {}) {
-  const {
-    size = 5,
-    smoothing = 0.5,
-    thinning = 0.5,
-    streamline = 0.5,
-    simulatePressure = true,
-  } = options;
-
-  if (points.length < 2) return points;
-
-  const smoothedPoints = [];
-  for (let i = 0; i < points.length; i++) {
-    if (i === 0 || i === points.length - 1) {
-      smoothedPoints.push(points[i]);
-    } else {
-      const prev = points[i - 1];
-      const curr = points[i];
-      const next = points[i + 1];
-      
-      const smoothX = curr.x + (next.x - prev.x) * smoothing * 0.1;
-      const smoothY = curr.y + (next.y - prev.y) * smoothing * 0.1;
-      
-      smoothedPoints.push({ x: smoothX, y: smoothY, pressure: curr.pressure || 0.5 });
-    }
-  }
-
-  return smoothedPoints.map((point, i) => {
-    let pressure = point.pressure || 0.5;
-    
-    if (simulatePressure) {
-      // Simulate pressure based on velocity
-      if (i > 0) {
-        const prev = smoothedPoints[i - 1];
-        const dist = Math.sqrt(Math.pow(point.x - prev.x, 2) + Math.pow(point.y - prev.y, 2));
-        const velocity = Math.min(dist / 10, 1);
-        pressure = 1 - velocity * thinning;
-      }
-    }
-
-    return {
-      ...point,
-      size: size * (0.5 + pressure * 0.5)
-    };
-  });
-}
-
 const COLORS = [
   { name: 'Black', value: '#000000' },
   { name: 'Blue', value: '#0066FF' },
@@ -63,10 +15,10 @@ const COLORS = [
 ];
 
 const STYLE_PRESETS = {
-  Default: { strokeWidth: 5, smoothing: 0.4, thinning: 0.3, streamline: 0.55, angle: 0 },
-  Elegant: { strokeWidth: 3, smoothing: 0.6, thinning: 0.5, streamline: 0.7, angle: 15 },
-  Bold: { strokeWidth: 8, smoothing: 0.3, thinning: 0.1, streamline: 0.4, angle: 0 },
-  Quick: { strokeWidth: 4, smoothing: 0.2, thinning: 0.4, streamline: 0.3, angle: 0 },
+  Default: { strokeWidth: 3, smoothing: 0.5, thinning: 0.5, streamline: 0.5, angle: 0 },
+  Elegant: { strokeWidth: 2, smoothing: 0.7, thinning: 0.6, streamline: 0.7, angle: 0 },
+  Bold: { strokeWidth: 5, smoothing: 0.3, thinning: 0.2, streamline: 0.4, angle: 0 },
+  Quick: { strokeWidth: 2.5, smoothing: 0.2, thinning: 0.4, streamline: 0.3, angle: 0 },
 };
 
 export default function AdvancedSignaturePad({ 
@@ -74,10 +26,9 @@ export default function AdvancedSignaturePad({
   existingSignatures = [], 
   existingInitials = [],
   onSuccess,
-  type = 'signature' // 'signature' or 'initial'
+  type = 'signature'
 }) {
   const canvasRef = useRef(null);
-  const contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [mode, setMode] = useState('draw');
@@ -89,18 +40,19 @@ export default function AdvancedSignaturePad({
   const [color, setColor] = useState('#000000');
   const [customColor, setCustomColor] = useState('#000000');
   const [stylePreset, setStylePreset] = useState('Default');
-  const [strokeWidth, setStrokeWidth] = useState(5);
-  const [smoothing, setSmoothing] = useState(0.4);
-  const [thinning, setThinning] = useState(0.3);
-  const [streamline, setStreamline] = useState(0.55);
+  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [smoothing, setSmoothing] = useState(0.5);
+  const [thinning, setThinning] = useState(0.5);
+  const [streamline, setStreamline] = useState(0.5);
   const [angle, setAngle] = useState(0);
   
-  // Points for smooth drawing
+  // Drawing state
   const pointsRef = useRef([]);
+  const lastPointRef = useRef(null);
+  const velocityRef = useRef(0);
   
   // Saved items management
   const [savedItems, setSavedItems] = useState(type === 'signature' ? existingSignatures : existingInitials);
-  const [selectedSlot, setSelectedSlot] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
@@ -108,55 +60,53 @@ export default function AdvancedSignaturePad({
   const maxSlots = 3;
   const itemLabel = type === 'signature' ? 'Tanda Tangan' : 'Paraf';
 
-  // Initialize canvas function
+  // Initialize canvas
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const container = canvas.parentElement;
+    if (!container) return;
     
-    contextRef.current = ctx;
+    const rect = container.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
     
-    // Set canvas size
-    const rect = canvas.parentElement?.getBoundingClientRect();
-    if (!rect) return;
-    
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
+    // Set display size
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
     
-    // Reset transform first
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(ratio, ratio);
+    // Set actual size in memory
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
     
-    // Apply rotation transform
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    
+    // Apply rotation if angle is set
     if (angle !== 0) {
       ctx.translate(rect.width / 2, rect.height / 2);
       ctx.rotate((angle * Math.PI) / 180);
       ctx.translate(-rect.width / 2, -rect.height / 2);
     }
     
+    // Set default styles
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = color;
-    ctx.fillStyle = color;
+    
+    // Clear any existing content
+    ctx.fillStyle = 'white';
+    ctx.fillRect(-1000, -1000, canvas.width + 2000, canvas.height + 2000);
   }, [color, angle]);
 
   useEffect(() => {
     if (mode === 'draw' && isModalOpen) {
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        initCanvas();
-      }, 150);
+      const timer = setTimeout(initCanvas, 100);
       return () => clearTimeout(timer);
     }
   }, [mode, isModalOpen, initCanvas]);
 
   useEffect(() => {
-    // Apply preset
     const preset = STYLE_PRESETS[stylePreset];
     if (preset) {
       setStrokeWidth(preset.strokeWidth);
@@ -167,81 +117,198 @@ export default function AdvancedSignaturePad({
     }
   }, [stylePreset]);
 
-  const getCoordinates = (e) => {
+  // Re-init canvas when angle changes
+  useEffect(() => {
+    if (mode === 'draw' && isModalOpen && !hasDrawn) {
+      initCanvas();
+    }
+  }, [angle, mode, isModalOpen, hasDrawn, initCanvas]);
+
+  const getPointerPosition = (e) => {
     const canvas = canvasRef.current;
+    if (!canvas) return null;
+    
     const rect = canvas.getBoundingClientRect();
     const clientX = e.clientX ?? e.touches?.[0]?.clientX;
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
     
+    if (clientX === undefined || clientY === undefined) return null;
+    
     return {
       x: clientX - rect.left,
       y: clientY - rect.top,
-      pressure: e.pressure || 0.5
+      time: Date.now(),
+      pressure: e.pressure ?? 0.5
     };
+  };
+
+  const calculateVelocity = (p1, p2) => {
+    if (!p1 || !p2) return 0;
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const dt = Math.max(p2.time - p1.time, 1);
+    return Math.sqrt(dx * dx + dy * dy) / dt;
+  };
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  const getStrokeWidth = (velocity) => {
+    // Base width from slider
+    const baseWidth = strokeWidth;
+    
+    // Normalize velocity (typical values 0-2)
+    const normalizedVelocity = Math.min(velocity * 2, 1);
+    
+    // Thinning effect: faster = thinner
+    const thinningFactor = 1 - (normalizedVelocity * thinning);
+    
+    // Calculate final width
+    const width = baseWidth * Math.max(thinningFactor, 0.3);
+    
+    return Math.max(width, 0.5);
+  };
+
+  const drawSmoothLine = (ctx, points) => {
+    if (points.length < 2) return;
+    
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    if (points.length === 2) {
+      // Just two points, draw a simple line
+      const [p1, p2] = points;
+      ctx.beginPath();
+      ctx.lineWidth = getStrokeWidth(calculateVelocity(p1, p2));
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+      return;
+    }
+    
+    // For multiple points, use quadratic curves for smoothing
+    const last = points.length - 1;
+    
+    for (let i = 1; i < points.length; i++) {
+      const p0 = points[i - 1];
+      const p1 = points[i];
+      
+      // Calculate velocity for this segment
+      const velocity = calculateVelocity(p0, p1);
+      const width = getStrokeWidth(velocity);
+      
+      // Smooth the velocity changes
+      velocityRef.current = lerp(velocityRef.current, velocity, 1 - streamline);
+      
+      ctx.beginPath();
+      ctx.lineWidth = width;
+      
+      if (i === 1) {
+        // First segment
+        ctx.moveTo(p0.x, p0.y);
+        ctx.lineTo(p1.x, p1.y);
+      } else {
+        // Use smoothing for middle segments
+        const p_prev = points[i - 2];
+        
+        // Calculate control point based on smoothing
+        const smoothFactor = smoothing;
+        const cpX = p0.x + (p1.x - p_prev.x) * smoothFactor * 0.25;
+        const cpY = p0.y + (p1.y - p_prev.y) * smoothFactor * 0.25;
+        
+        ctx.moveTo(p0.x, p0.y);
+        ctx.quadraticCurveTo(cpX, cpY, (p0.x + p1.x) / 2, (p0.y + p1.y) / 2);
+        ctx.lineTo(p1.x, p1.y);
+      }
+      
+      ctx.stroke();
+    }
   };
 
   const startDrawing = (e) => {
     e.preventDefault();
     
-    // Initialize canvas if not already done
-    if (!contextRef.current) {
-      initCanvas();
-    }
+    const point = getPointerPosition(e);
+    if (!point) return;
     
-    const ctx = contextRef.current;
-    if (!ctx) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     
-    const point = getCoordinates(e);
-    pointsRef.current = [point];
     setIsDrawing(true);
     setHasDrawn(true);
     
-    ctx.strokeStyle = color;
+    pointsRef.current = [point];
+    lastPointRef.current = point;
+    velocityRef.current = 0;
+    
+    // Draw initial dot
+    const ctx = canvas.getContext('2d');
     ctx.fillStyle = color;
-    ctx.lineWidth = strokeWidth;
     ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
+    ctx.arc(point.x, point.y, strokeWidth / 2, 0, Math.PI * 2);
+    ctx.fill();
   };
 
   const draw = (e) => {
     if (!isDrawing) return;
     e.preventDefault();
     
-    const ctx = contextRef.current;
-    if (!ctx) return;
+    const point = getPointerPosition(e);
+    if (!point) return;
     
-    const point = getCoordinates(e);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const lastPoint = lastPointRef.current;
+    
+    // Calculate distance from last point
+    const dx = point.x - lastPoint.x;
+    const dy = point.y - lastPoint.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Streamline: skip points that are too close
+    const minDistance = 1 + (1 - streamline) * 3;
+    if (distance < minDistance) return;
+    
+    // Add point
     pointsRef.current.push(point);
     
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    
-    // Apply stroke settings
-    const smoothedPoints = getStroke(pointsRef.current, {
-      size: strokeWidth,
-      smoothing,
-      thinning,
-      streamline,
-      simulatePressure: true
-    });
-    
-    if (smoothedPoints.length > 1) {
-      const lastPoint = smoothedPoints[smoothedPoints.length - 1];
-      const prevPoint = smoothedPoints[smoothedPoints.length - 2];
-      
-      ctx.lineWidth = lastPoint.size || strokeWidth;
-      ctx.beginPath();
-      ctx.moveTo(prevPoint.x, prevPoint.y);
-      ctx.lineTo(lastPoint.x, lastPoint.y);
-      ctx.stroke();
+    // Keep only recent points for smoothing (based on smoothing value)
+    const maxPoints = Math.floor(3 + smoothing * 5);
+    if (pointsRef.current.length > maxPoints) {
+      pointsRef.current = pointsRef.current.slice(-maxPoints);
     }
+    
+    // Draw the smooth line
+    drawSmoothLine(ctx, pointsRef.current);
+    
+    lastPointRef.current = point;
   };
 
   const stopDrawing = () => {
-    if (isDrawing) {
-      setIsDrawing(false);
-      pointsRef.current = [];
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    
+    // Draw final segment if needed
+    if (pointsRef.current.length >= 2) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        const points = pointsRef.current;
+        const lastTwo = points.slice(-2);
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = getStrokeWidth(0.1); // Thin end
+        ctx.beginPath();
+        ctx.moveTo(lastTwo[0].x, lastTwo[0].y);
+        ctx.lineTo(lastTwo[1].x, lastTwo[1].y);
+        ctx.stroke();
+      }
     }
+    
+    pointsRef.current = [];
+    lastPointRef.current = null;
   };
 
   const clearCanvas = () => {
@@ -249,13 +316,18 @@ export default function AdvancedSignaturePad({
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    
+    const dpr = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    initCanvas();
+    
     setHasDrawn(false);
     pointsRef.current = [];
+    lastPointRef.current = null;
+    velocityRef.current = 0;
+    
+    // Re-init
+    initCanvas();
   };
 
   const handleSave = async () => {
@@ -276,7 +348,17 @@ export default function AdvancedSignaturePad({
         }
         
         const canvas = canvasRef.current;
-        const dataUrl = canvas.toDataURL('image/png');
+        
+        // Create a new canvas without the white background for PNG transparency
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = canvas.width;
+        exportCanvas.height = canvas.height;
+        const exportCtx = exportCanvas.getContext('2d');
+        
+        // Copy the drawing (without white background)
+        exportCtx.drawImage(canvas, 0, 0);
+        
+        const dataUrl = exportCanvas.toDataURL('image/png');
         const blob = await (await fetch(dataUrl)).blob();
         formData.append('file', blob, `${type}_${Date.now()}.png`);
       } else {
@@ -436,7 +518,7 @@ export default function AdvancedSignaturePad({
                         key={c.value}
                         onClick={() => setColor(c.value)}
                         className={`w-7 h-7 rounded-full transition-all ${
-                          color === c.value ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                          color === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : 'hover:scale-105'
                         }`}
                         style={{ backgroundColor: c.value }}
                         title={c.name}
@@ -463,9 +545,9 @@ export default function AdvancedSignaturePad({
                     </div>
                     <button
                       onClick={() => setShowAdvanced(!showAdvanced)}
-                      className="text-sm text-blue-600 underline ml-2"
+                      className="text-sm text-blue-600 hover:text-blue-800 underline ml-2"
                     >
-                      advanced
+                      {showAdvanced ? 'hide' : 'advanced'}
                     </button>
                   </div>
                 </div>
@@ -494,18 +576,18 @@ export default function AdvancedSignaturePad({
                     </div>
                     
                     {/* Sliders */}
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div className="flex items-center gap-4">
                         <span className="text-sm text-slate-600 w-28">Stroke Width</span>
                         <Slider
                           value={[strokeWidth]}
                           onValueChange={([v]) => setStrokeWidth(v)}
-                          min={1}
-                          max={15}
-                          step={1}
+                          min={0.5}
+                          max={8}
+                          step={0.5}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-12 text-right">{strokeWidth}px</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{strokeWidth}px</span>
                       </div>
                       
                       <div className="flex items-center gap-4">
@@ -515,10 +597,10 @@ export default function AdvancedSignaturePad({
                           onValueChange={([v]) => setSmoothing(v / 100)}
                           min={0}
                           max={100}
-                          step={1}
+                          step={5}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-12 text-right">{smoothing.toFixed(2)}</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{Math.round(smoothing * 100)}%</span>
                       </div>
                       
                       <div className="flex items-center gap-4">
@@ -528,10 +610,10 @@ export default function AdvancedSignaturePad({
                           onValueChange={([v]) => setThinning(v / 100)}
                           min={0}
                           max={100}
-                          step={1}
+                          step={5}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-12 text-right">{thinning.toFixed(2)}</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{Math.round(thinning * 100)}%</span>
                       </div>
                       
                       <div className="flex items-center gap-4">
@@ -541,37 +623,46 @@ export default function AdvancedSignaturePad({
                           onValueChange={([v]) => setStreamline(v / 100)}
                           min={0}
                           max={100}
-                          step={1}
+                          step={5}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-12 text-right">{streamline.toFixed(2)}</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{Math.round(streamline * 100)}%</span>
                       </div>
                       
                       <div className="flex items-center gap-4">
                         <span className="text-sm text-slate-600 w-28">Angle</span>
                         <Slider
                           value={[angle]}
-                          onValueChange={([v]) => {
-                            setAngle(v);
-                            setTimeout(initCanvas, 50);
-                          }}
-                          min={-45}
-                          max={45}
-                          step={1}
+                          onValueChange={([v]) => setAngle(v)}
+                          min={-30}
+                          max={30}
+                          step={5}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-12 text-right">{angle}°</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{angle}°</span>
                       </div>
+                    </div>
+                    
+                    {/* Info */}
+                    <div className="text-xs text-slate-500 bg-white/50 p-2 rounded">
+                      <strong>Tips:</strong> Thinning mengatur variasi tebal-tipis berdasarkan kecepatan. 
+                      Smoothing menghaluskan garis. Streamline mengurangi getaran.
                     </div>
                   </div>
                 )}
                 
                 {/* Canvas Area */}
-                <div className="border-2 border-dashed border-slate-300 rounded-xl bg-white touch-none mx-auto w-full">
+                <div 
+                  className="border-2 border-slate-300 rounded-xl bg-white touch-none mx-auto w-full overflow-hidden"
+                  style={{ 
+                    transform: `rotate(${angle}deg)`,
+                    transition: 'transform 0.3s ease'
+                  }}
+                >
                   <div style={{ width: '100%', height: type === 'initial' ? '150px' : '200px' }}>
                     <canvas
                       ref={canvasRef}
-                      className="w-full h-full cursor-crosshair rounded-t-xl"
+                      className="w-full h-full cursor-crosshair"
                       style={{ touchAction: 'none' }}
                       onMouseDown={startDrawing}
                       onMouseMove={draw}
@@ -582,9 +673,11 @@ export default function AdvancedSignaturePad({
                       onTouchEnd={stopDrawing}
                     />
                   </div>
-                  <div className="text-center text-xs text-slate-400 py-1 border-t border-slate-100 bg-slate-50 rounded-b-xl">
-                    Area {itemLabel} Digital - Gambar di sini
-                  </div>
+                </div>
+                
+                {/* Canvas Info */}
+                <div className="text-center text-xs text-slate-400">
+                  Area {itemLabel} Digital - Gambar dengan mouse atau layar sentuh
                 </div>
                 
                 {/* Canvas Actions */}
@@ -611,7 +704,7 @@ export default function AdvancedSignaturePad({
                   <span className="text-sm font-medium text-slate-700">
                     {uploadFile ? uploadFile.name : `Klik untuk upload ${itemLabel.toLowerCase()}`}
                   </span>
-                  <p className="text-xs text-slate-500 mt-1">Gunakan format PNG Transparan agar hasil maksimal</p>
+                  <p className="text-xs text-slate-500 mt-1">Format PNG dengan background transparan direkomendasikan</p>
                 </label>
               </div>
             )}
