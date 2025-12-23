@@ -375,9 +375,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Activity Log Page UI"
-    - "Flexi-Time Settings UI" 
-    - "Bank Management UI"
+    - "Settings and Export Functionality for SIMAN-G System"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
