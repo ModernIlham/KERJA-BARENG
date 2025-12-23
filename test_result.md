@@ -112,6 +112,42 @@ backend:
         comment: "✅ PASSED - Employee API with new fields working correctly. POST /api/pegawai accepts is_pimpinan_struktural field. Employee creation stores eselon3, eselon4, eselon5 fields correctly. GET /api/pegawai includes all new fields in response. Employee list response contains eselon3, eselon4, eselon5 fields. Search functionality works with new employee structure. UPDATE operation works with new fields."
 
 frontend:
+  - task: "Enhanced Filter Panel"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/PegawaiList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Enhanced Filter Panel working perfectly. All 10 filter dropdowns found and functional: Row 1 (Status Keaktifan, Status Kepegawaian, Kategori Jabatan, Jenis Kelamin, Agama), Row 2 (Unit Kerja Eselon 1&2, Pendidikan Terakhir, Jenis Non-ASN, Pangkat/Golongan). Active filter badges display correctly below panel. Individual badge removal working with X buttons. Reset Semua clears all filters successfully. Data filtering works correctly - table updates based on selected filters."
+
+  - task: "PDF Export with Filters"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/PegawaiList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - PDF export functionality working. Export button is functional and initiates download correctly. Successfully tested with PNS filter applied. PDF file generated with correct filename format (data_pegawai_2025-12-23.pdf). Export includes filter parameters and exports only filtered data."
+
+  - task: "Excel Export with Filters"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/PegawaiList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Excel export functionality working. Export button is enabled and functional. Successfully tested export initiation with Non-ASN filter applied. Button clicks register correctly and export process starts. Minor: Some modal overlay interactions during testing but core functionality works."
+
   - task: "Remove Duplicate Fullscreen Button"
     implemented: true
     working: needs_testing
