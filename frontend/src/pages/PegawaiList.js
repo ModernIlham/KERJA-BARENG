@@ -480,10 +480,50 @@ export default function PegawaiList() {
             <Table>
               <TableHeader className="bg-slate-50">
                 <TableRow>
-                  <TableHead>Profil Pegawai</TableHead>
-                  <TableHead>Jabatan & Pangkat</TableHead>
-                  <TableHead>Unit Kerja (Eselon)</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>
+                    <button 
+                      onClick={() => handleSort('nama_lengkap')} 
+                      className="flex items-center gap-1 hover:text-blue-600"
+                    >
+                      Profil Pegawai
+                      {sortBy === 'nama_lengkap' ? (
+                        sortOrder === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                      ) : <ArrowUpDown className="h-3 w-3 opacity-30" />}
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button 
+                      onClick={() => handleSort('jabatan')} 
+                      className="flex items-center gap-1 hover:text-blue-600"
+                    >
+                      Jabatan & Pangkat
+                      {sortBy === 'jabatan' ? (
+                        sortOrder === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                      ) : <ArrowUpDown className="h-3 w-3 opacity-30" />}
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button 
+                      onClick={() => handleSort('eselon1')} 
+                      className="flex items-center gap-1 hover:text-blue-600"
+                    >
+                      Unit Kerja
+                      {sortBy === 'eselon1' ? (
+                        sortOrder === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                      ) : <ArrowUpDown className="h-3 w-3 opacity-30" />}
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button 
+                      onClick={() => handleSort('status')} 
+                      className="flex items-center gap-1 hover:text-blue-600"
+                    >
+                      Status
+                      {sortBy === 'status' ? (
+                        sortOrder === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                      ) : <ArrowUpDown className="h-3 w-3 opacity-30" />}
+                    </button>
+                  </TableHead>
                   <TableHead className="text-center w-[120px]">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
