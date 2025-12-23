@@ -111,7 +111,7 @@ export default function AdvancedSignaturePad({
     ];
   }, [angle]);
 
-  // Redraw all strokes on canvas
+  // Redraw all strokes on canvas - uses CURRENT options for all strokes
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -130,13 +130,17 @@ export default function AdvancedSignaturePad({
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     
-    // Draw all completed strokes
+    // Get current stroke options
+    const currentOptions = getStrokeOptions();
+    
+    // Draw all completed strokes with CURRENT options
     allStrokes.forEach(stroke => {
       // Transform points with angle
       const transformedPoints = stroke.points.map(p => 
         transformPoint(p, centerX, centerY)
       );
-      const outlinePoints = getStroke(transformedPoints, stroke.options);
+      // Apply current options to all strokes
+      const outlinePoints = getStroke(transformedPoints, currentOptions);
       const pathData = getSvgPathFromStroke(outlinePoints);
       const path = new Path2D(pathData);
       ctx.fillStyle = stroke.color;
@@ -148,7 +152,7 @@ export default function AdvancedSignaturePad({
       const transformedPoints = points.map(p => 
         transformPoint(p, centerX, centerY)
       );
-      const outlinePoints = getStroke(transformedPoints, getStrokeOptions());
+      const outlinePoints = getStroke(transformedPoints, currentOptions);
       const pathData = getSvgPathFromStroke(outlinePoints);
       const path = new Path2D(pathData);
       ctx.fillStyle = color;
