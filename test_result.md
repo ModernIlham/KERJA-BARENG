@@ -399,7 +399,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CPNS Status Verification - Same Treatment as PNS"
+    - "Excel Template and PPPK Golongan Feature"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
