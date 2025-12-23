@@ -169,16 +169,14 @@ export default function AdvancedSignaturePad({
     simulatePressure: true,
   }), [size, thinning, smoothing, streamline]);
 
-  // Transform point with angle rotation and scale/offset
+  // Transform point with angle rotation and scale/offset - ALWAYS apply transform
   const transformPoint = useCallback((point, centerX, centerY) => {
     let x = point[0];
     let y = point[1];
     
-    // Apply scale and offset in transform mode
-    if (transformMode) {
-      x = (x - centerX) * signatureTransform.scale + centerX + signatureTransform.offsetX;
-      y = (y - centerY) * signatureTransform.scale + centerY + signatureTransform.offsetY;
-    }
+    // Always apply scale and offset (not just in transform mode)
+    x = (x - centerX) * signatureTransform.scale + centerX + signatureTransform.offsetX;
+    y = (y - centerY) * signatureTransform.scale + centerY + signatureTransform.offsetY;
     
     // Apply angle rotation
     if (angle !== 0) {
@@ -192,7 +190,7 @@ export default function AdvancedSignaturePad({
     }
     
     return [x, y, point[2] || 0.5];
-  }, [angle, transformMode, signatureTransform]);
+  }, [angle, signatureTransform]);
 
   // Redraw all strokes on canvas
   const redrawCanvas = useCallback(() => {
