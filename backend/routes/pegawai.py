@@ -952,12 +952,160 @@ async def upload_signature(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/{id}/signature-advanced")
+async def upload_signature_advanced(
+    id: str,
+    file: UploadFile = File(...),
+    type: str = Form("signature"),  # 'signature' or 'initial'
+    slot: str = Form("0"),
+    current_user: str = Depends(get_current_user)
+):
+    """Upload multiple signatures or initials (max 3 each)"""
+    if not ObjectId.is_valid(id): 
+        raise HTTPException(status_code=400, detail="Invalid ID")
+    
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    if not pegawai:
+        raise HTTPException(status_code=404, detail="Pegawai not found")
+    
+    try:
+        # Validate file type
+        if file.content_type not in ["image/png", "image/jpeg"]:
+            raise HTTPException(status_code=400, detail="Format harus PNG/JPG (Transparan direkomendasikan)")
         
+        # Validate type
+        if type not in ["signature", "initial"]:
+            raise HTTPException(status_code=400, detail="Type harus 'signature' atau 'initial'")
+        
+        # Get current list
+        field_name = "signatures" if type == "signature" else "initials"
+        current_list = pegawai.get(field_name, [])
+        
+        # Validate max slots
+        if len(current_list) >= 3:
+            raise HTTPException(status_code=400, detail=f"Maksimal 3 {type}")
+        
+        # Process upload
+        subfolder = "signatures" if type == "signature" else "initials"
+        result = await process_image_upload(file, subfolder, db)
+        
+        new_url = f"/api/uploads/{result['optimized']}"
+        
+        # Add to list
+        current_list.append(new_url)
+        
+        # Update pegawai
+        update_data = {
+            field_name: current_list,
+            "updated_at": datetime.now(timezone.utc)
+        }
+        
+        # Also update primary signature_url for backwards compatibility
+        if type == "signature" and len(current_list) == 1:
+            update_data["signature_url"] = new_url
+        
+        await db.pegawai.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": update_data}
+        )
+        
+        return {
+            "message": f"{'Tanda tangan' if type == 'signature' else 'Paraf'} berhasil disimpan",
+            "url": new_url,
+            "total": len(current_list)
+        }
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        # Catch file reading errors
-        if isinstance(e, HTTPException): raise e
-        print(e)
-        raise HTTPException(status_code=400, detail=f"Error membaca file: {str(e)}")
+        print(f"Signature upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{id}/signature-advanced")
+async def delete_signature_advanced(
+    id: str,
+    type: str = Body(..., embed=False),
+    slot: int = Body(..., embed=False),
+    current_user: str = Depends(get_current_user)
+):
+    """Delete a specific signature or initial by slot index"""
+    if not ObjectId.is_valid(id):
+        raise HTTPException(status_code=400, detail="Invalid ID")
+    
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    if not pegawai:
+        raise HTTPException(status_code=404, detail="Pegawai not found")
+    
+    try:
+        # Validate type
+        if type not in ["signature", "initial"]:
+            raise HTTPException(status_code=400, detail="Type harus 'signature' atau 'initial'")
+        
+        field_name = "signatures" if type == "signature" else "initials"
+        current_list = pegawai.get(field_name, [])
+        
+        if slot < 0 or slot >= len(current_list):
+            raise HTTPException(status_code=400, detail="Slot index tidak valid")
+        
+        # Get URL to delete file
+        url_to_delete = current_list[slot]
+        
+        # Try to delete file
+        try:
+            relative_path = url_to_delete.replace('/api/uploads/', '')
+            full_path = Path("/app/uploads") / relative_path
+            if full_path.exists():
+                os.remove(full_path)
+        except Exception as e:
+            print(f"Error deleting file: {e}")
+        
+        # Remove from list
+        current_list.pop(slot)
+        
+        # Update pegawai
+        update_data = {
+            field_name: current_list,
+            "updated_at": datetime.now(timezone.utc)
+        }
+        
+        # Update primary signature_url for backwards compatibility
+        if type == "signature":
+            update_data["signature_url"] = current_list[0] if current_list else None
+        
+        await db.pegawai.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": update_data}
+        )
+        
+        return {
+            "message": f"{'Tanda tangan' if type == 'signature' else 'Paraf'} berhasil dihapus",
+            "remaining": len(current_list)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Signature delete error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{id}/signatures")
+async def get_pegawai_signatures(
+    id: str,
+    current_user: str = Depends(get_current_user)
+):
+    """Get all signatures and initials for a pegawai"""
+    if not ObjectId.is_valid(id):
+        raise HTTPException(status_code=400, detail="Invalid ID")
+    
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    if not pegawai:
+        raise HTTPException(status_code=404, detail="Pegawai not found")
+    
+    return {
+        "signatures": pegawai.get("signatures", []),
+        "initials": pegawai.get("initials", []),
+        "signature_url": pegawai.get("signature_url")  # Legacy field
+    }
     return res
 
 
