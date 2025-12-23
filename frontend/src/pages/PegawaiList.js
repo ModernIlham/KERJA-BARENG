@@ -304,18 +304,6 @@ export default function PegawaiList() {
                                     <UserCircle size={24}/>
                                  )}
                              </div>
-                             {(item.foto_url || item.foto_thumbnail_url) && (
-                                <a 
-                                    href={item.foto_url || item.foto_thumbnail_url} 
-                                    target="_blank" 
-                                    rel="noreferrer"
-                                    className="text-slate-400 hover:text-blue-600"
-                                    title="Buka Foto Fullscreen"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <ExternalLink size={14}/>
-                                </a>
-                             )}
                              <div>
                                 <div className="font-bold text-slate-900 text-sm">{item.nama_lengkap}</div>
                                 <div className="font-mono text-[10px] text-slate-500">{item.nip}</div>
