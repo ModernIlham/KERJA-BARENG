@@ -297,6 +297,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Aset Integration (BMN ↔ Transaksi ↔ Aset Pegawai) Testing - COMPLETED ✅"
     - "Master Data Barang Frontend Testing - COMPLETED ✅"
     - "Updated Aset Pegawai Page Testing - COMPLETED ✅"
   stuck_tasks: []
