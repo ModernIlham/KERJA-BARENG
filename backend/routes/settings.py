@@ -437,8 +437,6 @@ async def delete_instansi_logo(current_user: str = Depends(get_current_user)):
         upsert=True
     )
     return {"message": "Logo dihapus"}
-        
-    raise HTTPException(status_code=400, detail="Target reset tidak valid")
 
 @router.get("/database/backup")
 async def backup_database(current_user: str = Depends(get_current_user)):
