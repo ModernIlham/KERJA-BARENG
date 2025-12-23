@@ -413,9 +413,27 @@ export default function PegawaiList() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${item.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                            {item.status}
-                          </span>
+                          {(() => {
+                            const status = (item.status || 'AKTIF').toUpperCase();
+                            const statusColors = {
+                              'AKTIF': 'bg-green-100 text-green-700 border-green-200',
+                              'CUTI': 'bg-amber-100 text-amber-700 border-amber-200',
+                              'TUGAS_BELAJAR': 'bg-amber-100 text-amber-700 border-amber-200',
+                              'TUGAS BELAJAR': 'bg-amber-100 text-amber-700 border-amber-200',
+                              'KELUAR': 'bg-slate-200 text-slate-500 border-slate-300',
+                              'PENSIUN': 'bg-slate-200 text-slate-500 border-slate-300',
+                              'MUTASI_KELUAR': 'bg-slate-200 text-slate-500 border-slate-300',
+                              'MENINGGAL': 'bg-slate-300 text-slate-600 border-slate-400',
+                              'RESIGN': 'bg-slate-200 text-slate-500 border-slate-300',
+                              'PHK': 'bg-red-100 text-red-600 border-red-200',
+                            };
+                            return (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusColors[status] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                                {item.status}
+                              </span>
+                            );
+                          })()}
+                          {/* Contract Expiry Badge */}
                           {/* Contract Expiry Badge */}
                           {(() => {
                             const contractStatus = getContractStatus(item);
