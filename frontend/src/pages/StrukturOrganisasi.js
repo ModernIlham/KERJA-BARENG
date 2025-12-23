@@ -121,7 +121,7 @@ export default function StrukturOrganisasi() {
                 u.members.push(emp);
                 
                 const status = (emp.status_kepegawaian || 'NON-ASN').toUpperCase();
-                if (status.includes('PNS')) u.stats.PNS++;
+                if (status.includes('PNS') || status.includes('CPNS')) u.stats.PNS++;
                 else if (status.includes('PPPK')) u.stats.PPPK++;
                 else u.stats.NONASN++;
                 u.stats.Total++;
