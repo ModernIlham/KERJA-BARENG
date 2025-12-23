@@ -829,11 +829,12 @@ export default function AdvancedSignaturePad({
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>Batal</Button>
             <Button 
               onClick={handleSave} 
-              disabled={loading || (mode === 'draw' && allStrokes.length === 0) || (mode === 'upload' && !processedUpload)} 
-              className="bg-green-600 hover:bg-green-700"
+              disabled={loading || transformMode || (mode === 'draw' && allStrokes.length === 0) || (mode === 'upload' && !processedUpload)} 
+              className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
+              title={transformMode ? "Matikan mode edit terlebih dahulu" : ""}
             >
               <Save size={16} className="mr-2" />
-              {loading ? "Menyimpan..." : `Simpan ${itemLabel}`}
+              {loading ? "Menyimpan..." : transformMode ? "Selesaikan Edit Dulu" : `Simpan ${itemLabel}`}
             </Button>
           </DialogFooter>
         </DialogContent>
