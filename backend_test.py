@@ -14434,10 +14434,10 @@ def main():
 
 
 def main():
-    """Main function to run the CPNS Status Verification test"""
+    """Main function to run the Asset Pegawai API test"""
     tester = APITester()
     
-    print("🚀 Starting CPNS Status Verification Testing...")
+    print("🚀 Starting Asset Tracking & Monitoring (Aset Pegawai) API Testing...")
     print("=" * 60)
     
     # Test login first
@@ -14445,23 +14445,23 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the CPNS Status Verification test as requested in review
-    if not tester.test_cpns_status_verification():
-        print("❌ CPNS Status Verification test failed")
+    # Run the Asset Pegawai API test as requested in review
+    if not tester.test_aset_pegawai_api():
+        print("❌ Asset Pegawai API test failed")
         return 1
     
     # Print summary
     print("\n" + "=" * 60)
-    print(f"🎯 CPNS TESTING SUMMARY")
+    print(f"🎯 ASSET PEGAWAI API TESTING SUMMARY")
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 ALL CPNS TESTS PASSED!")
+        print("🎉 ALL ASSET PEGAWAI API TESTS PASSED!")
         return 0
     else:
-        print("❌ SOME CPNS TESTS FAILED!")
+        print("❌ SOME ASSET PEGAWAI API TESTS FAILED!")
         return 1
 
 if __name__ == "__main__":
