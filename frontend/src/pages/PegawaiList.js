@@ -396,9 +396,30 @@ export default function PegawaiList() {
                           </div>
                       </TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${item.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                          {item.status}
-                        </span>
+                        <div className="space-y-1">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${item.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                            {item.status}
+                          </span>
+                          {/* Contract Expiry Badge */}
+                          {(() => {
+                            const contractStatus = getContractStatus(item);
+                            if (!contractStatus) return null;
+                            const colors = {
+                              expired: 'bg-gray-500 text-white',
+                              critical: 'bg-red-500 text-white animate-pulse',
+                              high: 'bg-orange-500 text-white',
+                              medium: 'bg-yellow-500 text-white'
+                            };
+                            return (
+                              <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${colors[contractStatus.status]}`}>
+                                <Clock className="h-3 w-3" />
+                                {contractStatus.status === 'expired' 
+                                  ? `${contractStatus.days}hr lalu` 
+                                  : `${contractStatus.days}hr lagi`}
+                              </div>
+                            );
+                          })()}
+                        </div>
                       </TableCell>
                       <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
