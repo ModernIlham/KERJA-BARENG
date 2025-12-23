@@ -362,27 +362,29 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ("Z", "Tgl Mulai Kontrak", 18, False),
         ("AA", "Tgl Selesai Kontrak", 18, False),
         
-        # AB-AH: Jabatan & Unit Kerja
+        # AB-AM: Jabatan & Unit Kerja
         ("AB", "Jabatan Struktural", 35, False),
         ("AC", "Jabatan Fungsional Melekat", 30, False),
         ("AD", "Kategori Pegawai", 18, False),
-        ("AE", "Pimpinan Tertinggi", 18, False),
-        ("AF", "Jenis Pimpinan", 15, False),
-        ("AG", "Eselon 1", 45, False),
-        ("AH", "Eselon 2", 45, False),
-        ("AI", "Eselon 3", 40, False),
-        ("AJ", "Eselon 4", 40, False),
-        ("AK", "Eselon 5", 40, False),
+        ("AE", "Pimpinan K/L", 15, False),  # Pimpinan Kementerian/Lembaga
+        ("AF", "Jabatan Pimpinan K/L", 25, False),  # Menteri, Kepala Lembaga, dll
+        ("AG", "Pimpinan Tertinggi", 18, False),
+        ("AH", "Jenis Pimpinan", 15, False),
+        ("AI", "Eselon 1", 45, False),
+        ("AJ", "Eselon 2", 45, False),
+        ("AK", "Eselon 3", 40, False),
+        ("AL", "Eselon 4", 40, False),
+        ("AM", "Eselon 5", 40, False),
         
-        # AL-AO: Kontak & Bank
-        ("AL", "No Telepon", 15, False),
-        ("AM", "Email", 30, False),
-        ("AN", "Nama Bank", 28, False),
-        ("AO", "No Rekening", 20, False),
+        # AN-AQ: Kontak & Bank
+        ("AN", "No Telepon", 15, False),
+        ("AO", "Email", 30, False),
+        ("AP", "Nama Bank", 28, False),
+        ("AQ", "No Rekening", 20, False),
         
-        # AP-AQ: Status & Lainnya
-        ("AP", "Status Sistem", 15, False),
-        ("AQ", "Keterangan", 35, False),
+        # AR-AS: Status & Lainnya
+        ("AR", "Status Sistem", 15, False),
+        ("AS", "Keterangan", 35, False),
     ]
     
     # Styles
