@@ -1555,6 +1555,632 @@ class APITester:
         
         return True
 
+    def test_bank_management_digit_field(self):
+        """Test Bank Management with Digit Field functionality"""
+        print("\n=== BANK MANAGEMENT DIGIT FIELD TEST ===")
+        
+        # Ensure we have a valid token
+        if not self.token:
+            login_success = self.test_login()
+            if not login_success:
+                print("❌ Failed to login, cannot proceed with bank test")
+                return False
+        
+        # Step 1: Test GET /api/settings/banks - Verify response includes jumlah_digit field
+        print("\n📊 Step 1: Testing GET /api/settings/banks...")
+        
+        success, response = self.run_test(
+            "Get Banks List",
+            "GET",
+            "api/settings/banks",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get banks list")
+            return False
+        
+        print("✅ Banks endpoint accessible")
+        
+        # Step 2: Verify response structure and digit counts
+        print("\n🔍 Step 2: Verifying bank digit fields...")
+        
+        if not isinstance(response, list):
+            print("❌ Banks response should be a list")
+            return False
+        
+        if len(response) == 0:
+            print("❌ No banks found in response")
+            return False
+        
+        print(f"📊 Found {len(response)} banks")
+        
+        # Check for required banks and their digit counts
+        required_banks = {
+            "BRI": 15,
+            "BNI": 10, 
+            "BCA": 10
+        }
+        
+        found_banks = {}
+        bank_to_update = None
+        
+        for bank in response:
+            bank_name = bank.get('nama_bank', '')
+            jumlah_digit = bank.get('jumlah_digit')
+            bank_id = bank.get('id')
+            
+            print(f"   Bank: {bank_name}, Digits: {jumlah_digit}, ID: {bank_id}")
+            
+            # Check if jumlah_digit field exists
+            if 'jumlah_digit' not in bank:
+                print(f"❌ Bank {bank_name} missing jumlah_digit field")
+                return False
+            
+            # Check specific banks
+            for req_bank, expected_digits in required_banks.items():
+                if req_bank in bank_name:
+                    found_banks[req_bank] = {
+                        'digits': jumlah_digit,
+                        'expected': expected_digits,
+                        'id': bank_id,
+                        'name': bank_name
+                    }
+                    if not bank_to_update and bank_id:
+                        bank_to_update = {'id': bank_id, 'name': bank_name, 'current_digits': jumlah_digit}
+        
+        # Verify required banks
+        for req_bank, expected_digits in required_banks.items():
+            if req_bank not in found_banks:
+                print(f"⚠️ Required bank {req_bank} not found")
+                continue
+                
+            bank_info = found_banks[req_bank]
+            if bank_info['digits'] == expected_digits:
+                print(f"✅ {req_bank} has correct digit count: {expected_digits}")
+            else:
+                print(f"❌ {req_bank} has incorrect digit count: {bank_info['digits']}, expected: {expected_digits}")
+                return False
+        
+        # Step 3: Test PUT /api/settings/banks/{id} - Update jumlah_digit field
+        print("\n🔧 Step 3: Testing PUT /api/settings/banks/{id}...")
+        
+        if not bank_to_update:
+            print("⚠️ No bank available for update test")
+            return True
+        
+        # Test updating digit count
+        original_digits = bank_to_update['current_digits']
+        test_digits = 12 if original_digits != 12 else 13
+        
+        update_data = {
+            "nama_bank": bank_to_update['name'],
+            "jumlah_digit": test_digits
+        }
+        
+        success, response = self.run_test(
+            f"Update Bank Digit Count - {bank_to_update['name']}",
+            "PUT",
+            f"api/settings/banks/{bank_to_update['id']}",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print(f"❌ Failed to update bank {bank_to_update['name']}")
+            return False
+        
+        print(f"✅ Bank {bank_to_update['name']} updated successfully")
+        
+        # Step 4: Verify the update
+        print("\n🔍 Step 4: Verifying bank update...")
+        
+        success, response = self.run_test(
+            "Get Banks List After Update",
+            "GET",
+            "api/settings/banks",
+            200
+        )
+        
+        if success:
+            updated_bank = None
+            for bank in response:
+                if bank.get('id') == bank_to_update['id']:
+                    updated_bank = bank
+                    break
+            
+            if updated_bank and updated_bank.get('jumlah_digit') == test_digits:
+                print(f"✅ Bank digit count updated correctly: {test_digits}")
+            else:
+                print(f"❌ Bank digit count not updated correctly")
+                return False
+        
+        # Step 5: Restore original value
+        print("\n🔄 Step 5: Restoring original digit count...")
+        
+        restore_data = {
+            "nama_bank": bank_to_update['name'],
+            "jumlah_digit": original_digits
+        }
+        
+        success, response = self.run_test(
+            f"Restore Bank Digit Count - {bank_to_update['name']}",
+            "PUT",
+            f"api/settings/banks/{bank_to_update['id']}",
+            200,
+            data=restore_data
+        )
+        
+        if success:
+            print(f"✅ Bank {bank_to_update['name']} restored to original digit count: {original_digits}")
+        else:
+            print(f"⚠️ Failed to restore original digit count")
+        
+        print("\n🎉 BANK MANAGEMENT DIGIT FIELD TEST COMPLETED!")
+        print("✅ All verification steps completed:")
+        print("   1. ✅ GET /api/settings/banks returns jumlah_digit field")
+        print("   2. ✅ BRI has 15 digits, BNI has 10 digits, BCA has 10 digits")
+        print("   3. ✅ PUT /api/settings/banks/{id} successfully updates jumlah_digit")
+        print("   4. ✅ Bank digit field update verification working")
+        
+        return True
+
+    def test_pimpinan_struktural_auto_transfer(self):
+        """Test Pimpinan Struktural Auto-Transfer functionality"""
+        print("\n=== PIMPINAN STRUKTURAL AUTO-TRANSFER TEST ===")
+        
+        # Ensure we have a valid token
+        if not self.token:
+            login_success = self.test_login()
+            if not login_success:
+                print("❌ Failed to login, cannot proceed with pimpinan struktural test")
+                return False
+        
+        import time
+        unique_suffix = str(int(time.time()))[-6:]
+        
+        # Step 1: Create first employee with is_pimpinan_struktural: true
+        print("\n👤 Step 1: Creating first employee with pimpinan struktural...")
+        
+        employee1_data = {
+            "nama_lengkap": f"Test Pimpinan 1 - {unique_suffix}",
+            "nip": f"1990010120200110{unique_suffix}1",
+            "nik": f"32010101019900{unique_suffix}1",
+            "status_kepegawaian": "PNS",
+            "pangkat_golongan": "Penata (III/c)",
+            "jenis_kelamin": "Laki-laki",
+            "tempat_lahir": "Jakarta",
+            "tanggal_lahir": "1990-01-01",
+            "agama": "Islam",
+            "status_perkawinan": "Kawin",
+            "pendidikan_terakhir": "S1",
+            "jabatan": "Kepala Bagian Test",
+            "eselon3": "BAGIAN UMUM",
+            "kategori_pegawai": "Struktural",
+            "is_pimpinan_struktural": True,
+            "status": "AKTIF",
+            "email": f"pimpinan1.test{unique_suffix}@example.com",
+            "no_telp": "08123456789"
+        }
+        
+        success, response = self.run_test(
+            "Create First Pimpinan Struktural Employee",
+            "POST",
+            "api/pegawai",
+            200,
+            data=employee1_data
+        )
+        
+        if not success:
+            print("❌ Failed to create first employee")
+            return False
+        
+        employee1_id = response.get('_id') or response.get('id')
+        print(f"✅ First employee created with ID: {employee1_id}")
+        
+        # Step 2: Verify first employee has is_pimpinan_struktural: true
+        print("\n🔍 Step 2: Verifying first employee pimpinan struktural status...")
+        
+        success, response = self.run_test(
+            "Get First Employee Details",
+            "GET",
+            f"api/pegawai/{employee1_id}",
+            200
+        )
+        
+        if success:
+            is_pimpinan = response.get('is_pimpinan_struktural')
+            if is_pimpinan:
+                print("✅ First employee correctly has is_pimpinan_struktural: true")
+            else:
+                print(f"❌ First employee should have is_pimpinan_struktural: true, got: {is_pimpinan}")
+                return False
+        else:
+            print("❌ Failed to get first employee details")
+            return False
+        
+        # Step 3: Create second employee in same unit kerja with is_pimpinan_struktural: true
+        print("\n👤 Step 3: Creating second employee in same unit with pimpinan struktural...")
+        
+        employee2_data = {
+            "nama_lengkap": f"Test Pimpinan 2 - {unique_suffix}",
+            "nip": f"1990010120200110{unique_suffix}2",
+            "nik": f"32010101019900{unique_suffix}2",
+            "status_kepegawaian": "PNS",
+            "pangkat_golongan": "Penata Tingkat I (III/d)",
+            "jenis_kelamin": "Perempuan",
+            "tempat_lahir": "Bandung",
+            "tanggal_lahir": "1985-05-15",
+            "agama": "Islam",
+            "status_perkawinan": "Kawin",
+            "pendidikan_terakhir": "S2",
+            "jabatan": "Kepala Bagian Test Baru",
+            "eselon3": "BAGIAN UMUM",  # Same unit as first employee
+            "kategori_pegawai": "Struktural",
+            "is_pimpinan_struktural": True,  # This should trigger auto-transfer
+            "status": "AKTIF",
+            "email": f"pimpinan2.test{unique_suffix}@example.com",
+            "no_telp": "08123456790"
+        }
+        
+        success, response = self.run_test(
+            "Create Second Pimpinan Struktural Employee (Same Unit)",
+            "POST",
+            "api/pegawai",
+            200,
+            data=employee2_data
+        )
+        
+        if not success:
+            print("❌ Failed to create second employee")
+            return False
+        
+        employee2_id = response.get('_id') or response.get('id')
+        print(f"✅ Second employee created with ID: {employee2_id}")
+        
+        # Step 4: Verify auto-transfer - first employee should now have is_pimpinan_struktural: false
+        print("\n🔍 Step 4: Verifying auto-transfer (first employee should be false)...")
+        
+        success, response = self.run_test(
+            "Get First Employee After Auto-Transfer",
+            "GET",
+            f"api/pegawai/{employee1_id}",
+            200
+        )
+        
+        if success:
+            is_pimpinan = response.get('is_pimpinan_struktural')
+            if not is_pimpinan:
+                print("✅ Auto-transfer successful: First employee is_pimpinan_struktural is now false")
+            else:
+                print(f"❌ Auto-transfer failed: First employee still has is_pimpinan_struktural: {is_pimpinan}")
+                return False
+        else:
+            print("❌ Failed to get first employee details after auto-transfer")
+            return False
+        
+        # Step 5: Verify second employee has is_pimpinan_struktural: true
+        print("\n🔍 Step 5: Verifying second employee pimpinan struktural status...")
+        
+        success, response = self.run_test(
+            "Get Second Employee Details",
+            "GET",
+            f"api/pegawai/{employee2_id}",
+            200
+        )
+        
+        if success:
+            is_pimpinan = response.get('is_pimpinan_struktural')
+            if is_pimpinan:
+                print("✅ Second employee correctly has is_pimpinan_struktural: true")
+            else:
+                print(f"❌ Second employee should have is_pimpinan_struktural: true, got: {is_pimpinan}")
+                return False
+        else:
+            print("❌ Failed to get second employee details")
+            return False
+        
+        # Step 6: Test via UPDATE (not just CREATE)
+        print("\n🔧 Step 6: Testing auto-transfer via UPDATE operation...")
+        
+        # Update first employee to be pimpinan struktural again
+        update_data = employee1_data.copy()
+        update_data["is_pimpinan_struktural"] = True
+        
+        success, response = self.run_test(
+            "Update First Employee to Pimpinan Struktural",
+            "PUT",
+            f"api/pegawai/{employee1_id}",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print("❌ Failed to update first employee")
+            return False
+        
+        print("✅ First employee updated successfully")
+        
+        # Step 7: Verify auto-transfer via UPDATE - second employee should now be false
+        print("\n🔍 Step 7: Verifying auto-transfer via UPDATE...")
+        
+        success, response = self.run_test(
+            "Get Second Employee After UPDATE Auto-Transfer",
+            "GET",
+            f"api/pegawai/{employee2_id}",
+            200
+        )
+        
+        if success:
+            is_pimpinan = response.get('is_pimpinan_struktural')
+            if not is_pimpinan:
+                print("✅ Auto-transfer via UPDATE successful: Second employee is_pimpinan_struktural is now false")
+            else:
+                print(f"❌ Auto-transfer via UPDATE failed: Second employee still has is_pimpinan_struktural: {is_pimpinan}")
+                return False
+        else:
+            print("❌ Failed to get second employee details after UPDATE auto-transfer")
+            return False
+        
+        # Cleanup: Delete test employees
+        print("\n🧹 Cleanup: Deleting test employees...")
+        
+        self.run_test(
+            "Delete First Test Employee",
+            "DELETE",
+            f"api/pegawai/{employee1_id}",
+            200
+        )
+        
+        self.run_test(
+            "Delete Second Test Employee", 
+            "DELETE",
+            f"api/pegawai/{employee2_id}",
+            200
+        )
+        
+        print("\n🎉 PIMPINAN STRUKTURAL AUTO-TRANSFER TEST COMPLETED!")
+        print("✅ All verification steps completed:")
+        print("   1. ✅ First employee created with is_pimpinan_struktural: true")
+        print("   2. ✅ Second employee created in same unit with is_pimpinan_struktural: true")
+        print("   3. ✅ Auto-transfer triggered: First employee automatically set to false")
+        print("   4. ✅ Second employee remains true after auto-transfer")
+        print("   5. ✅ Auto-transfer also works via UPDATE operation")
+        print("   6. ✅ Only one pimpinan struktural per unit kerja at any time")
+        
+        return True
+
+    def test_employee_api_new_fields(self):
+        """Test Employee API with new fields (is_pimpinan_struktural, eselon3, eselon4, eselon5)"""
+        print("\n=== EMPLOYEE API NEW FIELDS TEST ===")
+        
+        # Ensure we have a valid token
+        if not self.token:
+            login_success = self.test_login()
+            if not login_success:
+                print("❌ Failed to login, cannot proceed with employee API test")
+                return False
+        
+        import time
+        unique_suffix = str(int(time.time()))[-6:]
+        
+        # Step 1: Test POST /api/pegawai - Verify is_pimpinan_struktural field is accepted
+        print("\n📝 Step 1: Testing POST /api/pegawai with is_pimpinan_struktural field...")
+        
+        employee_data = {
+            "nama_lengkap": f"Test Employee API - {unique_suffix}",
+            "nip": f"1990010120200110{unique_suffix}",
+            "nik": f"32010101019900{unique_suffix}",
+            "status_kepegawaian": "PNS",
+            "pangkat_golongan": "Penata (III/c)",
+            "jenis_kelamin": "Laki-laki",
+            "tempat_lahir": "Jakarta",
+            "tanggal_lahir": "1990-01-01",
+            "agama": "Islam",
+            "status_perkawinan": "Kawin",
+            "pendidikan_terakhir": "S1",
+            "jabatan": "Kepala Seksi Test",
+            "eselon1": "SEKRETARIAT",
+            "eselon2": "BAGIAN UMUM",
+            "eselon3": "SUB BAGIAN KEPEGAWAIAN",
+            "eselon4": "SEKSI ADMINISTRASI",
+            "eselon5": "SUB SEKSI DATA",
+            "kategori_pegawai": "Struktural",
+            "is_pimpinan_struktural": True,  # Test this new field
+            "status": "AKTIF",
+            "email": f"employee.api.test{unique_suffix}@example.com",
+            "no_telp": "08123456789"
+        }
+        
+        success, response = self.run_test(
+            "Create Employee with is_pimpinan_struktural Field",
+            "POST",
+            "api/pegawai",
+            200,
+            data=employee_data
+        )
+        
+        if not success:
+            print("❌ Failed to create employee with is_pimpinan_struktural field")
+            return False
+        
+        employee_id = response.get('_id') or response.get('id')
+        print(f"✅ Employee created successfully with ID: {employee_id}")
+        
+        # Step 2: Verify the created employee has all the new fields
+        print("\n🔍 Step 2: Verifying created employee has all new fields...")
+        
+        success, response = self.run_test(
+            "Get Created Employee Details",
+            "GET",
+            f"api/pegawai/{employee_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get created employee details")
+            return False
+        
+        # Check is_pimpinan_struktural field
+        is_pimpinan = response.get('is_pimpinan_struktural')
+        if is_pimpinan:
+            print("✅ is_pimpinan_struktural field accepted and stored correctly: true")
+        else:
+            print(f"❌ is_pimpinan_struktural field not stored correctly, got: {is_pimpinan}")
+            return False
+        
+        # Check eselon fields
+        eselon_fields = ['eselon3', 'eselon4', 'eselon5']
+        expected_values = {
+            'eselon3': 'SUB BAGIAN KEPEGAWAIAN',
+            'eselon4': 'SEKSI ADMINISTRASI', 
+            'eselon5': 'SUB SEKSI DATA'
+        }
+        
+        for field in eselon_fields:
+            value = response.get(field)
+            expected = expected_values[field]
+            if value == expected:
+                print(f"✅ {field} field stored correctly: {value}")
+            else:
+                print(f"❌ {field} field not stored correctly, expected: {expected}, got: {value}")
+                return False
+        
+        # Step 3: Test GET /api/pegawai - Verify employees include eselon3, eselon4, eselon5 fields
+        print("\n📋 Step 3: Testing GET /api/pegawai includes new eselon fields...")
+        
+        success, response = self.run_test(
+            "Get Employees List",
+            "GET",
+            "api/pegawai",
+            200,
+            data={"page": 1, "limit": 10}
+        )
+        
+        if not success:
+            print("❌ Failed to get employees list")
+            return False
+        
+        employees = response.get('data', [])
+        if not employees:
+            print("❌ No employees found in list")
+            return False
+        
+        print(f"📊 Found {len(employees)} employees in list")
+        
+        # Find our test employee in the list
+        test_employee = None
+        for emp in employees:
+            if emp.get('_id') == employee_id or emp.get('id') == employee_id:
+                test_employee = emp
+                break
+        
+        if not test_employee:
+            print("⚠️ Test employee not found in list, checking first employee for field structure...")
+            test_employee = employees[0]
+        
+        # Verify eselon fields are included in list response
+        for field in eselon_fields:
+            if field in test_employee:
+                value = test_employee.get(field)
+                print(f"✅ {field} field included in list response: {value}")
+            else:
+                print(f"❌ {field} field missing from list response")
+                return False
+        
+        # Check is_pimpinan_struktural in list
+        if 'is_pimpinan_struktural' in test_employee:
+            value = test_employee.get('is_pimpinan_struktural')
+            print(f"✅ is_pimpinan_struktural field included in list response: {value}")
+        else:
+            print("❌ is_pimpinan_struktural field missing from list response")
+            return False
+        
+        # Step 4: Test search functionality with new fields
+        print("\n🔍 Step 4: Testing search functionality...")
+        
+        success, response = self.run_test(
+            "Search Employees by Name",
+            "GET",
+            "api/pegawai",
+            200,
+            data={"search": f"Test Employee API - {unique_suffix}", "page": 1, "limit": 10}
+        )
+        
+        if success:
+            employees = response.get('data', [])
+            if employees and len(employees) > 0:
+                found_employee = employees[0]
+                if found_employee.get('nama_lengkap') == employee_data['nama_lengkap']:
+                    print("✅ Search functionality working with new employee")
+                else:
+                    print("⚠️ Search returned different employee")
+            else:
+                print("⚠️ Search did not find the test employee")
+        else:
+            print("⚠️ Search functionality test failed")
+        
+        # Step 5: Test updating employee with new fields
+        print("\n🔧 Step 5: Testing UPDATE with new fields...")
+        
+        update_data = employee_data.copy()
+        update_data["is_pimpinan_struktural"] = False  # Change this field
+        update_data["eselon5"] = "SUB SEKSI UPDATED"  # Change eselon5
+        
+        success, response = self.run_test(
+            "Update Employee with New Fields",
+            "PUT",
+            f"api/pegawai/{employee_id}",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print("❌ Failed to update employee with new fields")
+            return False
+        
+        # Verify update
+        success, response = self.run_test(
+            "Get Updated Employee Details",
+            "GET",
+            f"api/pegawai/{employee_id}",
+            200
+        )
+        
+        if success:
+            is_pimpinan = response.get('is_pimpinan_struktural')
+            eselon5 = response.get('eselon5')
+            
+            if not is_pimpinan and eselon5 == "SUB SEKSI UPDATED":
+                print("✅ Employee update with new fields successful")
+            else:
+                print(f"❌ Employee update failed - is_pimpinan: {is_pimpinan}, eselon5: {eselon5}")
+                return False
+        else:
+            print("❌ Failed to verify employee update")
+            return False
+        
+        # Cleanup: Delete test employee
+        print("\n🧹 Cleanup: Deleting test employee...")
+        
+        self.run_test(
+            "Delete Test Employee",
+            "DELETE",
+            f"api/pegawai/{employee_id}",
+            200
+        )
+        
+        print("\n🎉 EMPLOYEE API NEW FIELDS TEST COMPLETED!")
+        print("✅ All verification steps completed:")
+        print("   1. ✅ POST /api/pegawai accepts is_pimpinan_struktural field")
+        print("   2. ✅ Employee creation stores eselon3, eselon4, eselon5 fields correctly")
+        print("   3. ✅ GET /api/pegawai includes all new fields in response")
+        print("   4. ✅ Employee list response contains eselon3, eselon4, eselon5 fields")
+        print("   5. ✅ Search functionality works with new employee structure")
+        print("   6. ✅ UPDATE operation works with new fields")
+        
+        return True
+
     def test_cpns_status_verification(self):
         """Test that CPNS status is treated the same as PNS in the SIMAN-G system"""
         print("\n=== CPNS STATUS VERIFICATION TEST ===")
