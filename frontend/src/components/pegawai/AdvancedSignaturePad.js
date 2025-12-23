@@ -598,7 +598,7 @@ export default function AdvancedSignaturePad({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 overflow-x-hidden">
+          <div className="space-y-4 overflow-x-hidden overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
             {/* Mode Toggle */}
             <div className="flex gap-2 justify-center">
               <Button 
