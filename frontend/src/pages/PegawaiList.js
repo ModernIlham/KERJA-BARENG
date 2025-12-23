@@ -57,12 +57,19 @@ export default function PegawaiList() {
     status: '',
     status_kepegawaian: '',
     eselon1: '',
-    kategori_pegawai: ''
+    eselon2: '',
+    kategori_pegawai: '',
+    jenis_kelamin: '',
+    pendidikan_terakhir: '',
+    agama: '',
+    jenis_non_asn: '',
+    pangkat_golongan: ''
   });
   const [sortBy, setSortBy] = useState('nama_lengkap');
   const [sortOrder, setSortOrder] = useState('asc');
   const [showFilters, setShowFilters] = useState(false);
   const [unitKerjaOptions, setUnitKerjaOptions] = useState([]);
+  const [unitKerjaEselon2, setUnitKerjaEselon2] = useState([]);
   const [exporting, setExporting] = useState(false);
   
   // Fetch unit kerja for filter options
