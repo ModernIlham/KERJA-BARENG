@@ -587,7 +587,9 @@ export default function AdvancedSignaturePad({
       {/* Draw Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent 
-          className={`overflow-hidden transition-all duration-200 ${expandedCanvas ? 'sm:max-w-4xl' : 'sm:max-w-2xl'}`}
+          key={expandedCanvas ? 'expanded' : 'collapsed'}
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedCanvas ? 'sm:max-w-4xl w-full' : 'sm:max-w-2xl w-auto'}`}
+          style={{ maxHeight: '90vh' }}
         >
           <DialogHeader>
             <DialogTitle>Buat {itemLabel} Digital Baru</DialogTitle>
