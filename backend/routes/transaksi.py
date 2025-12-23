@@ -229,7 +229,7 @@ async def bulk_asset_transaction(
             unit_penerima=unit_penerima,
             keterangan=payload.get("keterangan"),
             dokumen_ref=payload.get("dokumen_ref"),
-            petugas=current_user,
+            petugas=current_user.full_name,
             timestamp=datetime.now(timezone.utc)
         )
         
