@@ -227,7 +227,7 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     ]
     ALL_PANGKAT = PANGKAT_ASN + PANGKAT_TNI + PANGKAT_POLRI
     
-    STATUS_KEPEGAWAIAN = ["PNS", "PPPK", "TNI", "POLRI", "Non-ASN", "Honorer"]
+    STATUS_KEPEGAWAIAN = ["PNS", "CPNS", "PPPK", "TNI", "POLRI", "Non-ASN", "Honorer"]
     JENIS_KELAMIN = ["Laki-laki", "Perempuan"]
     AGAMA = ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu", "Lainnya"]
     STATUS_PERKAWINAN = ["Belum Kawin", "Kawin", "Cerai Hidup", "Cerai Mati"]
