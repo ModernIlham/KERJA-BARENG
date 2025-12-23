@@ -143,7 +143,7 @@ export default function DokumenList() {
                                         <TableCell>
                                             <span className={`text-[10px] px-2 py-0.5 rounded border ${
                                                 doc.kategori === 'Persediaan' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                                doc.kategori === 'Aset Tetap' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                doc.kategori?.startsWith('Aset Tetap') ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                                 'bg-slate-50 text-slate-700 border-slate-200'
                                             }`}>
                                                 {doc.kategori || 'Umum'}
