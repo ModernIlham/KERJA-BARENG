@@ -355,30 +355,124 @@ export default function PegawaiList() {
 
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-              <Input 
-                placeholder="Cari NIP, Nama, atau Unit Kerja..." 
-                className="pl-9 max-w-sm"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+          <div className="flex flex-col gap-3">
+            {/* Search and Actions Row */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+                <Input 
+                  placeholder="Cari NIP, NIK, Nama, Jabatan, Email, Unit Kerja..." 
+                  className="pl-9 max-w-md"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant={showFilters ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Filter className="h-4 w-4 mr-1" />
+                  Filter
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport('excel')}
+                  disabled={exporting}
+                >
+                  <FileSpreadsheet className="h-4 w-4 mr-1" />
+                  Excel
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport('pdf')}
+                  disabled={exporting}
+                >
+                  <FilePdf className="h-4 w-4 mr-1" />
+                  PDF
+                </Button>
+                <Button 
+                  variant={showNotifications ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className={notificationCount > 0 ? "relative" : ""}
+                >
+                  <Bell className="h-4 w-4 mr-1" />
+                  {notificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-5 w-5 flex items-center justify-center">
+                      {notificationCount}
+                    </span>
+                  )}
+                </Button>
+              </div>
             </div>
-            <Button 
-              variant={showNotifications ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowNotifications(!showNotifications)}
-              className={notificationCount > 0 ? "relative" : ""}
-            >
-              <Bell className="h-4 w-4 mr-1" />
-              Notifikasi
-              {notificationCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-5 w-5 flex items-center justify-center">
-                  {notificationCount}
-                </span>
-              )}
-            </Button>
+            
+            {/* Filter Panel */}
+            {showFilters && (
+              <div className="p-3 bg-slate-50 rounded-lg border space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-700">Filter Data</span>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7">
+                    <X className="h-3 w-3 mr-1" /> Reset
+                  </Button>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.status}
+                    onChange={(e) => setFilters({...filters, status: e.target.value})}
+                  >
+                    <option value="">Semua Status</option>
+                    <option value="AKTIF">AKTIF</option>
+                    <option value="CUTI">CUTI</option>
+                    <option value="TUGAS_BELAJAR">TUGAS BELAJAR</option>
+                    <option value="KELUAR">KELUAR</option>
+                    <option value="PENSIUN">PENSIUN</option>
+                    <option value="MUTASI_KELUAR">MUTASI KELUAR</option>
+                    <option value="MENINGGAL">MENINGGAL</option>
+                  </select>
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.status_kepegawaian}
+                    onChange={(e) => setFilters({...filters, status_kepegawaian: e.target.value})}
+                  >
+                    <option value="">Semua Status Kepegawaian</option>
+                    <option value="PNS">PNS</option>
+                    <option value="CPNS">CPNS</option>
+                    <option value="PPPK">PPPK</option>
+                    <option value="TNI">TNI</option>
+                    <option value="POLRI">POLRI</option>
+                    <option value="Non-ASN">Non-ASN</option>
+                    <option value="Honorer">Honorer</option>
+                  </select>
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.eselon1}
+                    onChange={(e) => setFilters({...filters, eselon1: e.target.value})}
+                  >
+                    <option value="">Semua Unit Kerja (Eselon 1)</option>
+                    {unitKerjaOptions.map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                  <select 
+                    className="h-9 border rounded px-2 text-sm bg-white"
+                    value={filters.kategori_pegawai}
+                    onChange={(e) => setFilters({...filters, kategori_pegawai: e.target.value})}
+                  >
+                    <option value="">Semua Kategori</option>
+                    <option value="Jabatan Pimpinan Tinggi (JPT)">JPT</option>
+                    <option value="Jabatan Administrator">Administrator</option>
+                    <option value="Jabatan Pengawas">Pengawas</option>
+                    <option value="Pejabat Pelaksana">Pelaksana</option>
+                    <option value="Jabatan Fungsional (JF)">Fungsional</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
