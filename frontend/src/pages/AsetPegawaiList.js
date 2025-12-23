@@ -313,8 +313,8 @@ export default function AsetPegawaiList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Manajemen Aset Pegawai</h1>
-          <p className="text-sm text-slate-500">Tracking aset yang dipegang setiap pegawai</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Aset yang Dipegang Pegawai</h1>
+          <p className="text-sm text-slate-500">Tracking aset yang dipegang setiap pegawai. Untuk menambah aset baru, gunakan halaman <a href="/master-barang" className="text-blue-600 underline hover:text-blue-800">Master Data Barang</a>.</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -329,9 +329,6 @@ export default function AsetPegawaiList() {
                 {alerts.length}
               </span>
             )}
-          </Button>
-          <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={openAdd}>
-            <Plus className="mr-2 h-4 w-4" /> Tambah Aset
           </Button>
         </div>
       </div>
