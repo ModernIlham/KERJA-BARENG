@@ -237,7 +237,7 @@ export default function AssetIncomingForm({ onSuccess }) {
                             </div>
                         ) : (
                             <Button variant="outline" size="sm" onClick={handleOpenDocModal} className="h-7 text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                <Search className="mr-1 h-3 w-3"/> Pilih Dokumen Sumber (Aset Tetap)
+                                <Search className="mr-1 h-3 w-3"/> Pilih Dokumen (Pembelian)
                             </Button>
                         )}
                         <span className="font-mono bg-slate-100 px-2 py-1 rounded">
