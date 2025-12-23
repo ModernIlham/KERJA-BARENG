@@ -719,7 +719,7 @@ async def import_pegawai(
                     
                     # Status Kepegawaian
                     status_kepegawaian=get_val(row, "Status Kepegawaian"),
-                    pangkat_golongan=get_val(row, "Pangkat/Golongan"),
+                    pangkat_golongan=get_val(row, "Pangkat/Golongan ASN") or get_val(row, "Golongan PPPK"),
                     status_penempatan=get_val(row, "Status Penempatan"),
                     instansi_asal=get_val(row, "Instansi Asal"),
                     masa_penugasan_end=parse_date(get_val(row, "Masa Penugasan Berakhir")),
@@ -732,8 +732,11 @@ async def import_pegawai(
                     tgl_selesai_kontrak=parse_date(get_val(row, "Tgl Selesai Kontrak")),
                     
                     # Jabatan & Unit Kerja
-                    jabatan=get_val(row, "Jabatan"),
+                    jabatan=get_val(row, "Jabatan Struktural") or get_val(row, "Jabatan"),
                     jabatan_melekat=get_val(row, "Jabatan Fungsional Melekat"),
+                    kategori_pegawai=get_val(row, "Kategori Pegawai"),
+                    is_pimpinan_tertinggi=(get_val(row, "Pimpinan Tertinggi") == "Ya"),
+                    jenis_pimpinan=get_val(row, "Jenis Pimpinan"),
                     eselon1=get_val(row, "Eselon 1"),
                     eselon2=get_val(row, "Eselon 2"),
                     eselon3=get_val(row, "Eselon 3"),
@@ -741,13 +744,13 @@ async def import_pegawai(
                     eselon5=get_val(row, "Eselon 5"),
                     
                     # Kontak & Bank
-                    no_telp=get_val(row, "No Telp"),
+                    no_telp=get_val(row, "No Telepon") or get_val(row, "No Telp"),
                     email=get_val(row, "Email"),
                     nama_bank=get_val(row, "Nama Bank"),
                     no_rekening=get_val(row, "No Rekening"),
                     
                     # Status & Lainnya
-                    status=get_val(row, "Status", "AKTIF"),
+                    status=get_val(row, "Status Sistem") or get_val(row, "Status", "AKTIF"),
                     keterangan=get_val(row, "Keterangan")
                 )
                 
