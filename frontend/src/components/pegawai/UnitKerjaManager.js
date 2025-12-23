@@ -205,7 +205,24 @@ export default function UnitKerjaManager() {
                 </div>
                 <div>
                     <h2 className="text-lg font-bold text-slate-900">Manajemen Struktur Organisasi</h2>
-                    <p className="text-sm text-slate-500">Atur hierarki jabatan struktural dari Eselon I hingga V</p>
+                    <p className="text-sm text-slate-500">Atur hierarki jabatan dari Pimpinan K/L hingga Eselon V</p>
+                </div>
+            </div>
+
+            {/* Info Box Pimpinan K/L */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-100 rounded-lg text-amber-700">
+                        <Network size={20}/>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-amber-800">Pimpinan Kementerian/Lembaga</h3>
+                        <p className="text-xs text-amber-700 mt-1">
+                            Jabatan Pimpinan K/L (Menteri, Kepala Lembaga, dll) berada di atas struktur Eselon I. 
+                            Untuk menandai pegawai sebagai Pimpinan K/L, aktifkan checkbox "Pimpinan Kementerian/Lembaga" 
+                            di form Edit Pegawai pada tab Jabatan.
+                        </p>
+                    </div>
                 </div>
             </div>
 
