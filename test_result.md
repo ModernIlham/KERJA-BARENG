@@ -122,6 +122,18 @@ backend:
         agent: "testing"
         comment: "✅ PASSED - Employee API with new fields working correctly. POST /api/pegawai accepts is_pimpinan_struktural field. Employee creation stores eselon3, eselon4, eselon5 fields correctly. GET /api/pegawai includes all new fields in response. Employee list response contains eselon3, eselon4, eselon5 fields. Search functionality works with new employee structure. UPDATE operation works with new fields."
 
+  - task: "Asset Tracking & Monitoring (Aset Pegawai) API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/aset_pegawai.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Asset Tracking & Monitoring API fully functional. All 10 test scenarios completed successfully: 1) GET /api/aset-pegawai (asset list with pagination and filters) ✅ 2) POST /api/aset-pegawai (create asset with proper status 'Tersedia') ✅ 3) GET /api/aset-pegawai/{id} (asset detail with all fields) ✅ 4) PUT /api/aset-pegawai/{id} (update asset condition) ✅ 5) POST /api/aset-pegawai/{id}/serah-terima (handover to employee, status → 'Dipinjam') ✅ 6) POST /api/aset-pegawai/{id}/kembalikan (return from employee, status → 'Tersedia') ✅ 7) GET /api/aset-pegawai/statistik/summary (summary statistics) ✅ 8) GET /api/aset-pegawai/alerts/pegawai-keluar (employee leaving alerts) ✅ 9) GET /api/aset-pegawai/pegawai/{id}/aset (assets by employee) ✅ 10) DELETE /api/aset-pegawai/{id} (delete asset with verification) ✅. Full CRUD operations working, asset handover/return workflow functional, status tracking (Tersedia → Dipinjam → Tersedia), history tracking (riwayat_pemegang), employee integration working, alert system operational, summary statistics and reporting complete. 14/15 API calls successful (93.3% success rate)."
+
 frontend:
   - task: "Enhanced Filter Panel"
     implemented: true
