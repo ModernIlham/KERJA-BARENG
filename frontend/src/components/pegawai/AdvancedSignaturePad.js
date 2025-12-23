@@ -182,12 +182,23 @@ export default function AdvancedSignaturePad({
 
   const startDrawing = (e) => {
     e.preventDefault();
+    
+    // Initialize canvas if not already done
+    if (!contextRef.current) {
+      initCanvas();
+    }
+    
+    const ctx = contextRef.current;
+    if (!ctx) return;
+    
     const point = getCoordinates(e);
     pointsRef.current = [point];
     setIsDrawing(true);
     setHasDrawn(true);
     
-    const ctx = contextRef.current;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = strokeWidth;
     ctx.beginPath();
     ctx.moveTo(point.x, point.y);
   };
@@ -196,10 +207,12 @@ export default function AdvancedSignaturePad({
     if (!isDrawing) return;
     e.preventDefault();
     
+    const ctx = contextRef.current;
+    if (!ctx) return;
+    
     const point = getCoordinates(e);
     pointsRef.current.push(point);
     
-    const ctx = contextRef.current;
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
     
