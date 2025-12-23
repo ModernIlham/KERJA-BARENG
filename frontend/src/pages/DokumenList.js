@@ -316,10 +316,14 @@ function DokumenForm({ isOpen, onClose, initialData, onSuccess, ppkList }) {
                                 <SelectContent>
                                     <SelectItem value="Umum">Umum</SelectItem>
                                     <SelectItem value="Persediaan">Persediaan</SelectItem>
-                                    <SelectItem value="Aset Tetap">Aset Tetap</SelectItem>
+                                    <SelectItem value="Aset Tetap Pembelian">Aset Tetap - Pembelian</SelectItem>
+                                    <SelectItem value="Aset Tetap Transfer Masuk">Aset Tetap - Transfer Masuk</SelectItem>
+                                    <SelectItem value="Aset Tetap KDP Perolehan">Aset Tetap - KDP Perolehan</SelectItem>
+                                    <SelectItem value="Aset Tetap Pengembangan Langsung">Aset Tetap - Pengembangan Langsung</SelectItem>
+                                    <SelectItem value="Aset Tetap Pengembangan KDP">Aset Tetap - Pengembangan KDP</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p className="text-[10px] text-slate-500">Pilih "Persediaan" atau "Aset Tetap" agar muncul di menu transaksi yang sesuai.</p>
+                            <p className="text-[10px] text-slate-500">Pilih kategori agar muncul di menu transaksi yang sesuai.</p>
                         </div>
                         <div className="space-y-1">
                             <Label>Jenis Dokumen</Label>
