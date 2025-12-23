@@ -242,6 +242,12 @@ export default function AssetOutgoingForm({ onSuccess }) {
                                 </ul>
                             </div>
                         )}
+                        
+                        {formData.pegawai_id && (
+                            <div className="bg-blue-50 p-2 rounded border border-blue-200 text-xs text-blue-800">
+                                <strong>📋 Info:</strong> Aset yang diserahkan ke pegawai akan otomatis tercatat di halaman <strong>Aset Pegawai</strong> untuk tracking pemegang aset.
+                            </div>
+                        )}
 
                         <Button onClick={handleSubmit} disabled={loading} className="w-full bg-red-600 hover:bg-red-700 text-white mt-4">
                             {loading ? <Loader2 className="animate-spin mr-2"/> : <Save className="mr-2"/>}
