@@ -105,18 +105,18 @@ async def delete_unit_kerja(id: str, current_user: str = Depends(get_current_use
 
 # Default banks (akan di-seed jika collection kosong)
 DEFAULT_BANKS = [
-    {"nama_bank": "BRI", "kode_bank": "002", "is_default": True},
-    {"nama_bank": "BNI", "kode_bank": "009", "is_default": True},
-    {"nama_bank": "Mandiri", "kode_bank": "008", "is_default": True},
-    {"nama_bank": "BTN", "kode_bank": "200", "is_default": True},
-    {"nama_bank": "Bank Syariah Indonesia (BSI)", "kode_bank": "451", "is_default": True},
-    {"nama_bank": "BCA", "kode_bank": "014", "is_default": True},
-    {"nama_bank": "CIMB Niaga", "kode_bank": "022", "is_default": True},
-    {"nama_bank": "Danamon", "kode_bank": "011", "is_default": True},
-    {"nama_bank": "Permata", "kode_bank": "013", "is_default": True},
-    {"nama_bank": "OCBC NISP", "kode_bank": "028", "is_default": True},
-    {"nama_bank": "Maybank", "kode_bank": "016", "is_default": True},
-    {"nama_bank": "Lainnya", "kode_bank": "999", "is_default": True},
+    {"nama_bank": "BRI", "kode_bank": "002", "jumlah_digit": 15, "is_default": True},
+    {"nama_bank": "BNI", "kode_bank": "009", "jumlah_digit": 10, "is_default": True},
+    {"nama_bank": "Mandiri", "kode_bank": "008", "jumlah_digit": 13, "is_default": True},
+    {"nama_bank": "BTN", "kode_bank": "200", "jumlah_digit": 16, "is_default": True},
+    {"nama_bank": "Bank Syariah Indonesia (BSI)", "kode_bank": "451", "jumlah_digit": 10, "is_default": True},
+    {"nama_bank": "BCA", "kode_bank": "014", "jumlah_digit": 10, "is_default": True},
+    {"nama_bank": "CIMB Niaga", "kode_bank": "022", "jumlah_digit": 13, "is_default": True},
+    {"nama_bank": "Danamon", "kode_bank": "011", "jumlah_digit": 10, "is_default": True},
+    {"nama_bank": "Permata", "kode_bank": "013", "jumlah_digit": 11, "is_default": True},
+    {"nama_bank": "OCBC NISP", "kode_bank": "028", "jumlah_digit": 12, "is_default": True},
+    {"nama_bank": "Maybank", "kode_bank": "016", "jumlah_digit": 10, "is_default": True},
+    {"nama_bank": "Lainnya", "kode_bank": "999", "jumlah_digit": None, "is_default": True},
 ]
 
 @router.get("/banks")
