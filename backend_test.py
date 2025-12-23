@@ -13121,10 +13121,10 @@ def main():
 
 
 def main():
-    """Main function to run the Kepegawaian Data Reset Endpoints test"""
+    """Main function to run the Settings and Export Functionality test"""
     tester = APITester()
     
-    print("🚀 Starting Kepegawaian Data Reset Endpoints Testing...")
+    print("🚀 Starting Settings and Export Functionality Testing...")
     print("=" * 60)
     
     # Test login first
@@ -13132,9 +13132,9 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Kepegawaian Data Reset Endpoints test as requested in review
-    if not tester.test_kepegawaian_data_reset_endpoints():
-        print("❌ Kepegawaian Data Reset Endpoints test failed")
+    # Run the Settings and Export Functionality test as requested in review
+    if not tester.test_settings_and_export_functionality():
+        print("❌ Settings and Export Functionality test failed")
         return 1
     
     # Print summary
