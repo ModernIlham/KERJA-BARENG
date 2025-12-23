@@ -464,35 +464,36 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         "",  # U: Masa Penugasan Berakhir
         "Definitif",  # V: Status Jabatan
         
-        # W-Z: Non-ASN Detail (kosong untuk ASN)
+        # W-AA: Non-ASN Detail (kosong untuk ASN)
         "",  # W: Jenis Non-ASN
         "",  # X: Sub-Kategori Non-ASN
-        "",  # Y: Tgl Mulai Kontrak
-        "",  # Z: Tgl Selesai Kontrak
+        "",  # Y: Nama Perusahaan (PT/CV) - untuk Outsourcing
+        "",  # Z: Tgl Mulai Kontrak
+        "",  # AA: Tgl Selesai Kontrak
         
-        # AA-AL: Jabatan & Unit Kerja
-        "Kepala Seksi Umum",  # AA: Jabatan Struktural
-        "PPK, Bendahara",  # AB: Jabatan Fungsional Melekat
-        "Jabatan Pengawas",  # AC: Kategori Pegawai (sesuai UU ASN Terbaru)
-        "Tidak",  # AD: Pimpinan K/L
-        "",  # AE: Jabatan Pimpinan K/L (kosong jika bukan Pimpinan K/L)
-        "Tidak",  # AF: Pimpinan Tertinggi
-        "",  # AG: Jenis Pimpinan (kosong jika bukan pimpinan)
-        eselon1_list[0] if eselon1_list else "",  # AH: Eselon 1
-        eselon2_list[0] if eselon2_list else "",  # AI: Eselon 2
-        eselon3_list[0] if eselon3_list else "",  # AJ: Eselon 3
-        eselon4_list[0] if eselon4_list else "",  # AK: Eselon 4
-        eselon5_list[0] if eselon5_list else "",  # AL: Eselon 5
+        # AB-AM: Jabatan & Unit Kerja
+        "Kepala Seksi Umum",  # AB: Jabatan Struktural
+        "PPK, Bendahara",  # AC: Jabatan Fungsional Melekat
+        "Jabatan Pengawas",  # AD: Kategori Pegawai (sesuai UU ASN Terbaru)
+        "Tidak",  # AE: Pimpinan K/L
+        "",  # AF: Jabatan Pimpinan K/L (kosong jika bukan Pimpinan K/L)
+        "Tidak",  # AG: Pimpinan Tertinggi
+        "",  # AH: Jenis Pimpinan (kosong jika bukan pimpinan)
+        eselon1_list[0] if eselon1_list else "",  # AI: Eselon 1
+        eselon2_list[0] if eselon2_list else "",  # AJ: Eselon 2
+        eselon3_list[0] if eselon3_list else "",  # AK: Eselon 3
+        eselon4_list[0] if eselon4_list else "",  # AL: Eselon 4
+        eselon5_list[0] if eselon5_list else "",  # AM: Eselon 5
         
-        # AM-AP: Kontak & Bank
-        "08123456789",  # AM: No Telepon
-        "budi@example.com",  # AN: Email
-        "BRI",  # AO: Nama Bank
-        "1234567890",  # AP: No Rekening
+        # AN-AQ: Kontak & Bank
+        "08123456789",  # AN: No Telepon
+        "budi@example.com",  # AO: Email
+        "BRI",  # AP: Nama Bank
+        "1234567890",  # AQ: No Rekening
         
-        # AQ-AR: Status & Lainnya
-        "AKTIF",  # AQ: Status Sistem
-        "",  # AR: Keterangan
+        # AR-AS: Status & Lainnya
+        "AKTIF",  # AR: Status Sistem
+        "",  # AS: Keterangan
     ]
     
     example_fill = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")
