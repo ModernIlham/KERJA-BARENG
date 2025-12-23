@@ -17,6 +17,7 @@ import TransaksiPersediaan from './pages/TransaksiPersediaan';
 import Surat from './pages/Surat';
 import DokumenList from './pages/DokumenList';
 import StrukturOrganisasi from './pages/StrukturOrganisasi';
+import AsetPegawaiList from './pages/AsetPegawaiList';
 
 import DashboardKepegawaian from './modules/kepegawaian/pages/DashboardKepegawaian';
 import ManajemenLembur from './modules/kepegawaian/pages/ManajemenLembur';
