@@ -261,7 +261,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Asset Tracking & Monitoring (Aset Pegawai) Frontend Testing - COMPLETED ✅"
+    - "Master Data Barang API Testing - COMPLETED ✅"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
