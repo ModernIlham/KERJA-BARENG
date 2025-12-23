@@ -479,6 +479,7 @@ class PegawaiCreate(BaseModel):
     # ========== LEADERSHIP ==========
     is_pimpinan_tertinggi: Optional[bool] = False
     jenis_pimpinan: Optional[str] = None
+    is_pimpinan_struktural: Optional[bool] = False  # Pimpinan struktural instansi
     
     # ========== PHOTO ==========
     foto_url: Optional[str] = None
