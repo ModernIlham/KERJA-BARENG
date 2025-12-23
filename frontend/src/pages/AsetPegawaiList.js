@@ -314,7 +314,10 @@ export default function AsetPegawaiList() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Aset yang Dipegang Pegawai</h1>
-          <p className="text-sm text-slate-500">Tracking aset yang dipegang setiap pegawai. Untuk menambah aset baru, gunakan halaman <a href="/master-barang" className="text-blue-600 underline hover:text-blue-800">Master Data Barang</a>.</p>
+          <p className="text-sm text-slate-500">
+            Tracking aset yang dipegang setiap pegawai. Untuk menambah/serahkan aset, gunakan{' '}
+            <a href="/barang" className="text-blue-600 underline hover:text-blue-800">Daftar Aset (BMN)</a> → Transaksi Keluar.
+          </p>
         </div>
         <div className="flex gap-2">
           <Button 
