@@ -203,6 +203,13 @@ export default function AdvancedSignaturePad({
     }
   }, [angle, isModalOpen, mode, redrawCanvas]);
 
+  // Redraw when stroke options change (size, smoothing, thinning, streamline)
+  useEffect(() => {
+    if (isModalOpen && mode === 'draw' && allStrokes.length > 0) {
+      redrawCanvas();
+    }
+  }, [size, smoothing, thinning, streamline, isModalOpen, mode, allStrokes.length, redrawCanvas]);
+
   const getPointerPosition = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
