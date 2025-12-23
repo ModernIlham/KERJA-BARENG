@@ -1254,6 +1254,12 @@ async def export_pegawai_excel(
     status: Optional[str] = None,
     status_kepegawaian: Optional[str] = None,
     eselon1: Optional[str] = None,
+    jenis_kelamin: Optional[str] = None,
+    pendidikan_terakhir: Optional[str] = None,
+    agama: Optional[str] = None,
+    jenis_non_asn: Optional[str] = None,
+    pangkat_golongan: Optional[str] = None,
+    kategori_pegawai: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Export pegawai data to Excel"""
@@ -1279,6 +1285,18 @@ async def export_pegawai_excel(
         query["status_kepegawaian"] = status_kepegawaian
     if eselon1:
         query["eselon1"] = eselon1
+    if jenis_kelamin:
+        query["jenis_kelamin"] = jenis_kelamin
+    if pendidikan_terakhir:
+        query["pendidikan_terakhir"] = pendidikan_terakhir
+    if agama:
+        query["agama"] = agama
+    if jenis_non_asn:
+        query["jenis_non_asn"] = jenis_non_asn
+    if pangkat_golongan:
+        query["pangkat_golongan"] = {"$regex": pangkat_golongan, "$options": "i"}
+    if kategori_pegawai:
+        query["kategori_pegawai"] = kategori_pegawai
     
     # Get all data
     cursor = db.pegawai.find(query).sort("nama_lengkap", 1)
