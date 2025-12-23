@@ -130,7 +130,7 @@ export default function PegawaiList() {
         else fetchPegawai();
     }, 500);
     return () => clearTimeout(timeout);
-  }, [search, currentPage]);
+  }, [search, currentPage, sortBy, sortOrder, filters]);
 
   useEffect(() => {
     fetchNotificationCount();
