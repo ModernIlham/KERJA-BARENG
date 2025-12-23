@@ -47,18 +47,63 @@ async def get_pegawai_list(
     page: int = 1,
     limit: int = 20,
     search: Optional[str] = None,
+    status: Optional[str] = None,
+    status_kepegawaian: Optional[str] = None,
+    eselon1: Optional[str] = None,
+    eselon2: Optional[str] = None,
+    kategori_pegawai: Optional[str] = None,
+    sort_by: Optional[str] = "nama_lengkap",
+    sort_order: Optional[str] = "asc",
     current_user: str = Depends(get_current_user)
 ):
     skip = (page - 1) * limit
     query = {}
+    
+    # Enhanced search - search across multiple fields
     if search:
+        search_regex = {"$regex": search, "$options": "i"}
         query["$or"] = [
-            {"nama_lengkap": {"$regex": search, "$options": "i"}},
-            {"nip": {"$regex": search, "$options": "i"}}
+            {"nama_lengkap": search_regex},
+            {"nip": search_regex},
+            {"nik": search_regex},
+            {"nrp": search_regex},
+            {"email": search_regex},
+            {"no_telp": search_regex},
+            {"jabatan": search_regex},
+            {"eselon1": search_regex},
+            {"eselon2": search_regex},
+            {"eselon3": search_regex},
+            {"eselon4": search_regex},
+            {"eselon5": search_regex},
+            {"status_kepegawaian": search_regex},
+            {"pangkat_golongan": search_regex},
+            {"tempat_lahir": search_regex},
+            {"nama_bank": search_regex},
+            {"no_rekening": search_regex},
+            {"nomor_kontrak": search_regex},
+            {"nama_perusahaan": search_regex},
         ]
+    
+    # Filters
+    if status:
+        query["status"] = status
+    if status_kepegawaian:
+        query["status_kepegawaian"] = status_kepegawaian
+    if eselon1:
+        query["eselon1"] = eselon1
+    if eselon2:
+        query["eselon2"] = eselon2
+    if kategori_pegawai:
+        query["kategori_pegawai"] = kategori_pegawai
+    
+    # Sorting
+    sort_direction = 1 if sort_order == "asc" else -1
+    valid_sort_fields = ["nama_lengkap", "nip", "jabatan", "status", "status_kepegawaian", "eselon1", "pangkat_golongan", "tgl_lahir", "created_at"]
+    if sort_by not in valid_sort_fields:
+        sort_by = "nama_lengkap"
         
     total = await db.pegawai.count_documents(query)
-    cursor = db.pegawai.find(query).skip(skip).limit(limit).sort("nama_lengkap", 1)
+    cursor = db.pegawai.find(query).skip(skip).limit(limit).sort(sort_by, sort_direction)
     items = await cursor.to_list(length=limit)
     
     # ObjectId to String
