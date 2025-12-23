@@ -1751,8 +1751,8 @@ class APITester:
         
         pns_employee_data = {
             "nama_lengkap": "Test PNS Employee",
-            "nip": "198501012010011001",
-            "nik": "3201010101985001",
+            "nip": f"1985010120100110{unique_suffix[:-1]}3",
+            "nik": f"32010101019850{unique_suffix[:-1]}3",
             "status_kepegawaian": "PNS",
             "pangkat_golongan": "Penata Muda (III/a)",
             "jenis_kelamin": "Laki-laki",
@@ -1764,7 +1764,7 @@ class APITester:
             "jabatan": "Staff PNS",
             "eselon1": "SEKRETARIAT",
             "status": "AKTIF",
-            "email": "pns.test@example.com",
+            "email": f"pns.test{unique_suffix}@example.com",
             "no_telp": "08123456791"
         }
         
