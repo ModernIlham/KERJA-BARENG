@@ -403,6 +403,7 @@ class Pegawai(MongoBaseModel):
     # ========== LEADERSHIP ==========
     is_pimpinan_tertinggi: bool = False
     jenis_pimpinan: Optional[str] = None  # "Kepala", "Wakil"
+    is_pimpinan_struktural: bool = False  # Pimpinan struktural instansi - otomatis berpindah saat pergantian jabatan
     
     # ========== PHOTO & SIGNATURE ==========
     foto_url: Optional[str] = None
