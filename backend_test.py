@@ -13413,10 +13413,10 @@ def main():
 
 
 def main():
-    """Main function to run the Settings and Export Functionality test"""
+    """Main function to run the CPNS Status Verification test"""
     tester = APITester()
     
-    print("🚀 Starting Settings and Export Functionality Testing...")
+    print("🚀 Starting CPNS Status Verification Testing...")
     print("=" * 60)
     
     # Test login first
@@ -13424,23 +13424,23 @@ def main():
         print("❌ Login failed - cannot proceed with tests")
         return 1
     
-    # Run the Settings and Export Functionality test as requested in review
-    if not tester.test_settings_and_export_functionality():
-        print("❌ Settings and Export Functionality test failed")
+    # Run the CPNS Status Verification test as requested in review
+    if not tester.test_cpns_status_verification():
+        print("❌ CPNS Status Verification test failed")
         return 1
     
     # Print summary
     print("\n" + "=" * 60)
-    print(f"🎯 TESTING SUMMARY")
+    print(f"🎯 CPNS TESTING SUMMARY")
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 ALL TESTS PASSED!")
+        print("🎉 ALL CPNS TESTS PASSED!")
         return 0
     else:
-        print("❌ SOME TESTS FAILED!")
+        print("❌ SOME CPNS TESTS FAILED!")
         return 1
 
 if __name__ == "__main__":
