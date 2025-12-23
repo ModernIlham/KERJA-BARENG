@@ -317,8 +317,13 @@ export default function PegawaiList() {
                           {item.status_jabatan && <span className="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 text-[9px] rounded border border-yellow-200">{item.status_jabatan}</span>}
                       </TableCell>
                       <TableCell className="text-xs text-slate-600">
-                          {item.eselon1 && <div className="font-semibold">{item.eselon1}</div>}
-                          {item.eselon2 && <div>&rdsh; {item.eselon2}</div>}
+                          <div className="space-y-0.5">
+                            {item.eselon1 && <div className="font-semibold text-slate-800">{item.eselon1}</div>}
+                            {item.eselon2 && <div className="text-slate-600 pl-2 text-[10px]">└ {item.eselon2}</div>}
+                            {item.eselon3 && <div className="text-slate-500 pl-4 text-[10px]">└ {item.eselon3}</div>}
+                            {item.eselon4 && <div className="text-slate-400 pl-6 text-[10px]">└ {item.eselon4}</div>}
+                            {item.eselon5 && <div className="text-slate-400 pl-8 text-[10px]">└ {item.eselon5}</div>}
+                          </div>
                       </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${item.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
