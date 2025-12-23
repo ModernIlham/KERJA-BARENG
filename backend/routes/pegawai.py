@@ -972,3 +972,212 @@ async def delete_pegawai_dokumen(id: str, doc_id: str, current_user: str = Depen
     # For now, we just remove reference to keep it simple and safe.
     
     return {"message": "Dokumen dihapus"}
+
+# ========== KONTRAK & NOTIFIKASI ==========
+
+@router.get("/notifications/expiring")
+async def get_expiring_notifications(current_user: dict = Depends(get_current_user)):
+    """Get notifications for expiring contracts and assignments"""
+    from datetime import timedelta
+    
+    today = datetime.now(timezone.utc).date()
+    one_month_later = today + timedelta(days=30)
+    two_weeks_later = today + timedelta(days=14)
+    one_week_later = today + timedelta(days=7)
+    
+    notifications = []
+    
+    # Get all active employees
+    employees = await db.pegawai.find({"status": "AKTIF"}).to_list(None)
+    
+    for emp in employees:
+        emp_id = str(emp["_id"])
+        emp_name = emp.get("nama_lengkap", "Unknown")
+        
+        # Check Non-ASN contract expiry
+        tgl_selesai = emp.get("tgl_selesai_kontrak")
+        if tgl_selesai:
+            try:
+                if isinstance(tgl_selesai, str):
+                    end_date = datetime.fromisoformat(tgl_selesai.replace('Z', '+00:00')).date()
+                else:
+                    end_date = tgl_selesai.date() if hasattr(tgl_selesai, 'date') else tgl_selesai
+                
+                days_remaining = (end_date - today).days
+                
+                if days_remaining <= 30 and days_remaining >= 0:
+                    urgency = "critical" if days_remaining <= 7 else "high" if days_remaining <= 14 else "medium"
+                    
+                    # Check if employee has assets
+                    assets = await db.aset.find({"pemegang_id": emp_id}).to_list(None)
+                    has_assets = len(assets) > 0
+                    
+                    notifications.append({
+                        "type": "contract_expiring",
+                        "urgency": urgency,
+                        "pegawai_id": emp_id,
+                        "pegawai_nama": emp_name,
+                        "nip": emp.get("nip") or emp.get("nik") or emp.get("nrp"),
+                        "status_kepegawaian": emp.get("status_kepegawaian"),
+                        "end_date": str(end_date),
+                        "days_remaining": days_remaining,
+                        "has_assets": has_assets,
+                        "asset_count": len(assets),
+                        "message": f"Kontrak {emp_name} akan berakhir dalam {days_remaining} hari ({end_date})"
+                    })
+            except Exception as e:
+                print(f"Error parsing date for {emp_name}: {e}")
+        
+        # Check ASN assignment (penugasan) expiry
+        if emp.get("status_penempatan") == "Penugasan":
+            masa_penugasan_end = emp.get("masa_penugasan_end")
+            if masa_penugasan_end:
+                try:
+                    if isinstance(masa_penugasan_end, str):
+                        end_date = datetime.fromisoformat(masa_penugasan_end.replace('Z', '+00:00')).date()
+                    else:
+                        end_date = masa_penugasan_end.date() if hasattr(masa_penugasan_end, 'date') else masa_penugasan_end
+                    
+                    days_remaining = (end_date - today).days
+                    
+                    if days_remaining <= 30 and days_remaining >= 0:
+                        urgency = "critical" if days_remaining <= 7 else "high" if days_remaining <= 14 else "medium"
+                        
+                        assets = await db.aset.find({"pemegang_id": emp_id}).to_list(None)
+                        has_assets = len(assets) > 0
+                        
+                        notifications.append({
+                            "type": "assignment_expiring",
+                            "urgency": urgency,
+                            "pegawai_id": emp_id,
+                            "pegawai_nama": emp_name,
+                            "nip": emp.get("nip"),
+                            "status_kepegawaian": emp.get("status_kepegawaian"),
+                            "end_date": str(end_date),
+                            "days_remaining": days_remaining,
+                            "has_assets": has_assets,
+                            "asset_count": len(assets),
+                            "message": f"Masa penugasan {emp_name} akan berakhir dalam {days_remaining} hari ({end_date})"
+                        })
+                except Exception as e:
+                    print(f"Error parsing assignment date for {emp_name}: {e}")
+    
+    # Sort by urgency and days remaining
+    urgency_order = {"critical": 0, "high": 1, "medium": 2}
+    notifications.sort(key=lambda x: (urgency_order.get(x["urgency"], 3), x["days_remaining"]))
+    
+    return {
+        "total": len(notifications),
+        "critical": len([n for n in notifications if n["urgency"] == "critical"]),
+        "high": len([n for n in notifications if n["urgency"] == "high"]),
+        "medium": len([n for n in notifications if n["urgency"] == "medium"]),
+        "notifications": notifications
+    }
+
+@router.post("/{id}/renew-contract")
+async def renew_contract(
+    id: str, 
+    nomor_kontrak: str = Form(...),
+    tgl_mulai: str = Form(...),
+    tgl_selesai: str = Form(...),
+    keterangan: str = Form(""),
+    current_user: dict = Depends(get_current_user)
+):
+    """Renew/extend employee contract and save history"""
+    if not ObjectId.is_valid(id): 
+        raise HTTPException(status_code=400, detail="Invalid ID")
+    
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    if not pegawai:
+        raise HTTPException(status_code=404, detail="Pegawai tidak ditemukan")
+    
+    # Save old contract to history
+    old_contract = {
+        "nomor_kontrak": pegawai.get("nomor_kontrak"),
+        "tgl_mulai": pegawai.get("tgl_mulai_kontrak"),
+        "tgl_selesai": pegawai.get("tgl_selesai_kontrak"),
+        "keterangan": "Kontrak sebelumnya",
+        "renewed_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Get existing history or create new
+    riwayat = pegawai.get("riwayat_kontrak", [])
+    if old_contract["nomor_kontrak"] or old_contract["tgl_mulai"]:
+        riwayat.append(old_contract)
+    
+    # Update with new contract
+    await db.pegawai.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": {
+            "nomor_kontrak": nomor_kontrak,
+            "tgl_mulai_kontrak": tgl_mulai,
+            "tgl_selesai_kontrak": tgl_selesai,
+            "riwayat_kontrak": riwayat
+        }}
+    )
+    
+    # Log activity
+    await log_activity(
+        db=db,
+        user_id=str(current_user.id),
+        user_name=current_user.full_name or "Unknown",
+        action="RENEW_CONTRACT",
+        module="Pegawai",
+        target_id=id,
+        details=f"Perpanjangan kontrak {pegawai.get('nama_lengkap')}: {nomor_kontrak}",
+        metadata={"nomor_kontrak": nomor_kontrak, "tgl_mulai": tgl_mulai, "tgl_selesai": tgl_selesai}
+    )
+    
+    return {"message": "Kontrak berhasil diperpanjang", "nomor_kontrak": nomor_kontrak}
+
+@router.get("/{id}/contract-history")
+async def get_contract_history(id: str, current_user: dict = Depends(get_current_user)):
+    """Get contract renewal history for an employee"""
+    if not ObjectId.is_valid(id): 
+        raise HTTPException(status_code=400)
+    
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    if not pegawai:
+        raise HTTPException(status_code=404)
+    
+    # Current contract
+    current = {
+        "nomor_kontrak": pegawai.get("nomor_kontrak"),
+        "tgl_mulai": pegawai.get("tgl_mulai_kontrak"),
+        "tgl_selesai": pegawai.get("tgl_selesai_kontrak"),
+        "is_current": True
+    }
+    
+    # Historical contracts
+    history = pegawai.get("riwayat_kontrak", [])
+    
+    return {
+        "pegawai_id": id,
+        "nama": pegawai.get("nama_lengkap"),
+        "current_contract": current,
+        "history": history,
+        "total_renewals": len(history)
+    }
+
+@router.get("/{id}/assets")
+async def get_pegawai_assets(id: str, current_user: dict = Depends(get_current_user)):
+    """Get all assets held by an employee"""
+    if not ObjectId.is_valid(id): 
+        raise HTTPException(status_code=400)
+    
+    pegawai = await db.pegawai.find_one({"_id": ObjectId(id)})
+    if not pegawai:
+        raise HTTPException(status_code=404, detail="Pegawai tidak ditemukan")
+    
+    assets = await db.aset.find({"pemegang_id": id}).to_list(None)
+    
+    # Transform for response
+    for asset in assets:
+        asset["id"] = str(asset.pop("_id"))
+    
+    return {
+        "pegawai_id": id,
+        "nama": pegawai.get("nama_lengkap"),
+        "total_assets": len(assets),
+        "assets": assets
+    }
