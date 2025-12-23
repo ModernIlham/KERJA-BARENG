@@ -86,14 +86,18 @@ export default function DokumenList() {
                         <div className="flex gap-2 items-center">
                             <Label className="text-xs">Kategori:</Label>
                             <Select value={filterKategori} onValueChange={setFilterKategori}>
-                                <SelectTrigger className="w-[150px] h-9 text-xs">
+                                <SelectTrigger className="w-[200px] h-9 text-xs">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value="Semua">Semua Kategori</SelectItem>
                                     <SelectItem value="Umum">Umum</SelectItem>
                                     <SelectItem value="Persediaan">Persediaan</SelectItem>
-                                    <SelectItem value="Aset Tetap">Aset Tetap</SelectItem>
-                                    <SelectItem value="Semua">Semua</SelectItem>
+                                    <SelectItem value="Aset Tetap Pembelian">Aset Tetap - Pembelian</SelectItem>
+                                    <SelectItem value="Aset Tetap Transfer Masuk">Aset Tetap - Transfer Masuk</SelectItem>
+                                    <SelectItem value="Aset Tetap KDP Perolehan">Aset Tetap - KDP Perolehan</SelectItem>
+                                    <SelectItem value="Aset Tetap Pengembangan Langsung">Aset Tetap - Pengembangan Langsung</SelectItem>
+                                    <SelectItem value="Aset Tetap Pengembangan KDP">Aset Tetap - Pengembangan KDP</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
