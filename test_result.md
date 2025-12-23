@@ -171,6 +171,18 @@ frontend:
         agent: "testing"
         comment: "✅ PASSED - Excel export functionality working. Export button is enabled and functional. Successfully tested export initiation with Non-ASN filter applied. Button clicks register correctly and export process starts. Minor: Some modal overlay interactions during testing but core functionality works."
 
+  - task: "Asset Tracking & Monitoring (Aset Pegawai) Frontend"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/AsetPegawaiList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Asset Tracking & Monitoring (Aset Pegawai) frontend fully functional. All 9 test scenarios completed successfully: 1) Navigation to /aset-pegawai page with correct title 'Manajemen Aset Pegawai' ✅ 2) Summary cards verification - all 5 cards present (Total Aset, Tersedia, Dipinjam, Rusak/Hilang, Total Nilai) ✅ 3) Add new asset functionality - modal opens, form fields work, asset creation successful ✅ 4) View asset detail modal - opens correctly with asset information ✅ 5) Serah Terima (handover) functionality - modal opens, pegawai selection works ✅ 6) Kembalikan (return) functionality - modal opens, condition selection works ✅ 7) Filter assets - filter panel opens, status filtering works, reset functionality works ✅ 8) Search assets - search input works, results filter correctly ✅ 9) Delete asset - confirmation modal opens, deletion process works ✅. Full CRUD operations working, asset lifecycle management (handover/return) functional, UI components responsive and user-friendly. Integration with backend API working correctly. Asset management workflow complete and production-ready."
+
   - task: "Remove Duplicate Fullscreen Button"
     implemented: true
     working: needs_testing
