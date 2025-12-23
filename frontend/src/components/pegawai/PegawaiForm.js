@@ -382,8 +382,8 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
                         {renderSelect("kategori_pegawai", "Kategori Pegawai", KATEGORI_PEGAWAI)}
                     </div>
 
-                    {/* Pimpinan Checkbox */}
-                    {kategoriPegawai === 'Struktural' && (
+                    {/* Pimpinan Checkbox - Tampil untuk JPT, Administrator, dan Pengawas */}
+                    {['Jabatan Pimpinan Tinggi (JPT)', 'Jabatan Administrator', 'Jabatan Pengawas'].includes(kategoriPegawai) && (
                         <div className="bg-blue-50 p-3 rounded border border-blue-200">
                             <div className="flex flex-col gap-3">
                                 <div className="flex gap-4 items-center">
