@@ -668,15 +668,15 @@ export default function AdvancedSignaturePad({
                 
                 {/* Advanced Settings Panel */}
                 {showAdvanced && (
-                  <div className="bg-gradient-to-br from-slate-50 to-teal-50 p-4 rounded-xl border border-teal-100 space-y-4">
-                    <div className="flex items-center justify-between">
+                  <div className="bg-gradient-to-br from-slate-50 to-teal-50 p-3 rounded-xl border border-teal-100 space-y-3 overflow-x-hidden">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                       <span className="text-sm font-medium text-slate-600">Styles</span>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1 flex-wrap">
                         {Object.keys(STYLE_PRESETS).map((preset) => (
                           <button
                             key={preset}
                             onClick={() => setStylePreset(preset)}
-                            className={`px-3 py-1 text-sm rounded-full border transition-all ${
+                            className={`px-2 py-1 text-xs rounded-full border transition-all ${
                               stylePreset === preset
                                 ? 'bg-teal-600 text-white border-teal-600'
                                 : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
@@ -688,26 +688,26 @@ export default function AdvancedSignaturePad({
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-600 w-24">Stroke Width</span>
-                        <Slider value={[size]} onValueChange={([v]) => setSize(v)} min={1} max={16} step={1} className="flex-1" />
-                        <span className="text-sm text-slate-500 w-10">{size}px</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-600 w-20 shrink-0">Stroke</span>
+                        <Slider value={[size]} onValueChange={([v]) => setSize(v)} min={1} max={16} step={1} className="flex-1 min-w-0" />
+                        <span className="text-xs text-slate-500 w-8">{size}px</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-600 w-24">Smoothing</span>
-                        <Slider value={[smoothing * 100]} onValueChange={([v]) => setSmoothing(v / 100)} min={0} max={100} step={5} className="flex-1" />
-                        <span className="text-sm text-slate-500 w-10">{smoothing.toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-600 w-20 shrink-0">Smooth</span>
+                        <Slider value={[smoothing * 100]} onValueChange={([v]) => setSmoothing(v / 100)} min={0} max={100} step={5} className="flex-1 min-w-0" />
+                        <span className="text-xs text-slate-500 w-8">{smoothing.toFixed(1)}</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-600 w-24">Thinning</span>
-                        <Slider value={[thinning * 100]} onValueChange={([v]) => setThinning(v / 100)} min={-100} max={100} step={5} className="flex-1" />
-                        <span className="text-sm text-slate-500 w-10">{thinning.toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-600 w-20 shrink-0">Thin</span>
+                        <Slider value={[thinning * 100]} onValueChange={([v]) => setThinning(v / 100)} min={-100} max={100} step={5} className="flex-1 min-w-0" />
+                        <span className="text-xs text-slate-500 w-8">{thinning.toFixed(1)}</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-600 w-24">Streamline</span>
-                        <Slider value={[streamline * 100]} onValueChange={([v]) => setStreamline(v / 100)} min={0} max={100} step={5} className="flex-1" />
-                        <span className="text-sm text-slate-500 w-10">{streamline.toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-600 w-20 shrink-0">Stream</span>
+                        <Slider value={[streamline * 100]} onValueChange={([v]) => setStreamline(v / 100)} min={0} max={100} step={5} className="flex-1 min-w-0" />
+                        <span className="text-xs text-slate-500 w-8">{streamline.toFixed(1)}</span>
                       </div>
                     </div>
                   </div>
