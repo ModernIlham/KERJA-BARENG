@@ -599,7 +599,7 @@ async def request_overtime(req: OvertimeCreate, current_user: User = Depends(get
         
     duration = (t2 - t1).seconds / 3600
     
-    emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'PPPK', 'ASN'] else "NON_ASN"
+    emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'CPNS', 'PPPK', 'ASN'] else "NON_ASN"
     grade = pegawai.get('pangkat_golongan') 
     
     if emp_type == 'ASN' and grade:
@@ -717,7 +717,7 @@ async def create_overtime_batch(req: OvertimeCreate, current_user: User = Depend
     total_net = 0
     
     for pegawai in participant_data:
-        emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'PPPK', 'ASN'] else "NON_ASN"
+        emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'CPNS', 'PPPK', 'ASN'] else "NON_ASN"
         grade = pegawai.get('pangkat_golongan')
         
         if emp_type == 'ASN' and grade:
@@ -900,7 +900,7 @@ async def create_overtime_range(req: OvertimeRangeCreate, current_user: User = D
             if duration <= 0:
                 continue
             
-            emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'PPPK', 'ASN'] else "NON_ASN"
+            emp_type = "ASN" if pegawai.get('status_kepegawaian') in ['PNS', 'CPNS', 'PPPK', 'ASN'] else "NON_ASN"
             grade = pegawai.get('pangkat_golongan')
             
             if emp_type == 'ASN' and grade:
