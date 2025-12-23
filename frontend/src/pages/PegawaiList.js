@@ -104,6 +104,51 @@ export default function PegawaiList() {
     }
   };
 
+  // Export functions
+  const handleExport = async (format) => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({
+        ...(search && { search }),
+        ...(filters.status && { status: filters.status }),
+        ...(filters.status_kepegawaian && { status_kepegawaian: filters.status_kepegawaian }),
+        ...(filters.eselon1 && { eselon1: filters.eselon1 }),
+      });
+      
+      const response = await api.get(`/api/pegawai/export/${format}?${params}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `data_pegawai_${new Date().toISOString().slice(0,10)}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success(`Export ${format.toUpperCase()} berhasil`);
+    } catch (e) {
+      toast.error(`Gagal export ${format}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const clearFilters = () => {
+    setFilters({ status: '', status_kepegawaian: '', eselon1: '', kategori_pegawai: '' });
+    setSearch('');
+  };
+
+
   // Helper to check contract expiry status
   const getContractStatus = (item) => {
     const tglSelesai = item.tgl_selesai_kontrak || item.masa_penugasan_end;
