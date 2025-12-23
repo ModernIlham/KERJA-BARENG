@@ -16,7 +16,7 @@ import MutasiModal from '../components/pegawai/MutasiModal';
 import ContractNotifications from '../components/pegawai/ContractNotifications';
 
 import PegawaiPhotoModal from '../components/pegawai/PegawaiPhotoModal';
-import SignaturePad from '../components/pegawai/SignaturePad';
+import AdvancedSignaturePad from '../components/pegawai/AdvancedSignaturePad';
 import { PenTool } from 'lucide-react';
 import ImportPegawaiModal from '../components/pegawai/ImportPegawaiModal';
 import PegawaiDocumentModal from '../components/pegawai/PegawaiDocumentModal';
