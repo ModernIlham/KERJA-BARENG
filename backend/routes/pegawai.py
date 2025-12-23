@@ -105,7 +105,26 @@ async def update_pegawai(id: str, pegawai_in: PegawaiCreate, current_user: dict 
     if existing: raise HTTPException(status_code=400, detail="NIP already used by another employee")
     
     update_data = pegawai_in.dict(exclude_unset=True)
-    # Don't update created_at, update updated_at if schema had it
+    
+    # Handle pimpinan struktural - hanya satu orang per unit kerja
+    if update_data.get('is_pimpinan_struktural'):
+        # Cari unit kerja tertinggi yang dipilih
+        unit_key = None
+        for es in ['eselon5', 'eselon4', 'eselon3', 'eselon2', 'eselon1']:
+            if update_data.get(es):
+                unit_key = (es, update_data.get(es))
+                break
+        
+        if unit_key:
+            # Reset pimpinan struktural lainnya di unit kerja yang sama
+            await db.pegawai.update_many(
+                {
+                    "_id": {"$ne": ObjectId(id)},
+                    unit_key[0]: unit_key[1],
+                    "is_pimpinan_struktural": True
+                },
+                {"$set": {"is_pimpinan_struktural": False}}
+            )
     
     res = await db.pegawai.find_one_and_update(
         {"_id": ObjectId(id)},
