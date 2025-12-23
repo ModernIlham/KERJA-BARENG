@@ -66,6 +66,7 @@ export default function App() {
             <Route path="kepegawaian/lembur" element={<ManajemenLembur />} />
             
             <Route path="organisasi" element={<StrukturOrganisasi />} />
+            <Route path="master-barang" element={<MasterBarangList />} />
             <Route path="aset-pegawai" element={<AsetPegawaiList />} />
             
             {/* New Simplified Transaction Routes */}
