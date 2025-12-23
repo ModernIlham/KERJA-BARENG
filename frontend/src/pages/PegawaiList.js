@@ -151,7 +151,18 @@ export default function PegawaiList() {
   };
 
   const clearFilters = () => {
-    setFilters({ status: '', status_kepegawaian: '', eselon1: '', kategori_pegawai: '' });
+    setFilters({ 
+      status: '', 
+      status_kepegawaian: '', 
+      eselon1: '', 
+      eselon2: '',
+      kategori_pegawai: '',
+      jenis_kelamin: '',
+      pendidikan_terakhir: '',
+      agama: '',
+      jenis_non_asn: '',
+      pangkat_golongan: ''
+    });
     setSearch('');
   };
 
