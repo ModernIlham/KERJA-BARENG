@@ -15085,8 +15085,6 @@ def main():
         print("❌ SOME MASTER DATA BARANG API TESTS FAILED!")
         return 1
 
-if __name__ == "__main__":
-    sys.exit(main())
     def test_new_fork_session_apis(self):
         """Test the new APIs implemented for this fork session"""
         print("\n=== NEW FORK SESSION APIS TEST ===")
