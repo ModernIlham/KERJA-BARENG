@@ -243,6 +243,21 @@ export default function BankManager() {
                                 Kode bank dari Bank Indonesia (3 digit)
                             </p>
                         </div>
+                        
+                        <div className="space-y-2">
+                            <Label>Jumlah Digit Rekening</Label>
+                            <Input 
+                                type="number"
+                                min="1"
+                                max="30"
+                                value={formData.jumlah_digit}
+                                onChange={(e) => setFormData({...formData, jumlah_digit: e.target.value})}
+                                placeholder="Contoh: 10"
+                            />
+                            <p className="text-[10px] text-slate-500">
+                                Jumlah digit standar untuk no rekening bank ini. Digunakan untuk validasi input pegawai.
+                            </p>
+                        </div>
 
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
