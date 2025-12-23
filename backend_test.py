@@ -1586,10 +1586,13 @@ class APITester:
         # Step 2: Create a test employee with status_kepegawaian = "CPNS"
         print("\n👤 Step 2: Creating test CPNS employee...")
         
+        import time
+        unique_suffix = str(int(time.time()))[-6:]  # Use last 6 digits of timestamp
+        
         cpns_employee_data = {
             "nama_lengkap": "Test CPNS Employee",
-            "nip": "199001012020011001",
-            "nik": "3201010101990001",
+            "nip": f"1990010120200110{unique_suffix}",
+            "nik": f"32010101019900{unique_suffix}",
             "status_kepegawaian": "CPNS",
             "pangkat_golongan": "Penata Muda (III/a)",
             "jenis_kelamin": "Laki-laki",
@@ -1601,7 +1604,7 @@ class APITester:
             "jabatan": "Staff CPNS",
             "eselon1": "SEKRETARIAT",
             "status": "AKTIF",
-            "email": "cpns.test@example.com",
+            "email": f"cpns.test{unique_suffix}@example.com",
             "no_telp": "08123456789"
         }
         
