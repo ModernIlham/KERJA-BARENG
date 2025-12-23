@@ -794,6 +794,8 @@ async def import_pegawai(
                     jabatan=get_val(row, "Jabatan Struktural") or get_val(row, "Jabatan"),
                     jabatan_melekat=get_val(row, "Jabatan Fungsional Melekat"),
                     kategori_pegawai=get_val(row, "Kategori Pegawai"),
+                    is_pimpinan_kl=(get_val(row, "Pimpinan K/L") == "Ya"),
+                    jabatan_pimpinan_kl=get_val(row, "Jabatan Pimpinan K/L"),
                     is_pimpinan_tertinggi=(get_val(row, "Pimpinan Tertinggi") == "Ya"),
                     jenis_pimpinan=get_val(row, "Jenis Pimpinan"),
                     eselon1=get_val(row, "Eselon 1"),
