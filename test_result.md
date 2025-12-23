@@ -21,16 +21,14 @@
    - Export supports all filter parameters
    - Exports filtered data only when filters are applied
 
-8. **Asset Tracking & Monitoring (Aset Pegawai)** - NEW ✅
-   - Full CRUD for employee assets at /aset-pegawai
-   - Track assets assigned to each employee
-   - Serah terima (handover) functionality
-   - Asset return (kembalikan) functionality
-   - Alert system for employees leaving/transferring with assets
-   - Asset history tracking (riwayat pemegang)
-   - Summary statistics dashboard
-   - Backend: /api/aset-pegawai endpoints
-   - Frontend: /aset-pegawai page with full UI
+8. **Advanced Digital Signature & Initial (Tanda Tangan & Paraf)** - NEW ✅
+   - Multiple signatures (max 3) and initials (max 3) per employee
+   - Advanced drawing options: Color picker, Style presets (Default, Elegant, Bold, Quick)
+   - Stroke Width, Smoothing, Thinning, Streamline, Angle controls
+   - Upload image option for scanned signatures
+   - Delete individual signatures/initials
+   - Backend: /api/pegawai/{id}/signature-advanced endpoints
+   - Frontend: AdvancedSignaturePad component in PegawaiList.js modal
 
 ### Previously Implemented Features:
 
