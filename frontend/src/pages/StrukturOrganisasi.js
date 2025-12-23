@@ -591,9 +591,9 @@ function UnitDetailModal({ isOpen, onClose, unit }) {
         return (unit.members || []).filter(m => {
             const status = (m.status_kepegawaian || 'NON-ASN').toUpperCase();
             const matchesType = 
-                type === 'pns' ? status.includes('PNS') :
+                type === 'pns' ? (status.includes('PNS') || status.includes('CPNS')) :
                 type === 'pppk' ? status.includes('PPPK') :
-                !status.includes('PNS') && !status.includes('PPPK');
+                !status.includes('PNS') && !status.includes('CPNS') && !status.includes('PPPK');
             
             const matchesSearch = m.nama_lengkap.toLowerCase().includes(search.toLowerCase());
             
