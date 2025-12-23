@@ -1,10 +1,11 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { Slider } from '../ui/slider';
-import { Eraser, Save, PenTool, Upload, Check, Trash2, Plus, X, Pencil } from 'lucide-react';
+import { Eraser, Save, PenTool, Upload, Trash2, Plus, X, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../../api/axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
+import { getStroke } from 'perfect-freehand';
 
 const COLORS = [
   { name: 'Black', value: '#000000' },
@@ -15,11 +16,28 @@ const COLORS = [
 ];
 
 const STYLE_PRESETS = {
-  Default: { strokeWidth: 3, smoothing: 0.5, thinning: 0.5, streamline: 0.5, angle: 0 },
-  Elegant: { strokeWidth: 2, smoothing: 0.7, thinning: 0.6, streamline: 0.7, angle: 0 },
-  Bold: { strokeWidth: 5, smoothing: 0.3, thinning: 0.2, streamline: 0.4, angle: 0 },
-  Quick: { strokeWidth: 2.5, smoothing: 0.2, thinning: 0.4, streamline: 0.3, angle: 0 },
+  Default: { size: 5, smoothing: 0.5, thinning: 0.3, streamline: 0.55 },
+  Elegant: { size: 3, smoothing: 0.7, thinning: 0.5, streamline: 0.7 },
+  Bold: { size: 8, smoothing: 0.4, thinning: 0.1, streamline: 0.5 },
+  Quick: { size: 4, smoothing: 0.3, thinning: 0.4, streamline: 0.3 },
 };
+
+// Convert perfect-freehand stroke points to SVG path
+function getSvgPathFromStroke(stroke) {
+  if (!stroke.length) return '';
+
+  const d = stroke.reduce(
+    (acc, [x0, y0], i, arr) => {
+      const [x1, y1] = arr[(i + 1) % arr.length];
+      acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
+      return acc;
+    },
+    ['M', ...stroke[0], 'Q']
+  );
+
+  d.push('Z');
+  return d.join(' ');
+}
 
 export default function AdvancedSignaturePad({ 
   pegawaiId, 
@@ -29,6 +47,8 @@ export default function AdvancedSignaturePad({
   type = 'signature'
 }) {
   const canvasRef = useRef(null);
+  const [points, setPoints] = useState([]);
+  const [allStrokes, setAllStrokes] = useState([]); // Store all completed strokes
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [mode, setMode] = useState('draw');
@@ -40,16 +60,11 @@ export default function AdvancedSignaturePad({
   const [color, setColor] = useState('#000000');
   const [customColor, setCustomColor] = useState('#000000');
   const [stylePreset, setStylePreset] = useState('Default');
-  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [size, setSize] = useState(5);
   const [smoothing, setSmoothing] = useState(0.5);
-  const [thinning, setThinning] = useState(0.5);
-  const [streamline, setStreamline] = useState(0.5);
+  const [thinning, setThinning] = useState(0.3);
+  const [streamline, setStreamline] = useState(0.55);
   const [angle, setAngle] = useState(0);
-  
-  // Drawing state
-  const pointsRef = useRef([]);
-  const lastPointRef = useRef(null);
-  const velocityRef = useRef(0);
   
   // Saved items management
   const [savedItems, setSavedItems] = useState(type === 'signature' ? existingSignatures : existingInitials);
@@ -59,6 +74,66 @@ export default function AdvancedSignaturePad({
   
   const maxSlots = 3;
   const itemLabel = type === 'signature' ? 'Tanda Tangan' : 'Paraf';
+
+  // Get stroke options for perfect-freehand
+  const getStrokeOptions = useCallback(() => ({
+    size,
+    thinning,
+    smoothing,
+    streamline,
+    easing: (t) => t,
+    start: {
+      taper: 0,
+      cap: true,
+    },
+    end: {
+      taper: size * 0.5,
+      cap: true,
+    },
+    simulatePressure: true,
+  }), [size, thinning, smoothing, streamline]);
+
+  // Redraw all strokes on canvas
+  const redrawCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    // Clear canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Apply DPR scaling
+    ctx.scale(dpr, dpr);
+    
+    // Apply rotation if needed
+    if (angle !== 0) {
+      ctx.translate(rect.width / 2, rect.height / 2);
+      ctx.rotate((angle * Math.PI) / 180);
+      ctx.translate(-rect.width / 2, -rect.height / 2);
+    }
+    
+    // Draw all completed strokes
+    allStrokes.forEach(stroke => {
+      const outlinePoints = getStroke(stroke.points, stroke.options);
+      const pathData = getSvgPathFromStroke(outlinePoints);
+      const path = new Path2D(pathData);
+      ctx.fillStyle = stroke.color;
+      ctx.fill(path);
+    });
+    
+    // Draw current stroke
+    if (points.length > 0) {
+      const outlinePoints = getStroke(points, getStrokeOptions());
+      const pathData = getSvgPathFromStroke(outlinePoints);
+      const path = new Path2D(pathData);
+      ctx.fillStyle = color;
+      ctx.fill(path);
+    }
+  }, [allStrokes, points, color, angle, getStrokeOptions]);
 
   // Initialize canvas
   const initCanvas = useCallback(() => {
@@ -71,33 +146,13 @@ export default function AdvancedSignaturePad({
     const rect = container.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     
-    // Set display size
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
-    
-    // Set actual size in memory
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    
-    // Apply rotation if angle is set
-    if (angle !== 0) {
-      ctx.translate(rect.width / 2, rect.height / 2);
-      ctx.rotate((angle * Math.PI) / 180);
-      ctx.translate(-rect.width / 2, -rect.height / 2);
-    }
-    
-    // Set default styles
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = color;
-    
-    // Clear any existing content
-    ctx.fillStyle = 'white';
-    ctx.fillRect(-1000, -1000, canvas.width + 2000, canvas.height + 2000);
-  }, [color, angle]);
+    redrawCanvas();
+  }, [redrawCanvas]);
 
   useEffect(() => {
     if (mode === 'draw' && isModalOpen) {
@@ -109,225 +164,103 @@ export default function AdvancedSignaturePad({
   useEffect(() => {
     const preset = STYLE_PRESETS[stylePreset];
     if (preset) {
-      setStrokeWidth(preset.strokeWidth);
+      setSize(preset.size);
       setSmoothing(preset.smoothing);
       setThinning(preset.thinning);
       setStreamline(preset.streamline);
-      setAngle(preset.angle);
     }
   }, [stylePreset]);
 
-  // Re-init canvas when angle changes
+  // Redraw when settings change
   useEffect(() => {
-    if (mode === 'draw' && isModalOpen && !hasDrawn) {
-      initCanvas();
+    if (isModalOpen && mode === 'draw') {
+      redrawCanvas();
     }
-  }, [angle, mode, isModalOpen, hasDrawn, initCanvas]);
+  }, [angle, isModalOpen, mode, redrawCanvas]);
 
   const getPointerPosition = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     
     const rect = canvas.getBoundingClientRect();
-    const clientX = e.clientX ?? e.touches?.[0]?.clientX;
-    const clientY = e.clientY ?? e.touches?.[0]?.clientY;
+    
+    // Handle both mouse and touch events
+    let clientX, clientY, pressure;
+    
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+      pressure = e.touches[0].force || 0.5;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+      pressure = e.pressure || 0.5;
+    }
     
     if (clientX === undefined || clientY === undefined) return null;
     
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top,
-      time: Date.now(),
-      pressure: e.pressure ?? 0.5
-    };
+    return [
+      clientX - rect.left,
+      clientY - rect.top,
+      pressure
+    ];
   };
 
-  const calculateVelocity = (p1, p2) => {
-    if (!p1 || !p2) return 0;
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
-    const dt = Math.max(p2.time - p1.time, 1);
-    return Math.sqrt(dx * dx + dy * dy) / dt;
-  };
-
-  const lerp = (a, b, t) => a + (b - a) * t;
-
-  const getStrokeWidth = (velocity) => {
-    // Base width from slider
-    const baseWidth = strokeWidth;
-    
-    // Normalize velocity (typical values 0-2)
-    const normalizedVelocity = Math.min(velocity * 2, 1);
-    
-    // Thinning effect: faster = thinner
-    const thinningFactor = 1 - (normalizedVelocity * thinning);
-    
-    // Calculate final width
-    const width = baseWidth * Math.max(thinningFactor, 0.3);
-    
-    return Math.max(width, 0.5);
-  };
-
-  const drawSmoothLine = (ctx, points) => {
-    if (points.length < 2) return;
-    
-    ctx.strokeStyle = color;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    if (points.length === 2) {
-      // Just two points, draw a simple line
-      const [p1, p2] = points;
-      ctx.beginPath();
-      ctx.lineWidth = getStrokeWidth(calculateVelocity(p1, p2));
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.stroke();
-      return;
-    }
-    
-    // For multiple points, use quadratic curves for smoothing
-    const last = points.length - 1;
-    
-    for (let i = 1; i < points.length; i++) {
-      const p0 = points[i - 1];
-      const p1 = points[i];
-      
-      // Calculate velocity for this segment
-      const velocity = calculateVelocity(p0, p1);
-      const width = getStrokeWidth(velocity);
-      
-      // Smooth the velocity changes
-      velocityRef.current = lerp(velocityRef.current, velocity, 1 - streamline);
-      
-      ctx.beginPath();
-      ctx.lineWidth = width;
-      
-      if (i === 1) {
-        // First segment
-        ctx.moveTo(p0.x, p0.y);
-        ctx.lineTo(p1.x, p1.y);
-      } else {
-        // Use smoothing for middle segments
-        const p_prev = points[i - 2];
-        
-        // Calculate control point based on smoothing
-        const smoothFactor = smoothing;
-        const cpX = p0.x + (p1.x - p_prev.x) * smoothFactor * 0.25;
-        const cpY = p0.y + (p1.y - p_prev.y) * smoothFactor * 0.25;
-        
-        ctx.moveTo(p0.x, p0.y);
-        ctx.quadraticCurveTo(cpX, cpY, (p0.x + p1.x) / 2, (p0.y + p1.y) / 2);
-        ctx.lineTo(p1.x, p1.y);
-      }
-      
-      ctx.stroke();
-    }
-  };
-
-  const startDrawing = (e) => {
+  const handlePointerDown = (e) => {
     e.preventDefault();
-    
     const point = getPointerPosition(e);
     if (!point) return;
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
     
     setIsDrawing(true);
     setHasDrawn(true);
-    
-    pointsRef.current = [point];
-    lastPointRef.current = point;
-    velocityRef.current = 0;
-    
-    // Draw initial dot
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, strokeWidth / 2, 0, Math.PI * 2);
-    ctx.fill();
+    setPoints([point]);
   };
 
-  const draw = (e) => {
+  const handlePointerMove = (e) => {
     if (!isDrawing) return;
     e.preventDefault();
     
     const point = getPointerPosition(e);
     if (!point) return;
     
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    const lastPoint = lastPointRef.current;
-    
-    // Calculate distance from last point
-    const dx = point.x - lastPoint.x;
-    const dy = point.y - lastPoint.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    // Streamline: skip points that are too close
-    const minDistance = 1 + (1 - streamline) * 3;
-    if (distance < minDistance) return;
-    
-    // Add point
-    pointsRef.current.push(point);
-    
-    // Keep only recent points for smoothing (based on smoothing value)
-    const maxPoints = Math.floor(3 + smoothing * 5);
-    if (pointsRef.current.length > maxPoints) {
-      pointsRef.current = pointsRef.current.slice(-maxPoints);
-    }
-    
-    // Draw the smooth line
-    drawSmoothLine(ctx, pointsRef.current);
-    
-    lastPointRef.current = point;
+    setPoints(prev => [...prev, point]);
+    redrawCanvas();
   };
 
-  const stopDrawing = () => {
+  const handlePointerUp = () => {
     if (!isDrawing) return;
-    setIsDrawing(false);
     
-    // Draw final segment if needed
-    if (pointsRef.current.length >= 2) {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        const points = pointsRef.current;
-        const lastTwo = points.slice(-2);
-        
-        ctx.strokeStyle = color;
-        ctx.lineWidth = getStrokeWidth(0.1); // Thin end
-        ctx.beginPath();
-        ctx.moveTo(lastTwo[0].x, lastTwo[0].y);
-        ctx.lineTo(lastTwo[1].x, lastTwo[1].y);
-        ctx.stroke();
-      }
+    // Save the completed stroke
+    if (points.length > 0) {
+      setAllStrokes(prev => [...prev, {
+        points: [...points],
+        color,
+        options: getStrokeOptions()
+      }]);
     }
     
-    pointsRef.current = [];
-    lastPointRef.current = null;
+    setIsDrawing(false);
+    setPoints([]);
   };
+
+  // Effect to redraw when points change during drawing
+  useEffect(() => {
+    if (isDrawing && points.length > 0) {
+      redrawCanvas();
+    }
+  }, [points, isDrawing, redrawCanvas]);
 
   const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    
-    const dpr = window.devicePixelRatio || 1;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+    setPoints([]);
+    setAllStrokes([]);
     setHasDrawn(false);
-    pointsRef.current = [];
-    lastPointRef.current = null;
-    velocityRef.current = 0;
     
-    // Re-init
-    initCanvas();
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
   };
 
   const handleSave = async () => {
@@ -341,24 +274,14 @@ export default function AdvancedSignaturePad({
       const formData = new FormData();
       
       if (mode === 'draw') {
-        if (!hasDrawn) {
+        if (!hasDrawn || allStrokes.length === 0) {
           toast.error(`Silakan ${type === 'signature' ? 'tanda tangan' : 'paraf'} terlebih dahulu`);
           setLoading(false);
           return;
         }
         
         const canvas = canvasRef.current;
-        
-        // Create a new canvas without the white background for PNG transparency
-        const exportCanvas = document.createElement('canvas');
-        exportCanvas.width = canvas.width;
-        exportCanvas.height = canvas.height;
-        const exportCtx = exportCanvas.getContext('2d');
-        
-        // Copy the drawing (without white background)
-        exportCtx.drawImage(canvas, 0, 0);
-        
-        const dataUrl = exportCanvas.toDataURL('image/png');
+        const dataUrl = canvas.toDataURL('image/png');
         const blob = await (await fetch(dataUrl)).blob();
         formData.append('file', blob, `${type}_${Date.now()}.png`);
       } else {
@@ -482,7 +405,7 @@ export default function AdvancedSignaturePad({
           <DialogHeader>
             <DialogTitle>Buat {itemLabel} Digital Baru</DialogTitle>
             <DialogDescription>
-              Buat {itemLabel.toLowerCase()} dengan menggambar langsung atau upload file
+              Gambar {itemLabel.toLowerCase()} dengan mouse atau stylus
             </DialogDescription>
           </DialogHeader>
           
@@ -580,14 +503,14 @@ export default function AdvancedSignaturePad({
                       <div className="flex items-center gap-4">
                         <span className="text-sm text-slate-600 w-28">Stroke Width</span>
                         <Slider
-                          value={[strokeWidth]}
-                          onValueChange={([v]) => setStrokeWidth(v)}
-                          min={0.5}
-                          max={8}
-                          step={0.5}
+                          value={[size]}
+                          onValueChange={([v]) => setSize(v)}
+                          min={1}
+                          max={16}
+                          step={1}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-16 text-right">{strokeWidth}px</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{size}px</span>
                       </div>
                       
                       <div className="flex items-center gap-4">
@@ -600,7 +523,7 @@ export default function AdvancedSignaturePad({
                           step={5}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-16 text-right">{Math.round(smoothing * 100)}%</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{smoothing.toFixed(2)}</span>
                       </div>
                       
                       <div className="flex items-center gap-4">
@@ -608,12 +531,12 @@ export default function AdvancedSignaturePad({
                         <Slider
                           value={[thinning * 100]}
                           onValueChange={([v]) => setThinning(v / 100)}
-                          min={0}
+                          min={-100}
                           max={100}
                           step={5}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-16 text-right">{Math.round(thinning * 100)}%</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{thinning.toFixed(2)}</span>
                       </div>
                       
                       <div className="flex items-center gap-4">
@@ -626,7 +549,7 @@ export default function AdvancedSignaturePad({
                           step={5}
                           className="flex-1"
                         />
-                        <span className="text-sm text-slate-500 w-16 text-right">{Math.round(streamline * 100)}%</span>
+                        <span className="text-sm text-slate-500 w-16 text-right">{streamline.toFixed(2)}</span>
                       </div>
                       
                       <div className="flex items-center gap-4">
@@ -642,42 +565,39 @@ export default function AdvancedSignaturePad({
                         <span className="text-sm text-slate-500 w-16 text-right">{angle}°</span>
                       </div>
                     </div>
-                    
-                    {/* Info */}
-                    <div className="text-xs text-slate-500 bg-white/50 p-2 rounded">
-                      <strong>Tips:</strong> Thinning mengatur variasi tebal-tipis berdasarkan kecepatan. 
-                      Smoothing menghaluskan garis. Streamline mengurangi getaran.
-                    </div>
                   </div>
                 )}
                 
                 {/* Canvas Area */}
                 <div 
-                  className="border-2 border-slate-300 rounded-xl bg-white touch-none mx-auto w-full overflow-hidden"
+                  className="border-2 border-slate-300 rounded-xl bg-white overflow-hidden"
                   style={{ 
                     transform: `rotate(${angle}deg)`,
-                    transition: 'transform 0.3s ease'
+                    transition: 'transform 0.2s ease'
                   }}
                 >
-                  <div style={{ width: '100%', height: type === 'initial' ? '150px' : '200px' }}>
+                  <div 
+                    style={{ 
+                      width: '100%', 
+                      height: type === 'initial' ? '150px' : '200px',
+                      touchAction: 'none'
+                    }}
+                  >
                     <canvas
                       ref={canvasRef}
                       className="w-full h-full cursor-crosshair"
                       style={{ touchAction: 'none' }}
-                      onMouseDown={startDrawing}
-                      onMouseMove={draw}
-                      onMouseUp={stopDrawing}
-                      onMouseLeave={stopDrawing}
-                      onTouchStart={startDrawing}
-                      onTouchMove={draw}
-                      onTouchEnd={stopDrawing}
+                      onPointerDown={handlePointerDown}
+                      onPointerMove={handlePointerMove}
+                      onPointerUp={handlePointerUp}
+                      onPointerLeave={handlePointerUp}
                     />
                   </div>
                 </div>
                 
                 {/* Canvas Info */}
                 <div className="text-center text-xs text-slate-400">
-                  Area {itemLabel} Digital - Gambar dengan mouse atau layar sentuh
+                  {allStrokes.length > 0 ? `${allStrokes.length} garis` : 'Area ' + itemLabel + ' Digital'}
                 </div>
                 
                 {/* Canvas Actions */}
