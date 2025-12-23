@@ -510,22 +510,24 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
     add_dropdown("X", JENIS_NON_ASN)  # Jenis Non-ASN
     add_dropdown("Y", SUB_KATEGORI_NON_ASN)  # Sub-Kategori Non-ASN
     add_dropdown("AD", KATEGORI_PEGAWAI)  # Kategori Pegawai
-    add_dropdown("AE", YA_TIDAK)  # Pimpinan Tertinggi
-    add_dropdown("AF", JENIS_PIMPINAN)  # Jenis Pimpinan
-    add_dropdown("AN", NAMA_BANK)  # Nama Bank
-    add_dropdown("AP", STATUS_AKTIF)  # Status Sistem
+    add_dropdown("AE", YA_TIDAK)  # Pimpinan K/L
+    add_dropdown("AF", ["Menteri", "Wakil Menteri", "Kepala Lembaga", "Wakil Kepala Lembaga", "Kepala Badan", "Wakil Kepala Badan", "Direktur Utama", "Komisaris Utama"])  # Jabatan Pimpinan K/L
+    add_dropdown("AG", YA_TIDAK)  # Pimpinan Tertinggi
+    add_dropdown("AH", JENIS_PIMPINAN)  # Jenis Pimpinan
+    add_dropdown("AP", NAMA_BANK)  # Nama Bank
+    add_dropdown("AR", STATUS_AKTIF)  # Status Sistem
     
-    # Unit kerja dropdowns
+    # Unit kerja dropdowns (kolom bergeser karena tambahan Pimpinan K/L)
     if eselon1_list:
-        add_dropdown("AG", eselon1_list)
+        add_dropdown("AI", eselon1_list)
     if eselon2_list:
-        add_dropdown("AH", eselon2_list)
+        add_dropdown("AJ", eselon2_list)
     if eselon3_list:
-        add_dropdown("AI", eselon3_list)
+        add_dropdown("AK", eselon3_list)
     if eselon4_list:
-        add_dropdown("AJ", eselon4_list)
+        add_dropdown("AL", eselon4_list)
     if eselon5_list:
-        add_dropdown("AK", eselon5_list)
+        add_dropdown("AM", eselon5_list)
     
     # --- SHEET 2: Referensi Data ---
     ws_ref = wb.create_sheet("Referensi Data")
