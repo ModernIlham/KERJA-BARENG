@@ -149,6 +149,7 @@ async def add_bank(bank: BankModel, current_user: str = Depends(get_current_user
     new_bank = {
         "nama_bank": bank.nama_bank,
         "kode_bank": bank.kode_bank or "",
+        "jumlah_digit": bank.jumlah_digit,
         "is_default": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -161,6 +162,7 @@ async def update_bank(id: str, bank: BankModel, current_user: str = Depends(get_
     update_data = {"nama_bank": bank.nama_bank}
     if bank.kode_bank:
         update_data["kode_bank"] = bank.kode_bank
+    update_data["jumlah_digit"] = bank.jumlah_digit
     
     await db.banks.update_one({"_id": ObjectId(id)}, {"$set": update_data})
     return {"message": "Bank berhasil diperbarui"}
