@@ -255,12 +255,11 @@ export default function AdvancedSignaturePad({
   const handlePointerUp = () => {
     if (!isDrawing) return;
     
-    // Save the completed stroke
+    // Save the completed stroke (only points and color, not options)
     if (points.length > 0) {
       setAllStrokes(prev => [...prev, {
         points: [...points],
-        color,
-        options: getStrokeOptions()
+        color  // Options will be applied dynamically from current settings
       }]);
     }
     
