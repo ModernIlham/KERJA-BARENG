@@ -813,6 +813,7 @@ async def import_pegawai(
                     jenis_non_asn=get_val(row, "Jenis Non-ASN"),
                     sub_kategori_non_asn=get_val(row, "Sub-Kategori Non-ASN"),
                     nama_perusahaan=get_val(row, "Nama Perusahaan (PT/CV)"),
+                    nomor_kontrak=get_val(row, "Nomor Kontrak"),
                     tgl_mulai_kontrak=parse_date(get_val(row, "Tgl Mulai Kontrak")),
                     tgl_selesai_kontrak=parse_date(get_val(row, "Tgl Selesai Kontrak")),
                     
