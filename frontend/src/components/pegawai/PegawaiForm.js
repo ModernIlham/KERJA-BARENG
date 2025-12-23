@@ -417,6 +417,34 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
 
                     <Separator />
 
+                    {/* Pimpinan Kementerian/Lembaga - Di atas Eselon I */}
+                    <div className="bg-amber-50 p-3 rounded border border-amber-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                            <input type="checkbox" {...register("is_pimpinan_kl")} id="chk_pimpinan_kl" className="rounded" />
+                            <Label htmlFor="chk_pimpinan_kl" className="text-xs font-semibold cursor-pointer text-amber-800">
+                                Pimpinan Kementerian/Lembaga (di atas Eselon I)
+                            </Label>
+                        </div>
+                        {watch('is_pimpinan_kl') && (
+                            <div className="mt-2 space-y-2">
+                                <select {...register("jabatan_pimpinan_kl")} className="w-full h-9 border rounded px-2 text-sm bg-white">
+                                    <option value="">Pilih Jabatan Pimpinan K/L...</option>
+                                    <option value="Menteri">Menteri</option>
+                                    <option value="Wakil Menteri">Wakil Menteri</option>
+                                    <option value="Kepala Lembaga">Kepala Lembaga</option>
+                                    <option value="Wakil Kepala Lembaga">Wakil Kepala Lembaga</option>
+                                    <option value="Kepala Badan">Kepala Badan</option>
+                                    <option value="Wakil Kepala Badan">Wakil Kepala Badan</option>
+                                    <option value="Direktur Utama">Direktur Utama</option>
+                                    <option value="Komisaris Utama">Komisaris Utama</option>
+                                </select>
+                                <p className="text-[10px] text-amber-700">
+                                    Jabatan ini berada di atas struktur Eselon I dan membawahi seluruh unit kerja.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Unit Kerja (Eselon) */}
                     <h4 className="text-xs font-bold text-slate-700">Unit Kerja</h4>
                     <div className="grid grid-cols-2 gap-3">
