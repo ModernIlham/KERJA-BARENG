@@ -204,7 +204,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Filter Panel and Export Testing - COMPLETED"
+    - "Asset Tracking & Monitoring (Aset Pegawai) API Testing - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
