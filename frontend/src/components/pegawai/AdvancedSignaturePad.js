@@ -569,13 +569,7 @@ export default function AdvancedSignaturePad({
                 )}
                 
                 {/* Canvas Area */}
-                <div 
-                  className="border-2 border-slate-300 rounded-xl bg-white overflow-hidden"
-                  style={{ 
-                    transform: `rotate(${angle}deg)`,
-                    transition: 'transform 0.2s ease'
-                  }}
-                >
+                <div className="border-2 border-slate-300 rounded-xl bg-white overflow-hidden">
                   <div 
                     style={{ 
                       width: '100%', 
