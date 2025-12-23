@@ -287,9 +287,11 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
                         
                         {/* Pangkat/Golongan berdasarkan status */}
                         <div className="space-y-1">
-                            <Label className="text-xs">Pangkat/Golongan</Label>
+                            <Label className="text-xs">
+                                {statusKepegawaian === 'PPPK' ? 'Golongan PPPK' : 'Pangkat/Golongan'}
+                            </Label>
                             <select {...register("pangkat_golongan")} className="w-full h-9 border rounded px-2 text-sm bg-white">
-                                <option value="">Pilih Pangkat...</option>
+                                <option value="">Pilih {statusKepegawaian === 'PPPK' ? 'Golongan...' : 'Pangkat...'}</option>
                                 {(PANGKAT_GOLONGAN[statusKepegawaian] || PANGKAT_GOLONGAN['ASN']).map(p => (
                                     <option key={p} value={p}>{p}</option>
                                 ))}
