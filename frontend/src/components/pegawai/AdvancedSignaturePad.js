@@ -93,6 +93,24 @@ export default function AdvancedSignaturePad({
     simulatePressure: true,
   }), [size, thinning, smoothing, streamline]);
 
+  // Transform point with angle rotation
+  const transformPoint = useCallback((point, centerX, centerY) => {
+    if (angle === 0) return point;
+    
+    const rad = (angle * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    
+    const x = point[0] - centerX;
+    const y = point[1] - centerY;
+    
+    return [
+      x * cos - y * sin + centerX,
+      x * sin + y * cos + centerY,
+      point[2] || 0.5
+    ];
+  }, [angle]);
+
   // Redraw all strokes on canvas
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -109,16 +127,16 @@ export default function AdvancedSignaturePad({
     // Apply DPR scaling
     ctx.scale(dpr, dpr);
     
-    // Apply rotation if needed
-    if (angle !== 0) {
-      ctx.translate(rect.width / 2, rect.height / 2);
-      ctx.rotate((angle * Math.PI) / 180);
-      ctx.translate(-rect.width / 2, -rect.height / 2);
-    }
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
     
     // Draw all completed strokes
     allStrokes.forEach(stroke => {
-      const outlinePoints = getStroke(stroke.points, stroke.options);
+      // Transform points with angle
+      const transformedPoints = stroke.points.map(p => 
+        transformPoint(p, centerX, centerY)
+      );
+      const outlinePoints = getStroke(transformedPoints, stroke.options);
       const pathData = getSvgPathFromStroke(outlinePoints);
       const path = new Path2D(pathData);
       ctx.fillStyle = stroke.color;
@@ -127,13 +145,16 @@ export default function AdvancedSignaturePad({
     
     // Draw current stroke
     if (points.length > 0) {
-      const outlinePoints = getStroke(points, getStrokeOptions());
+      const transformedPoints = points.map(p => 
+        transformPoint(p, centerX, centerY)
+      );
+      const outlinePoints = getStroke(transformedPoints, getStrokeOptions());
       const pathData = getSvgPathFromStroke(outlinePoints);
       const path = new Path2D(pathData);
       ctx.fillStyle = color;
       ctx.fill(path);
     }
-  }, [allStrokes, points, color, angle, getStrokeOptions]);
+  }, [allStrokes, points, color, transformPoint, getStrokeOptions]);
 
   // Initialize canvas
   const initCanvas = useCallback(() => {
