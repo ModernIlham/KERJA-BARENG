@@ -1699,8 +1699,8 @@ class APITester:
         # Create another CPNS employee with different grade
         cpns_gol1_data = {
             "nama_lengkap": "Test CPNS Gol I Employee",
-            "nip": "199002022020011002",
-            "nik": "3201010101990002",
+            "nip": f"1990020220200110{unique_suffix[:-1]}2",
+            "nik": f"32010101019900{unique_suffix[:-1]}2",
             "status_kepegawaian": "CPNS",
             "pangkat_golongan": "Juru Muda (I/a)",
             "jenis_kelamin": "Perempuan",
@@ -1712,7 +1712,7 @@ class APITester:
             "jabatan": "Staff CPNS Junior",
             "eselon1": "SEKRETARIAT",
             "status": "AKTIF",
-            "email": "cpns.gol1@example.com",
+            "email": f"cpns.gol1{unique_suffix}@example.com",
             "no_telp": "08123456790"
         }
         
