@@ -77,6 +77,10 @@ export default function StrukturOrganisasi() {
             setUnits(rawUnits);
             setPegawai(rawPegawai);
             
+            // Filter Pimpinan K/L (di atas Eselon I)
+            const pimpinanList = rawPegawai.filter(emp => emp.is_pimpinan_kl && emp.jabatan_pimpinan_kl);
+            setPimpinanKL(pimpinanList);
+            
             // Build Tree
             const hierarchy = buildHierarchy(rawUnits, rawPegawai);
             setTreeData(hierarchy);
