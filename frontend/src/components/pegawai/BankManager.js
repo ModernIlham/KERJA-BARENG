@@ -18,7 +18,7 @@ export default function BankManager() {
     // Form states
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingBank, setEditingBank] = useState(null);
-    const [formData, setFormData] = useState({ nama_bank: '', kode_bank: '' });
+    const [formData, setFormData] = useState({ nama_bank: '', kode_bank: '', jumlah_digit: '' });
 
     useEffect(() => {
         fetchBanks();
@@ -39,10 +39,14 @@ export default function BankManager() {
     const openDialog = (bank = null) => {
         if (bank) {
             setEditingBank(bank);
-            setFormData({ nama_bank: bank.nama_bank, kode_bank: bank.kode_bank || '' });
+            setFormData({ 
+                nama_bank: bank.nama_bank, 
+                kode_bank: bank.kode_bank || '',
+                jumlah_digit: bank.jumlah_digit || ''
+            });
         } else {
             setEditingBank(null);
-            setFormData({ nama_bank: '', kode_bank: '' });
+            setFormData({ nama_bank: '', kode_bank: '', jumlah_digit: '' });
         }
         setIsDialogOpen(true);
     };
@@ -56,11 +60,17 @@ export default function BankManager() {
 
         setSaving(true);
         try {
+            const payload = {
+                nama_bank: formData.nama_bank,
+                kode_bank: formData.kode_bank,
+                jumlah_digit: formData.jumlah_digit ? parseInt(formData.jumlah_digit) : null
+            };
+            
             if (editingBank) {
-                await api.put(`/api/settings/banks/${editingBank.id}`, formData);
+                await api.put(`/api/settings/banks/${editingBank.id}`, payload);
                 toast.success("Bank berhasil diperbarui");
             } else {
-                await api.post('/api/settings/banks', formData);
+                await api.post('/api/settings/banks', payload);
                 toast.success("Bank berhasil ditambahkan");
             }
             setIsDialogOpen(false);
