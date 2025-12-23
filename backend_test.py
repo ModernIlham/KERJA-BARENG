@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 class APITester:
-    def __init__(self, base_url="https://37269909-cbdc-419e-b734-f3ea49c9ae90.preview.emergentagent.com"):
+    def __init__(self, base_url="https://siman-staff.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
