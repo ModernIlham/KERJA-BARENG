@@ -18,6 +18,7 @@ from fastapi import UploadFile, File, Form
 from lib.image_processor import process_image_upload
 from openpyxl import Workbook
 from openpyxl.styles import Font, Fill, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.datavalidation import DataValidation
 
