@@ -167,43 +167,6 @@ export default function AdvancedSignaturePad({
     }
   }, [stylePreset]);
 
-  const initCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    contextRef.current = ctx;
-    
-    // Set canvas size
-    const rect = canvas.parentElement?.getBoundingClientRect();
-    if (!rect) return;
-    
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
-    canvas.style.width = `${rect.width}px`;
-    canvas.style.height = `${rect.height}px`;
-    ctx.scale(ratio, ratio);
-    
-    // Reset transform first
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(ratio, ratio);
-    
-    // Apply rotation transform
-    if (angle !== 0) {
-      ctx.translate(rect.width / 2, rect.height / 2);
-      ctx.rotate((angle * Math.PI) / 180);
-      ctx.translate(-rect.width / 2, -rect.height / 2);
-    }
-    
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-  }, [color, angle]);
-
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
