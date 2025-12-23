@@ -33,6 +33,7 @@ import { CSS } from '@dnd-kit/utilities';
 export default function StrukturOrganisasi() {
     const [units, setUnits] = useState([]);
     const [pegawai, setPegawai] = useState([]);
+    const [pimpinanKL, setPimpinanKL] = useState([]); // Pimpinan Kementerian/Lembaga
     const [loading, setLoading] = useState(true);
     const [treeData, setTreeData] = useState([]);
     const [hasChanges, setHasChanges] = useState(false);
