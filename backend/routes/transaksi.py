@@ -166,7 +166,7 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: User = Depends(
 @router.post("/bulk")
 async def bulk_asset_transaction(
     payload: Dict[str, Any],
-    current_user: str = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Handle bulk transactions for Aset Tetap (Moving multiple specific assets).
