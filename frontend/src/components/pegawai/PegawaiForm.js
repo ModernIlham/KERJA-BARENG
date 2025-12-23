@@ -378,16 +378,31 @@ export default function PegawaiForm({ initialData, onSuccess, onClose }) {
                     {/* Pimpinan Checkbox */}
                     {kategoriPegawai === 'Struktural' && (
                         <div className="bg-blue-50 p-3 rounded border border-blue-200">
-                            <div className="flex gap-4 items-center">
-                                <div className="flex items-center space-x-2">
-                                    <input type="checkbox" {...register("is_pimpinan_tertinggi")} id="chk_pimpinan" className="rounded" />
-                                    <Label htmlFor="chk_pimpinan" className="text-xs cursor-pointer">Pimpinan Tertinggi / Wakil</Label>
+                            <div className="flex flex-col gap-3">
+                                <div className="flex gap-4 items-center">
+                                    <div className="flex items-center space-x-2">
+                                        <input type="checkbox" {...register("is_pimpinan_tertinggi")} id="chk_pimpinan" className="rounded" />
+                                        <Label htmlFor="chk_pimpinan" className="text-xs cursor-pointer">Pimpinan Tertinggi / Wakil</Label>
+                                    </div>
+                                    {watch('is_pimpinan_tertinggi') && (
+                                        <select {...register("jenis_pimpinan")} className="h-7 border rounded px-2 text-xs bg-white">
+                                            <option value="Kepala">Kepala</option>
+                                            <option value="Wakil">Wakil Kepala</option>
+                                        </select>
+                                    )}
                                 </div>
-                                {watch('is_pimpinan_tertinggi') && (
-                                    <select {...register("jenis_pimpinan")} className="h-7 border rounded px-2 text-xs bg-white">
-                                        <option value="Kepala">Kepala</option>
-                                        <option value="Wakil">Wakil Kepala</option>
-                                    </select>
+                                
+                                {/* Pimpinan Struktural Instansi */}
+                                <div className="flex items-center space-x-2 pt-2 border-t border-blue-200">
+                                    <input type="checkbox" {...register("is_pimpinan_struktural")} id="chk_pimpinan_struktural" className="rounded" />
+                                    <Label htmlFor="chk_pimpinan_struktural" className="text-xs cursor-pointer">
+                                        Pimpinan Struktural Instansi
+                                    </Label>
+                                </div>
+                                {watch('is_pimpinan_struktural') && (
+                                    <div className="text-[10px] text-blue-600 bg-blue-100 p-2 rounded">
+                                        <strong>Info:</strong> Status ini akan otomatis berpindah ke pejabat baru saat terjadi mutasi/pergantian jabatan di unit kerja yang sama.
+                                    </div>
                                 )}
                             </div>
                         </div>
