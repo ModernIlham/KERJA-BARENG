@@ -120,6 +120,13 @@ export default function PegawaiList() {
         ...(filters.status && { status: filters.status }),
         ...(filters.status_kepegawaian && { status_kepegawaian: filters.status_kepegawaian }),
         ...(filters.eselon1 && { eselon1: filters.eselon1 }),
+        ...(filters.eselon2 && { eselon2: filters.eselon2 }),
+        ...(filters.kategori_pegawai && { kategori_pegawai: filters.kategori_pegawai }),
+        ...(filters.jenis_kelamin && { jenis_kelamin: filters.jenis_kelamin }),
+        ...(filters.pendidikan_terakhir && { pendidikan_terakhir: filters.pendidikan_terakhir }),
+        ...(filters.agama && { agama: filters.agama }),
+        ...(filters.jenis_non_asn && { jenis_non_asn: filters.jenis_non_asn }),
+        ...(filters.pangkat_golongan && { pangkat_golongan: filters.pangkat_golongan }),
       });
       
       const response = await api.get(`/api/pegawai/export/${format}?${params}`, {
