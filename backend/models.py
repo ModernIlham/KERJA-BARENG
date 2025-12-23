@@ -362,7 +362,7 @@ class Pegawai(MongoBaseModel):
     pendidikan_terakhir: Optional[str] = None
     
     # ========== STATUS KEPEGAWAIAN (Q-V) ==========
-    status_kepegawaian: Optional[str] = None  # PNS, PPPK, TNI, POLRI, Non-ASN, Honorer
+    status_kepegawaian: Optional[str] = None  # PNS, CPNS, PPPK, TNI, POLRI, Non-ASN, Honorer
     pangkat_golongan: Optional[str] = None  # e.g. Penata Muda (III/a)
     status_penempatan: Optional[str] = None  # Definitif, Mutasi, Penugasan
     instansi_asal: Optional[str] = None  # untuk Penugasan
