@@ -373,8 +373,10 @@ class Pegawai(MongoBaseModel):
     jenis_non_asn: Optional[str] = None  # Kontrak, Outsourcing
     sub_kategori_non_asn: Optional[str] = None  # PPNPN, Satpam, Supir, dll
     nama_perusahaan: Optional[str] = None  # Nama PT/CV untuk Outsourcing
+    nomor_kontrak: Optional[str] = None  # Nomor kontrak aktif
     tgl_mulai_kontrak: Optional[str] = None
     tgl_selesai_kontrak: Optional[str] = None
+    riwayat_kontrak: Optional[List[Dict]] = []  # List of {nomor_kontrak, tgl_mulai, tgl_selesai, keterangan}
     
     # Legacy field mapping
     sub_kategori: Optional[str] = None  # alias for sub_kategori_non_asn
