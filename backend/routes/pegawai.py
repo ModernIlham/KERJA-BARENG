@@ -361,29 +361,29 @@ async def get_import_template(current_user: str = Depends(get_current_user)):
         ("Y", "Tgl Mulai Kontrak", 18, False),
         ("Z", "Tgl Selesai Kontrak", 18, False),
         
-        # AA-AL: Jabatan & Unit Kerja
-        ("AB", "Jabatan Struktural", 35, False),
-        ("AC", "Jabatan Fungsional Melekat", 30, False),
-        ("AD", "Kategori Pegawai", 18, False),
-        ("AE", "Pimpinan K/L", 15, False),  # Pimpinan Kementerian/Lembaga
-        ("AF", "Jabatan Pimpinan K/L", 25, False),  # Menteri, Kepala Lembaga, dll
-        ("AG", "Pimpinan Tertinggi", 18, False),
-        ("AH", "Jenis Pimpinan", 15, False),
-        ("AI", "Eselon 1", 45, False),
-        ("AJ", "Eselon 2", 45, False),
-        ("AK", "Eselon 3", 40, False),
-        ("AL", "Eselon 4", 40, False),
-        ("AM", "Eselon 5", 40, False),
+        # AA-AK: Jabatan & Unit Kerja
+        ("AA", "Jabatan Struktural", 35, False),
+        ("AB", "Jabatan Fungsional Melekat", 30, False),
+        ("AC", "Kategori Pegawai", 18, False),
+        ("AD", "Pimpinan K/L", 15, False),  # Pimpinan Kementerian/Lembaga
+        ("AE", "Jabatan Pimpinan K/L", 25, False),  # Menteri, Kepala Lembaga, dll
+        ("AF", "Pimpinan Tertinggi", 18, False),
+        ("AG", "Jenis Pimpinan", 15, False),
+        ("AH", "Eselon 1", 45, False),
+        ("AI", "Eselon 2", 45, False),
+        ("AJ", "Eselon 3", 40, False),
+        ("AK", "Eselon 4", 40, False),
+        ("AL", "Eselon 5", 40, False),
         
-        # AN-AQ: Kontak & Bank
-        ("AN", "No Telepon", 15, False),
-        ("AO", "Email", 30, False),
-        ("AP", "Nama Bank", 28, False),
-        ("AQ", "No Rekening", 20, False),
+        # AM-AP: Kontak & Bank
+        ("AM", "No Telepon", 15, False),
+        ("AN", "Email", 30, False),
+        ("AO", "Nama Bank", 28, False),
+        ("AP", "No Rekening", 20, False),
         
-        # AR-AS: Status & Lainnya
-        ("AR", "Status Sistem", 15, False),
-        ("AS", "Keterangan", 35, False),
+        # AQ-AR: Status & Lainnya
+        ("AQ", "Status Sistem", 15, False),
+        ("AR", "Keterangan", 35, False),
     ]
     
     # Styles
