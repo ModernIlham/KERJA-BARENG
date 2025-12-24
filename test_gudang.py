@@ -565,7 +565,7 @@ class GudangTester:
                     if success:
                         aset_pegawai_list = response.get('data', [])
                         for asset in aset_pegawai_list:
-                            if asset.get('barang_id') == test_asset_id:
+                            if asset.get('master_barang_id') == test_asset_id:
                                 kode_aset = asset.get('kode_aset')
                                 print(f"📊 kode_aset in aset_pegawai: {kode_aset}")
                                 print("✅ kode_aset can be different format (kode_barang/nup) - this is correct")
