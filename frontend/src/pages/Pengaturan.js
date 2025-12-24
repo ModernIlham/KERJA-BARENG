@@ -633,6 +633,35 @@ export default function Pengaturan() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Gudang & Aset Pegawai Reset Card */}
+                    <Card className="border-cyan-200 bg-cyan-50">
+                        <CardHeader>
+                            <CardTitle className="text-cyan-800 flex items-center"><Warehouse size={18} className="mr-2"/> Reset Gudang & Aset Pegawai</CardTitle>
+                            <CardDescription className="text-cyan-600">Hapus data gudang penyimpanan dan aset yang dipegang pegawai.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <GudangAsetResetDialog 
+                                type="gudang" 
+                                onConfirm={handleGudangAsetReset} 
+                                loading={gudangAsetResetLoading} 
+                            />
+                            <GudangAsetResetDialog 
+                                type="aset_pegawai" 
+                                onConfirm={handleGudangAsetReset} 
+                                loading={gudangAsetResetLoading} 
+                            />
+                            <GudangAsetResetDialog 
+                                type="all_gudang_aset" 
+                                onConfirm={handleGudangAsetReset} 
+                                loading={gudangAsetResetLoading} 
+                            />
+                            
+                            <div className="mt-3 p-2 bg-cyan-100 border border-cyan-200 rounded text-xs text-cyan-700">
+                                <strong>Catatan:</strong> Reset ini tidak mempengaruhi master barang (Aset Tetap/BMN). Hanya data gudang dan tracking kepemilikan aset pegawai yang dihapus.
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </TabsContent>
 
