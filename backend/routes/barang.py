@@ -666,6 +666,7 @@ async def export_barang_excel(
     search: Optional[str] = None, filter_kode: Optional[str] = None, filter_nama: Optional[str] = None,
     filter_merk: Optional[str] = None, filter_kondisi: Optional[str] = None, filter_lokasi: Optional[str] = None,
     filter_nup: Optional[str] = None, ids: Optional[str] = None, all_selected: bool = False,
+    filter_golongan: Optional[str] = None,
     current_user: str = Depends(get_current_user)
 ):
     query = {}
@@ -675,28 +676,106 @@ async def export_barang_excel(
     else:
         if search: query["$or"] = [{"nama_barang": {"$regex": search, "$options": "i"}}, {"kode_barang": {"$regex": search, "$options": "i"}}]
         if filter_kode: query["kode_barang"] = {"$regex": filter_kode, "$options": "i"}
-        # ...
+        if filter_nama: query["nama_barang"] = {"$regex": filter_nama, "$options": "i"}
+        if filter_merk: query["merk"] = {"$regex": filter_merk, "$options": "i"}
+        if filter_kondisi: query["kondisi"] = {"$regex": filter_kondisi, "$options": "i"}
+        if filter_lokasi: query["lokasi_fisik"] = {"$regex": filter_lokasi, "$options": "i"}
+        if filter_nup: query["nup"] = filter_nup
+        if filter_golongan: query["golongan_barang"] = {"$regex": filter_golongan, "$options": "i"}
+        
     cursor = db.barang.find(query).limit(50000)
     items = await cursor.to_list(None)
     items = sanitize_json(items)
     if not items: raise HTTPException(status_code=404, detail="No data")
+    
+    # Build comprehensive export matching SIMAN format
     data_list = []
-    for item in items:
+    for idx, item in enumerate(items, 1):
         row = {
-            "Golongan": item.get('golongan_barang'), "Kode Barang": item.get('kode_barang'),
-            "NUP": item.get('nup'), "Nama Barang": item.get('nama_barang'),
-            "Merk": item.get('merk'), "Tipe": item.get('tipe'),
-            "Kondisi": item.get('kondisi'), "Stok": item.get('stok'),
-            "Nilai Perolehan": item.get('nilai_perolehan'), "Nilai Buku": item.get('nilai_buku'),
-            "Lokasi": item.get('lokasi_fisik'), "Tahun Anggaran": item.get('tahun_anggaran')
+            "No": idx,
+            "Jenis BMN": item.get('jenis_bmn'),
+            "Kode Satker": item.get('kode_satker'),
+            "Nama Satker": item.get('nama_satker'),
+            "Kode Barang": item.get('kode_barang'),
+            "NUP": item.get('nup'),
+            "Nama Barang": item.get('nama_barang'),
+            "Status BMN": item.get('status_bmn'),
+            "Merk": item.get('merk'),
+            "Tipe": item.get('tipe'),
+            "Kondisi": item.get('kondisi'),
+            "Umur Aset": item.get('umur_aset'),
+            "Intra / Extra": item.get('intra_ekstra'),
+            "Henti Guna": item.get('henti_guna'),
+            "Status SBSN": item.get('status_sbsn'),
+            "Status BMN Idle": item.get('status_bmn_idle'),
+            "Status Kemitraan": item.get('status_kemitraan'),
+            "BPYBDS": item.get('bpybds'),
+            "Usulan Barang Hilang": item.get('usulan_barang_hilang'),
+            "Usulan Barang RB": item.get('usulan_barang_rb'),
+            "Usul Hapus": item.get('usul_hapus'),
+            "Hibah DKTP": item.get('hibah'),
+            "Konsensi Jasa": item.get('konsesi'),
+            "Properti Investasi": item.get('investasi'),
+            "Jenis Dokumen": item.get('jenis_dokumen'),
+            "No Dokumen": item.get('no_dokumen'),
+            "No BPKP": item.get('no_bpkp'),
+            "No Polisi": item.get('no_polisi'),
+            "Status Sertifikasi": item.get('status_sertifikasi'),
+            "Jenis Sertipikat": item.get('jenis_sertifikat'),
+            "No Sertifikat": item.get('no_sertifikat'),
+            "Nama": item.get('nama_sertifikat'),
+            "Tanggal Buku Pertama": item.get('tgl_buku_pertama'),
+            "Tanggal Perolehan": item.get('tgl_perolehan'),
+            "Tanggal Pengapusan": item.get('tgl_penghapusan'),
+            "Nilai Perolehan Pertama": item.get('nilai_perolehan_pertama'),
+            "Nilai Mutasi": item.get('nilai_mutasi'),
+            "Nilai Perolehan": item.get('nilai_perolehan'),
+            "Nilai Penyusutan": item.get('nilai_penyusutan'),
+            "Nilai Buku": item.get('nilai_buku'),
+            "Luas Tanah Seluruhnya": item.get('luas_tanah'),
+            "Luas Tanah Untuk Bangunan": item.get('luas_tanah_bangunan'),
+            "Luas Tanah Untuk Sarana Lingkungan": item.get('luas_tanah_sarana'),
+            "Luas Lahan Kosong": item.get('luas_lahan_kosong'),
+            "Luas Bangunan": item.get('luas_bangunan'),
+            "Luas Tapak Bangunan": item.get('luas_tapak_bangunan'),
+            "Luas Pemanfataan": item.get('luas_pemanfaatan'),
+            "Jumlah Lantai": item.get('jumlah_lantai'),
+            "Jumlah Foto": item.get('jumlah_foto'),
+            "Status Penggunaan": item.get('status_penggunaan'),
+            "No PSP": item.get('no_psp'),
+            "Tanggal PSP": item.get('tgl_psp'),
+            "Alamat": item.get('alamat'),
+            "RT/RW": item.get('rt_rw'),
+            "Kelurahan/Desa": item.get('kelurahan'),
+            "Kecamatan": item.get('kecamatan'),
+            "Kab/Kota": item.get('kab_kota'),
+            "Kode Kab/Kota": item.get('kode_kab_kota'),
+            "Provinsi": item.get('provinsi'),
+            "Kode Provinsi": item.get('kode_provinsi'),
+            "Kode Pos": item.get('kode_pos'),
+            "SBSK": item.get('sbsk'),
+            "Optimalisasi": item.get('optimalisasi'),
+            "Penghuni": item.get('penghuni'),
+            "Pengguna": item.get('pengguna'),
+            "Kode KPKNL": item.get('kode_kpknl'),
+            "Uraian KPKNL": item.get('uraian_kpknl'),
+            "Uraian Kanwil DJKN": item.get('uraian_kanwil_djkn'),
+            "Nama K/L": item.get('nama_kl'),
+            "Nama E1": item.get('nama_e1'),
+            "Nama Korwil": item.get('nama_korwil'),
+            "Kode Register": item.get('kode_register'),
+            "Lokasi Ruang": item.get('lokasi_fisik'),
         }
-        if item.get('detail_lainnya'): row.update(item.get('detail_lainnya'))
         data_list.append(row)
+    
     df = pd.DataFrame(data_list)
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer: df.to_excel(writer, index=False)
+    with pd.ExcelWriter(output, engine='openpyxl') as writer: 
+        df.to_excel(writer, index=False, sheet_name='Data Aset Tetap')
     output.seek(0)
-    return StreamingResponse(output, headers={'Content-Disposition': 'attachment; filename="Export.xlsx"'}, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    
+    filename = f"Export_Aset_Tetap_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(output, headers={'Content-Disposition': f'attachment; filename="{filename}"'}, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 @router.get("/summary/stats")
 async def get_barang_stats(current_user: str = Depends(get_current_user)):
