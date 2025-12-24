@@ -153,44 +153,6 @@ export default function AsetPegawaiList() {
     setSearch('');
   };
   
-  const openAdd = () => {
-    setSelectedItem(null);
-    setFormData({
-      nama_aset: '',
-      kode_aset: '',
-      kategori: 'Umum',
-      merk: '',
-      tipe: '',
-      serial_number: '',
-      kondisi: 'Baik',
-      nilai_perolehan: 0,
-      tgl_perolehan: '',
-      lokasi: '',
-      keterangan: '',
-      pemegang_id: ''
-    });
-    setIsFormOpen(true);
-  };
-  
-  const openEdit = (item) => {
-    setSelectedItem(item);
-    setFormData({
-      nama_aset: item.nama_aset || '',
-      kode_aset: item.kode_aset || '',
-      kategori: item.kategori || 'Umum',
-      merk: item.merk || '',
-      tipe: item.tipe || '',
-      serial_number: item.serial_number || '',
-      kondisi: item.kondisi || 'Baik',
-      nilai_perolehan: item.nilai_perolehan || 0,
-      tgl_perolehan: item.tgl_perolehan || '',
-      lokasi: item.lokasi || '',
-      keterangan: item.keterangan || '',
-      pemegang_id: item.pemegang_id || ''
-    });
-    setIsFormOpen(true);
-  };
-  
   const openDetail = (item) => {
     setSelectedItem(item);
     setIsDetailOpen(true);
@@ -206,11 +168,6 @@ export default function AsetPegawaiList() {
     setSelectedItem(item);
     setKembalikanData({ kondisi_pengembalian: 'Baik', keterangan: '', gudang_id: '' });
     setIsKembalikanOpen(true);
-  };
-  
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-    setIsDeleteOpen(true);
   };
   
   const handleSubmit = async () => {
