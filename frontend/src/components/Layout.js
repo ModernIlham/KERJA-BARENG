@@ -218,6 +218,7 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 <SidebarItem to="/pegawai" icon={Users} label="Data Pegawai" collapsed={collapsed} />
                 <SidebarItem to="/aset-pegawai" icon={Package} label="Aset Pegawai" collapsed={collapsed} />
                 <SidebarItem to="/gudang" icon={Warehouse} label="Manajemen Gudang" collapsed={collapsed} />
+                <SidebarItem to="/notifikasi" icon={Bell} label="Notifikasi Aset" collapsed={collapsed} />
                 <SidebarItem to="/kepegawaian/tugas" icon={ClipboardList} label="Tugas Tim" collapsed={collapsed} />
                 <SidebarItem to="/kepegawaian/absensi" icon={Calendar} label="Riwayat Absensi" collapsed={collapsed} />
             </div>
