@@ -356,6 +356,23 @@ export default function BarangList() {
     }
   };
 
+  const downloadAsetTemplate = async () => {
+    const t = toast.loading("Mengunduh template Aset Tetap...");
+    try {
+      const response = await api.get('/api/barang/template', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'Template_Import_Aset_Tetap_SIMAN.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Template berhasil diunduh", {id: t});
+    } catch (error) {
+      toast.error("Gagal mengunduh template", {id: t});
+    }
+  };
+
   const downloadNotaDinas = async (type = 'kritis') => {
     const t = toast.loading("Membuat nota dinas...");
     try {
