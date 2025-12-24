@@ -121,9 +121,15 @@ export default function AssetOutgoingForm({ onSuccess }) {
     const doSearch = async () => {
         setSearching(true);
         try {
-            // Search all assets without limit
+            // Search only available assets (not held by employees)
+            // filter_status_aset will exclude "Dipinjamkan" assets
             const res = await api.get('/api/barang', {
-                params: { search, limit: 10000, filter_kondisi: 'Baik' } 
+                params: { 
+                    search, 
+                    limit: 10000, 
+                    filter_kondisi: 'Baik',
+                    filter_status_aset: 'Aktif,Di Gudang'  // Only show available assets
+                } 
             });
             setAssets(res.data.data);
         } catch (e) {
