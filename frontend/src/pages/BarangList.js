@@ -422,9 +422,11 @@ export default function BarangList() {
         <Button variant="outline" onClick={() => setIsImportOpen(true)} className="bg-white hover:bg-slate-50">
             <FileUp className="mr-2 h-4 w-4 text-slate-600" /> Import
         </Button>
-        <Button onClick={openAddModal} className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Plus className="mr-2 h-4 w-4" /> Tambah Baru
-        </Button>
+        {activeTab === 'persediaan' && (
+            <Button onClick={openAddModal} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Plus className="mr-2 h-4 w-4" /> Tambah Baru
+            </Button>
+        )}
     </div>
   );
 
