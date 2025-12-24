@@ -87,10 +87,20 @@ async def get_barang_list(
     filter_lokasi: Optional[str] = None,
     filter_nup: Optional[str] = None,
     filter_golongan: Optional[str] = None,
+    filter_status_aset: Optional[str] = None,  # NEW: Filter by asset status
     current_user: str = Depends(get_current_user)
 ):
     skip = (page - 1) * limit
     query = {}
+    
+    # Filter by status_aset (comma-separated for multiple values)
+    if filter_status_aset:
+        statuses = [s.strip() for s in filter_status_aset.split(',')]
+        if len(statuses) == 1:
+            query["status_aset"] = statuses[0]
+        else:
+            query["status_aset"] = {"$in": statuses}
+    
     if search:
         query["$or"] = [
             {"nama_barang": {"$regex": search, "$options": "i"}},
