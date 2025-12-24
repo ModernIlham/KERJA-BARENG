@@ -141,9 +141,14 @@ class GudangTester:
         
         # 1.1 Test POST /api/gudang - Create new warehouse
         print("\n🏗️ Step 1.1: Creating new warehouse...")
+        
+        # Use timestamp to ensure unique code
+        import time
+        timestamp = int(time.time())
+        
         gudang_data = {
-            "nama_gudang": "Gudang Test Automation",
-            "kode_gudang": "GT-AUTO-001",
+            "nama_gudang": f"Gudang Test Automation {timestamp}",
+            "kode_gudang": f"GT-AUTO-{timestamp}",
             "lokasi": "Jakarta Pusat",
             "alamat": "Jl. Test Automation No. 123",
             "kapasitas": 1000,
