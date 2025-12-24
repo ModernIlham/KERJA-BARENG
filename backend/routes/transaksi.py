@@ -415,3 +415,196 @@ async def upload_bukti_transaksi(
     except Exception as e:
         print(f"Upload error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/perubahan")
+async def create_transaksi_perubahan(
+    payload: Dict[str, Any],
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create a perubahan (change) transaction for BMN/KDP.
+    Supports:
+    - PERUBAHAN_KUANTITAS
+    - PERUBAHAN_KONDISI
+    - KOREKSI_NILAI_BMN
+    - KOREKSI_NILAI_KDP
+    - REKLASIFIKASI_MASUK
+    - REKLASIFIKASI_KELUAR
+    - REKLASIFIKASI_KDP
+    """
+    jenis = payload.get("jenis")
+    barang_id = payload.get("barang_id")
+    no_sppa = payload.get("no_sppa")
+    tanggal_transaksi = payload.get("tanggal_transaksi")
+    
+    if not jenis:
+        raise HTTPException(status_code=400, detail="Jenis transaksi wajib diisi")
+    if not barang_id:
+        raise HTTPException(status_code=400, detail="Barang ID wajib diisi")
+    if not no_sppa:
+        raise HTTPException(status_code=400, detail="No SPPA wajib diisi")
+    
+    # Get the asset
+    if not ObjectId.is_valid(barang_id):
+        raise HTTPException(status_code=400, detail="Invalid barang ID")
+    
+    asset = await db.barang.find_one({"_id": ObjectId(barang_id)})
+    if not asset:
+        raise HTTPException(status_code=404, detail="Aset tidak ditemukan")
+    
+    # Build transaction record
+    transaksi_record = {
+        "jenis": jenis,
+        "sub_jenis": payload.get("sub_jenis"),
+        "barang_id": barang_id,
+        "kode_barang": payload.get("kode_barang") or asset.get("kode_barang"),
+        "nup": payload.get("nup") or asset.get("nup"),
+        "nama_barang": payload.get("nama_barang") or asset.get("nama_barang"),
+        "no_sppa": no_sppa,
+        "tanggal_transaksi": tanggal_transaksi,
+        "petugas": current_user.full_name,
+        "created_at": datetime.now(timezone.utc),
+        "status": "COMPLETED"
+    }
+    
+    # Process based on transaction type
+    update_fields = {"updated_at": datetime.now(timezone.utc)}
+    
+    if jenis == "PERUBAHAN_KUANTITAS":
+        sub_jenis = payload.get("sub_jenis", "BERTAMBAH")
+        kuantitas_awal = payload.get("kuantitas_awal", 0)
+        kuantitas_perubahan = payload.get("kuantitas_perubahan", 0)
+        kuantitas_akhir = payload.get("kuantitas_akhir", 0)
+        
+        transaksi_record.update({
+            "kuantitas_awal": kuantitas_awal,
+            "kuantitas_perubahan": kuantitas_perubahan,
+            "kuantitas_akhir": kuantitas_akhir,
+            "alasan": payload.get("alasan"),
+            "dokumen_pendukung": payload.get("dokumen_pendukung"),
+            "keterangan": payload.get("keterangan")
+        })
+        
+        # Update asset quantity
+        update_fields["kuantitas"] = kuantitas_akhir
+        update_fields["jumlah"] = kuantitas_akhir
+        
+    elif jenis == "PERUBAHAN_KONDISI":
+        kondisi_awal = payload.get("kondisi_awal")
+        kondisi_akhir = payload.get("kondisi_akhir")
+        
+        transaksi_record.update({
+            "kondisi_awal": kondisi_awal,
+            "kondisi_akhir": kondisi_akhir,
+            "penyebab": payload.get("penyebab"),
+            "tanggal_kejadian": payload.get("tanggal_kejadian"),
+            "lokasi_kejadian": payload.get("lokasi_kejadian"),
+            "dokumen_pendukung": payload.get("dokumen_pendukung"),
+            "keterangan": payload.get("keterangan")
+        })
+        
+        # Update asset condition
+        update_fields["kondisi"] = kondisi_akhir
+        
+    elif jenis in ["KOREKSI_NILAI_BMN", "KOREKSI_NILAI_KDP"]:
+        sub_jenis = payload.get("sub_jenis", "BERTAMBAH")
+        nilai_perolehan_awal = payload.get("nilai_perolehan_awal", 0)
+        nilai_buku_awal = payload.get("nilai_buku_awal", 0)
+        nilai_koreksi = payload.get("nilai_koreksi", 0)
+        nilai_perolehan_akhir = payload.get("nilai_perolehan_akhir", 0)
+        nilai_buku_akhir = payload.get("nilai_buku_akhir", 0)
+        
+        transaksi_record.update({
+            "nilai_perolehan_awal": nilai_perolehan_awal,
+            "nilai_buku_awal": nilai_buku_awal,
+            "nilai_koreksi": nilai_koreksi,
+            "nilai_perolehan_akhir": nilai_perolehan_akhir,
+            "nilai_buku_akhir": nilai_buku_akhir,
+            "alasan_koreksi": payload.get("alasan_koreksi"),
+            "dasar_koreksi": payload.get("dasar_koreksi"),
+            "no_dokumen_pendukung": payload.get("no_dokumen_pendukung"),
+            "keterangan": payload.get("keterangan")
+        })
+        
+        # Update asset values
+        update_fields["nilai_perolehan"] = nilai_perolehan_akhir
+        update_fields["nilai_buku"] = nilai_buku_akhir
+        
+    elif jenis in ["REKLASIFIKASI_MASUK", "REKLASIFIKASI_KELUAR"]:
+        golongan_awal = payload.get("golongan_awal")
+        golongan_baru = payload.get("golongan_baru")
+        kode_barang_baru = payload.get("kode_barang_baru")
+        
+        transaksi_record.update({
+            "golongan_awal": golongan_awal,
+            "golongan_baru": golongan_baru,
+            "kode_barang_baru": kode_barang_baru,
+            "nilai_perolehan": payload.get("nilai_perolehan"),
+            "nilai_buku": payload.get("nilai_buku"),
+            "alasan_reklasifikasi": payload.get("alasan_reklasifikasi"),
+            "unit_asal": payload.get("unit_asal"),
+            "unit_tujuan": payload.get("unit_tujuan"),
+            "no_dokumen_pendukung": payload.get("no_dokumen_pendukung"),
+            "keterangan": payload.get("keterangan")
+        })
+        
+        # Update asset classification
+        update_fields["golongan_barang"] = golongan_baru
+        if kode_barang_baru:
+            update_fields["kode_barang"] = kode_barang_baru
+            
+    elif jenis == "REKLASIFIKASI_KDP":
+        kdp_tujuan_id = payload.get("kdp_tujuan_id")
+        nilai_yang_dipindahkan = payload.get("nilai_yang_dipindahkan", 0)
+        
+        transaksi_record.update({
+            "kdp_tujuan_id": kdp_tujuan_id,
+            "kdp_tujuan_kode": payload.get("kdp_tujuan_kode"),
+            "kdp_tujuan_nama": payload.get("kdp_tujuan_nama"),
+            "nilai_asal": payload.get("nilai_asal"),
+            "kdp_tujuan_nilai_awal": payload.get("kdp_tujuan_nilai_awal"),
+            "nilai_yang_dipindahkan": nilai_yang_dipindahkan,
+            "alasan_reklasifikasi": payload.get("alasan_reklasifikasi"),
+            "no_dokumen_pendukung": payload.get("no_dokumen_pendukung"),
+            "keterangan": payload.get("keterangan")
+        })
+        
+        # Update both KDP assets
+        nilai_asal_sekarang = asset.get("nilai_buku") or asset.get("nilai_perolehan") or 0
+        update_fields["nilai_buku"] = nilai_asal_sekarang - nilai_yang_dipindahkan
+        
+        # Update KDP tujuan
+        if kdp_tujuan_id and ObjectId.is_valid(kdp_tujuan_id):
+            kdp_tujuan = await db.barang.find_one({"_id": ObjectId(kdp_tujuan_id)})
+            if kdp_tujuan:
+                nilai_tujuan_sekarang = kdp_tujuan.get("nilai_buku") or kdp_tujuan.get("nilai_perolehan") or 0
+                await db.barang.update_one(
+                    {"_id": ObjectId(kdp_tujuan_id)},
+                    {"$set": {
+                        "nilai_buku": nilai_tujuan_sekarang + nilai_yang_dipindahkan,
+                        "updated_at": datetime.now(timezone.utc)
+                    }}
+                )
+    
+    # Insert transaction record
+    result = await db.transaksi.insert_one(transaksi_record)
+    
+    # Update the asset
+    await db.barang.update_one({"_id": ObjectId(barang_id)}, {"$set": update_fields})
+    
+    # Log activity
+    await log_activity(
+        db,
+        entity_type="transaksi",
+        entity_id=str(result.inserted_id),
+        action=f"create_{jenis.lower()}",
+        description=f"Transaksi {jenis} untuk {asset.get('nama_barang')}",
+        user_name=current_user.full_name
+    )
+    
+    return {
+        "message": f"Transaksi {jenis} berhasil dicatat",
+        "id": str(result.inserted_id),
+        "jenis": jenis
+    }
