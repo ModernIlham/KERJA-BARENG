@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -28,6 +28,26 @@ export default function TransaksiAset() {
     const [activeTab, setActiveTab] = useState('riwayat');
     const [activeSubTab, setActiveSubTab] = useState('');
     const [loading, setLoading] = useState(false);
+    const [transactions, setTransactions] = useState([]);
+
+    const fetchTransactions = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/api/transaksi', { params: { limit: 100 } });
+            setTransactions(res.data.data || []);
+        } catch (e) {
+            console.error('Failed to fetch transactions:', e);
+            setTransactions([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'riwayat') {
+            fetchTransactions();
+        }
+    }, [activeTab, fetchTransactions]);
 
     // Tab categories for better organization
     const tabCategories = {
