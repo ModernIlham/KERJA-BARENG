@@ -253,23 +253,98 @@ export default function AssetOutgoingForm({ onSuccess }) {
                         </div>
 
                         <div className="space-y-1">
-                            <Label className="text-xs">Unit Penerima</Label>
+                            <Label className="text-xs flex items-center gap-1">
+                                <Building2 size={12}/> Unit Penerima
+                            </Label>
                             <Select onValueChange={v => setFormData({...formData, unit_penerima: v})}>
-                                <SelectTrigger className="bg-white"><SelectValue placeholder="Pilih Unit..."/></SelectTrigger>
-                                <SelectContent>
-                                    {units.map(u => <SelectItem key={u.id} value={u.id}>{u.nama_unit}</SelectItem>)}
+                                <SelectTrigger className="bg-white"><SelectValue placeholder="Pilih Unit Kerja..."/></SelectTrigger>
+                                <SelectContent className="max-h-[300px]">
+                                    {units.map(u => {
+                                        const config = eselonConfig[u.eselon] || { indent: 0, color: 'text-slate-600' };
+                                        const indentPx = config.indent * 16;
+                                        return (
+                                            <SelectItem key={u.id} value={u.id} className="py-2">
+                                                <div style={{ paddingLeft: `${indentPx}px` }} className="flex items-center gap-1">
+                                                    {config.indent > 0 && <ChevronRight size={10} className="text-slate-300"/>}
+                                                    <span className={config.color}>{u.nama_unit}</span>
+                                                    <span className="text-xs text-slate-400 ml-1">({u.eselon || '-'})</span>
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <div className="space-y-1">
-                            <Label className="text-xs">Pegawai Penerima <span className="text-blue-600 font-normal">(akan otomatis tercatat di Aset Pegawai)</span></Label>
-                            <Select onValueChange={v => setFormData({...formData, pegawai_id: v})}>
-                                <SelectTrigger className="bg-white"><SelectValue placeholder="Pilih Pegawai..."/></SelectTrigger>
-                                <SelectContent>
-                                    {pegawaiList.map(p => <SelectItem key={p._id} value={p._id}>{p.nama_lengkap} - {p.nip || p.nik || '-'}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
+                        <div className="space-y-1 relative">
+                            <Label className="text-xs flex items-center gap-1">
+                                <User size={12}/> Pegawai Penerima 
+                                <span className="text-blue-600 font-normal">(otomatis tercatat di Aset Pegawai)</span>
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    value={pegawaiSearch}
+                                    onChange={e => {
+                                        setPegawaiSearch(e.target.value);
+                                        setShowPegawaiDropdown(true);
+                                    }}
+                                    onFocus={() => setShowPegawaiDropdown(true)}
+                                    placeholder="Cari nama / NIP / unit kerja..."
+                                    className="bg-white"
+                                />
+                                <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"/>
+                            </div>
+                            
+                            {/* Selected Pegawai Display */}
+                            {selectedPegawai && (
+                                <div className="mt-1 p-2 bg-green-50 border border-green-200 rounded text-xs">
+                                    <div className="font-medium text-green-800">{selectedPegawai.nama_lengkap}</div>
+                                    <div className="text-green-600">
+                                        {selectedPegawai.nip || selectedPegawai.nik || '-'} • {selectedPegawai.jabatan || '-'}
+                                    </div>
+                                    <div className="text-green-500">{selectedPegawai.unit_kerja || '-'}</div>
+                                </div>
+                            )}
+                            
+                            {/* Pegawai Dropdown */}
+                            {showPegawaiDropdown && (
+                                <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-[250px] overflow-auto">
+                                    {filteredPegawai.length === 0 ? (
+                                        <div className="p-3 text-sm text-slate-400 text-center">
+                                            {pegawaiSearch ? 'Tidak ditemukan' : 'Ketik untuk mencari...'}
+                                        </div>
+                                    ) : (
+                                        filteredPegawai.map(p => (
+                                            <div
+                                                key={p._id}
+                                                onClick={() => {
+                                                    setSelectedPegawai(p);
+                                                    setFormData({...formData, pegawai_id: p._id});
+                                                    setPegawaiSearch(p.nama_lengkap);
+                                                    setShowPegawaiDropdown(false);
+                                                }}
+                                                className="p-2 hover:bg-slate-50 cursor-pointer border-b last:border-b-0"
+                                            >
+                                                <div className="font-medium text-sm text-slate-800">{p.nama_lengkap}</div>
+                                                <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                    <span className="bg-slate-100 px-1 rounded">{p.nip || p.nik || '-'}</span>
+                                                    <span>•</span>
+                                                    <span className="text-blue-600">{p.jabatan || '-'}</span>
+                                                </div>
+                                                <div className="text-xs text-slate-400 mt-0.5">
+                                                    📍 {p.unit_kerja || 'Unit tidak diketahui'}
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                    <div 
+                                        className="p-2 text-xs text-center text-slate-400 border-t bg-slate-50 cursor-pointer hover:bg-slate-100"
+                                        onClick={() => setShowPegawaiDropdown(false)}
+                                    >
+                                        Tutup
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-1">
