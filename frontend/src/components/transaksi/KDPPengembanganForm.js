@@ -249,11 +249,18 @@ export default function KDPPengembanganForm({ onSuccess }) {
                 <form onSubmit={handleSubmit(onSubmit)}>
                     {/* Top Level Info */}
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                        <div className="md:col-span-4 space-y-1">
+                            <Label className="text-xs font-semibold text-slate-600">No SPPA</Label>
+                            <div className="flex gap-2">
+                                <Input {...register('no_sppa')} className="bg-white h-9 flex-1" placeholder="Prefix..."/>
+                                <Input {...register('no_sppa_2')} className="bg-white h-9 flex-[2]" placeholder="Nomor SPPA..."/>
+                            </div>
+                        </div>
                         <div className="md:col-span-2 space-y-1">
                             <Label className="text-xs font-semibold text-slate-600">Tahun Anggaran</Label>
                             <Input {...register('tahun_anggaran')} className="bg-white h-9 font-bold" />
                         </div>
-                        <div className="md:col-span-10 space-y-1">
+                        <div className="md:col-span-6 space-y-1">
                             <Label className="text-xs font-semibold text-slate-600">Periode Pencatatan</Label>
                             <RadioGroup defaultValue="normal" onValueChange={(v) => setValue('periode', v)} className="flex gap-4 pt-2">
                                 <div className="flex items-center space-x-2">
