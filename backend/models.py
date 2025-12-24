@@ -527,6 +527,10 @@ class Transaksi(MongoBaseModel):
     # Link to Source Document (NEW)
     dokumen_sumber_id: Optional[str] = None
     
+    # SPPA Info
+    no_sppa: Optional[str] = None
+    no_sppa_2: Optional[str] = None
+    
     # Supplier Info
     nama_penyedia: Optional[str] = None
     npwp_penyedia: Optional[str] = None
