@@ -109,6 +109,11 @@ export default function TransaksiAset() {
         }
     };
 
+    const handleFormSuccess = () => {
+        setActiveTab('riwayat');
+        fetchTransactions();
+    };
+
     const renderSubTabContent = () => {
         switch (activeSubTab) {
             // Perolehan
