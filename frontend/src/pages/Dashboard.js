@@ -11,8 +11,10 @@ import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [notifWidget, setNotifWidget] = useState(null);
   
   // Filter States
   const [filters, setFilters] = useState({ eselon1: '', eselon2: '', eselon3: '' });
@@ -28,6 +30,14 @@ export default function Dashboard() {
         ]);
         setData(res.data);
         setFilterOptions(optRes.data);
+        
+        // Fetch notification widget data
+        try {
+          const notifRes = await api.get('/api/notifications/dashboard-widget');
+          setNotifWidget(notifRes.data);
+        } catch (e) {
+          console.log('Notification widget not available');
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard stats", error);
         // Fallback mock data if API fails
