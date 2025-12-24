@@ -153,14 +153,48 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 kode = clean_code_str(row.get('Kode Barang', ''))
                 nup = clean_code_str(row.get('NUP', ''))
                 reg = clean_code_str(row.get('Kode Register', ''))
-                if not kode: continue 
-                if str(kode).lower() == 'nan': continue
-                if str(nup).lower() == 'nan': nup = '1'
+                nama_barang = row.get('Nama Barang')
                 
-                dup_query = { "$or": [{"kode_barang": kode, "nup": nup}] }
-                if reg: dup_query["$or"].append({"kode_register": reg})
+                # Skip rows without essential data
+                if not nama_barang or str(nama_barang).lower() == 'nan':
+                    continue
                 
-                k = kode[:1]
+                # If no Kode Barang, try to generate from Kode Register or use placeholder
+                if not kode or str(kode).lower() == 'nan':
+                    if reg and str(reg).lower() != 'nan':
+                        # Use first 16 chars of Kode Register as Kode Barang
+                        kode = str(reg)[:16]
+                    else:
+                        # Generate based on row number with prefix
+                        kode = f"IMPORT-{index+1:06d}"
+                
+                if not nup or str(nup).lower() == 'nan': 
+                    nup = '1'
+                else:
+                    # Clean NUP - remove decimal if present
+                    try:
+                        nup = str(int(float(nup)))
+                    except:
+                        nup = str(nup).split('.')[0]
+                
+                # Determine duplicate query
+                dup_query = {}
+                if reg and str(reg).lower() != 'nan':
+                    dup_query = {"kode_register": reg}
+                else:
+                    dup_query = {"kode_barang": kode, "nup": nup}
+                
+                # Determine golongan from kode or Jenis BMN
+                k = kode[:1] if kode else "6"
+                jenis_bmn = row.get('Jenis BMN', '')
+                if jenis_bmn:
+                    jenis_lower = str(jenis_bmn).lower()
+                    if 'tanah' in jenis_lower: k = '2'
+                    elif 'gedung' in jenis_lower or 'bangunan' in jenis_lower: k = '4'
+                    elif 'peralatan' in jenis_lower or 'mesin' in jenis_lower: k = '3'
+                    elif 'jalan' in jenis_lower: k = '5'
+                    elif 'kdp' in jenis_lower or 'konstruksi' in jenis_lower: k = '7'
+                
                 gol = f"{k} - {ref_map.get(k, golongan_map.get(k, 'Unknown'))}"
                 
                 # Handle dates
@@ -168,6 +202,12 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 tgl_buku_pertama = str(row.get('Tanggal Buku Pertama'))[:10] if row.get('Tanggal Buku Pertama') else None
                 tgl_penghapusan = str(row.get('Tanggal Pengapusan'))[:10] if row.get('Tanggal Pengapusan') else None
                 tgl_psp = str(row.get('Tanggal PSP'))[:10] if row.get('Tanggal PSP') else None
+                
+                # Handle invalid dates
+                if tgl_penghapusan and '0001' in tgl_penghapusan:
+                    tgl_penghapusan = None
+                if tgl_psp and '9999' in tgl_psp:
+                    tgl_psp = None
                 
                 thn = None
                 if tgl_perolehan:
@@ -182,7 +222,7 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "nup": nup, 
                     "golongan_barang": gol,
                     "jenis_bmn": row.get('Jenis BMN'),
-                    "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
+                    "nama_barang": nama_barang or "Tanpa Nama",
                     "status_bmn": row.get('Status BMN') or "Aktif",
                     "merk": row.get('Merk'), 
                     "tipe": row.get('Tipe'), 
