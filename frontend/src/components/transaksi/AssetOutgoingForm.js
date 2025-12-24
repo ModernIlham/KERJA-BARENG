@@ -34,29 +34,34 @@ export default function AssetOutgoingForm({ onSuccess }) {
     const [showPegawaiDropdown, setShowPegawaiDropdown] = useState(false);
     const [selectedPegawai, setSelectedPegawai] = useState(null);
 
-    // Eselon hierarchy for display
+    // Eselon hierarchy for display (support both string and numeric)
     const eselonConfig = {
-        'Menteri/Kepala Lembaga': { level: 1, indent: 0, color: 'text-purple-700 font-bold' },
-        'Wakil Menteri': { level: 2, indent: 0, color: 'text-purple-600 font-semibold' },
-        'Sekretaris Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold' },
-        'Inspektur Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold' },
-        'Direktur Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold' },
-        'Deputi': { level: 3, indent: 1, color: 'text-blue-700 font-semibold' },
-        'Eselon I': { level: 3, indent: 1, color: 'text-blue-600 font-semibold' },
-        'Kepala Biro': { level: 4, indent: 2, color: 'text-green-700 font-medium' },
-        'Sekretaris Deputi': { level: 4, indent: 2, color: 'text-green-700 font-medium' },
-        'Direktur': { level: 4, indent: 2, color: 'text-green-700 font-medium' },
-        'Eselon II': { level: 4, indent: 2, color: 'text-green-600 font-medium' },
-        'Kepala Bagian': { level: 5, indent: 3, color: 'text-orange-700' },
-        'Kepala Bidang': { level: 5, indent: 3, color: 'text-orange-700' },
-        'Eselon III': { level: 5, indent: 3, color: 'text-orange-600' },
-        'Kepala Subbagian': { level: 6, indent: 4, color: 'text-slate-700' },
-        'Kepala Subbidang': { level: 6, indent: 4, color: 'text-slate-700' },
-        'Eselon IV': { level: 6, indent: 4, color: 'text-slate-600' },
-        'Kepala Seksi': { level: 7, indent: 5, color: 'text-slate-600' },
-        'Eselon V': { level: 7, indent: 5, color: 'text-slate-500' },
-        'Staff': { level: 8, indent: 5, color: 'text-slate-500' },
-        'Lainnya': { level: 9, indent: 5, color: 'text-slate-400' }
+        'Menteri/Kepala Lembaga': { level: 1, indent: 0, color: 'text-purple-700 font-bold', label: 'Pimpinan' },
+        'Wakil Menteri': { level: 2, indent: 0, color: 'text-purple-600 font-semibold', label: 'Wakil' },
+        'Sekretaris Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold', label: 'Es. I' },
+        'Inspektur Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold', label: 'Es. I' },
+        'Direktur Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold', label: 'Es. I' },
+        'Deputi': { level: 3, indent: 1, color: 'text-blue-700 font-semibold', label: 'Es. I' },
+        'Eselon I': { level: 3, indent: 1, color: 'text-blue-600 font-semibold', label: 'Es. I' },
+        '1': { level: 3, indent: 1, color: 'text-blue-600 font-semibold', label: 'Es. I' },
+        'Kepala Biro': { level: 4, indent: 2, color: 'text-green-700 font-medium', label: 'Es. II' },
+        'Sekretaris Deputi': { level: 4, indent: 2, color: 'text-green-700 font-medium', label: 'Es. II' },
+        'Direktur': { level: 4, indent: 2, color: 'text-green-700 font-medium', label: 'Es. II' },
+        'Eselon II': { level: 4, indent: 2, color: 'text-green-600 font-medium', label: 'Es. II' },
+        '2': { level: 4, indent: 2, color: 'text-green-600 font-medium', label: 'Es. II' },
+        'Kepala Bagian': { level: 5, indent: 3, color: 'text-orange-700', label: 'Es. III' },
+        'Kepala Bidang': { level: 5, indent: 3, color: 'text-orange-700', label: 'Es. III' },
+        'Eselon III': { level: 5, indent: 3, color: 'text-orange-600', label: 'Es. III' },
+        '3': { level: 5, indent: 3, color: 'text-orange-600', label: 'Es. III' },
+        'Kepala Subbagian': { level: 6, indent: 4, color: 'text-slate-700', label: 'Es. IV' },
+        'Kepala Subbidang': { level: 6, indent: 4, color: 'text-slate-700', label: 'Es. IV' },
+        'Eselon IV': { level: 6, indent: 4, color: 'text-slate-600', label: 'Es. IV' },
+        '4': { level: 6, indent: 4, color: 'text-slate-600', label: 'Es. IV' },
+        'Kepala Seksi': { level: 7, indent: 5, color: 'text-slate-600', label: 'Es. V' },
+        'Eselon V': { level: 7, indent: 5, color: 'text-slate-500', label: 'Es. V' },
+        '5': { level: 7, indent: 5, color: 'text-slate-500', label: 'Es. V' },
+        'Staff': { level: 8, indent: 5, color: 'text-slate-500', label: 'Staff' },
+        'Lainnya': { level: 9, indent: 5, color: 'text-slate-400', label: '-' }
     };
 
     // Filter pegawai based on search
