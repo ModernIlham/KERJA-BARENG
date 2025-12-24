@@ -24,15 +24,12 @@ export default function AsetPegawaiList() {
   const [showAlerts, setShowAlerts] = useState(false);
   
   // Modals
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isSerahTerimaOpen, setIsSerahTerimaOpen] = useState(false);
   const [isKembalikanOpen, setIsKembalikanOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   
   // State for selected item
   const [selectedItem, setSelectedItem] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
