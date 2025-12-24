@@ -300,7 +300,7 @@ export default function GudangList() {
                                     {gudangList.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={6} className="text-center py-8 text-slate-400">
-                                                Belum ada data gudang. Klik "Tambah Gudang" untuk membuat.
+                                                Belum ada data gudang. Klik &quot;Tambah Gudang&quot; untuk membuat.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
