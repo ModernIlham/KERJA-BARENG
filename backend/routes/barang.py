@@ -134,7 +134,7 @@ def sanitize_json(obj):
 
 @router.post("/import")
 async def import_barang_excel(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
-    # ... (Import logic same as previous success, keeping it) ...
+    """Import aset tetap dari file Excel format SIMAN"""
     if not file.filename.endswith(('.xls', '.xlsx')): raise HTTPException(status_code=400, detail="Excel only")
     try:
         contents = await file.read()
@@ -163,61 +163,143 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                 k = kode[:1]
                 gol = f"{k} - {ref_map.get(k, golongan_map.get(k, 'Unknown'))}"
                 
-                tgl = str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None
-                thn = None
-                if tgl:
-                    try: thn = str(datetime.strptime(tgl, "%Y-%m-%d").year)
-                    except: thn = tgl[:4]
-                else: thn = str(row.get('Tahun Anggaran', ''))
+                # Handle dates
+                tgl_perolehan = str(row.get('Tanggal Perolehan'))[:10] if row.get('Tanggal Perolehan') else None
+                tgl_buku_pertama = str(row.get('Tanggal Buku Pertama'))[:10] if row.get('Tanggal Buku Pertama') else None
+                tgl_penghapusan = str(row.get('Tanggal Pengapusan'))[:10] if row.get('Tanggal Pengapusan') else None
+                tgl_psp = str(row.get('Tanggal PSP'))[:10] if row.get('Tanggal PSP') else None
                 
+                thn = None
+                if tgl_perolehan:
+                    try: thn = str(datetime.strptime(tgl_perolehan, "%Y-%m-%d").year)
+                    except: thn = tgl_perolehan[:4] if tgl_perolehan else None
+                
+                # Build comprehensive item data from SIMAN format
                 item_data = {
                     "source": "import",
-                    "source": "import",
-                    "kode_barang": kode, "nup": nup, "golongan_barang": gol,
+                    # Basic Info
+                    "kode_barang": kode, 
+                    "nup": nup, 
+                    "golongan_barang": gol,
+                    "jenis_bmn": row.get('Jenis BMN'),
                     "nama_barang": row.get('Nama Barang') or "Tanpa Nama",
-                    "merk": row.get('Merk'), "tipe": row.get('Tipe'), "kondisi": row.get('Kondisi'),
-                    "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
-                    "nilai_buku": clean_currency(row.get('Nilai Buku')),
-                    "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
-                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')), 
-                    "tgl_perolehan": tgl, "tahun_anggaran": thn,
-                    "lokasi_fisik": row.get('Lokasi'), "ruang": row.get('Ruang'),
-                    "alamat": row.get('Alamat'), "kab_kota": row.get('Kab/Kota'), "provinsi": row.get('Provinsi'),
-                    "kecamatan": row.get('Kecamatan'), "kelurahan": row.get('Kelurahan/Desa'), "rt_rw": row.get('RT/RW'),
-                    "kode_pos": str(row.get('Kode Pos', '')),
-                    "kode_satker": str(row.get('Kode Satker', '')), "nama_satker": row.get('Nama Satker'),
-                    "intra_ekstra": row.get('Aset Intra / Extra'), "kode_register": reg,
-                    "status_penggunaan": row.get('Status Penggunaan'),
-                    "luas_tanah": clean_currency(row.get('Luas Tanah Seluruhnya')),
-                    "luas_bangunan": clean_currency(row.get('Luas Bangunan')),
-                    "no_sertifikat": str(row.get('No Sertifikat', '')),
+                    "status_bmn": row.get('Status BMN') or "Aktif",
+                    "merk": row.get('Merk'), 
+                    "tipe": row.get('Tipe'), 
+                    "kondisi": row.get('Kondisi') or "Baik",
+                    "umur_aset": row.get('Umur Aset'),
+                    "satuan": "Unit",
+                    
+                    # Intra/Extra & Status
+                    "intra_ekstra": row.get('Intra / Extra') or row.get('Aset Intra / Extra'),
+                    "henti_guna": row.get('Henti Guna'),
+                    "status_sbsn": row.get('Status SBSN'),
+                    "status_bmn_idle": row.get('Status BMN Idle'),
+                    "status_kemitraan": row.get('Status Kemitraan'),
+                    "bpybds": row.get('BPYBDS'),
+                    "usulan_barang_hilang": row.get('Usulan Barang Hilang'),
+                    "usulan_barang_rb": row.get('Usulan Barang RB'),
+                    "usul_hapus": row.get('Usul Hapus'),
+                    "hibah": row.get('Hibah'),
+                    "dktp": row.get('DKTP'),
+                    "konsesi": row.get('Konsensi'),
+                    "jasa_properti": row.get('Jasa Properti'),
+                    "investasi": row.get('Investasi'),
+                    
+                    # Dokumen
+                    "jenis_dokumen": row.get('Jenis Dokumen'),
+                    "no_dokumen": str(row.get('No Dokumen', '')) if row.get('No Dokumen') else None,
+                    "no_bpkp": str(row.get('No BPKP', '')) if row.get('No BPKP') else None,
+                    "no_polisi": str(row.get('No Polisi', '')) if row.get('No Polisi') else None,
+                    
+                    # Sertifikat
                     "status_sertifikasi": row.get('Status Sertifikasi'),
                     "jenis_sertifikat": row.get('Jenis Sertipikat') or row.get('Jenis Sertifikat'),
-                    "tgl_sertifikat": str(row.get('Tanggal Sertifikat'))[:10] if row.get('Tanggal Sertifikat') else None,
-                    "no_psp": str(row.get('No PSP', '')),
-                    "tgl_psp": str(row.get('Tanggal PSP'))[:10] if row.get('Tanggal PSP') else None,
-                    "status_aset": "Aktif", "stok": 1, "updated_at": datetime.now(timezone.utc)
+                    "no_sertifikat": str(row.get('No Sertifikat', '')) if row.get('No Sertifikat') else None,
+                    "nama_sertifikat": row.get('Nama'),
+                    
+                    # Dates
+                    "tgl_buku_pertama": tgl_buku_pertama,
+                    "tgl_perolehan": tgl_perolehan, 
+                    "tgl_penghapusan": tgl_penghapusan,
+                    "tahun_anggaran": thn,
+                    
+                    # Values
+                    "nilai_perolehan_pertama": clean_currency(row.get('Nilai Perolehan Pertama')),
+                    "nilai_mutasi": clean_currency(row.get('Nilai Mutasi')),
+                    "nilai_perolehan": clean_currency(row.get('Nilai Perolehan')),
+                    "nilai_penyusutan": clean_currency(row.get('Nilai Penyusutan')),
+                    "nilai_buku": clean_currency(row.get('Nilai Buku')),
+                    "nilai_satuan": clean_currency(row.get('Nilai Perolehan')), 
+                    
+                    # Luas
+                    "luas_tanah": clean_currency(row.get('Luas Tanah Seluruhnya')),
+                    "luas_tanah_bangunan": clean_currency(row.get('Luas Tanah Untuk Bangunan')),
+                    "luas_tanah_sarana": clean_currency(row.get('Luas Tanah Untuk Sarana Lingkungan')),
+                    "luas_lahan_kosong": clean_currency(row.get('Luas Lahan Kosong')),
+                    "luas_bangunan": clean_currency(row.get('Luas Bangunan')),
+                    "luas_tapak_bangunan": clean_currency(row.get('Luas Tapak Bangunan')),
+                    "luas_pemanfaatan": clean_currency(row.get('Luas Pemanfataan')),
+                    "jumlah_lantai": row.get('Jumlah Lantai'),
+                    "jumlah_foto": row.get('Jumlah Foto'),
+                    
+                    # PSP
+                    "status_penggunaan": row.get('Status Penggunaan'),
+                    "no_psp": str(row.get('No PSP', '')) if row.get('No PSP') else None,
+                    "tgl_psp": tgl_psp,
+                    
+                    # Lokasi
+                    "alamat": row.get('Alamat'),
+                    "rt_rw": row.get('RT/RW'),
+                    "kelurahan": row.get('Kelurahan/Desa'),
+                    "kecamatan": row.get('Kecamatan'),
+                    "kab_kota": row.get('Kab/Kota'),
+                    "kode_kab_kota": str(row.get('Kode Kab/Kota', '')) if row.get('Kode Kab/Kota') else None,
+                    "provinsi": row.get('Provinsi'),
+                    "kode_provinsi": str(row.get('Kode Provinsi', '')) if row.get('Kode Provinsi') else None,
+                    "kode_pos": str(row.get('Kode Pos', '')) if row.get('Kode Pos') else None,
+                    "lokasi_fisik": row.get('Lokasi'),
+                    "ruang": row.get('Ruang'),
+                    
+                    # SBSK & Optimalisasi
+                    "sbsk": row.get('SBSK'),
+                    "optimalisasi": row.get('Optimalisasi'),
+                    "penghuni": row.get('Penghuni'),
+                    "pengguna": row.get('Pengguna'),
+                    
+                    # KPKNL & Kanwil
+                    "kode_kpknl": str(row.get('Kode KPKNL', '')) if row.get('Kode KPKNL') else None,
+                    "uraian_kpknl": row.get('Uraian KPKNL'),
+                    "uraian_kanwil_djkn": row.get('Uraian Kanwil DJKN'),
+                    
+                    # Satker & Unit
+                    "kode_satker": str(row.get('Kode Satker', '')) if row.get('Kode Satker') else None, 
+                    "nama_satker": row.get('Nama Satker'),
+                    "nama_kl": row.get('Nama K/L'),
+                    "nama_e1": row.get('Nama E1'),
+                    "nama_korwil": row.get('Nama Korwil'),
+                    "kode_register": reg,
+                    
+                    # Kendaraan
+                    "jenis_identitas": row.get('Jenis Identitas'),
+                    "no_identitas": str(row.get('No Identitas', '')) if row.get('No Identitas') else None,
+                    "no_stnk": str(row.get('No STNK', '')) if row.get('No STNK') else None,
+                    "nama_pengguna": row.get('Nama Pengguna'),
+                    "status_pmk": row.get('Status PMK'),
+                    
+                    # System fields
+                    "status_aset": "Aktif", 
+                    "stok": 1, 
+                    "updated_at": datetime.now(timezone.utc)
                 }
-                
-                known_keys = ['Kode Barang', 'NUP', 'Kode Register', 'Nama Barang', 'Merk', 'Tipe', 'Kondisi', 
-                              'Nilai Perolehan', 'Nilai Buku', 'Nilai Penyusutan', 'Tanggal Perolehan', 'Tahun Anggaran',
-                              'Lokasi', 'Ruang', 'Alamat', 'Kab/Kota', 'Provinsi', 'Kecamatan', 'Kelurahan/Desa', 'RT/RW', 'Kode Pos',
-                              'Kode Satker', 'Nama Satker', 'Aset Intra / Extra', 'Status Penggunaan', 
-                              'Luas Tanah Seluruhnya', 'Luas Bangunan', 'No Sertifikat', 'Status Sertifikasi', 'Jenis Sertipikat', 
-                              'Tanggal Sertifikat', 'No PSP', 'Tanggal PSP', 'No']
-                detail_lainnya = {}
-                for col in row.keys():
-                    if col not in known_keys:
-                        val = row.get(col)
-                        if isinstance(val, float) and (math.isnan(val) or math.isinf(val)): val = None
-                        detail_lainnya[col] = val
-                item_data['detail_lainnya'] = detail_lainnya
                 
                 result = await db.barang.update_one(dup_query, {"$set": item_data}, upsert=True)
                 if result.upserted_id: count_inserted += 1
                 else: count_updated += 1
                 count_processed += 1
-            except: continue
+            except Exception as e: 
+                print(f"Error processing row {index}: {e}")
+                continue
         return {"message": "Import selesai", "processed": count_processed, "inserted": count_inserted, "updated": count_updated, "note": "Data duplikat telah ditimpa (overwrite)."}
     except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
