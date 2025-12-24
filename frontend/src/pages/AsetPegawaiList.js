@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { 
   Search, Package, ArrowRightLeft, User, Clock, Filter, X, ChevronUp, 
-  ChevronDown, ArrowUpDown, RotateCcw, Bell, FileText
+  ChevronDown, ArrowUpDown, RotateCcw, Bell, FileText, AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Pagination } from '../components/ui/pagination';
