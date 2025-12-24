@@ -30,6 +30,47 @@ export default function AssetOutgoingForm({ onSuccess }) {
     const [units, setUnits] = useState([]);
     const [pegawaiList, setPegawaiList] = useState([]);
     const [buktiFile, setBuktiFile] = useState(null);
+    const [pegawaiSearch, setPegawaiSearch] = useState('');
+    const [showPegawaiDropdown, setShowPegawaiDropdown] = useState(false);
+    const [selectedPegawai, setSelectedPegawai] = useState(null);
+
+    // Eselon hierarchy for display
+    const eselonConfig = {
+        'Menteri/Kepala Lembaga': { level: 1, indent: 0, color: 'text-purple-700 font-bold' },
+        'Wakil Menteri': { level: 2, indent: 0, color: 'text-purple-600 font-semibold' },
+        'Sekretaris Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold' },
+        'Inspektur Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold' },
+        'Direktur Jenderal': { level: 3, indent: 1, color: 'text-blue-700 font-semibold' },
+        'Deputi': { level: 3, indent: 1, color: 'text-blue-700 font-semibold' },
+        'Eselon I': { level: 3, indent: 1, color: 'text-blue-600 font-semibold' },
+        'Kepala Biro': { level: 4, indent: 2, color: 'text-green-700 font-medium' },
+        'Sekretaris Deputi': { level: 4, indent: 2, color: 'text-green-700 font-medium' },
+        'Direktur': { level: 4, indent: 2, color: 'text-green-700 font-medium' },
+        'Eselon II': { level: 4, indent: 2, color: 'text-green-600 font-medium' },
+        'Kepala Bagian': { level: 5, indent: 3, color: 'text-orange-700' },
+        'Kepala Bidang': { level: 5, indent: 3, color: 'text-orange-700' },
+        'Eselon III': { level: 5, indent: 3, color: 'text-orange-600' },
+        'Kepala Subbagian': { level: 6, indent: 4, color: 'text-slate-700' },
+        'Kepala Subbidang': { level: 6, indent: 4, color: 'text-slate-700' },
+        'Eselon IV': { level: 6, indent: 4, color: 'text-slate-600' },
+        'Kepala Seksi': { level: 7, indent: 5, color: 'text-slate-600' },
+        'Eselon V': { level: 7, indent: 5, color: 'text-slate-500' },
+        'Staff': { level: 8, indent: 5, color: 'text-slate-500' },
+        'Lainnya': { level: 9, indent: 5, color: 'text-slate-400' }
+    };
+
+    // Filter pegawai based on search
+    const filteredPegawai = useMemo(() => {
+        if (!pegawaiSearch.trim()) return pegawaiList.slice(0, 50);
+        const searchLower = pegawaiSearch.toLowerCase();
+        return pegawaiList.filter(p => 
+            p.nama_lengkap?.toLowerCase().includes(searchLower) ||
+            p.nip?.toLowerCase().includes(searchLower) ||
+            p.nik?.toLowerCase().includes(searchLower) ||
+            p.unit_kerja?.toLowerCase().includes(searchLower) ||
+            p.jabatan?.toLowerCase().includes(searchLower)
+        ).slice(0, 50);
+    }, [pegawaiList, pegawaiSearch]);
 
     useEffect(() => {
         // Load Dropdowns
