@@ -15984,7 +15984,7 @@ def main():
         return True
 
 if __name__ == "__main__":
-    print("🚀 Starting Aset Integration Testing...")
+    print("🚀 Starting New Transaction Types Testing...")
     print("=" * 60)
     
     tester = APITester()
@@ -15997,15 +15997,15 @@ if __name__ == "__main__":
     
     print(f"✅ Authentication successful. Token: {tester.token[:20]}...")
     
-    # Run the Aset Integration test
-    test_name = "Aset Integration (BMN ↔ Transaksi ↔ Aset Pegawai)"
+    # Run the New Transaction Types test
+    test_name = "New Transaction Types (Transfer Masuk, KDP Perolehan, Pengembangan Langsung, Pengembangan KDP)"
     
     print(f"\n{'='*60}")
     print(f"🧪 Running: {test_name}")
     print(f"{'='*60}")
     
     try:
-        result = tester.test_aset_integration()
+        result = tester.test_new_transaction_types()
         if result:
             print(f"✅ {test_name}: PASSED")
         else:
@@ -16016,7 +16016,7 @@ if __name__ == "__main__":
     
     # Final Summary
     print(f"\n{'='*60}")
-    print("📊 ASET INTEGRATION TEST RESULTS")
+    print("📊 NEW TRANSACTION TYPES TEST RESULTS")
     print(f"{'='*60}")
     
     status = "✅ PASSED" if result else "❌ FAILED"
@@ -16027,8 +16027,8 @@ if __name__ == "__main__":
     print(f"📈 Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
     
     if result:
-        print("🎉 Aset Integration test passed! All systems are working correctly.")
+        print("🎉 New Transaction Types test passed! All 4 transaction flows are working correctly.")
         exit(0)
     else:
-        print("⚠️ Aset Integration test failed. Please check the implementation.")
+        print("⚠️ New Transaction Types test failed. Please check the implementation.")
         exit(1)
