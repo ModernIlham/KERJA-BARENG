@@ -433,6 +433,54 @@ async def reset_database(
         await db.barang.delete_many({})
         await db.pegawai.delete_many({})
         return {"message": "SEMUA DATA (Barang, Transaksi, Pegawai) berhasil di-reset ke awal."}
+
+# --- Reset Gudang & Aset Pegawai ---
+@router.post("/database/reset-gudang-aset")
+async def reset_gudang_aset_pegawai(
+    target: str = "all",  # 'all', 'gudang', 'aset_pegawai'
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Reset data Gudang dan/atau Aset Pegawai.
+    target options:
+    - 'all': Reset kedua collection (gudang, aset_pegawai, gudang_movements)
+    - 'gudang': Hanya reset gudang dan gudang_movements
+    - 'aset_pegawai': Hanya reset aset_pegawai
+    """
+    deleted_counts = {}
+    
+    if target in ['all', 'gudang']:
+        # Delete gudang
+        res1 = await db.gudang.delete_many({})
+        deleted_counts['gudang'] = res1.deleted_count
+        
+        # Delete gudang_movements
+        res2 = await db.gudang_movements.delete_many({})
+        deleted_counts['gudang_movements'] = res2.deleted_count
+    
+    if target in ['all', 'aset_pegawai']:
+        # Delete aset_pegawai
+        res3 = await db.aset_pegawai.delete_many({})
+        deleted_counts['aset_pegawai'] = res3.deleted_count
+    
+    total_deleted = sum(deleted_counts.values())
+    
+    if total_deleted == 0:
+        return {"message": "Tidak ada data yang dihapus.", "deleted": deleted_counts}
+    
+    # Create summary message
+    parts = []
+    if deleted_counts.get('gudang', 0) > 0:
+        parts.append(f"{deleted_counts['gudang']} gudang")
+    if deleted_counts.get('gudang_movements', 0) > 0:
+        parts.append(f"{deleted_counts['gudang_movements']} riwayat pergerakan")
+    if deleted_counts.get('aset_pegawai', 0) > 0:
+        parts.append(f"{deleted_counts['aset_pegawai']} aset pegawai")
+    
+    message = f"Berhasil menghapus: {', '.join(parts)}"
+    
+    return {"message": message, "deleted": deleted_counts}
+
 @router.get("/instansi")
 async def get_instansi_config(current_user: str = Depends(get_current_user)):
     config = await db.system_settings.find_one({"key": "instansi"})
