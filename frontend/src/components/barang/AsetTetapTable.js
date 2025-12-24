@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../ui/dropdown-menu';
-import { Edit, Trash, MoreHorizontal, FileText } from 'lucide-react';
+import { Eye, FileText } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { TableSkeleton } from '../ui/skeleton-table';
 
