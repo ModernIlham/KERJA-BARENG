@@ -335,7 +335,7 @@ export default function AssetOutgoingForm({ onSuccess }) {
                                     <div className="text-green-600">
                                         {selectedPegawai.nip || selectedPegawai.nik || '-'} • {selectedPegawai.jabatan || '-'}
                                     </div>
-                                    <div className="text-green-500">{selectedPegawai.unit_kerja || '-'}</div>
+                                    <div className="text-green-500">📍 {getUnitKerja(selectedPegawai)}</div>
                                 </div>
                             )}
                             
@@ -365,8 +365,14 @@ export default function AssetOutgoingForm({ onSuccess }) {
                                                     <span className="text-blue-600">{p.jabatan || '-'}</span>
                                                 </div>
                                                 <div className="text-xs text-slate-400 mt-0.5">
-                                                    📍 {p.unit_kerja || 'Unit tidak diketahui'}
+                                                    📍 {getUnitKerja(p)}
                                                 </div>
+                                                {/* Show full unit path if available */}
+                                                {(p.eselon1 || p.eselon2) && (
+                                                    <div className="text-[10px] text-slate-300 mt-0.5 truncate">
+                                                        {getFullUnitPath(p)}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))
                                     )}
