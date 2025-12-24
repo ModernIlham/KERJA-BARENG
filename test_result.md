@@ -93,7 +93,19 @@ backend:
         comment: "✅ PASSED - Asset return functionality verified: 1) Navigation to AsetPegawai page works, 2) Return modal integration confirmed (though no 'Dipinjam' assets found for full testing), 3) Gudang dropdown in return modal shows created warehouses, 4) Modal opens/closes properly, 5) Integration with /api/gudang/return-asset endpoint implemented correctly."
 
 backend:
-  - task: "Unit Kerja Sorted by Eselon"
+  - task: "Notification Alerts API"
+    implemented: true
+    working: needs_testing
+    file: "/app/backend/routes/notifications.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: needs_testing
+        agent: "main"
+        comment: "Full notification API: GET /api/notifications/alerts, /alerts/summary, /dashboard-widget, POST /alerts/{id}/action. Supports PENSIUN, HABIS_KONTRAK, HABIS_PENUGASAN, MUTASI, MENINGGAL, KELUAR, PERUBAHAN_JABATAN alert types with priority levels (KRITIS 0-7d, TINGGI 8-14d, SEDANG 15-21d, RENDAH 22-30d)."
+
+metadata:
     implemented: true
     working: true
     file: "/app/backend/routes/settings.py"
