@@ -95,7 +95,7 @@ export default function AssetTransferMasukForm({ onSuccess }) {
     const handleOpenDocModal = async () => {
         setIsModalOpen(true);
         try {
-            const res = await api.get('/api/dokumen-sumber', { params: { kategori: 'Transfer' } });
+            const res = await api.get('/api/dokumen-sumber', { params: { kategori: 'Aset Tetap Transfer Masuk' } });
             setDokumenList(res.data.data);
         } catch (e) { console.error(e); }
     };

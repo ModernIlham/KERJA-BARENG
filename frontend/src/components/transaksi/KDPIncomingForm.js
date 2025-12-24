@@ -115,7 +115,7 @@ export default function KDPIncomingForm({ onSuccess }) {
     const handleOpenDocModal = async () => {
         setIsModalOpen(true);
         try {
-            const res = await api.get('/api/dokumen-sumber', { params: { kategori: 'KDP' } });
+            const res = await api.get('/api/dokumen-sumber', { params: { kategori: 'Aset Tetap KDP Perolehan' } });
             setDokumenList(res.data.data);
         } catch (e) { console.error(e); }
     };
