@@ -22,7 +22,9 @@ export default function AssetOutgoingForm({ onSuccess }) {
         dokumen_ref: '',
         keterangan: '',
         unit_penerima: '', // ID
-        pegawai_id: '' // ID
+        pegawai_id: '', // ID
+        no_sppa: '',
+        no_sppa_2: ''
     });
     
     const [units, setUnits] = useState([]);
