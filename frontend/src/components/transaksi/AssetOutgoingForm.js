@@ -265,8 +265,11 @@ export default function AssetOutgoingForm({ onSuccess }) {
                                 <SelectTrigger className="bg-white"><SelectValue placeholder="Pilih Unit Kerja..."/></SelectTrigger>
                                 <SelectContent className="max-h-[300px]">
                                     {units.map(u => {
-                                        const eselon = String(u.eselon || 'Lainnya');
-                                        const config = eselonConfig[eselon] || { indent: 0, color: 'text-slate-600', label: eselon };
+                                        // Handle both numeric and string eselon
+                                        const eselonKey = u.eselon !== undefined && u.eselon !== null 
+                                            ? String(u.eselon) 
+                                            : 'Lainnya';
+                                        const config = eselonConfig[eselonKey] || { indent: 0, color: 'text-slate-600', label: eselonKey };
                                         const indentPx = config.indent * 12;
                                         return (
                                             <SelectItem key={u.id} value={u.id} className="py-2">
