@@ -189,6 +189,7 @@ export default function TransaksiAset() {
                         </CardHeader>
                         <CardContent>
                             <TransactionTable 
+                                data={transactions}
                                 loading={loading} 
                                 assetType="aset" 
                                 type="all"
