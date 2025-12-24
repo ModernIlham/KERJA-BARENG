@@ -183,10 +183,14 @@ export default function KDPPengembanganForm({ onSuccess }) {
                             persentase: parseFloat(persentaseOtomatis),
                             catatan: data.catatan_termin,
                             jenis: pembayaranLabel,
-                            nomor_dokumen: data.nomor_dokumen
+                            nomor_dokumen: data.nomor_dokumen,
+                            no_sppa: data.no_sppa,
+                            no_sppa_2: data.no_sppa_2
                         }
                     ],
-                    terakhir_dikembangkan: data.tgl_pembukuan
+                    terakhir_dikembangkan: data.tgl_pembukuan,
+                    no_sppa: data.no_sppa,
+                    no_sppa_2: data.no_sppa_2
                 }
             });
 
