@@ -51,9 +51,9 @@ export default function AssetOutgoingForm({ onSuccess }) {
     const doSearch = async () => {
         setSearching(true);
         try {
-            // Search only active assets
+            // Search all assets without limit
             const res = await api.get('/api/barang', {
-                params: { search, limit: 50, filter_kondisi: 'Baik' } 
+                params: { search, limit: 10000, filter_kondisi: 'Baik' } 
             });
             setAssets(res.data.data);
         } catch (e) {
