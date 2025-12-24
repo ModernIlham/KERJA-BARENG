@@ -7,7 +7,8 @@
 - User requested Unit Penerima with hierarchy based on organizational structure (Eselon I-V)
 - User requested Pegawai Penerima with search functionality and unit info display
 - User requested warehouse management system for returning assets from employees
-- User reported kode_barang modification bug (needs verification)
+- User requested notification system for asset return alerts (pensiun, habis kontrak, dll)
+- H-30 days warning with priority scale
 
 ## Frontend Tests
 
