@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 
 class OrganisasiTester:
-    def __init__(self, base_url="https://bmn-tracker-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://assetguard-11.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
