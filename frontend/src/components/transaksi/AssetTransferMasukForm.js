@@ -163,7 +163,9 @@ export default function AssetTransferMasukForm({ onSuccess }) {
                         nama_ppk: data.nama_ppk,
                         uakpb: kodeUakpb,
                         nup_asal: data.nup_asal,
-                        kode_register_asal: data.kode_register_asal
+                        kode_register_asal: data.kode_register_asal,
+                        no_sppa: data.no_sppa,
+                        no_sppa_2: data.no_sppa_2
                     },
                     
                     dokumen_sumber_id: selectedDokumen?._id
