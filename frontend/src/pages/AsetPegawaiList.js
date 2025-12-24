@@ -283,9 +283,20 @@ export default function AsetPegawaiList() {
   };
   
   const handleKembalikan = async () => {
+    if (!kembalikanData.gudang_id) {
+      toast.error("Pilih gudang tujuan");
+      return;
+    }
+    
     try {
-      await api.post(`/api/aset-pegawai/${selectedItem.id}/kembalikan`, kembalikanData);
-      toast.success("Aset berhasil dikembalikan");
+      // Use the new gudang return endpoint
+      await api.post('/api/gudang/return-asset', {
+        barang_id: selectedItem.barang_id,
+        gudang_id: kembalikanData.gudang_id,
+        alasan: kembalikanData.kondisi_pengembalian,
+        keterangan: kembalikanData.keterangan
+      });
+      toast.success("Aset berhasil dikembalikan ke gudang");
       setIsKembalikanOpen(false);
       fetchAssets();
       fetchAlerts();
