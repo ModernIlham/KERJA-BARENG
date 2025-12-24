@@ -694,6 +694,6 @@ export default function GudangList() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </PageContainer>
+        </div>
     );
 }
