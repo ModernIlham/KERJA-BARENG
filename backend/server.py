@@ -65,6 +65,9 @@ api_router.include_router(aset_pegawai.router, prefix="/aset-pegawai", tags=["As
 # Gudang (Warehouse Management)
 api_router.include_router(gudang.router, prefix="/gudang", tags=["Gudang (Warehouse)"])
 
+# Notifications (Asset Return Alerts)
+api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+
 @api_router.get("/")
 async def root():
     return {"message": "SIMAN-G API Ready"}
