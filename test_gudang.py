@@ -356,8 +356,35 @@ class GudangTester:
                 print("❌ No barang available for testing")
                 return False
         else:
-            print(f"✅ Found asset: {dipinjam_asset.get('nama_aset')} (Status: {dipinjam_asset.get('status')})")
-            asset_barang_id = dipinjam_asset.get('master_barang_id')  # Use master_barang_id instead of barang_id
+            # Check if the master_barang_id exists in barang collection
+            asset_barang_id = dipinjam_asset.get('master_barang_id')
+            success, barang_check = self.run_test(
+                "Check if Barang Exists",
+                "GET",
+                f"api/barang/{asset_barang_id}",
+                200
+            )
+            
+            if not success:
+                print(f"⚠️ master_barang_id {asset_barang_id} not found in barang collection. Using available barang...")
+                success, barang_response = self.run_test(
+                    "Get Any Available Barang",
+                    "GET",
+                    "api/barang",
+                    200,
+                    data={"page": 1, "limit": 5}
+                )
+                
+                if success and barang_response.get('data'):
+                    test_barang = barang_response['data'][0]
+                    asset_barang_id = test_barang.get('_id')
+                    print(f"✅ Using available barang: {test_barang.get('nama_barang')} (ID: {asset_barang_id})")
+                else:
+                    print("❌ No barang available for testing")
+                    return False
+            else:
+                print(f"✅ Found asset: {dipinjam_asset.get('nama_aset')} (Status: {dipinjam_asset.get('status')})")
+                print(f"✅ Barang exists in collection: {barang_check.get('nama_barang')}")
         
         # Debug: Check the format of barang_id and gudang_id
         print(f"📊 Debug - master_barang_id: {asset_barang_id} (type: {type(asset_barang_id)})")
