@@ -352,12 +352,12 @@ export default function NotificationList() {
             
             <div className="w-[180px]">
               <Label className="text-xs text-slate-500">Jenis Alert</Label>
-              <Select value={alertType} onValueChange={setAlertType}>
+              <Select value={alertType} onValueChange={(v) => setAlertType(v === 'ALL' ? '' : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Semua Jenis" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Semua Jenis</SelectItem>
+                  <SelectItem value="ALL">Semua Jenis</SelectItem>
                   <SelectItem value="PENSIUN">🎖️ Pensiun</SelectItem>
                   <SelectItem value="HABIS_KONTRAK">📄 Habis Kontrak</SelectItem>
                   <SelectItem value="HABIS_PENUGASAN">🔄 Habis Penugasan</SelectItem>
