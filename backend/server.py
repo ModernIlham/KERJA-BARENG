@@ -63,7 +63,7 @@ api_router.include_router(kib.router, prefix="/aset", tags=["KIB (Kartu Inventar
 api_router.include_router(aset_pegawai.router, prefix="/aset-pegawai", tags=["Aset Pegawai (Tracking)"])
 
 # Gudang (Warehouse Management)
-app.include_router(gudang.router, tags=["Gudang (Warehouse)"])
+api_router.include_router(gudang.router, prefix="/gudang", tags=["Gudang (Warehouse)"])
 
 @api_router.get("/")
 async def root():
