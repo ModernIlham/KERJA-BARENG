@@ -213,12 +213,17 @@ export default function GudangList() {
     };
 
     return (
-        <PageContainer 
-            title="Manajemen Gudang" 
-            subtitle="Kelola lokasi penyimpanan dan pergerakan aset"
-        >
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Manajemen Gudang</h1>
+                    <p className="text-sm text-slate-500">Kelola lokasi penyimpanan dan pergerakan aset</p>
+                </div>
+            </div>
+            
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
