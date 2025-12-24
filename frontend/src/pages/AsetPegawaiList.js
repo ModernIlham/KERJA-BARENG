@@ -567,7 +567,7 @@ export default function AsetPegawaiList() {
                   <TableHead>Pemegang</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Nilai</TableHead>
-                  <TableHead className="text-center w-[150px]">Aksi</TableHead>
+                  <TableHead className="text-right w-[120px]">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -620,8 +620,8 @@ export default function AsetPegawaiList() {
                       <TableCell>
                         <span className="text-sm font-medium">{formatCurrency(item.nilai_perolehan)}</span>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="sm" onClick={() => openDetail(item)} title="Detail & Riwayat" className="h-8 w-8 p-0 hover:bg-slate-100">
                             <FileText className="h-4 w-4 text-slate-500" />
                           </Button>
@@ -630,7 +630,7 @@ export default function AsetPegawaiList() {
                               <Button variant="ghost" size="sm" onClick={() => openSerahTerima(item)} title="Serah Terima" className="h-8 w-8 p-0 hover:bg-blue-50 text-blue-600">
                                 <ArrowRightLeft className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => openKembalikan(item)} title="Kembalikan" className="h-8 w-8 p-0 hover:bg-green-50 text-green-600">
+                              <Button variant="ghost" size="sm" onClick={() => openKembalikan(item)} title="Kembalikan ke Gudang" className="h-8 w-8 p-0 hover:bg-green-50 text-green-600">
                                 <RotateCcw className="h-4 w-4" />
                               </Button>
                             </>
@@ -639,12 +639,6 @@ export default function AsetPegawaiList() {
                               <User className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" onClick={() => openEdit(item)} title="Edit" className="h-8 w-8 p-0 hover:bg-slate-100">
-                            <Edit className="h-4 w-4 text-slate-500" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => confirmDelete(item.id)} title="Hapus" className="h-8 w-8 p-0 hover:bg-red-50 text-red-500">
-                            <Trash className="h-4 w-4" />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
