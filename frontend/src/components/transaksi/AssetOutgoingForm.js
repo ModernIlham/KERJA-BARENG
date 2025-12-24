@@ -265,14 +265,15 @@ export default function AssetOutgoingForm({ onSuccess }) {
                                 <SelectTrigger className="bg-white"><SelectValue placeholder="Pilih Unit Kerja..."/></SelectTrigger>
                                 <SelectContent className="max-h-[300px]">
                                     {units.map(u => {
-                                        const config = eselonConfig[u.eselon] || { indent: 0, color: 'text-slate-600' };
-                                        const indentPx = config.indent * 16;
+                                        const eselon = String(u.eselon || 'Lainnya');
+                                        const config = eselonConfig[eselon] || { indent: 0, color: 'text-slate-600', label: eselon };
+                                        const indentPx = config.indent * 12;
                                         return (
                                             <SelectItem key={u.id} value={u.id} className="py-2">
-                                                <div style={{ paddingLeft: `${indentPx}px` }} className="flex items-center gap-1">
-                                                    {config.indent > 0 && <ChevronRight size={10} className="text-slate-300"/>}
+                                                <div style={{ paddingLeft: `${indentPx}px` }} className="flex items-center gap-2">
+                                                    {config.indent > 0 && <span className="text-slate-300">└</span>}
                                                     <span className={config.color}>{u.nama_unit}</span>
-                                                    <span className="text-xs text-slate-400 ml-1">({u.eselon || '-'})</span>
+                                                    <span className="text-[10px] bg-slate-100 px-1 rounded text-slate-500">{config.label}</span>
                                                 </div>
                                             </SelectItem>
                                         );
