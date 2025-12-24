@@ -416,7 +416,7 @@ class GudangTester:
             aset_pegawai_list = response.get('data', [])
             returned_asset = None
             for asset in aset_pegawai_list:
-                if asset.get('barang_id') == asset_barang_id:
+                if asset.get('master_barang_id') == asset_barang_id:
                     returned_asset = asset
                     break
             
