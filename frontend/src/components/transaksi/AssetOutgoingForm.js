@@ -89,7 +89,9 @@ export default function AssetOutgoingForm({ onSuccess }) {
                 unit_penerima: unitName,
                 pegawai_id: formData.pegawai_id,
                 dokumen_ref: formData.dokumen_ref,
-                keterangan: formData.keterangan
+                keterangan: formData.keterangan,
+                no_sppa: formData.no_sppa,
+                no_sppa_2: formData.no_sppa_2
             };
 
             const res = await api.post('/api/transaksi/bulk', payload);
