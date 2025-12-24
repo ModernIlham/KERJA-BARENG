@@ -600,10 +600,10 @@ export default function BarangList() {
       
       {/* Import & Add Modals - Unchanged logic, just keeping them here */}
         <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-            <DialogContent>
+            <DialogContent className="max-w-lg">
                 <DialogHeader>
                   <DialogTitle>
-                    {activeTab === 'persediaan' ? 'Import Data Persediaan' : 'Import Data Barang (SIMAN)'}
+                    {activeTab === 'persediaan' ? 'Import Data Persediaan' : 'Import Data Aset Tetap (Format SIMAN)'}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
@@ -622,9 +622,27 @@ export default function BarangList() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                        <AlertTriangle className="inline mr-2 h-4 w-4"/>
-                        Data dengan Kode & NUP sama akan di-overwrite.
+                      <div className="space-y-3">
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                          <div className="font-bold mb-2">Format Import Aset Tetap (SIMAN):</div>
+                          <p className="text-xs mb-2">File Excel harus mengandung kolom-kolom berikut:</p>
+                          <ul className="list-disc pl-5 space-y-1 text-xs">
+                            <li><strong>Kode Barang</strong> & <strong>NUP</strong> (wajib - sebagai identifier)</li>
+                            <li><strong>Nama Barang</strong>, Jenis BMN, Status BMN</li>
+                            <li><strong>Merk</strong>, Tipe, Kondisi, Umur Aset</li>
+                            <li><strong>Nilai Perolehan</strong>, Nilai Penyusutan, Nilai Buku</li>
+                            <li>Tanggal Perolehan, Tanggal PSP, dll</li>
+                            <li>Luas Tanah, Luas Bangunan, Alamat Lengkap</li>
+                            <li>Info Satker, KPKNL, Kode Register, dll</li>
+                          </ul>
+                        </div>
+                        <Button variant="outline" onClick={downloadAsetTemplate} className="w-full">
+                          <Download className="mr-2 h-4 w-4" /> Download Template Aset Tetap
+                        </Button>
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                          <AlertTriangle className="inline mr-2 h-4 w-4"/>
+                          Data dengan <strong>Kode Barang & NUP</strong> sama akan di-overwrite.
+                        </div>
                       </div>
                     )}
                     <form onSubmit={handleImportSubmit(onImport)} className="space-y-4">
