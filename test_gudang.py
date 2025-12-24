@@ -333,7 +333,7 @@ class GudangTester:
                         if success:
                             aset_pegawai_list = response.get('data', [])
                             for asset in aset_pegawai_list:
-                                if asset.get('barang_id') == barang_id and asset.get('status') == 'Dipinjam':
+                                if asset.get('master_barang_id') == barang_id and asset.get('status') == 'Dipinjam':
                                     dipinjam_asset = asset
                                     break
         
