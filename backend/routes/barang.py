@@ -288,7 +288,7 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "no_psp": str(row.get('No PSP', '')) if row.get('No PSP') else None,
                     "tgl_psp": tgl_psp,
                     
-                    # Lokasi
+                    # Lokasi - handle both "Lokasi" / "Ruang" and combined "Lokasi Ruang"
                     "alamat": row.get('Alamat'),
                     "rt_rw": row.get('RT/RW'),
                     "kelurahan": row.get('Kelurahan/Desa'),
@@ -298,8 +298,8 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "provinsi": row.get('Provinsi'),
                     "kode_provinsi": str(row.get('Kode Provinsi', '')) if row.get('Kode Provinsi') else None,
                     "kode_pos": str(row.get('Kode Pos', '')) if row.get('Kode Pos') else None,
-                    "lokasi_fisik": row.get('Lokasi'),
-                    "ruang": row.get('Ruang'),
+                    "lokasi_fisik": row.get('Lokasi') or row.get('Lokasi Ruang'),
+                    "ruang": row.get('Ruang') or row.get('Lokasi Ruang'),
                     
                     # SBSK & Optimalisasi
                     "sbsk": row.get('SBSK'),
