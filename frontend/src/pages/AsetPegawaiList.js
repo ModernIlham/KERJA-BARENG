@@ -843,12 +843,30 @@ export default function AsetPegawaiList() {
       <Dialog open={isKembalikanOpen} onOpenChange={setIsKembalikanOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Kembalikan Aset</DialogTitle>
+            <DialogTitle>Kembalikan Aset ke Gudang</DialogTitle>
             <DialogDescription>
-              Aset "{selectedItem?.nama_aset}" akan dikembalikan dari {selectedItem?.pemegang_nama}
+              Aset "{selectedItem?.nama_aset}" akan dikembalikan dari {selectedItem?.pemegang_nama} ke gudang
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Pilih Gudang Tujuan *</label>
+              <select 
+                className="w-full h-10 border rounded-md px-3"
+                value={kembalikanData.gudang_id}
+                onChange={(e) => setKembalikanData({...kembalikanData, gudang_id: e.target.value})}
+              >
+                <option value="">-- Pilih Gudang --</option>
+                {gudangList.map(g => (
+                  <option key={g.id} value={g.id}>
+                    {g.nama_gudang} ({g.kode_gudang}) - {g.lokasi || 'Lokasi tidak ditentukan'}
+                  </option>
+                ))}
+              </select>
+              {gudangList.length === 0 && (
+                <p className="text-xs text-red-500">Belum ada gudang. Buat gudang terlebih dahulu di halaman Manajemen Gudang.</p>
+              )}
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Kondisi Saat Dikembalikan</label>
               <select 
@@ -872,8 +890,8 @@ export default function AsetPegawaiList() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsKembalikanOpen(false)}>Batal</Button>
-            <Button onClick={handleKembalikan} className="bg-green-600 hover:bg-green-700">
-              <RotateCcw className="mr-2 h-4 w-4" /> Kembalikan
+            <Button onClick={handleKembalikan} className="bg-green-600 hover:bg-green-700" disabled={!kembalikanData.gudang_id}>
+              <RotateCcw className="mr-2 h-4 w-4" /> Kembalikan ke Gudang
             </Button>
           </DialogFooter>
         </DialogContent>
