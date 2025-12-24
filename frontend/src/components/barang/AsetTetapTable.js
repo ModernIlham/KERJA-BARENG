@@ -180,15 +180,14 @@ export default function AsetTetapTable({
                   </TableCell>
                 )}
                 <TableCell className="text-center sticky right-0 bg-white/90 backdrop-blur shadow-sm p-2">
-                  <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" className="h-6 w-6 p-0 hover:bg-slate-100"><MoreHorizontal size={14}/></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditModal(item)} className="text-xs"><Edit size={12} className="mr-2"/> Edit</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openKIBModal && openKIBModal(item._id)} className="text-xs text-blue-600"><FileText size={12} className="mr-2"/> Lihat KIB</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleDelete(item._id)} className="text-xs text-red-600"><Trash size={12} className="mr-2"/> Hapus</DropdownMenuItem>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex gap-1 justify-center">
+                      <Button variant="ghost" size="sm" onClick={() => openEditModal(item)} className="h-7 w-7 p-0 hover:bg-blue-50" title="Lihat Detail">
+                        <Eye size={14} className="text-blue-600"/>
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => openKIBModal && openKIBModal(item._id)} className="h-7 w-7 p-0 hover:bg-slate-100" title="Lihat KIB">
+                        <FileText size={14} className="text-slate-600"/>
+                      </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             )})
