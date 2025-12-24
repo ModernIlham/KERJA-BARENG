@@ -119,6 +119,107 @@ const KepegawaianResetDialog = ({ type, onConfirm, loading }) => {
         </>
     );
 };
+
+// Gudang & Aset Pegawai Reset Dialog Component
+const GudangAsetResetDialog = ({ type, onConfirm, loading }) => {
+    const [open, setOpen] = useState(false);
+    const [confirmText, setConfirmText] = useState('');
+
+    const config = {
+        gudang: {
+            title: 'Reset Data Gudang',
+            description: 'Hapus semua data gudang penyimpanan dan riwayat pergerakan aset. Data master barang tidak akan terpengaruh.',
+            buttonText: 'Reset Gudang',
+            icon: Warehouse,
+            color: 'text-cyan-600',
+            buttonClass: 'border-cyan-400 text-cyan-700 hover:bg-cyan-100'
+        },
+        aset_pegawai: {
+            title: 'Reset Aset Pegawai',
+            description: 'Hapus semua data aset yang dipegang/dipinjamkan pegawai. Status aset di master barang tidak akan berubah.',
+            buttonText: 'Reset Aset Pegawai',
+            icon: Package,
+            color: 'text-purple-600',
+            buttonClass: 'border-purple-400 text-purple-700 hover:bg-purple-100'
+        },
+        all_gudang_aset: {
+            title: 'Reset Gudang & Aset Pegawai',
+            description: 'Hapus SEMUA data gudang, riwayat pergerakan, dan data aset yang dipegang pegawai sekaligus.',
+            buttonText: 'Reset Semua',
+            icon: Database,
+            color: 'text-cyan-800',
+            buttonClass: 'bg-cyan-600 hover:bg-cyan-700 text-white'
+        }
+    };
+
+    const cfg = config[type];
+    const Icon = cfg.icon;
+
+    const handleConfirm = async () => {
+        if (confirmText !== 'RESET') {
+            toast.error('Ketik "RESET" untuk melanjutkan');
+            return;
+        }
+        await onConfirm(type);
+        setOpen(false);
+        setConfirmText('');
+    };
+
+    return (
+        <>
+            <Button
+                variant={type === 'all_gudang_aset' ? 'default' : 'outline'}
+                className={`w-full justify-start ${cfg.buttonClass}`}
+                onClick={() => setOpen(true)}
+                disabled={loading}
+            >
+                <Icon size={16} className="mr-2" />
+                {cfg.buttonText}
+            </Button>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className={`flex items-center gap-2 ${cfg.color}`}>
+                            <AlertTriangle className="w-5 h-5" />
+                            {cfg.title}
+                        </DialogTitle>
+                        <DialogDescription>{cfg.description}</DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3">
+                            <p className="text-sm text-cyan-700 font-medium">⚠️ Data yang dihapus tidak dapat dikembalikan!</p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label>Ketik <span className="font-bold text-cyan-600">RESET</span> untuk melanjutkan:</Label>
+                            <Input
+                                value={confirmText}
+                                onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+                                placeholder="Ketik RESET"
+                                className="border-cyan-200"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => { setOpen(false); setConfirmText(''); }} disabled={loading}>
+                            Batal
+                        </Button>
+                        <Button 
+                            className="bg-cyan-600 hover:bg-cyan-700"
+                            onClick={handleConfirm}
+                            disabled={confirmText !== 'RESET' || loading}
+                        >
+                            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Menghapus...</> : <><Trash className="w-4 h-4 mr-2" /> Hapus Data</>}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
 export default function Pengaturan() {
   const [users, setUsers] = useState([]);
   const [units, setUnits] = useState([]);
