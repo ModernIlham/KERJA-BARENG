@@ -440,6 +440,43 @@ export default function Pengaturan() {
       }
   };
 
+  // --- Gudang & Aset Pegawai Reset Functions ---
+  const handleGudangAsetReset = async (type) => {
+      setGudangAsetResetLoading(true);
+      const t = toast.loading('Menghapus data gudang & aset pegawai...');
+      
+      try {
+          // Map dialog type to API target param
+          const targetMap = {
+              gudang: 'gudang',
+              aset_pegawai: 'aset_pegawai',
+              all_gudang_aset: 'all'
+          };
+          
+          const res = await api.post('/api/settings/database/reset-gudang-aset', null, {
+              params: { target: targetMap[type] }
+          });
+          
+          toast.success(res.data.message, { id: t });
+          
+          // Show deleted counts if available
+          if (res.data.deleted) {
+              const counts = Object.entries(res.data.deleted)
+                  .filter(([_, val]) => val > 0)
+                  .map(([key, val]) => `${key}: ${val}`)
+                  .join(', ');
+              if (counts) {
+                  toast.info(`Data dihapus: ${counts}`);
+              }
+          }
+      } catch (e) {
+          const errorMsg = e.response?.data?.detail || 'Gagal menghapus data';
+          toast.error(errorMsg, { id: t });
+      } finally {
+          setGudangAsetResetLoading(false);
+      }
+  };
+
   if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
