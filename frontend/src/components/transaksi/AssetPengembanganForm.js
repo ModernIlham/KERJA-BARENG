@@ -156,10 +156,14 @@ export default function AssetPengembanganForm({ onSuccess }) {
                             jenis_dokumen: data.jenis_dokumen,
                             nomor_dokumen: data.nomor_dokumen,
                             keterangan: data.keterangan,
-                            nama_penyedia: data.nama_penyedia
+                            nama_penyedia: data.nama_penyedia,
+                            no_sppa: data.no_sppa,
+                            no_sppa_2: data.no_sppa_2
                         }
                     ],
-                    terakhir_dikembangkan: data.tgl_pembukuan
+                    terakhir_dikembangkan: data.tgl_pembukuan,
+                    no_sppa: data.no_sppa,
+                    no_sppa_2: data.no_sppa_2
                 }
             });
 
