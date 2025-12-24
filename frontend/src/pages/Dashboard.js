@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Package, DollarSign, AlertTriangle, ArrowUpRight, ArrowDownRight, Filter, Archive, Clock, Users, Briefcase, Activity } from 'lucide-react';
+import { Package, DollarSign, AlertTriangle, ArrowUpRight, ArrowDownRight, Filter, Archive, Clock, Users, Briefcase, Activity, Bell, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 import { PageContainer, PageHeader, SectionHeader } from '../components/ui/page-layout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
