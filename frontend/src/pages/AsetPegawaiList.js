@@ -6,8 +6,7 @@ import { Input } from '../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { 
-  Plus, Search, Trash, Edit, AlertTriangle, Package, 
-  ArrowRightLeft, User, Clock, Filter, X, ChevronUp, 
+  Search, Package, ArrowRightLeft, User, Clock, Filter, X, ChevronUp, 
   ChevronDown, ArrowUpDown, RotateCcw, Bell, FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
