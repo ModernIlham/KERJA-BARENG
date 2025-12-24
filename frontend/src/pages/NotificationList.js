@@ -336,12 +336,12 @@ export default function NotificationList() {
             
             <div className="w-[150px]">
               <Label className="text-xs text-slate-500">Prioritas</Label>
-              <Select value={priority} onValueChange={setPriority}>
+              <Select value={priority} onValueChange={(v) => setPriority(v === 'ALL' ? '' : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Semua" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Semua Prioritas</SelectItem>
+                  <SelectItem value="ALL">Semua Prioritas</SelectItem>
                   <SelectItem value="KRITIS">🔴 Kritis</SelectItem>
                   <SelectItem value="TINGGI">🟠 Tinggi</SelectItem>
                   <SelectItem value="SEDANG">🟡 Sedang</SelectItem>
