@@ -215,7 +215,9 @@ export default function KDPIncomingForm({ onSuccess }) {
                     keterangan: data.keterangan,
                     periode: data.periode,
                     nama_ppk: data.nama_ppk,
-                    uakpb: kodeUakpb
+                    uakpb: kodeUakpb,
+                    no_sppa: data.no_sppa,
+                    no_sppa_2: data.no_sppa_2
                 },
                 
                 dokumen_sumber_id: selectedDokumen?._id
