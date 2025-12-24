@@ -89,35 +89,24 @@ async def get_unit_kerja(current_user: str = Depends(get_current_user)):
         del u['_id']  # Remove the ObjectId field
         result.append(u)
     
-    # Define eselon hierarchy order
+    # Define eselon hierarchy order (support both string and numeric eselon)
     eselon_order = {
-        'Menteri/Kepala Lembaga': 1,
-        'Wakil Menteri': 2,
-        'Sekretaris Jenderal': 3,
-        'Inspektur Jenderal': 4,
-        'Direktur Jenderal': 5,
-        'Deputi': 6,
-        'Eselon I': 7,
-        'Kepala Biro': 8,
-        'Sekretaris Deputi': 9,
-        'Direktur': 10,
-        'Eselon II': 11,
-        'Kepala Bagian': 12,
-        'Kepala Bidang': 13,
-        'Eselon III': 14,
-        'Kepala Subbagian': 15,
-        'Kepala Subbidang': 16,
-        'Eselon IV': 17,
-        'Kepala Seksi': 18,
-        'Eselon V': 19,
-        'Staff': 20,
-        'Lainnya': 99
+        # String-based eselon
+        'Menteri/Kepala Lembaga': 1, 'Wakil Menteri': 2, 'Sekretaris Jenderal': 3,
+        'Inspektur Jenderal': 3, 'Direktur Jenderal': 3, 'Deputi': 3,
+        'Eselon I': 4, 'Kepala Biro': 5, 'Sekretaris Deputi': 5, 'Direktur': 5,
+        'Eselon II': 6, 'Kepala Bagian': 7, 'Kepala Bidang': 7, 'Eselon III': 8,
+        'Kepala Subbagian': 9, 'Kepala Subbidang': 9, 'Eselon IV': 10,
+        'Kepala Seksi': 11, 'Eselon V': 12, 'Staff': 13, 'Lainnya': 99,
+        # Numeric-based eselon (from database)
+        '1': 4, '2': 6, '3': 8, '4': 10, '5': 12,
+        1: 4, 2: 6, 3: 8, 4: 10, 5: 12
     }
     
     # Sort by eselon order, then by order field, then by name
     def sort_key(unit):
         eselon = unit.get('eselon', 'Lainnya')
-        order_val = eselon_order.get(eselon, 99)
+        order_val = eselon_order.get(eselon, eselon_order.get(str(eselon), 99))
         return (order_val, unit.get('order', 0), unit.get('nama_unit', ''))
     
     result.sort(key=sort_key)
