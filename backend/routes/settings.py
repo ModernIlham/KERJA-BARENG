@@ -88,6 +88,39 @@ async def get_unit_kerja(current_user: str = Depends(get_current_user)):
         u['id'] = str(u['_id'])
         del u['_id']  # Remove the ObjectId field
         result.append(u)
+    
+    # Define eselon hierarchy order
+    eselon_order = {
+        'Menteri/Kepala Lembaga': 1,
+        'Wakil Menteri': 2,
+        'Sekretaris Jenderal': 3,
+        'Inspektur Jenderal': 4,
+        'Direktur Jenderal': 5,
+        'Deputi': 6,
+        'Eselon I': 7,
+        'Kepala Biro': 8,
+        'Sekretaris Deputi': 9,
+        'Direktur': 10,
+        'Eselon II': 11,
+        'Kepala Bagian': 12,
+        'Kepala Bidang': 13,
+        'Eselon III': 14,
+        'Kepala Subbagian': 15,
+        'Kepala Subbidang': 16,
+        'Eselon IV': 17,
+        'Kepala Seksi': 18,
+        'Eselon V': 19,
+        'Staff': 20,
+        'Lainnya': 99
+    }
+    
+    # Sort by eselon order, then by order field, then by name
+    def sort_key(unit):
+        eselon = unit.get('eselon', 'Lainnya')
+        order_val = eselon_order.get(eselon, 99)
+        return (order_val, unit.get('order', 0), unit.get('nama_unit', ''))
+    
+    result.sort(key=sort_key)
     return result
 
 @router.post("/unit-kerja")
