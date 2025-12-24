@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { PageContainer } from '../components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
@@ -14,7 +13,7 @@ import { formatCurrency } from '../lib/utils';
 import { toast } from 'sonner';
 import { 
     Warehouse, Plus, Search, Package, ArrowLeftRight, ArrowDownToLine, 
-    Edit, Trash, Eye, ChevronRight, Building2, RotateCcw, Loader2 
+    Edit, Trash, Eye, ChevronRight, Building2, RotateCcw, Loader2, MapPin, User, History
 } from 'lucide-react';
 
 export default function GudangList() {
