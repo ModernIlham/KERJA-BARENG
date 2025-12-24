@@ -265,6 +265,12 @@ class GudangTester:
                 dipinjam_asset = asset
                 break
         
+        # Debug: Print the structure of aset_pegawai
+        if aset_pegawai_list:
+            print(f"📊 Debug - First aset_pegawai structure: {list(aset_pegawai_list[0].keys())}")
+            if dipinjam_asset:
+                print(f"📊 Debug - Dipinjam asset structure: {dipinjam_asset}")
+        
         if not dipinjam_asset:
             print("ℹ️ No asset with status 'Dipinjam' found. Creating test scenario...")
             
