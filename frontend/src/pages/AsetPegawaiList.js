@@ -50,22 +50,6 @@ export default function AsetPegawaiList() {
   const [sortOrder, setSortOrder] = useState('asc');
   const [showFilters, setShowFilters] = useState(false);
   
-  // Form data
-  const [formData, setFormData] = useState({
-    nama_aset: '',
-    kode_aset: '',
-    kategori: 'Umum',
-    merk: '',
-    tipe: '',
-    serial_number: '',
-    kondisi: 'Baik',
-    nilai_perolehan: 0,
-    tgl_perolehan: '',
-    lokasi: '',
-    keterangan: '',
-    pemegang_id: ''
-  });
-  
   // Pegawai list for dropdown
   const [pegawaiList, setPegawaiList] = useState([]);
   
