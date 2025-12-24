@@ -110,11 +110,26 @@ async def create_transaksi(tx_in: TransaksiCreate, current_user: User = Depends(
     elif tx_in.jenis == "OPNAME":
         diff = tx_in.jumlah - current_stok
         new_stok = tx_in.jumlah
+    
+    elif tx_in.jenis in ["PENGEMBANGAN", "PENGEMBANGAN_KDP"]:
+        # For development transactions, don't change stock
+        # Just record the transaction value
+        total_nilai_tx = tx_in.nilai_satuan * tx_in.jumlah if tx_in.nilai_satuan else 0
+        # Don't update stok for development transactions
+        new_stok = current_stok
         
-    await db.barang.update_one(
-        {"_id": ObjectId(tx_in.barang_id)},
-        {"$set": {"stok": new_stok, "updated_at": datetime.now(timezone.utc), "nilai_satuan": tx_in.nilai_satuan}}
-    )
+    # Only update stok if it changed (skip for PENGEMBANGAN types which handle their own update)
+    if tx_in.jenis not in ["PENGEMBANGAN", "PENGEMBANGAN_KDP"]:
+        await db.barang.update_one(
+            {"_id": ObjectId(tx_in.barang_id)},
+            {"$set": {"stok": new_stok, "updated_at": datetime.now(timezone.utc), "nilai_satuan": tx_in.nilai_satuan}}
+        )
+    else:
+        # For PENGEMBANGAN transactions, only update timestamp (nilai is updated by frontend PUT call)
+        await db.barang.update_one(
+            {"_id": ObjectId(tx_in.barang_id)},
+            {"$set": {"updated_at": datetime.now(timezone.utc)}}
+        )
     
     nama_pegawai = None
     unit_penerima = None
