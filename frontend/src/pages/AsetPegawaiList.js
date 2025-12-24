@@ -132,6 +132,15 @@ export default function AsetPegawaiList() {
     }
   };
   
+  const fetchGudangList = async () => {
+    try {
+      const res = await api.get('/api/gudang');
+      setGudangList(res.data || []);
+    } catch (e) {
+      console.error('Failed to fetch gudang');
+    }
+  };
+  
   useEffect(() => {
     const timeout = setTimeout(() => {
       fetchAssets();
@@ -143,6 +152,7 @@ export default function AsetPegawaiList() {
     fetchSummary();
     fetchAlerts();
     fetchPegawaiList();
+    fetchGudangList();
   }, []);
   
   const handleSort = (field) => {
