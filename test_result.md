@@ -13,6 +13,31 @@
 ## Frontend Tests
 
 frontend:
+  - task: "Notification Alert Page"
+    implemented: true
+    working: needs_testing
+    file: "/app/frontend/src/pages/NotificationList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: needs_testing
+        agent: "main"
+        comment: "Created notification page with priority display, filters, detail modal, and action processing."
+
+  - task: "Dashboard Notification Widget"
+    implemented: true
+    working: needs_testing
+    file: "/app/frontend/src/pages/Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: needs_testing
+        agent: "main"
+        comment: "Added notification widget on dashboard showing critical/high priority alerts."
+
+backend:
   - task: "Unit Penerima Hierarchy"
     implemented: true
     working: true
