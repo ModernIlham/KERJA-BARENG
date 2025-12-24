@@ -192,6 +192,24 @@ export default function AssetOutgoingForm({ onSuccess }) {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-1">
+                            <Label className="text-xs">No SPPA</Label>
+                            <div className="flex gap-2">
+                                <Input 
+                                    value={formData.no_sppa} 
+                                    onChange={e => setFormData({...formData, no_sppa: e.target.value})} 
+                                    className="bg-white flex-1"
+                                    placeholder="Prefix..."
+                                />
+                                <Input 
+                                    value={formData.no_sppa_2} 
+                                    onChange={e => setFormData({...formData, no_sppa_2: e.target.value})} 
+                                    className="bg-white flex-[2]"
+                                    placeholder="Nomor SPPA..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1">
                             <Label className="text-xs">Unit Penerima</Label>
                             <Select onValueChange={v => setFormData({...formData, unit_penerima: v})}>
                                 <SelectTrigger className="bg-white"><SelectValue placeholder="Pilih Unit..."/></SelectTrigger>
