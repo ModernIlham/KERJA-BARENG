@@ -710,35 +710,128 @@ export default function BarangList() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                      {/* Aset Form - VIEW ONLY MODE */}
-                      <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Kode Barang</label><Input {...register('kode_barang')} readOnly className="bg-slate-50"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">NUP</label><Input {...register('nup')} readOnly className="bg-slate-50"/></div>
+                  <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                      {/* Aset Form - VIEW ONLY MODE - Complete SIMAN Fields */}
+                      
+                      {/* Basic Info */}
+                      <div className="border-b pb-3">
+                        <h4 className="font-semibold text-slate-700 mb-3">Informasi Dasar</h4>
+                        <div className="grid grid-cols-3 gap-3">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Jenis BMN</label><Input {...register('jenis_bmn')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Kode Barang</label><Input {...register('kode_barang')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">NUP</label><Input {...register('nup')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 mt-2">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nama Barang</label><Input {...register('nama_barang')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-3 mt-2">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Status BMN</label><Input {...register('status_bmn')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Merk</label><Input {...register('merk')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Tipe</label><Input {...register('tipe')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Kondisi</label><Input {...register('kondisi')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-3 mt-2">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Umur Aset</label><Input {...register('umur_aset')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Intra/Extra</label><Input {...register('intra_ekstra')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Henti Guna</label><Input {...register('henti_guna')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Status SBSN</label><Input {...register('status_sbsn')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
                       </div>
-                      <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Nama Barang</label><Input {...register('nama_barang')} readOnly className="bg-slate-50"/></div>
-                      <div className="grid grid-cols-3 gap-4">
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Merk</label><Input {...register('merk')} readOnly className="bg-slate-50"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Tipe</label><Input {...register('tipe')} readOnly className="bg-slate-50"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Tahun Anggaran</label><Input {...register('tahun_anggaran')} readOnly className="bg-slate-50"/></div>
+                      
+                      {/* Nilai & Tanggal */}
+                      <div className="border-b pb-3">
+                        <h4 className="font-semibold text-slate-700 mb-3">Nilai & Tanggal</h4>
+                        <div className="grid grid-cols-4 gap-3">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Tgl Buku Pertama</label><Input {...register('tgl_buku_pertama')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Tgl Perolehan</label><Input {...register('tgl_perolehan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Tgl Penghapusan</label><Input {...register('tgl_penghapusan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Tahun Anggaran</label><Input {...register('tahun_anggaran')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                        <div className="grid grid-cols-5 gap-3 mt-2">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nilai Perolehan Pertama</label><Input {...register('nilai_perolehan_pertama')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nilai Mutasi</label><Input {...register('nilai_mutasi')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nilai Perolehan</label><Input {...register('nilai_perolehan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nilai Penyusutan</label><Input {...register('nilai_penyusutan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nilai Buku</label><Input {...register('nilai_buku')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-4">
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Kondisi</label><Input {...register('kondisi')} readOnly className="bg-slate-50"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Status Aset</label><Input {...register('status_aset')} readOnly className="bg-slate-50"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Satuan</label><Input {...register('satuan')} readOnly className="bg-slate-50"/></div>
+                      
+                      {/* Dokumen & Sertifikat */}
+                      <div className="border-b pb-3">
+                        <h4 className="font-semibold text-slate-700 mb-3">Dokumen & Sertifikat</h4>
+                        <div className="grid grid-cols-4 gap-3">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Jenis Dokumen</label><Input {...register('jenis_dokumen')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">No Dokumen</label><Input {...register('no_dokumen')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">No BPKP</label><Input {...register('no_bpkp')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">No Polisi</label><Input {...register('no_polisi')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-3 mt-2">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Status Sertifikasi</label><Input {...register('status_sertifikasi')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Jenis Sertifikat</label><Input {...register('jenis_sertifikat')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">No Sertifikat</label><Input {...register('no_sertifikat')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Kode Register</label><Input {...register('kode_register')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-4">
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Nilai Perolehan</label><Input {...register('nilai_perolehan')} readOnly className="bg-slate-50"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Nilai Penyusutan</label><Input {...register('nilai_penyusutan')} readOnly className="bg-slate-50"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Nilai Buku</label><Input {...register('nilai_buku')} readOnly className="bg-slate-50"/></div>
+                      
+                      {/* Luas */}
+                      <div className="border-b pb-3">
+                        <h4 className="font-semibold text-slate-700 mb-3">Luas & Ukuran</h4>
+                        <div className="grid grid-cols-4 gap-3">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Luas Tanah (m²)</label><Input {...register('luas_tanah')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Luas Tanah Bangunan</label><Input {...register('luas_tanah_bangunan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Luas Bangunan</label><Input {...register('luas_bangunan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Jumlah Lantai</label><Input {...register('jumlah_lantai')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Lokasi Fisik</label><Input {...register('lokasi_fisik')} readOnly className="bg-slate-50"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Tanggal Perolehan</label><Input {...register('tgl_perolehan')} readOnly className="bg-slate-50"/></div>
+                      
+                      {/* Lokasi */}
+                      <div className="border-b pb-3">
+                        <h4 className="font-semibold text-slate-700 mb-3">Lokasi</h4>
+                        <div className="grid grid-cols-1 gap-3">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Alamat</label><Input {...register('alamat')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                        <div className="grid grid-cols-5 gap-3 mt-2">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">RT/RW</label><Input {...register('rt_rw')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Kelurahan</label><Input {...register('kelurahan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Kecamatan</label><Input {...register('kecamatan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Kab/Kota</label><Input {...register('kab_kota')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Provinsi</label><Input {...register('provinsi')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3 mt-2">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Kode Pos</label><Input {...register('kode_pos')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Lokasi</label><Input {...register('lokasi_fisik')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Ruang</label><Input {...register('ruang')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
                       </div>
-                       <div className="pt-4 flex justify-end gap-2">
+                      
+                      {/* Satker & Unit */}
+                      <div className="border-b pb-3">
+                        <h4 className="font-semibold text-slate-700 mb-3">Satker & Unit</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Kode Satker</label><Input {...register('kode_satker')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nama Satker</label><Input {...register('nama_satker')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3 mt-2">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nama K/L</label><Input {...register('nama_kl')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nama E1</label><Input {...register('nama_e1')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Nama Korwil</label><Input {...register('nama_korwil')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                      </div>
+                      
+                      {/* PSP & Penggunaan */}
+                      <div className="pb-3">
+                        <h4 className="font-semibold text-slate-700 mb-3">PSP & Penggunaan</h4>
+                        <div className="grid grid-cols-4 gap-3">
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Status Penggunaan</label><Input {...register('status_penggunaan')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">No PSP</label><Input {...register('no_psp')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Tanggal PSP</label><Input {...register('tgl_psp')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                           <div className="space-y-1"><label className="text-xs font-medium text-slate-500">Status Aset</label><Input {...register('status_aset')} readOnly className="bg-slate-50 h-8 text-sm"/></div>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 flex justify-end gap-2 sticky bottom-0 bg-white border-t pt-3">
                          <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Tutup</Button>
-                    </div>
+                      </div>
                   </div>
                 )}
             </form>
