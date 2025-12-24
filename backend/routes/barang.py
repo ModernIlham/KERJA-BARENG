@@ -240,11 +240,11 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
                     "usulan_barang_hilang": row.get('Usulan Barang Hilang'),
                     "usulan_barang_rb": row.get('Usulan Barang RB'),
                     "usul_hapus": row.get('Usul Hapus'),
-                    "hibah": row.get('Hibah'),
-                    "dktp": row.get('DKTP'),
-                    "konsesi": row.get('Konsensi'),
-                    "jasa_properti": row.get('Jasa Properti'),
-                    "investasi": row.get('Investasi'),
+                    "hibah": row.get('Hibah') or row.get('Hibah DKTP'),
+                    "dktp": row.get('DKTP') or row.get('Hibah DKTP'),
+                    "konsesi": row.get('Konsensi') or row.get('Konsensi Jasa'),
+                    "jasa_properti": row.get('Jasa Properti') or row.get('Konsensi Jasa'),
+                    "investasi": row.get('Investasi') or row.get('Properti Investasi'),
                     
                     # Dokumen
                     "jenis_dokumen": row.get('Jenis Dokumen'),
