@@ -175,37 +175,6 @@ export default function AsetPegawaiList() {
       toast.error("Nama aset wajib diisi");
       return;
     }
-    
-    try {
-      if (selectedItem) {
-        await api.put(`/api/aset-pegawai/${selectedItem.id}`, formData);
-        toast.success("Aset berhasil diperbarui");
-      } else {
-        await api.post('/api/aset-pegawai', formData);
-        toast.success("Aset berhasil ditambahkan");
-      }
-      setIsFormOpen(false);
-      fetchAssets();
-      fetchSummary();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Gagal menyimpan aset");
-    }
-  };
-  
-  const handleDelete = async () => {
-    try {
-      await api.delete(`/api/aset-pegawai/${deleteId}`);
-      toast.success("Aset dihapus");
-      fetchAssets();
-      fetchSummary();
-    } catch (e) {
-      toast.error("Gagal menghapus");
-    } finally {
-      setIsDeleteOpen(false);
-      setDeleteId(null);
-    }
-  };
-  
   const handleSerahTerima = async () => {
     if (!serahTerimaData.pemegang_baru_id) {
       toast.error("Pilih pemegang baru");
