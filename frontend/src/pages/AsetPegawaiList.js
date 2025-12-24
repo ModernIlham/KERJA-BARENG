@@ -982,24 +982,6 @@ export default function AsetPegawaiList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle /> Konfirmasi Hapus
-            </DialogTitle>
-            <DialogDescription>
-              Apakah Anda yakin ingin menghapus aset ini? Tindakan ini tidak dapat dibatalkan.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Batal</Button>
-            <Button variant="destructive" onClick={handleDelete}>Ya, Hapus</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
