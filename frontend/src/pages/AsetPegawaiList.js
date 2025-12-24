@@ -166,11 +166,6 @@ export default function AsetPegawaiList() {
     setIsKembalikanOpen(true);
   };
   
-  const handleSubmit = async () => {
-    if (!formData.nama_aset.trim()) {
-      toast.error("Nama aset wajib diisi");
-      return;
-    }
   const handleSerahTerima = async () => {
     if (!serahTerimaData.pemegang_baru_id) {
       toast.error("Pilih pemegang baru");
