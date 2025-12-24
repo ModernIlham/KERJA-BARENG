@@ -303,6 +303,135 @@ async def import_barang_excel(file: UploadFile = File(...), current_user: str = 
         return {"message": "Import selesai", "processed": count_processed, "inserted": count_inserted, "updated": count_updated, "note": "Data duplikat telah ditimpa (overwrite)."}
     except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/template")
+async def download_template_aset_tetap(current_user: str = Depends(get_current_user)):
+    """Download template Excel untuk import Aset Tetap (format SIMAN)"""
+    # Define all columns based on SIMAN format
+    columns = [
+        "No", "Jenis BMN", "Kode Satker", "Nama Satker", "Kode Barang", "NUP", "Nama Barang",
+        "Status BMN", "Merk", "Tipe", "Kondisi", "Umur Aset", "Intra / Extra", "Henti Guna",
+        "Status SBSN", "Status BMN Idle", "Status Kemitraan", "BPYBDS", "Usulan Barang Hilang",
+        "Usulan Barang RB", "Usul Hapus", "Hibah", "DKTP", "Konsensi", "Jasa Properti", "Investasi",
+        "Jenis Dokumen", "No Dokumen", "No BPKP", "No Polisi", "Status Sertifikasi", "Jenis Sertipikat",
+        "No Sertifikat", "Nama", "Tanggal Buku Pertama", "Tanggal Perolehan", "Tanggal Pengapusan",
+        "Nilai Perolehan Pertama", "Nilai Mutasi", "Nilai Perolehan", "Nilai Penyusutan", "Nilai Buku",
+        "Luas Tanah Seluruhnya", "Luas Tanah Untuk Bangunan", "Luas Tanah Untuk Sarana Lingkungan",
+        "Luas Lahan Kosong", "Luas Bangunan", "Luas Tapak Bangunan", "Luas Pemanfataan", "Jumlah Lantai",
+        "Jumlah Foto", "Status Penggunaan", "No PSP", "Tanggal PSP", "Alamat", "RT/RW", "Kelurahan/Desa",
+        "Kecamatan", "Kab/Kota", "Kode Kab/Kota", "Provinsi", "Kode Provinsi", "Kode Pos", "SBSK",
+        "Optimalisasi", "Penghuni", "Pengguna", "Kode KPKNL", "Uraian KPKNL", "Uraian Kanwil DJKN",
+        "Nama K/L", "Nama E1", "Nama Korwil", "Kode Register", "Lokasi", "Ruang", "Jenis Identitas",
+        "No Identitas", "No STNK", "Nama Pengguna", "Status PMK"
+    ]
+    
+    # Create sample data
+    sample_data = {col: [] for col in columns}
+    sample_row = {
+        "No": 1,
+        "Jenis BMN": "TANAH",
+        "Kode Satker": "123456",
+        "Nama Satker": "Satker Contoh",
+        "Kode Barang": "2.01.01.01.001",
+        "NUP": "1",
+        "Nama Barang": "Tanah Bangunan Kantor",
+        "Status BMN": "Aktif",
+        "Merk": "-",
+        "Tipe": "-",
+        "Kondisi": "Baik",
+        "Umur Aset": "",
+        "Intra / Extra": "Intra",
+        "Henti Guna": "Tidak",
+        "Status SBSN": "Tidak",
+        "Status BMN Idle": "Tidak",
+        "Status Kemitraan": "Tidak",
+        "BPYBDS": "",
+        "Usulan Barang Hilang": "Tidak",
+        "Usulan Barang RB": "Tidak",
+        "Usul Hapus": "Tidak",
+        "Hibah": "",
+        "DKTP": "",
+        "Konsensi": "",
+        "Jasa Properti": "",
+        "Investasi": "",
+        "Jenis Dokumen": "Kontrak",
+        "No Dokumen": "DOC/2024/001",
+        "No BPKP": "",
+        "No Polisi": "",
+        "Status Sertifikasi": "Sudah",
+        "Jenis Sertipikat": "SHM",
+        "No Sertifikat": "12345",
+        "Nama": "",
+        "Tanggal Buku Pertama": "2024-01-01",
+        "Tanggal Perolehan": "2024-01-01",
+        "Tanggal Pengapusan": "",
+        "Nilai Perolehan Pertama": 1000000000,
+        "Nilai Mutasi": 0,
+        "Nilai Perolehan": 1000000000,
+        "Nilai Penyusutan": 0,
+        "Nilai Buku": 1000000000,
+        "Luas Tanah Seluruhnya": 1000,
+        "Luas Tanah Untuk Bangunan": 500,
+        "Luas Tanah Untuk Sarana Lingkungan": 300,
+        "Luas Lahan Kosong": 200,
+        "Luas Bangunan": 400,
+        "Luas Tapak Bangunan": 400,
+        "Luas Pemanfataan": 1000,
+        "Jumlah Lantai": 2,
+        "Jumlah Foto": 0,
+        "Status Penggunaan": "Digunakan Sendiri",
+        "No PSP": "PSP/2024/001",
+        "Tanggal PSP": "2024-01-15",
+        "Alamat": "Jl. Contoh No. 1",
+        "RT/RW": "001/002",
+        "Kelurahan/Desa": "Kelurahan Contoh",
+        "Kecamatan": "Kecamatan Contoh",
+        "Kab/Kota": "Jakarta Pusat",
+        "Kode Kab/Kota": "3171",
+        "Provinsi": "DKI Jakarta",
+        "Kode Provinsi": "31",
+        "Kode Pos": "10110",
+        "SBSK": "",
+        "Optimalisasi": "",
+        "Penghuni": "",
+        "Pengguna": "",
+        "Kode KPKNL": "",
+        "Uraian KPKNL": "",
+        "Uraian Kanwil DJKN": "",
+        "Nama K/L": "Kementerian Contoh",
+        "Nama E1": "Eselon 1 Contoh",
+        "Nama Korwil": "",
+        "Kode Register": "REG001",
+        "Lokasi": "Gedung A",
+        "Ruang": "Lantai 1",
+        "Jenis Identitas": "",
+        "No Identitas": "",
+        "No STNK": "",
+        "Nama Pengguna": "",
+        "Status PMK": ""
+    }
+    
+    for col in columns:
+        sample_data[col].append(sample_row.get(col, ""))
+    
+    df = pd.DataFrame(sample_data)
+    
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Data Aset Tetap', index=False)
+        
+        # Auto-adjust column widths
+        worksheet = writer.sheets['Data Aset Tetap']
+        for idx, col in enumerate(df.columns):
+            max_length = max(len(str(col)), 12)
+            worksheet.column_dimensions[chr(65 + idx % 26) if idx < 26 else chr(64 + idx // 26) + chr(65 + idx % 26)].width = max_length + 2
+    
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': 'attachment; filename=Template_Import_Aset_Tetap_SIMAN.xlsx'}
+    )
+
 @router.get("/pdf")
 async def download_barang_pdf(
     search: Optional[str] = None,
