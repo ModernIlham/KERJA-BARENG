@@ -118,37 +118,37 @@ export default function TransaksiAset() {
         switch (activeSubTab) {
             // Perolehan
             case 'pembelian':
-                return <AssetIncomingForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <AssetIncomingForm onSuccess={handleFormSuccess} />;
             case 'transfer_masuk':
-                return <AssetTransferMasukForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <AssetTransferMasukForm onSuccess={handleFormSuccess} />;
             case 'kdp_perolehan':
-                return <KDPIncomingForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <KDPIncomingForm onSuccess={handleFormSuccess} />;
             case 'reklasifikasi_masuk':
-                return <ReklasifikasiForm onSuccess={() => setActiveTab('riwayat')} direction="MASUK" />;
+                return <ReklasifikasiForm onSuccess={handleFormSuccess} direction="MASUK" />;
             
             // Pengembangan
             case 'pengembangan_langsung':
-                return <AssetPengembanganForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <AssetPengembanganForm onSuccess={handleFormSuccess} />;
             case 'pengembangan_kdp':
-                return <KDPPengembanganForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <KDPPengembanganForm onSuccess={handleFormSuccess} />;
             
             // Perubahan
             case 'perubahan_kuantitas':
-                return <PerubahanKuantitasForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <PerubahanKuantitasForm onSuccess={handleFormSuccess} />;
             case 'perubahan_kondisi':
-                return <PerubahanKondisiForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <PerubahanKondisiForm onSuccess={handleFormSuccess} />;
             case 'koreksi_nilai_bmn':
-                return <KoreksiNilaiForm onSuccess={() => setActiveTab('riwayat')} type="BMN" />;
+                return <KoreksiNilaiForm onSuccess={handleFormSuccess} type="BMN" />;
             case 'koreksi_nilai_kdp':
-                return <KoreksiNilaiForm onSuccess={() => setActiveTab('riwayat')} type="KDP" />;
+                return <KoreksiNilaiForm onSuccess={handleFormSuccess} type="KDP" />;
             case 'reklasifikasi_kdp':
-                return <ReklasifikasiKDPForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <ReklasifikasiKDPForm onSuccess={handleFormSuccess} />;
             
             // Penghapusan
             case 'keluar':
-                return <AssetOutgoingForm onSuccess={() => setActiveTab('riwayat')} />;
+                return <AssetOutgoingForm onSuccess={handleFormSuccess} />;
             case 'reklasifikasi_keluar':
-                return <ReklasifikasiForm onSuccess={() => setActiveTab('riwayat')} direction="KELUAR" />;
+                return <ReklasifikasiForm onSuccess={handleFormSuccess} direction="KELUAR" />;
             
             default:
                 return null;
