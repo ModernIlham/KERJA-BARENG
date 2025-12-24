@@ -10,7 +10,7 @@
       {
         "flow": "All API calls from frontend",
         "issue": "Mixed Content error: Frontend (HTTPS) trying to make HTTP requests to backend instead of HTTPS",
-        "error_message": "Mixed Content: The page at 'https://assetflow-54.preview.emergentagent.com/barang' was loaded over HTTPS, but requested an insecure XMLHttpRequest endpoint 'http://state-asset-app.preview.emergentagent.com/api/barang/'. This request has been blocked; the content must be served over HTTPS.",
+        "error_message": "Mixed Content: The page at 'https://bmn-tracker-1.preview.emergentagent.com/barang' was loaded over HTTPS, but requested an insecure XMLHttpRequest endpoint 'http://state-asset-app.preview.emergentagent.com/api/barang/'. This request has been blocked; the content must be served over HTTPS.",
         "affected_selectors": ["All API endpoints"],
         "fix_priority": "CRITICAL"
       }
