@@ -67,7 +67,7 @@ export default function GudangList() {
 
     const loadMovements = async () => {
         try {
-            const res = await api.get('/api/gudang/movements?limit=50');
+            const res = await api.get('/api/gudang/movements/list?limit=50');
             setMovements(res.data);
         } catch (e) {
             console.error(e);
