@@ -220,7 +220,7 @@ export default function AsetPegawaiList() {
   
   const openKembalikan = (item) => {
     setSelectedItem(item);
-    setKembalikanData({ kondisi_pengembalian: 'Baik', keterangan: '' });
+    setKembalikanData({ kondisi_pengembalian: 'Baik', keterangan: '', gudang_id: '' });
     setIsKembalikanOpen(true);
   };
   
