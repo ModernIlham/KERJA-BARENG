@@ -845,7 +845,7 @@ export default function AsetPegawaiList() {
           <DialogHeader>
             <DialogTitle>Kembalikan Aset ke Gudang</DialogTitle>
             <DialogDescription>
-              Aset "{selectedItem?.nama_aset}" akan dikembalikan dari {selectedItem?.pemegang_nama} ke gudang
+              Aset &quot;{selectedItem?.nama_aset}&quot; akan dikembalikan dari {selectedItem?.pemegang_nama} ke gudang
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
