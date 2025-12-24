@@ -641,12 +641,12 @@ export default function BarangList() {
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {activeTab === 'persediaan' ? (editingItem ? 'Edit Persediaan' : 'Tambah Persediaan') : (editingItem ? 'Edit Aset' : 'Tambah Aset')}
+                {activeTab === 'persediaan' ? (editingItem ? 'Edit Persediaan' : 'Tambah Persediaan') : 'Detail Aset'}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Form Content - Kept mostly same but wrapped for cleaner code reading */}
-                {isReadonly && activeTab !== 'persediaan' && <div className="bg-orange-50 text-orange-800 p-2 text-xs border border-orange-200 mb-2 rounded">Read Only (SIMAN Data)</div>}
+                {activeTab !== 'persediaan' && <div className="bg-blue-50 text-blue-800 p-2 text-xs border border-blue-200 mb-2 rounded">Mode Lihat - Data aset hanya dapat dicatat melalui halaman Transaksi Aset (Perolehan)</div>}
                 
                 {activeTab === 'persediaan' ? (
                   <div className="space-y-4">
@@ -676,19 +676,33 @@ export default function BarangList() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                      {/* Aset Form Simplified Wrapper - In real implementation, keep the tabs */}
+                      {/* Aset Form - VIEW ONLY MODE */}
                       <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-1"><label className="text-sm font-medium">Kode Barang</label><Input {...register('kode_barang')} readOnly={isReadonly}/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium">NUP</label><Input {...register('nup')} readOnly={isReadonly}/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Kode Barang</label><Input {...register('kode_barang')} readOnly className="bg-slate-50"/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">NUP</label><Input {...register('nup')} readOnly className="bg-slate-50"/></div>
                       </div>
-                      <div className="space-y-1"><label className="text-sm font-medium">Nama Barang</label><Input {...register('nama_barang')} readOnly={isReadonly}/></div>
+                      <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Nama Barang</label><Input {...register('nama_barang')} readOnly className="bg-slate-50"/></div>
+                      <div className="grid grid-cols-3 gap-4">
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Merk</label><Input {...register('merk')} readOnly className="bg-slate-50"/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Tipe</label><Input {...register('tipe')} readOnly className="bg-slate-50"/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Tahun Anggaran</label><Input {...register('tahun_anggaran')} readOnly className="bg-slate-50"/></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Kondisi</label><Input {...register('kondisi')} readOnly className="bg-slate-50"/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Status Aset</label><Input {...register('status_aset')} readOnly className="bg-slate-50"/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Satuan</label><Input {...register('satuan')} readOnly className="bg-slate-50"/></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Nilai Perolehan</label><Input {...register('nilai_perolehan')} readOnly className="bg-slate-50"/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Nilai Penyusutan</label><Input {...register('nilai_penyusutan')} readOnly className="bg-slate-50"/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Nilai Buku</label><Input {...register('nilai_buku')} readOnly className="bg-slate-50"/></div>
+                      </div>
                       <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-1"><label className="text-sm font-medium">Merk/Tipe</label><Input {...register('merk')} placeholder="Merk"/></div>
-                           <div className="space-y-1"><label className="text-sm font-medium">Tahun</label><Input {...register('tahun_anggaran')}/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Lokasi Fisik</label><Input {...register('lokasi_fisik')} readOnly className="bg-slate-50"/></div>
+                           <div className="space-y-1"><label className="text-sm font-medium text-slate-500">Tanggal Perolehan</label><Input {...register('tgl_perolehan')} readOnly className="bg-slate-50"/></div>
                       </div>
                        <div className="pt-4 flex justify-end gap-2">
-                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Batal</Button>
-                         {!isReadonly && <Button type="submit" className="bg-blue-600 text-white">Simpan</Button>}
+                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Tutup</Button>
                     </div>
                   </div>
                 )}
