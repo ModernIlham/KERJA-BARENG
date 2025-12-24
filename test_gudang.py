@@ -342,15 +342,15 @@ class GudangTester:
             return False
         
         print(f"✅ Found asset: {dipinjam_asset.get('nama_aset')} (Status: {dipinjam_asset.get('status')})")
-        asset_barang_id = dipinjam_asset.get('barang_id')
+        asset_barang_id = dipinjam_asset.get('master_barang_id')  # Use master_barang_id instead of barang_id
         
         # Debug: Check the format of barang_id and gudang_id
-        print(f"📊 Debug - barang_id: {asset_barang_id} (type: {type(asset_barang_id)})")
+        print(f"📊 Debug - master_barang_id: {asset_barang_id} (type: {type(asset_barang_id)})")
         print(f"📊 Debug - gudang_id: {gudang_id} (type: {type(gudang_id)})")
         
         # Ensure IDs are strings
         if not asset_barang_id or not gudang_id:
-            print("❌ Missing barang_id or gudang_id")
+            print("❌ Missing master_barang_id or gudang_id")
             return False
         
         # 2.2 Test POST /api/gudang/return-asset
