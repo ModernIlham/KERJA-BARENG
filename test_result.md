@@ -179,23 +179,19 @@ metadata:
 
 metadata:
   created_by: "main_agent"
-  version: "1.1"
-  test_sequence: 7
+  version: "1.2"
+  test_sequence: 8
   run_ui: true
 
 test_plan:
   current_focus:
-    - "Gudang CRUD operations"
-    - "Asset return to gudang flow"
-    - "kode_barang preservation verification"
+    - "Notification alerts API"
+    - "Notification page UI"
+    - "Dashboard widget"
   stuck_tasks: []
   test_all: false
   test_priority: "high"
 
 agent_communication:
   - agent: "main"
-    message: "Implemented warehouse management system with full CRUD API and frontend page. Added asset return flow from AsetPegawai to Gudang. Need testing for: 1) Create/Edit/Delete gudang, 2) Return asset from employee to warehouse, 3) Verify kode_barang never changes during transactions."
-  - agent: "testing"
-    message: "✅ BACKEND TESTING COMPLETE - All warehouse management (Gudang) endpoints tested and working correctly. Key findings: 1) Full CRUD operations functional (Create/Read/Update/Delete with proper validation), 2) Asset return flow operational (POST /api/gudang/return-asset), 3) Movement history tracking working, 4) CRITICAL: kode_barang preservation verified - original codes never modified during transactions, 5) Asset filtering excludes 'Dipinjamkan' status correctly, 6) Business rules enforced (warehouse deletion prevented when assets exist). All backend APIs ready for production use."
-  - agent: "testing"
-    message: "✅ FRONTEND TESTING COMPLETE - All warehouse management (Gudang) frontend functionality verified and working correctly. Key findings: 1) Login and navigation working properly, 2) Gudang page loads with all summary cards (Total Gudang, Total Aset di Gudang, Total Nilai Aset, Pengembalian Aset), 3) Create warehouse functionality works (successfully created GD-TEST-001), 4) Edit warehouse functionality works (successfully updated warehouse name), 5) Asset return modal opens from Pengembalian Aset button with gudang dropdown showing available warehouses, 6) Navigation menu 'Manajemen Gudang' visible in sidebar, 7) Movement history tab functional, 8) All UI elements render correctly with no console errors. Both backend and frontend warehouse management systems are production-ready."
+    message: "Implemented notification system for asset return alerts. Features: 1) Backend API with priority calculation (H-30, H-14, H-7 days), 2) Frontend page with filters and priority display, 3) Dashboard widget for urgent alerts, 4) Support for multiple alert types (pensiun, habis kontrak, habis penugasan, mutasi, meninggal, keluar, perubahan jabatan). Need testing for full flow."
