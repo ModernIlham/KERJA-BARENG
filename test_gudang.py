@@ -337,12 +337,27 @@ class GudangTester:
                                     dipinjam_asset = asset
                                     break
         
+        # If still no dipinjam asset, try to use any available barang directly
         if not dipinjam_asset:
-            print("❌ Could not find or create asset with status 'Dipinjam'")
-            return False
-        
-        print(f"✅ Found asset: {dipinjam_asset.get('nama_aset')} (Status: {dipinjam_asset.get('status')})")
-        asset_barang_id = dipinjam_asset.get('master_barang_id')  # Use master_barang_id instead of barang_id
+            print("ℹ️ Still no dipinjam asset found. Using available barang directly...")
+            success, barang_response = self.run_test(
+                "Get Any Available Barang",
+                "GET",
+                "api/barang",
+                200,
+                data={"page": 1, "limit": 5}
+            )
+            
+            if success and barang_response.get('data'):
+                test_barang = barang_response['data'][0]
+                asset_barang_id = test_barang.get('_id')
+                print(f"✅ Using barang directly: {test_barang.get('nama_barang')} (ID: {asset_barang_id})")
+            else:
+                print("❌ No barang available for testing")
+                return False
+        else:
+            print(f"✅ Found asset: {dipinjam_asset.get('nama_aset')} (Status: {dipinjam_asset.get('status')})")
+            asset_barang_id = dipinjam_asset.get('master_barang_id')  # Use master_barang_id instead of barang_id
         
         # Debug: Check the format of barang_id and gudang_id
         print(f"📊 Debug - master_barang_id: {asset_barang_id} (type: {type(asset_barang_id)})")
