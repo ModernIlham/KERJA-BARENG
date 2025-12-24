@@ -151,3 +151,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Implemented warehouse management system with full CRUD API and frontend page. Added asset return flow from AsetPegawai to Gudang. Need testing for: 1) Create/Edit/Delete gudang, 2) Return asset from employee to warehouse, 3) Verify kode_barang never changes during transactions."
+  - agent: "testing"
+    message: "✅ BACKEND TESTING COMPLETE - All warehouse management (Gudang) endpoints tested and working correctly. Key findings: 1) Full CRUD operations functional (Create/Read/Update/Delete with proper validation), 2) Asset return flow operational (POST /api/gudang/return-asset), 3) Movement history tracking working, 4) CRITICAL: kode_barang preservation verified - original codes never modified during transactions, 5) Asset filtering excludes 'Dipinjamkan' status correctly, 6) Business rules enforced (warehouse deletion prevented when assets exist). All backend APIs ready for production use."
