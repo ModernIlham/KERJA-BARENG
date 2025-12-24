@@ -68,14 +68,38 @@ export default function AssetOutgoingForm({ onSuccess }) {
     const filteredPegawai = useMemo(() => {
         if (!pegawaiSearch.trim()) return pegawaiList.slice(0, 50);
         const searchLower = pegawaiSearch.toLowerCase();
-        return pegawaiList.filter(p => 
-            p.nama_lengkap?.toLowerCase().includes(searchLower) ||
-            p.nip?.toLowerCase().includes(searchLower) ||
-            p.nik?.toLowerCase().includes(searchLower) ||
-            p.unit_kerja?.toLowerCase().includes(searchLower) ||
-            p.jabatan?.toLowerCase().includes(searchLower)
-        ).slice(0, 50);
+        return pegawaiList.filter(p => {
+            // Get unit kerja from eselon fields
+            const unitKerja = p.eselon4 || p.eselon3 || p.eselon2 || p.eselon1 || '';
+            return (
+                p.nama_lengkap?.toLowerCase().includes(searchLower) ||
+                p.nip?.toLowerCase().includes(searchLower) ||
+                p.nik?.toString().toLowerCase().includes(searchLower) ||
+                unitKerja.toLowerCase().includes(searchLower) ||
+                p.jabatan?.toLowerCase().includes(searchLower)
+            );
+        }).slice(0, 50);
     }, [pegawaiList, pegawaiSearch]);
+
+    // Helper function to get unit kerja from pegawai
+    const getUnitKerja = (pegawai) => {
+        // Return the most specific unit (from eselon4 down to eselon1)
+        if (pegawai.eselon4) return pegawai.eselon4;
+        if (pegawai.eselon3) return pegawai.eselon3;
+        if (pegawai.eselon2) return pegawai.eselon2;
+        if (pegawai.eselon1) return pegawai.eselon1;
+        return 'Unit tidak diketahui';
+    };
+
+    // Helper function to get full unit path
+    const getFullUnitPath = (pegawai) => {
+        const parts = [];
+        if (pegawai.eselon1) parts.push(pegawai.eselon1);
+        if (pegawai.eselon2) parts.push(pegawai.eselon2);
+        if (pegawai.eselon3) parts.push(pegawai.eselon3);
+        if (pegawai.eselon4) parts.push(pegawai.eselon4);
+        return parts.length > 0 ? parts.join(' → ') : 'Unit tidak diketahui';
+    };
 
     useEffect(() => {
         // Load Dropdowns
