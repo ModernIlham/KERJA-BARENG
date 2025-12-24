@@ -125,6 +125,72 @@ export default function Dashboard() {
                 </Card>
               </div>
 
+              {/* Notification Alert Widget */}
+              {notifWidget && notifWidget.needs_attention && (
+                <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2 text-amber-800">
+                        <Bell className="h-5 w-5 text-amber-500" />
+                        Peringatan Pengembalian Aset
+                      </CardTitle>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate('/notifikasi')}
+                        className="text-amber-700 border-amber-300 hover:bg-amber-100"
+                      >
+                        Lihat Semua <ChevronRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-4">
+                        {notifWidget.kritis_count > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-red-500 text-white animate-pulse">
+                              {notifWidget.kritis_count} Kritis
+                            </Badge>
+                          </div>
+                        )}
+                        {notifWidget.tinggi_count > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-orange-500 text-white">
+                              {notifWidget.tinggi_count} Tinggi
+                            </Badge>
+                          </div>
+                        )}
+                        <div className="text-sm text-slate-600">
+                          <span className="font-semibold">{notifWidget.total_assets_at_risk}</span> aset perlu ditindaklanjuti
+                        </div>
+                      </div>
+                      {notifWidget.overdue_count > 0 && (
+                        <Badge variant="destructive" className="ml-auto">
+                          {notifWidget.overdue_count} Terlambat!
+                        </Badge>
+                      )}
+                    </div>
+                    {notifWidget.urgent_alerts && notifWidget.urgent_alerts.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {notifWidget.urgent_alerts.slice(0, 2).map((alert, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-2 bg-white rounded border border-amber-100">
+                            <span className="text-lg">{alert.alert_icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-800 truncate">{alert.pegawai_nama}</p>
+                              <p className="text-xs text-slate-500">{alert.alert_label} - {alert.asset_count} aset</p>
+                            </div>
+                            <Badge variant="outline" className="text-xs whitespace-nowrap">
+                              {alert.days_remaining < 0 ? 'Terlambat' : `${alert.days_remaining} hari`}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Card className="col-span-1">
