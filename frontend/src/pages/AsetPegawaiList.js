@@ -78,8 +78,12 @@ export default function AsetPegawaiList() {
   // Kembalikan data
   const [kembalikanData, setKembalikanData] = useState({
     kondisi_pengembalian: 'Baik',
-    keterangan: ''
+    keterangan: '',
+    gudang_id: ''
   });
+  
+  // Gudang list
+  const [gudangList, setGudangList] = useState([]);
   
   const fetchAssets = useCallback(async () => {
     setLoading(true);
