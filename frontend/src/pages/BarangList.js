@@ -6,7 +6,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Plus, Search, Loader2, Trash, Edit, FileUp, Download, Filter, FileText, Layout, CheckSquare, AlertTriangle, Printer } from 'lucide-react';
+import { Plus, Search, Loader2, Trash, Edit, FileUp, Download, Filter, FileText, Layout, AlertTriangle, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { Pagination } from '../components/ui/pagination';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
