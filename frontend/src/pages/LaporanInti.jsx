@@ -721,16 +721,14 @@ export default function LaporanInti() {
             </div>
           </Section>
 
-        {/* ==================== PAGE 4 ==================== */}
-        <A4Page pageNum={4} totalPages={totalPages} header={header}>
-          {/* SECTION XI: DASAR HUKUM */}
-          <Section num="XI" title="Dasar Hukum & Catatan">
-            <div className="grid grid-cols-2 gap-3 mb-4">
+          {/* SECTION XII: DASAR HUKUM */}
+          <Section num="XII" title="Dasar Hukum & Catatan">
+            <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="bg-slate-50 border border-slate-200 rounded p-2">
-                <h4 className="text-[7px] font-bold text-slate-700 uppercase mb-1 border-b border-slate-200 pb-1">Dasar Hukum</h4>
+                <h4 className="text-[7px] font-bold text-slate-700 uppercase mb-1.5 border-b border-slate-200 pb-1">Dasar Hukum</h4>
                 <ul className="space-y-1">
                   {(dh?.dasar_hukum || []).map((d, i) => (
-                    <li key={i} className="flex items-start gap-1 text-[7px] text-slate-600">
+                    <li key={i} className="flex items-start gap-1 text-[7px] text-slate-600 leading-tight">
                       <FileText className="w-2.5 h-2.5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <span>{d}</span>
                     </li>
@@ -738,11 +736,11 @@ export default function LaporanInti() {
                 </ul>
               </div>
               <div className="bg-slate-50 border border-slate-200 rounded p-2">
-                <h4 className="text-[7px] font-bold text-slate-700 uppercase mb-1 border-b border-slate-200 pb-1">Catatan Penting</h4>
+                <h4 className="text-[7px] font-bold text-slate-700 uppercase mb-1.5 border-b border-slate-200 pb-1">Catatan Penting</h4>
                 <ul className="space-y-1">
                   {(dh?.catatan_penting || []).map((c, i) => (
-                    <li key={i} className="flex items-start gap-1 text-[7px] text-slate-600">
-                      <span className="w-3 h-3 bg-slate-200 rounded-full flex items-center justify-center text-[6px] font-bold flex-shrink-0">{i + 1}</span>
+                    <li key={i} className="flex items-start gap-1.5 text-[7px] text-slate-600 leading-tight">
+                      <span className="w-3.5 h-3.5 bg-slate-200 rounded-full flex items-center justify-center text-[6px] font-bold flex-shrink-0">{i + 1}</span>
                       <span>{c}</span>
                     </li>
                   ))}
@@ -752,23 +750,23 @@ export default function LaporanInti() {
           </Section>
 
           {/* LEMBAR PENGESAHAN */}
-          <div className="border-t-4 border-slate-900 pt-4 mt-auto">
-            <h3 className="text-[11px] font-bold text-center mb-6 uppercase tracking-wider">Lembar Pengesahan</h3>
+          <div className="border-t-4 border-slate-900 pt-3 mt-auto">
+            <h3 className="text-[10px] font-bold text-center mb-4 uppercase tracking-wider">Lembar Pengesahan</h3>
             <div className="grid grid-cols-3 gap-4">
               {(dh?.pengesahan || []).map((s, i) => (
                 <div key={i} className="text-center">
-                  <p className="text-[8px] font-semibold text-slate-600 mb-1">{s.jabatan}</p>
-                  <p className="text-[7px] text-slate-400 italic mb-10">Tanda Tangan</p>
+                  <p className="text-[8px] font-semibold text-slate-600 mb-1 leading-tight">{s.jabatan}</p>
+                  <p className="text-[7px] text-slate-400 italic mb-8 leading-tight">Tanda Tangan</p>
                   <div className="border-b border-slate-400 mx-3 mb-1"></div>
-                  <p className="font-bold text-slate-900 text-[9px] uppercase">{s.nama}</p>
-                  <p className="text-[7px] text-slate-500 font-mono">NIP. {s.nip}</p>
+                  <p className="font-bold text-slate-900 text-[8px] uppercase leading-tight">{s.nama}</p>
+                  <p className="text-[7px] text-slate-500 font-mono leading-tight">NIP. {s.nip}</p>
                 </div>
               ))}
             </div>
-            <p className="text-center text-[8px] text-slate-500 mt-6">{dh?.metadata?.tanggal_cetak}</p>
+            <p className="text-center text-[7px] text-slate-500 mt-4">{dh?.metadata?.tanggal_cetak}</p>
           </div>
 
-          <div className="mt-4 pt-2 border-t border-slate-200 text-[7px] text-slate-400 text-center">
+          <div className="mt-3 pt-2 border-t border-slate-200 text-[7px] text-slate-400 text-center">
             Dokumen dibuat otomatis oleh SIMAN-G • © {new Date().getFullYear()} Kementerian Contoh RI
           </div>
         </A4Page>
