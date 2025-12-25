@@ -348,8 +348,8 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                     collapsed={collapsed}
                     items={laporanItems}
                 >
-                    <SidebarItem to="/laporan/inti" icon={FileText} label="Laporan Inti BMN" />
-                    <SidebarItem to="/laporan/bmn" icon={FileText} label="Laporan Ringkas" />
+                    <SidebarItem to="/laporan/inti" icon={FileText} label="Laporan Inti" />
+                    <SidebarItem to="/laporan/ringkas" icon={FileText} label="Laporan Ringkas (1 Hal.)" />
                     <SidebarItem to="/laporan/posisi" icon={FileText} label="Posisi Stok" />
                     <SidebarItem to="/laporan/mutasi" icon={FileText} label="Mutasi Barang" />
                     <SidebarItem to="/laporan/kartu" icon={FileText} label="Kartu Gudang" />
