@@ -245,7 +245,7 @@ const DafnomTable = ({ employees, holidays, cutiNasional, daysInMonth, employeeT
                                 <th style={thStyle}>(2)</th>
                                 <th style={thStyle}>(3)</th>
                                 <th style={thStyle}>(4)</th>
-                                <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(5) tanda "-" = Libur ; tanda "+" = Kerja</th>
+                                <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(5) tanda &quot;-&quot; = Libur ; tanda &quot;+&quot; = Kerja</th>
                                 <th style={thStyle}>(6)</th>
                                 <th style={thStyle}>(7)</th>
                                 <th style={thStyle}>(8)</th>
@@ -383,6 +383,7 @@ const DafnomLembur = ({ month, year }) => {
     useEffect(() => {
         fetchDafnomData();
         fetchPPKList();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [month, year]);
 
     const daysInMonth = data?.days_in_month || 31;
