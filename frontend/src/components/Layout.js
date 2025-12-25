@@ -6,7 +6,7 @@ import {
   Settings, Mail, ChevronDown, ChevronRight, Book, Box, Building, Network, 
   Clock, Briefcase, FileCheck, ClipboardList, ArrowRightLeft, ChevronsLeft, ChevronsRight,
   Calendar, Activity, Warehouse, Bell, CheckCircle2, ArrowDownToLine, ArrowUpFromLine,
-  History, Database, Shield, Scale, FolderOpen, RefreshCw
+  History, Database, Shield, Scale, FolderOpen, RefreshCw, Tag
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
