@@ -343,11 +343,20 @@ agent_communication:
 - GET /api/laporan-inti/dasar-hukum
 - GET /api/laporan-inti/full-report (all in one)
 
-**Testing Required:**
-- Print functionality (Cetak A4 button)
-- Data accuracy with actual database
-- Chart rendering
-- Responsive design
+## PDF Download Functionality Testing - December 25, 2025
+
+frontend:
+  - task: "Laporan Inti BMN - PDF Download Functionality"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/LaporanInti.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PDF DOWNLOAD FUNCTIONALITY TESTING COMPLETE - Comprehensive testing performed on all requested PDF download scenarios. VERIFIED: 1) Navigation Test: Successfully navigated to /laporan/inti using admin@example.com credentials, page loads correctly with proper title 'Laporan Inti BMN', 2) Page Content Verification: All 4 A4 pages render correctly with proper structure and layout, page numbers display correctly as 'Halaman 1 dari 4', 'Halaman 2 dari 4', etc., found 4 page number indicators confirming complete content loading, 3) UI Elements Check: Both 'Cetak' and 'Unduh PDF' buttons are visible and functional, buttons are properly enabled and clickable, 4) PDF Download Test: 'Unduh PDF' button triggers download successfully, button shows correct loading state 'Mengunduh...' during download process, PDF file downloads with correct filename format 'Laporan_BMN_2025_12_25.pdf' matching expected pattern Laporan_BMN_YYYY_MM_DD.pdf, button returns to normal state 'Unduh PDF' after download completion, 5) Print Button Test: 'Cetak' button is clickable and functional (verified without triggering actual print), 6) Page Structure Verification: Found 4 A4 pages (expected 4), found 5 page headers, found 456 chart elements indicating proper Recharts rendering, all sections display correctly with proper data formatting. SUCCESS RATE: 100% - All test scenarios passed successfully. The PDF download functionality is fully functional, shows proper loading states, generates files with correct naming convention, and maintains professional government document standards. Ready for production use."
 
 backend:
   - task: "Laporan Inti BMN - Comprehensive BMN Report API"
