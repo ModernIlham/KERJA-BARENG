@@ -240,3 +240,37 @@ agent_communication:
     message: "✅ TRANSAKSI PERSEDIAAN SIDEBAR NAVIGATION & URL PARAMETERS TESTING COMPLETE - Comprehensive testing performed on all requested navigation scenarios. VERIFIED: 1) Sidebar Navigation: 'Kelola Persediaan' group expands correctly, all navigation links work (Barang Masuk → /transaksi-persediaan?tab=masuk, Barang Keluar → /transaksi-persediaan?tab=keluar, Riwayat Transaksi → /transaksi-persediaan?tab=riwayat), 2) Direct URL Navigation: All URL parameters load correct tabs without blank screens (/transaksi-persediaan?tab=masuk shows Barang Masuk with form, /transaksi-persediaan?tab=keluar shows Barang Keluar with form, /transaksi-persediaan?tab=riwayat shows Riwayat with table), 3) Tab Content Verification: Barang Masuk displays all 3 sub-tabs (Pembelian/Pengadaan, Transfer Masuk, Hibah/Sumbangan) and forms correctly, Barang Keluar displays all 3 sub-tabs (Pemakaian Harian, Serah Terima, Rusak/Hilang) and forms correctly, Riwayat displays transaction history table with search controls, 4) Sidebar Organization: All category headers present (BERANDA, KEPEGAWAIAN, ASET TETAP (BMN), PERSEDIAAN (GUDANG), ADMINISTRASI, SISTEM), collapsible groups function correctly (expand/collapse working). All navigation flows work correctly without showing blank white screens. The sidebar navigation and URL parameter system is fully functional and ready for production use."
   - agent: "testing"
     message: "✅ SIDEBAR REORGANIZATION & PENGAMANAN BMN TESTING COMPLETE - Comprehensive testing performed on reorganized sidebar navigation and new Pengamanan BMN page. VERIFIED: 1) Sidebar Organization: All 8 category headers present in correct order (BERANDA, KEPEGAWAIAN, MASTER DATA, TRANSAKSI ASET, TRANSAKSI PERSEDIAAN, PENGAMANAN BMN, ADMINISTRASI, SISTEM), clear workflow structure for BMN asset management reflected in sidebar organization, 2) Master Data Navigation: 'Daftar Aset (BMN)' → /barang?tab=aset-tetap ✅, 'Daftar Persediaan' → /barang?tab=persediaan ✅, both items separate (NOT in collapsible group) as required, 3) Pengamanan BMN Page: Page title 'Pengamanan BMN' displays correctly, 3 summary cards with percentages (Tertib Administrasi 95.1%, Tertib Fisik 82.6%, Tertib Hukum 78.4%), all tabs functional with correct content (Tertib Administrasi: checklist with dokumen items, Tertib Fisik: Stock Opname history table with condition summary, Tertib Hukum: legal documents status by category), 4) Stock Opname Navigation: Pengamanan BMN group expands showing 'Dashboard Pengamanan' and 'Stock Opname' links, Stock Opname page (/opname) accessible and loads correctly. All requirements successfully implemented and tested. The reorganized sidebar provides clear BMN asset management workflow structure as requested."
+## Latest Testing Session - Dashboard Fix (December 2025)
+
+### Issue Fixed: P0 - Critical Dashboard Loading Regression
+
+**Root Cause Analysis:**
+1. The Dashboard was stuck on "Loading dashboard..." state
+2. The `/api/notifications/dashboard-widget` endpoint was timing out due to inefficient queries
+3. This blocked the entire dashboard loading because the notification fetch was inside the try block before finally
+
+**Fixes Applied:**
+1. **Frontend Fix** (`/app/frontend/src/pages/Dashboard.js`):
+   - Separated notification fetch from main dashboard data fetch
+   - Added 5-second timeout with AbortController for notification API
+   - Made notification fetch non-blocking so dashboard loads even if notifications fail
+
+2. **Backend Fix** (`/app/backend/routes/notifications.py`):
+   - Optimized `dashboard-widget` endpoint with efficient MongoDB aggregation
+   - Changed from scanning all employees (N+1 queries) to using aggregation pipelines
+   - API response time reduced from timeout (>30s) to ~65ms
+
+3. **ESLint Fix**:
+   - Created `/app/frontend/eslint.config.js` for ESLint v9 compatibility
+   - Resolved ESLint errors that were blocking the app with overlay
+
+**Files Modified:**
+- `/app/frontend/src/pages/Dashboard.js`
+- `/app/backend/routes/notifications.py`
+- `/app/frontend/eslint.config.js` (new file)
+
+**Testing Required:**
+- Dashboard loading after login
+- Dashboard data display (Aset stats, Persediaan stats, Aktivitas Terkini)
+- Other pages navigation from sidebar
+
