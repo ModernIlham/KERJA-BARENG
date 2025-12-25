@@ -126,7 +126,7 @@ export default function TransaksiAset() {
             case 'kdp_perolehan':
                 return <KDPIncomingForm onSuccess={handleFormSuccess} />;
             case 'reklasifikasi_masuk':
-                return <ReklasifikasiForm onSuccess={handleFormSuccess} direction="MASUK" />;
+                return <ReklasifikasiMasukForm onSuccess={handleFormSuccess} />;
             
             // Pengembangan
             case 'pengembangan_langsung':
