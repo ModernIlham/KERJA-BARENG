@@ -372,7 +372,7 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
                 </Select>
               </div>
 
-              {/* Kode Barang Baru - Required */}
+              {/* Kode Barang Baru - Using Hierarchical Picker */}
               <div className="space-y-1">
                 <Label className="text-xs flex items-center gap-1">
                   Kode Barang Baru *
@@ -386,47 +386,13 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
                     <AlertCircle size={14} />
                     <span>Pilih golongan baru terlebih dahulu</span>
                   </div>
-                ) : loadingKodeBarang ? (
-                  <div className="p-2 bg-slate-100 border rounded text-slate-600 text-xs flex items-center gap-2">
-                    <Loader2 size={14} className="animate-spin" />
-                    <span>Memuat daftar kode barang...</span>
-                  </div>
-                ) : kodeBarangOptions.length === 0 ? (
-                  <div className="space-y-1">
-                    <div className="p-2 bg-slate-100 border rounded text-slate-600 text-xs">
-                      Tidak ada kode barang untuk golongan ini. Input manual:
-                    </div>
-                    <Input
-                      value={formData.kode_barang_baru}
-                      onChange={(e) => setFormData({...formData, kode_barang_baru: e.target.value})}
-                      placeholder="Masukkan kode barang baru"
-                      className="bg-white"
-                    />
-                  </div>
                 ) : (
-                  <>
-                    <Select 
-                      value={formData.kode_barang_baru} 
-                      onValueChange={(v) => setFormData({...formData, kode_barang_baru: v})}
-                    >
-                      <SelectTrigger className={`bg-white ${!formData.kode_barang_baru ? 'border-amber-300' : ''}`}>
-                        <SelectValue placeholder="Pilih kode barang baru..." />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[250px]">
-                        {kodeBarangOptions.map(kb => (
-                          <SelectItem key={kb.kode} value={kb.kode}>
-                            <div className="flex flex-col">
-                              <span className="font-mono text-xs font-medium">{kb.kode}</span>
-                              <span className="text-[10px] text-slate-500 truncate max-w-[280px]">{kb.nama}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[10px] text-slate-500">
-                      {kodeBarangOptions.length} kode untuk golongan {formData.golongan_baru}
-                    </p>
-                  </>
+                  <HierarchicalKodeBarangPicker
+                    golongan={formData.golongan_baru}
+                    value={formData.kode_barang_baru}
+                    onChange={(v) => setFormData({...formData, kode_barang_baru: v})}
+                    placeholder="Klik untuk memilih kode barang..."
+                  />
                 )}
               </div>
             </div>
