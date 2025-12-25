@@ -419,3 +419,17 @@ frontend:
         agent: "testing"
         comment: "✅ LAPORAN RINGKAS BMN TESTING COMPLETE - Comprehensive testing performed on the executive summary report according to all user requirements. VERIFIED: 1) Page Load Test: Successfully navigated to /laporan/ringkas using admin@example.com credentials, single A4 page executive summary loads correctly, 2) Grand Total Verification: Total Nilai Perolehan shows Rp 1.39T and Total Nilai Buku shows Rp 1.12T as required, 3) All Required Sections Present: Aset Tetap with pie chart distribution, Aset Lancar-Persediaan (Rp 15.8M), Aset Tak Berwujud (Rp 12.5M), Konstruksi Dalam Pengerjaan (Rp 85.0M), Kondisi Aset (96.1% Baik), Pengamanan Aset BMN (93.8%, 91.5%, 89%), Status Pelabelan (91.5%), 4) UI Elements: Executive summary title 'RINGKASAN EKSEKUTIF LAPORAN BMN' displays correctly, professional header with government branding, 'Cetak' and 'PDF' buttons functional, 5) Data Visualization: Pie chart renders correctly for Aset Tetap distribution, all percentage indicators display properly, color-coded sections for easy reading, 6) PDF Download: PDF download functionality tested and working correctly with proper loading states. SUCCESS RATE: 100% - All test scenarios passed successfully. The Laporan Ringkas BMN is fully functional, displays all required data in a single-page executive summary format, and is ready for production use."
 
+
+## PDF Styling Fix (December 2025)
+
+### Changes Applied
+1. **MiniCard Component**: Changed from Tailwind classes to inline styles for `padding`, `lineHeight`, `margin`
+2. **MiniTable Component**: Added inline styles for `padding`, `lineHeight`, `verticalAlign`
+3. **StatBox Component**: Added explicit inline styles
+4. **Section Component**: Added inline styles for consistent rendering
+5. **Stok Kritis Section**: Fixed padding and line-height
+6. **Manajemen Aset Section**: Added inline styles for all elements
+7. **Dasar Hukum & Pengesahan**: Fixed spacing with inline styles
+
+### Reason for Change
+html2canvas does not properly render Tailwind CSS classes like `leading-tight`, `py-1.5`, etc. Using inline styles ensures consistent rendering in PDF output.
