@@ -2101,7 +2101,7 @@ function StickerDesignTab({ instansi, qrSettings }) {
   );
 }
 
-// ==================== DESIGN EDITOR FORM ====================
+// ==================== DESIGN EDITOR FORM (ADVANCED) ====================
 function DesignEditorForm({ design, onChange }) {
   const updateField = (field, value) => {
     onChange({ ...design, [field]: value });
@@ -2114,20 +2114,61 @@ function DesignEditorForm({ design, onChange }) {
     { id: 'qr', label: 'QR Code', icon: QrCode },
     { id: 'header', label: 'Header', icon: Type },
     { id: 'konten', label: 'Konten', icon: AlignLeft },
+    { id: 'border', label: 'Border', icon: Square },
     { id: 'tampilan', label: 'Tampilan', icon: PaintBucket }
   ];
   
+  // Alignment selector component
+  const AlignSelector = ({ value, onChange: onAlignChange, label }) => (
+    <div>
+      <Label className="text-xs">{label}</Label>
+      <div className="flex gap-1 mt-1">
+        {['left', 'center', 'right'].map(align => (
+          <Button
+            key={align}
+            variant={value === align ? 'default' : 'outline'}
+            size="sm"
+            className="h-7 w-8 p-0"
+            onClick={() => onAlignChange(align)}
+          >
+            {align === 'left' && <AlignLeft className="w-3 h-3" />}
+            {align === 'center' && <span className="text-xs">≡</span>}
+            {align === 'right' && <AlignRight className="w-3 h-3" />}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+  
+  // Border control component
+  const BorderControl = ({ prefix, label }) => (
+    <div className="space-y-2 p-2 border rounded-lg bg-slate-50">
+      <Label className="text-xs font-medium">{label}</Label>
+      <div className="grid grid-cols-4 gap-1">
+        {['top', 'right', 'bottom', 'left'].map(side => (
+          <div key={side} className="flex flex-col items-center">
+            <Switch 
+              checked={design[`${prefix}_${side}`] !== false} 
+              onCheckedChange={v => updateField(`${prefix}_${side}`, v)} 
+            />
+            <span className="text-[9px] text-gray-500 capitalize">{side}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  
   return (
-    <div className="space-y-4">
-      {/* Section Tabs */}
-      <div className="flex flex-wrap gap-1">
+    <div className="space-y-3">
+      {/* Section Tabs - Scrollable */}
+      <div className="flex gap-1 overflow-x-auto pb-1">
         {sections.map(s => (
           <Button 
             key={s.id} 
             variant={activeSection === s.id ? 'default' : 'ghost'} 
             size="sm"
             onClick={() => setActiveSection(s.id)}
-            className="text-xs"
+            className="text-xs whitespace-nowrap flex-shrink-0"
           >
             <s.icon className="w-3 h-3 mr-1" />{s.label}
           </Button>
@@ -2136,7 +2177,7 @@ function DesignEditorForm({ design, onChange }) {
       
       {/* Nama Template */}
       <div>
-        <Label className="text-xs">Nama Template</Label>
+        <Label className="text-xs font-medium">Nama Template</Label>
         <Input 
           value={design.name || ''} 
           onChange={e => updateField('name', e.target.value)}
@@ -2144,29 +2185,17 @@ function DesignEditorForm({ design, onChange }) {
         />
       </div>
       
-      {/* Dimensi Section */}
+      {/* ==================== DIMENSI SECTION ==================== */}
       {activeSection === 'dimensi' && (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Lebar (mm)</Label>
-              <Input 
-                type="number" 
-                step="0.1"
-                value={design.width || 69.8} 
-                onChange={e => updateField('width', parseFloat(e.target.value))}
-                className="h-8 text-sm"
-              />
+              <Input type="number" step="0.1" value={design.width || 69.8} onChange={e => updateField('width', parseFloat(e.target.value))} className="h-8 text-sm" />
             </div>
             <div>
               <Label className="text-xs">Tinggi (mm)</Label>
-              <Input 
-                type="number"
-                step="0.1" 
-                value={design.height || 22.1} 
-                onChange={e => updateField('height', parseFloat(e.target.value))}
-                className="h-8 text-sm"
-              />
+              <Input type="number" step="0.1" value={design.height || 22.1} onChange={e => updateField('height', parseFloat(e.target.value))} className="h-8 text-sm" />
             </div>
           </div>
           
@@ -2183,28 +2212,18 @@ function DesignEditorForm({ design, onChange }) {
           
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs">Tebal Border (px)</Label>
-              <Input 
-                type="number" 
-                value={design.border_width || 1} 
-                onChange={e => updateField('border_width', parseFloat(e.target.value))}
-                className="h-8 text-sm"
-              />
+              <Label className="text-xs">Content Padding (px)</Label>
+              <Input type="number" value={design.content_padding || 0} onChange={e => updateField('content_padding', parseFloat(e.target.value))} className="h-8 text-sm" />
             </div>
             <div>
-              <Label className="text-xs">Radius Border (px)</Label>
-              <Input 
-                type="number" 
-                value={design.border_radius || 0} 
-                onChange={e => updateField('border_radius', parseFloat(e.target.value))}
-                className="h-8 text-sm"
-              />
+              <Label className="text-xs">Element Gap (px)</Label>
+              <Input type="number" value={design.element_gap || 0} onChange={e => updateField('element_gap', parseFloat(e.target.value))} className="h-8 text-sm" />
             </div>
           </div>
         </div>
       )}
       
-      {/* QR Code Section */}
+      {/* ==================== QR CODE SECTION (ADVANCED) ==================== */}
       {activeSection === 'qr' && (
         <div className="space-y-3">
           <div>
@@ -2222,32 +2241,44 @@ function DesignEditorForm({ design, onChange }) {
           
           <div>
             <Label className="text-xs">Ukuran QR ({design.qr_size || 90}%)</Label>
-            <Slider 
-              value={[design.qr_size || 90]} 
-              onValueChange={([v]) => updateField('qr_size', v)}
-              min={50} max={100} step={5}
-              className="mt-2"
-            />
+            <Slider value={[design.qr_size || 90]} onValueChange={([v]) => updateField('qr_size', v)} min={50} max={100} step={1} className="mt-2" />
           </div>
           
           <div>
-            <Label className="text-xs">Padding QR (mm)</Label>
-            <Input 
-              type="number"
-              step="0.5" 
-              value={design.qr_padding || 3} 
-              onChange={e => updateField('qr_padding', parseFloat(e.target.value))}
-              className="h-8 text-sm"
-            />
+            <Label className="text-xs font-medium">Margin QR (px) - Jarak ke Garis</Label>
+            <div className="grid grid-cols-4 gap-2 mt-1">
+              <div>
+                <Label className="text-[9px] text-gray-500">Atas</Label>
+                <Input type="number" min="0" step="0.5" value={design.qr_margin_top ?? 2} onChange={e => updateField('qr_margin_top', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[9px] text-gray-500">Kanan</Label>
+                <Input type="number" min="0" step="0.5" value={design.qr_margin_right ?? 2} onChange={e => updateField('qr_margin_right', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[9px] text-gray-500">Bawah</Label>
+                <Input type="number" min="0" step="0.5" value={design.qr_margin_bottom ?? 2} onChange={e => updateField('qr_margin_bottom', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[9px] text-gray-500">Kiri</Label>
+                <Input type="number" min="0" step="0.5" value={design.qr_margin_left ?? 2} onChange={e => updateField('qr_margin_left', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+            </div>
+          </div>
+          
+          <AlignSelector value={design.qr_align || 'center'} onChange={v => updateField('qr_align', v)} label="Alignment QR" />
+          
+          <div className="p-2 bg-blue-50 rounded text-xs text-blue-700">
+            💡 Atur margin ke 0 untuk QR dekat sekali dengan garis border
           </div>
         </div>
       )}
       
-      {/* Header Section */}
+      {/* ==================== HEADER SECTION ==================== */}
       {activeSection === 'header' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-xs">Tampilkan Header</Label>
+            <Label className="text-xs font-medium">Tampilkan Header</Label>
             <Switch checked={design.show_header} onCheckedChange={v => updateField('show_header', v)} />
           </div>
           
@@ -2261,198 +2292,346 @@ function DesignEditorForm({ design, onChange }) {
               {design.header_show_logo && (
                 <div>
                   <Label className="text-xs">Ukuran Logo (px)</Label>
-                  <Input 
-                    type="number" 
-                    value={design.header_logo_size || 16} 
-                    onChange={e => updateField('header_logo_size', parseFloat(e.target.value))}
-                    className="h-8 text-sm"
-                  />
+                  <Input type="number" value={design.header_logo_size || 16} onChange={e => updateField('header_logo_size', parseFloat(e.target.value))} className="h-8 text-sm" />
                 </div>
               )}
               
               <div>
                 <Label className="text-xs">Teks Header</Label>
-                <Input 
-                  value={design.header_text || ''} 
-                  onChange={e => updateField('header_text', e.target.value)}
-                  className="h-8 text-sm"
-                  placeholder="Nama Instansi"
-                />
+                <Input value={design.header_text || ''} onChange={e => updateField('header_text', e.target.value)} className="h-8 text-sm" placeholder="Nama Instansi" />
               </div>
               
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs">Font Header (pt)</Label>
-                  <Input 
-                    type="number"
-                    step="0.5" 
-                    value={design.header_font_size || 7.5} 
-                    onChange={e => updateField('header_font_size', parseFloat(e.target.value))}
-                    className="h-8 text-sm"
-                  />
+                  <Input type="number" step="0.5" value={design.header_font_size || 7.5} onChange={e => updateField('header_font_size', parseFloat(e.target.value))} className="h-8 text-sm" />
                 </div>
                 <div>
                   <Label className="text-xs">Font Sub (pt)</Label>
-                  <Input 
-                    type="number"
-                    step="0.5" 
-                    value={design.header_sub_font_size || 6.5} 
-                    onChange={e => updateField('header_sub_font_size', parseFloat(e.target.value))}
-                    className="h-8 text-sm"
-                  />
+                  <Input type="number" step="0.5" value={design.header_sub_font_size || 6.5} onChange={e => updateField('header_sub_font_size', parseFloat(e.target.value))} className="h-8 text-sm" />
                 </div>
               </div>
-            </>
-          )}
-        </div>
-      )}
-      
-      {/* Content Section */}
-      {activeSection === 'konten' && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs">Font Kode (pt)</Label>
-              <Input 
-                type="number"
-                step="0.5" 
-                value={design.kode_font_size || 7.5} 
-                onChange={e => updateField('kode_font_size', parseFloat(e.target.value))}
-                className="h-8 text-sm"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Font Nama (pt)</Label>
-              <Input 
-                type="number"
-                step="0.5" 
-                value={design.nama_font_size || 6.5} 
-                onChange={e => updateField('nama_font_size', parseFloat(e.target.value))}
-                className="h-8 text-sm"
-              />
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Tampilkan NUP</Label>
-            <Switch checked={design.show_nup} onCheckedChange={v => updateField('show_nup', v)} />
-          </div>
-          
-          {design.show_nup && (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs">Font NUP (pt)</Label>
-                <Input 
-                  type="number"
-                  step="0.5" 
-                  value={design.nup_font_size || 11} 
-                  onChange={e => updateField('nup_font_size', parseFloat(e.target.value))}
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Lebar Min NUP (px)</Label>
-                <Input 
-                  type="number" 
-                  value={design.nup_min_width || 34} 
-                  onChange={e => updateField('nup_min_width', parseFloat(e.target.value))}
-                  className="h-8 text-sm"
-                />
-              </div>
-            </div>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Tampilkan Deskripsi</Label>
-            <Switch checked={design.show_description} onCheckedChange={v => updateField('show_description', v)} />
-          </div>
-          
-          {design.show_description && (
-            <div>
-              <Label className="text-xs">Font Deskripsi (pt)</Label>
-              <Input 
-                type="number"
-                step="0.5" 
-                value={design.desc_font_size || 5.5} 
-                onChange={e => updateField('desc_font_size', parseFloat(e.target.value))}
-                className="h-8 text-sm"
-              />
-            </div>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Tampilkan Warning</Label>
-            <Switch checked={design.show_warning} onCheckedChange={v => updateField('show_warning', v)} />
-          </div>
-          
-          {design.show_warning && (
-            <>
-              <div>
-                <Label className="text-xs">Teks Warning</Label>
-                <Input 
-                  value={design.warning_text || ''} 
-                  onChange={e => updateField('warning_text', e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
+              
+              <AlignSelector value={design.header_align || 'left'} onChange={v => updateField('header_align', v)} label="Alignment Header" />
+              
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs">Font Warning (pt)</Label>
-                  <Input 
-                    type="number"
-                    step="0.5" 
-                    value={design.warning_font_size || 6} 
-                    onChange={e => updateField('warning_font_size', parseFloat(e.target.value))}
-                    className="h-8 text-sm"
-                  />
+                  <Label className="text-xs">Padding Header (px)</Label>
+                  <Input type="number" value={design.header_padding || 4} onChange={e => updateField('header_padding', parseFloat(e.target.value))} className="h-8 text-sm" />
                 </div>
                 <div>
-                  <Label className="text-xs">Warna Warning</Label>
-                  <Input 
-                    type="color" 
-                    value={design.warning_color || '#DC2626'} 
-                    onChange={e => updateField('warning_color', e.target.value)}
-                    className="h-8 w-full"
-                  />
+                  <Label className="text-xs">Background</Label>
+                  <Input type="color" value={design.header_bg_color || '#ffffff'} onChange={e => updateField('header_bg_color', e.target.value)} className="h-8 w-full" />
                 </div>
               </div>
+              
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Border Bawah Header</Label>
+                <Switch checked={design.header_border_bottom !== false} onCheckedChange={v => updateField('header_border_bottom', v)} />
+              </div>
             </>
-          )}
-          
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Kode Vertikal</Label>
-            <Switch checked={design.show_vertical_code} onCheckedChange={v => updateField('show_vertical_code', v)} />
-          </div>
-          
-          {design.show_vertical_code && (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs">Font Vertikal (pt)</Label>
-                <Input 
-                  type="number"
-                  step="0.5" 
-                  value={design.vertical_font_size || 6} 
-                  onChange={e => updateField('vertical_font_size', parseFloat(e.target.value))}
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Lebar Area (px)</Label>
-                <Input 
-                  type="number" 
-                  value={design.vertical_width || 13} 
-                  onChange={e => updateField('vertical_width', parseFloat(e.target.value))}
-                  className="h-8 text-sm"
-                />
-              </div>
-            </div>
           )}
         </div>
       )}
       
-      {/* Appearance Section */}
+      {/* ==================== KONTEN SECTION (ADVANCED) ==================== */}
+      {activeSection === 'konten' && (
+        <div className="space-y-3">
+          {/* Kode Barang */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <Label className="text-xs font-medium">Kode Barang</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Font (pt)</Label>
+                <Input type="number" step="0.5" value={design.kode_font_size || 7.5} onChange={e => updateField('kode_font_size', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Weight</Label>
+                <Select value={String(design.kode_font_weight || 700)} onValueChange={v => updateField('kode_font_weight', parseInt(v))}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="400">Normal</SelectItem>
+                    <SelectItem value="500">Medium</SelectItem>
+                    <SelectItem value="600">Semi Bold</SelectItem>
+                    <SelectItem value="700">Bold</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <AlignSelector value={design.kode_align || 'left'} onChange={v => updateField('kode_align', v)} label="Alignment" />
+              <div>
+                <Label className="text-[10px] text-gray-500">Transform</Label>
+                <Select value={design.kode_text_transform || 'none'} onValueChange={v => updateField('kode_text_transform', v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Normal</SelectItem>
+                    <SelectItem value="uppercase">UPPERCASE</SelectItem>
+                    <SelectItem value="lowercase">lowercase</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Letter Spacing</Label>
+                <Input type="number" step="0.1" value={design.kode_letter_spacing || 0} onChange={e => updateField('kode_letter_spacing', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Padding (px)</Label>
+                <Input type="number" value={design.kode_padding || 4} onChange={e => updateField('kode_padding', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Nama Barang */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <Label className="text-xs font-medium">Nama Barang</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Font (pt)</Label>
+                <Input type="number" step="0.5" value={design.nama_font_size || 6.5} onChange={e => updateField('nama_font_size', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Weight</Label>
+                <Select value={String(design.nama_font_weight || 500)} onValueChange={v => updateField('nama_font_weight', parseInt(v))}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="400">Normal</SelectItem>
+                    <SelectItem value="500">Medium</SelectItem>
+                    <SelectItem value="600">Semi Bold</SelectItem>
+                    <SelectItem value="700">Bold</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <AlignSelector value={design.nama_align || 'left'} onChange={v => updateField('nama_align', v)} label="Alignment" />
+              <div>
+                <Label className="text-[10px] text-gray-500">Line Height</Label>
+                <Input type="number" step="0.1" value={design.nama_line_height || 1.2} onChange={e => updateField('nama_line_height', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+            </div>
+          </div>
+          
+          {/* NUP/Quantity */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium">NUP / Quantity</Label>
+              <Switch checked={design.show_nup} onCheckedChange={v => updateField('show_nup', v)} />
+            </div>
+            {design.show_nup && (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Font (pt)</Label>
+                    <Input type="number" step="0.5" value={design.nup_font_size || 11} onChange={e => updateField('nup_font_size', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Min Width (px)</Label>
+                    <Input type="number" value={design.nup_min_width || 34} onChange={e => updateField('nup_min_width', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Background</Label>
+                    <Input type="color" value={design.nup_bg_color || '#ffffff'} onChange={e => updateField('nup_bg_color', e.target.value)} className="h-7 w-full" />
+                  </div>
+                  <div className="flex items-center justify-between pt-4">
+                    <Label className="text-[10px] text-gray-500">Border Kiri</Label>
+                    <Switch checked={design.nup_border_left !== false} onCheckedChange={v => updateField('nup_border_left', v)} />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Deskripsi */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium">Deskripsi</Label>
+              <Switch checked={design.show_description} onCheckedChange={v => updateField('show_description', v)} />
+            </div>
+            {design.show_description && (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Font (pt)</Label>
+                    <Input type="number" step="0.5" value={design.desc_font_size || 5.5} onChange={e => updateField('desc_font_size', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Line Height</Label>
+                    <Input type="number" step="0.1" value={design.desc_line_height || 1.3} onChange={e => updateField('desc_line_height', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <AlignSelector value={design.desc_align || 'left'} onChange={v => updateField('desc_align', v)} label="Alignment" />
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Padding (px)</Label>
+                    <Input type="number" value={design.desc_padding || 4} onChange={e => updateField('desc_padding', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Warning */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium">Warning Text</Label>
+              <Switch checked={design.show_warning} onCheckedChange={v => updateField('show_warning', v)} />
+            </div>
+            {design.show_warning && (
+              <>
+                <Input value={design.warning_text || ''} onChange={e => updateField('warning_text', e.target.value)} className="h-7 text-xs" placeholder="Teks peringatan..." />
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Font (pt)</Label>
+                    <Input type="number" step="0.5" value={design.warning_font_size || 6} onChange={e => updateField('warning_font_size', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Warna</Label>
+                    <Input type="color" value={design.warning_color || '#DC2626'} onChange={e => updateField('warning_color', e.target.value)} className="h-7 w-full" />
+                  </div>
+                  <AlignSelector value={design.warning_align || 'left'} onChange={v => updateField('warning_align', v)} label="Align" />
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Vertical Code */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium">Kode Vertikal</Label>
+              <Switch checked={design.show_vertical_code} onCheckedChange={v => updateField('show_vertical_code', v)} />
+            </div>
+            {design.show_vertical_code && (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Font (pt)</Label>
+                    <Input type="number" step="0.5" value={design.vertical_font_size || 6} onChange={e => updateField('vertical_font_size', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Lebar Area (px)</Label>
+                    <Input type="number" value={design.vertical_width || 13} onChange={e => updateField('vertical_width', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Letter Spacing</Label>
+                    <Input type="number" step="0.1" value={design.vertical_letter_spacing || 0.3} onChange={e => updateField('vertical_letter_spacing', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                  <div className="flex items-center justify-between pt-4">
+                    <Label className="text-[10px] text-gray-500">Show Border</Label>
+                    <Switch checked={design.vertical_show_border} onCheckedChange={v => updateField('vertical_show_border', v)} />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* ==================== BORDER SECTION ==================== */}
+      {activeSection === 'border' && (
+        <div className="space-y-3">
+          {/* Page Border (Outer Frame) */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <Label className="text-xs font-medium">Border Luar (Frame)</Label>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Tebal (px)</Label>
+                <Input type="number" step="0.5" value={design.border_width || 1} onChange={e => updateField('border_width', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Warna</Label>
+                <Input type="color" value={design.border_color || '#2c2c2c'} onChange={e => updateField('border_color', e.target.value)} className="h-7 w-full" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Radius</Label>
+                <Input type="number" value={design.border_radius || 0} onChange={e => updateField('border_radius', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-[10px] text-gray-500">Style</Label>
+              <Select value={design.border_style || 'solid'} onValueChange={v => updateField('border_style', v)}>
+                <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="solid">Solid</SelectItem>
+                  <SelectItem value="dashed">Dashed</SelectItem>
+                  <SelectItem value="dotted">Dotted</SelectItem>
+                  <SelectItem value="double">Double</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <BorderControl prefix="border" label="Sisi Border Aktif" />
+          </div>
+          
+          {/* Section Border (Inner Dividers) */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <Label className="text-xs font-medium">Border Section (Pemisah)</Label>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Tebal (px)</Label>
+                <Input type="number" step="0.5" value={design.section_border_width || 1} onChange={e => updateField('section_border_width', parseFloat(e.target.value))} className="h-7 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Warna</Label>
+                <Input type="color" value={design.section_border_color || '#2c2c2c'} onChange={e => updateField('section_border_color', e.target.value)} className="h-7 w-full" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Style</Label>
+                <Select value={design.section_border_style || 'solid'} onValueChange={v => updateField('section_border_style', v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="solid">Solid</SelectItem>
+                    <SelectItem value="dashed">Dashed</SelectItem>
+                    <SelectItem value="dotted">Dotted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          
+          {/* Gold Stripe */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium">Gold Stripe (Dekoratif)</Label>
+              <Switch checked={design.show_gold_stripe} onCheckedChange={v => updateField('show_gold_stripe', v)} />
+            </div>
+            {design.show_gold_stripe && (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Tinggi (px)</Label>
+                    <Input type="number" value={design.gold_stripe_height || 3} onChange={e => updateField('gold_stripe_height', parseFloat(e.target.value))} className="h-7 text-xs" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Warna Utama</Label>
+                    <Input type="color" value={design.gold_stripe_color || '#D4AF37'} onChange={e => updateField('gold_stripe_color', e.target.value)} className="h-7 w-full" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] text-gray-500">Gradient</Label>
+                  <Switch checked={design.gold_stripe_gradient !== false} onCheckedChange={v => updateField('gold_stripe_gradient', v)} />
+                </div>
+                {design.gold_stripe_gradient !== false && (
+                  <div>
+                    <Label className="text-[10px] text-gray-500">Warna Akhir</Label>
+                    <Input type="color" value={design.gold_stripe_color_end || '#C9A227'} onChange={e => updateField('gold_stripe_color_end', e.target.value)} className="h-7 w-full" />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* ==================== TAMPILAN SECTION ==================== */}
       {activeSection === 'tampilan' && (
         <div className="space-y-3">
+          {/* Font Family */}
           <div>
             <Label className="text-xs">Font Family</Label>
             <Select value={design.font_family || 'Roboto'} onValueChange={v => updateField('font_family', v)}>
@@ -2463,68 +2642,58 @@ function DesignEditorForm({ design, onChange }) {
                 <SelectItem value="Helvetica">Helvetica</SelectItem>
                 <SelectItem value="Times New Roman">Times New Roman</SelectItem>
                 <SelectItem value="Courier New">Courier New</SelectItem>
+                <SelectItem value="Georgia">Georgia</SelectItem>
+                <SelectItem value="Verdana">Verdana</SelectItem>
+                <SelectItem value="Tahoma">Tahoma</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs">Background</Label>
-              <Input 
-                type="color" 
-                value={design.background_color || '#ffffff'} 
-                onChange={e => updateField('background_color', e.target.value)}
-                className="h-8 w-full"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Warna Teks</Label>
-              <Input 
-                type="color" 
-                value={design.text_color || '#1a1a1a'} 
-                onChange={e => updateField('text_color', e.target.value)}
-                className="h-8 w-full"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <Label className="text-xs">Warna Border</Label>
-            <Input 
-              type="color" 
-              value={design.border_color || '#2c2c2c'} 
-              onChange={e => updateField('border_color', e.target.value)}
-              className="h-8 w-full"
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Gold Stripe (Kecil)</Label>
-            <Switch checked={design.show_gold_stripe} onCheckedChange={v => updateField('show_gold_stripe', v)} />
-          </div>
-          
-          {design.show_gold_stripe && (
+          {/* Colors */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <Label className="text-xs font-medium">Warna Dasar</Label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs">Tinggi Stripe (px)</Label>
-                <Input 
-                  type="number" 
-                  value={design.gold_stripe_height || 3} 
-                  onChange={e => updateField('gold_stripe_height', parseFloat(e.target.value))}
-                  className="h-8 text-sm"
-                />
+                <Label className="text-[10px] text-gray-500">Background</Label>
+                <Input type="color" value={design.background_color || '#ffffff'} onChange={e => updateField('background_color', e.target.value)} className="h-8 w-full" />
               </div>
               <div>
-                <Label className="text-xs">Warna Stripe</Label>
-                <Input 
-                  type="color" 
-                  value={design.gold_stripe_color || '#D4AF37'} 
-                  onChange={e => updateField('gold_stripe_color', e.target.value)}
-                  className="h-8 w-full"
-                />
+                <Label className="text-[10px] text-gray-500">Teks</Label>
+                <Input type="color" value={design.text_color || '#1a1a1a'} onChange={e => updateField('text_color', e.target.value)} className="h-8 w-full" />
               </div>
             </div>
-          )}
+          </div>
+          
+          {/* Section Shading */}
+          <div className="p-2 border rounded-lg space-y-2">
+            <Label className="text-xs font-medium">Shading / Background Section</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Header BG</Label>
+                <Input type="color" value={design.header_bg_color || '#ffffff'} onChange={e => updateField('header_bg_color', e.target.value)} className="h-7 w-full" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Kode BG</Label>
+                <Input type="color" value={design.kode_bg_color || '#ffffff'} onChange={e => updateField('kode_bg_color', e.target.value)} className="h-7 w-full" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">NUP BG</Label>
+                <Input type="color" value={design.nup_bg_color || '#ffffff'} onChange={e => updateField('nup_bg_color', e.target.value)} className="h-7 w-full" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Deskripsi BG</Label>
+                <Input type="color" value={design.desc_bg_color || '#ffffff'} onChange={e => updateField('desc_bg_color', e.target.value)} className="h-7 w-full" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Vertikal BG</Label>
+                <Input type="color" value={design.vertical_bg_color || '#ffffff'} onChange={e => updateField('vertical_bg_color', e.target.value)} className="h-7 w-full" />
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
