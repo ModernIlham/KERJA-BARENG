@@ -16,6 +16,7 @@ export default function KoreksiNilaiForm({ onSuccess, type = 'BMN' }) {
   
   const [formData, setFormData] = useState({
     no_sppa: '',
+    no_sppa_2: '',
     tanggal_transaksi: new Date().toISOString().split('T')[0],
     jenis_koreksi: 'BERTAMBAH', // BERTAMBAH or BERKURANG
     nilai_perolehan_awal: 0,
@@ -131,7 +132,7 @@ export default function KoreksiNilaiForm({ onSuccess, type = 'BMN' }) {
       toast.error('Pilih aset terlebih dahulu');
       return;
     }
-    if (!formData.no_sppa.trim()) {
+    if (!formData.no_sppa.trim() && !formData.no_sppa_2.trim()) {
       toast.error('No SPPA wajib diisi');
       return;
     }
@@ -153,7 +154,7 @@ export default function KoreksiNilaiForm({ onSuccess, type = 'BMN' }) {
         kode_barang: selectedAsset.kode_barang,
         nup: selectedAsset.nup,
         nama_barang: selectedAsset.nama_barang,
-        no_sppa: formData.no_sppa,
+        no_sppa: `${formData.no_sppa}${formData.no_sppa_2 ? '/' + formData.no_sppa_2 : ''}`.trim(),
         tanggal_transaksi: formData.tanggal_transaksi,
         nilai_perolehan_awal: formData.nilai_perolehan_awal,
         nilai_buku_awal: formData.nilai_buku_awal,
@@ -173,6 +174,7 @@ export default function KoreksiNilaiForm({ onSuccess, type = 'BMN' }) {
       setSelectedAsset(null);
       setFormData({
         no_sppa: '',
+        no_sppa_2: '',
         tanggal_transaksi: new Date().toISOString().split('T')[0],
         jenis_koreksi: 'BERTAMBAH',
         nilai_perolehan_awal: 0,
@@ -253,11 +255,20 @@ export default function KoreksiNilaiForm({ onSuccess, type = 'BMN' }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>No SPPA *</Label>
-            <Input
-              value={formData.no_sppa}
-              onChange={(e) => setFormData({...formData, no_sppa: e.target.value})}
-              placeholder="Masukkan No SPPA"
-            />
+            <div className="flex gap-2">
+              <Input
+                value={formData.no_sppa}
+                onChange={(e) => setFormData({...formData, no_sppa: e.target.value})}
+                placeholder="Prefix..."
+                className="flex-1"
+              />
+              <Input
+                value={formData.no_sppa_2}
+                onChange={(e) => setFormData({...formData, no_sppa_2: e.target.value})}
+                placeholder="Nomor SPPA..."
+                className="flex-[2]"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Tanggal Transaksi *</Label>
