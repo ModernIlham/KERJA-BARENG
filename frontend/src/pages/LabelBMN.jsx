@@ -685,14 +685,16 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
   const { cols, rows, itemsPerPage } = calculateGrid();
   const pages = Math.ceil(items.length / itemsPerPage) || 1;
   
-  // Prepare sticker data
+  // Prepare sticker data - sesuai format PDF user
   const prepareStickerData = (item) => ({
     ...item,
     kode_display: `#${item.kode_register || `${item.kode_barang}-${item.nup || '1'}`}`,
     kode_register_full: item.kode_register || `${item.kode_barang}-${item.nup || '1'}`,
     kode_vertikal: `${item.kode_barang?.substring(0, 6) || '000000'}T/${item.nup || '1'}/${new Date().getFullYear()}`,
-    kategori_singkat: item.golongan_barang?.split(' ')[0] || item.kategori || 'Aset',
-    deskripsi: `${item.nama_barang}${item.merk ? ` - ${item.merk}` : ''}${item.tipe ? ` ${item.tipe}` : ''}`,
+    kode_satker: item.kode_satker || '126010199621001000KP',
+    merk_tipe: item.merk && item.tipe 
+      ? `${item.merk} - ${item.tipe}` 
+      : item.merk || item.tipe || '',
     tahun: item.tahun_anggaran || item.tgl_perolehan?.substring(0, 4) || new Date().getFullYear()
   });
   
