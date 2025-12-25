@@ -149,6 +149,10 @@ async def get_assets_for_labeling(
     # Get assets with aggregation to include print info and child count
     pipeline = [
         {"$match": query},
+        # Add string version of _id for child assets lookup
+        {"$addFields": {
+            "_id_str": {"$toString": "$_id"}
+        }},
         {"$lookup": {
             "from": "label_print_logs",
             "localField": "_id",
@@ -157,7 +161,7 @@ async def get_assets_for_labeling(
         }},
         {"$lookup": {
             "from": "child_assets",
-            "localField": "_id",
+            "localField": "_id_str",
             "foreignField": "parent_barang_id",
             "as": "child_assets"
         }},
@@ -168,7 +172,8 @@ async def get_assets_for_labeling(
         }},
         {"$project": {
             "print_logs": 0,  # Exclude logs array from result
-            "child_assets": 0  # Exclude child assets array from result
+            "child_assets": 0,  # Exclude child assets array from result
+            "_id_str": 0  # Exclude temporary field
         }}
     ]
     
