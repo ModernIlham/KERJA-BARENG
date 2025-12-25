@@ -4,35 +4,40 @@
 (DO NOT EDIT - Standard testing protocol for all features)
 
 ## Current Testing Task
-Testing P2: Upload Dokumen PDF dengan Tanda Tangan Digital
+Testing P3: Standarisasi UI Transaksi Persediaan
 
 ### Features to Test:
-1. **Backend API - Document Upload**
-   - POST /api/transaksi-dokumen/{transaksi_id}/upload - Upload PDF document
-   - GET /api/transaksi-dokumen/{transaksi_id}/dokumen - Get documents & signatures
-   - DELETE /api/transaksi-dokumen/{transaksi_id}/dokumen/{dokumen_id} - Delete document
+1. **Halaman Transaksi Persediaan (/transaksi-persediaan)**
+   - Verify 5 main tabs: Riwayat, Barang Masuk, Barang Keluar, Perubahan, Reklasifikasi
+   - Same structure as Transaksi Aset page
 
-2. **Backend API - Signature**
-   - GET /api/transaksi-dokumen/pegawai-with-signature - List pegawai with signatures
-   - POST /api/transaksi-dokumen/{transaksi_id}/signature - Add signature
-   - DELETE /api/transaksi-dokumen/{transaksi_id}/signature/{signature_id} - Remove signature
+2. **Tab Riwayat**
+   - Shows transaction history with filter and search
+   - Detail dialog with "Dokumen & TTD" tab
 
-3. **Frontend - Detail Transaction Dialog**
-   - Navigate to /transaksi-aset
-   - Click on eye icon to view transaction detail
-   - Verify "Detail Transaksi" and "Dokumen & TTD" tabs exist
-   - Click on "Dokumen & TTD" tab
-   - Verify Upload PDF button works
-   - Verify Add TTD (signature) button works
+3. **Tab Barang Masuk**
+   - Sub-tabs: Pembelian/Pengadaan, Transfer Masuk, Hibah/Sumbangan
+   - Each sub-tab shows PersediaanIncomingForm
+
+4. **Tab Barang Keluar**
+   - Sub-tabs: Pemakaian Harian, Serah Terima, Rusak/Hilang
+   - Each sub-tab shows PersediaanOutgoingForm
+
+5. **Tab Perubahan**
+   - Sub-tabs: Koreksi Stok, Koreksi Nilai
+
+6. **Tab Reklasifikasi**
+   - Sub-tabs: Persediaan → Aset, Aset → Persediaan
+   - Uses ReklasifikasiPersediaanAsetForm
 
 ### Test Credentials:
 - Email: admin@example.com
 - Password: admin123
 
 ### Files Involved:
-- Backend: /app/backend/routes/transaksi_dokumen.py
-- Frontend: /app/frontend/src/components/transaksi/TransaksiDokumenManager.js
-- Frontend: /app/frontend/src/components/transaksi/RiwayatTransaksiComprehensive.js
+- /app/frontend/src/pages/TransaksiPersediaan.js (rewritten)
+- /app/frontend/src/components/transaksi/RiwayatTransaksiPersediaan.js (new)
+- /app/frontend/src/App.js (simplified routes)
 
 ## Incorporate User Feedback
 - User requested Unit Penerima with hierarchy based on organizational structure (Eselon I-V)
