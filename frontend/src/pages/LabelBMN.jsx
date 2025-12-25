@@ -801,6 +801,7 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
                       data={stickerData}
                       instansi={instansi}
                       qrDataUrl={qrCodes[item.id]}
+                      qrSettings={qrSettings}
                     />
                   );
                 })}
