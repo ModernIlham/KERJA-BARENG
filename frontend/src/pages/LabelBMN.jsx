@@ -1158,7 +1158,7 @@ export default function LabelBMN() {
           instansi={instansi}
           qrSettings={qrSettings}
           onClose={() => setShowPrintPage(false)}
-          onPrintComplete={handlePrintComplete}
+          onPrintComplete={selectedItems.some(i => i.is_child) ? handleChildPrintComplete : handlePrintComplete}
         />
       )}
       
@@ -1168,6 +1168,7 @@ export default function LabelBMN() {
           onClose={() => setShowChildModal(false)}
           parentAsset={selectedParent}
           onSuccess={loadAssets}
+          onPrintChild={handlePrintChildAssets}
         />
       )}
     </div>
