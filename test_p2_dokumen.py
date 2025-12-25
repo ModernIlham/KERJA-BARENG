@@ -277,8 +277,8 @@ class DocumentUploadTester:
         )
         
         if success:
-            final_dokumen_count = len(response.get("dokumen_pendukung", []))
-            final_signature_count = len(response.get("tanda_tangan", []))
+            final_dokumen_count = len(response.get("dokumen_pendukung") or [])
+            final_signature_count = len(response.get("tanda_tangan") or [])
             
             print(f"✅ Final verification complete")
             print(f"   Documents: {initial_dokumen_count} → {final_dokumen_count}")
