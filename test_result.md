@@ -352,11 +352,12 @@ agent_communication:
 frontend:
   - task: "Laporan Inti BMN - PDF Download Functionality"
     implemented: true
-    working: true
+    working: needs_testing
     file: "/app/frontend/src/pages/LaporanInti.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
+    fix_applied: "Replaced html2pdf.js with html2canvas + jsPDF for better multi-page A4 capture, disabled chart animations during PDF mode, improved scaling and quality settings"
     status_history:
       - working: true
         agent: "testing"
