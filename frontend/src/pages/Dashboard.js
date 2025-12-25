@@ -22,36 +22,52 @@ export default function Dashboard() {
   const [rekapChartData, setRekapChartData] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchStats = async () => {
+      console.log('[Dashboard] Starting fetch...');
       try {
+        console.log('[Dashboard] Calling APIs...');
         const [res, optRes] = await Promise.all([
             api.get('/api/dashboard/summary'),
             api.get('/api/dashboard/filter-options')
         ]);
-        setData(res.data);
-        setFilterOptions(optRes.data);
+        console.log('[Dashboard] APIs returned:', res.data, optRes.data);
+        
+        if (isMounted) {
+          setData(res.data);
+          setFilterOptions(optRes.data);
+        }
         
         // Fetch notification widget data
         try {
           const notifRes = await api.get('/api/notifications/dashboard-widget');
-          setNotifWidget(notifRes.data);
+          if (isMounted) setNotifWidget(notifRes.data);
         } catch (e) {
           console.log('Notification widget not available');
         }
       } catch (error) {
-        console.error("Failed to fetch dashboard stats", error);
+        console.error("[Dashboard] Failed to fetch dashboard stats", error);
         // Fallback mock data if API fails
-        setData({
-            aset_stats: { total_items: 0, total_value: 0, critical_stock: 0 },
-            persediaan_stats: { total_items: 0, total_value: 0 },
-            transaksi_summary: { masuk: 0, keluar: 0, pending: 0 },
-            rekap_golongan: []
-        });
+        if (isMounted) {
+          setData({
+              aset_stats: { total_items: 0, total_value: 0, critical_stock: 0 },
+              persediaan_stats: { total_items: 0, total_value: 0 },
+              transaksi_summary: { masuk: 0, keluar: 0, pending: 0 },
+              rekap_golongan: []
+          });
+        }
       } finally {
-        setLoading(false);
+        console.log('[Dashboard] Setting loading to false');
+        if (isMounted) setLoading(false);
       }
     };
+    
     fetchStats();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (loading) return <div className="p-8 flex justify-center text-slate-500">Loading dashboard...</div>;
