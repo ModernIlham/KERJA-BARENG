@@ -2118,6 +2118,157 @@ function StickerDesignTab({ instansi, qrSettings }) {
   );
 }
 
+// ==================== QR TEMPLATES PANEL ====================
+function QRTemplatesPanel({ qrSettings, onSelectTemplate }) {
+  const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState('');
+  
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+  
+  const loadTemplates = async () => {
+    try {
+      const res = await api.get('/api/label-bmn/qr-templates');
+      setTemplates(res.data);
+    } catch {
+      // Ignore error, will show empty list
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleSaveTemplate = async () => {
+    if (!newTemplateName.trim()) return toast.error('Masukkan nama template');
+    setSaving(true);
+    
+    try {
+      const templateData = {
+        name: newTemplateName,
+        ...qrSettings
+      };
+      
+      const res = await api.post('/api/label-bmn/qr-template', templateData);
+      toast.success('Template QR berhasil disimpan');
+      setNewTemplateName('');
+      await loadTemplates();
+    } catch {
+      toast.error('Gagal menyimpan template');
+    } finally {
+      setSaving(false);
+    }
+  };
+  
+  const handleDeleteTemplate = async (templateId) => {
+    if (!confirm('Hapus template QR ini?')) return;
+    try {
+      await api.delete(`/api/label-bmn/qr-template/${templateId}`);
+      toast.success('Template dihapus');
+      await loadTemplates();
+    } catch {
+      toast.error('Gagal menghapus template');
+    }
+  };
+  
+  const handleSetActive = async (template) => {
+    try {
+      await api.post('/api/label-bmn/qr-template/set-active', { template_id: template.id });
+      toast.success('Template QR aktif diatur');
+      onSelectTemplate?.(template);
+    } catch {
+      toast.error('Gagal mengatur template aktif');
+    }
+  };
+  
+  return (
+    <Card className="border-blue-200 bg-blue-50/50">
+      <CardHeader className="py-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <QrCode className="w-4 h-4" />
+          Template QR Code Tersimpan
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Save current QR settings as template */}
+        <div className="flex gap-2">
+          <Input 
+            placeholder="Nama template baru..."
+            value={newTemplateName}
+            onChange={e => setNewTemplateName(e.target.value)}
+            className="h-8 text-sm flex-1"
+          />
+          <Button size="sm" onClick={handleSaveTemplate} disabled={saving}>
+            <Save className="w-4 h-4 mr-1" />{saving ? 'Menyimpan...' : 'Simpan QR Saat Ini'}
+          </Button>
+        </div>
+        
+        {/* Template List */}
+        {loading ? (
+          <div className="text-center py-4 text-sm text-gray-500">Memuat...</div>
+        ) : templates.length === 0 ? (
+          <div className="text-center py-4 text-sm text-gray-500">
+            <QrCode className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p>Belum ada template QR tersimpan</p>
+            <p className="text-xs">Atur style QR di tab &quot;Kustomisasi QR&quot; lalu simpan sebagai template</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-2">
+            {templates.map(template => (
+              <div 
+                key={template.id}
+                className="p-2 border rounded-lg bg-white hover:border-blue-400 transition-all"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium truncate flex-1">{template.name}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-5 w-5 p-0"
+                    onClick={() => handleDeleteTemplate(template.id)}
+                  >
+                    <Trash2 className="w-3 h-3 text-red-500" />
+                  </Button>
+                </div>
+                <div className="flex gap-1">
+                  <div 
+                    className="w-4 h-4 rounded border" 
+                    style={{ backgroundColor: template.bodyColor || '#000' }}
+                    title={`Body: ${template.bodyColor}`}
+                  />
+                  <div 
+                    className="w-4 h-4 rounded border" 
+                    style={{ backgroundColor: template.eyeColor || '#000' }}
+                    title={`Eye: ${template.eyeColor}`}
+                  />
+                  <div 
+                    className="w-4 h-4 rounded border" 
+                    style={{ backgroundColor: template.backgroundColor || '#fff' }}
+                    title={`BG: ${template.backgroundColor}`}
+                  />
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full mt-2 h-6 text-xs"
+                  onClick={() => handleSetActive(template)}
+                >
+                  Gunakan
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <div className="text-xs text-gray-500 bg-white p-2 rounded">
+          💡 Tip: Untuk mengubah style QR, gunakan panel &quot;Kustomisasi QR Code&quot; di tab &quot;Kustomisasi QR&quot;
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ==================== DESIGN EDITOR FORM (ADVANCED) ====================
 function DesignEditorForm({ design, onChange }) {
   const updateField = (field, value) => {
