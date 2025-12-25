@@ -135,7 +135,6 @@ export default function LaporanInti() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const [pdfMode, setPdfMode] = useState(false);
   const reportRef = useRef(null);
 
   useEffect(() => {
@@ -145,58 +144,16 @@ export default function LaporanInti() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDownloadPDF = useCallback(async () => {
-    if (!reportRef.current) return;
+  // Use browser's native print for PDF - much more reliable
+  const handleDownloadPDF = () => {
     setDownloading(true);
-    setPdfMode(true);
     
-    // Wait for charts to re-render without animations
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    try {
-      const element = reportRef.current;
-      const filename = `Laporan_BMN_${new Date().toISOString().split('T')[0].replace(/-/g, '_')}.pdf`;
-      
-      // A4 dimensions in mm
-      const a4Width = 210;
-      const a4Height = 297;
-      
-      // Create PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-      
-      // Get all A4 pages
-      const pages = element.querySelectorAll('.a4-page');
-      
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i];
-        
-        // Capture each page with high quality
-        const canvas = await html2canvas(page, {
-          scale: 2.5, // Higher scale for better quality
-          useCORS: true,
-          allowTaint: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          width: page.scrollWidth,
-          height: page.scrollHeight,
-          onclone: (clonedDoc) => {
-            // Force visibility of all elements in cloned document
-            const clonedPage = clonedDoc.querySelector('.a4-page');
-            if (clonedPage) {
-              clonedPage.style.overflow = 'visible';
-              clonedPage.style.height = 'auto';
-            }
-          }
-        });
-        
-        // Calculate dimensions to fit A4
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        const imgWidth = a4Width;
-        const imgHeight = (canvas.height * a4Width) / canvas.width;
+    // Small delay to show loading state
+    setTimeout(() => {
+      window.print();
+      setDownloading(false);
+    }, 100);
+  };
         
         // Add page (except for first page which is already created)
         if (i > 0) {
