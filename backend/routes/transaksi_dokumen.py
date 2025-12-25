@@ -260,27 +260,33 @@ async def remove_dokumen(
 async def get_pegawai_with_signature(
     search: str = Query(None),
     limit: int = Query(20),
+    include_all: bool = Query(False),  # Include pegawai without signature
     current_user: User = Depends(get_current_user)
 ):
     """
     Get list of pegawai who have digital signatures.
     For signature picker dropdown.
+    
+    If include_all=True, returns all pegawai regardless of signature status.
     """
-    query = {
-        "signature_url": {"$exists": True, "$ne": None, "$ne": ""}
-    }
+    query = {}
+    
+    if not include_all:
+        # Only get pegawai with valid signature
+        query["signature_url"] = {"$exists": True, "$nin": [None, "", "null"]}
     
     if search:
-        query["$and"] = [
-            {"signature_url": {"$exists": True, "$ne": None, "$ne": ""}},
-            {
-                "$or": [
-                    {"nama_lengkap": {"$regex": search, "$options": "i"}},
-                    {"nip": {"$regex": search, "$options": "i"}},
-                    {"jabatan": {"$regex": search, "$options": "i"}}
-                ]
-            }
-        ]
+        search_query = {
+            "$or": [
+                {"nama_lengkap": {"$regex": search, "$options": "i"}},
+                {"nip": {"$regex": search, "$options": "i"}},
+                {"jabatan": {"$regex": search, "$options": "i"}}
+            ]
+        }
+        if query:
+            query = {"$and": [query, search_query]}
+        else:
+            query = search_query
     
     cursor = db.pegawai.find(
         query,
@@ -292,19 +298,24 @@ async def get_pegawai_with_signature(
             "signature_url": 1,
             "foto_url": 1
         }
-    ).limit(limit)
+    ).sort("nama_lengkap", 1).limit(limit)
     
     items = await cursor.to_list(length=limit)
     
     result = []
     for item in items:
+        sig_url = item.get("signature_url")
+        # Filter out null/empty signatures if not include_all
+        if not include_all and (not sig_url or sig_url in [None, "", "null"]):
+            continue
         result.append({
             "id": str(item["_id"]),
             "nama_lengkap": item.get("nama_lengkap"),
             "nip": item.get("nip"),
             "jabatan": item.get("jabatan"),
-            "signature_url": item.get("signature_url"),
-            "foto_url": item.get("foto_url")
+            "signature_url": sig_url,
+            "foto_url": item.get("foto_url"),
+            "has_signature": bool(sig_url and sig_url not in [None, "", "null"])
         })
     
     return result
