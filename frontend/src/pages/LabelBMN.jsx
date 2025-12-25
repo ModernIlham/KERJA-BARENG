@@ -253,19 +253,8 @@ const StikerSedang = ({ data, instansi, qrDataUrl, scale = 1 }) => {
     </div>
   );
 };
-        {/* Vertical Code */}
-        <div 
-          className="absolute right-0 top-0 h-full flex items-center justify-center bg-white border-l border-black"
-          style={{ writingMode: 'vertical-rl', fontSize: `${s(4.5)}px`, width: `${s(5)}mm` }}
-        >
-          <span className="text-gray-500">{data.kode_vertikal}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-// Stiker Besar Component (scaled up version of Sedang)
+// Stiker Besar Component - Scaled up version sesuai referensi
 const StikerBesar = ({ data, instansi, qrDataUrl, scale = 1 }) => {
   const s = (val) => val * scale;
   
