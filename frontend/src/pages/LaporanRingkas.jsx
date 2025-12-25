@@ -3,13 +3,11 @@
  * Merangkum seluruh Laporan Inti dalam 1 lembar
  */
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import api from '../api/axios';
 import { Button } from '../components/ui/button';
 import { Loader2, Printer, Download, Shield, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Building2, Package, Wrench, MapPin, Construction, BookOpen } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 
 const fc = (v) => {
   if (!v || v === 0) return 'Rp 0';
@@ -27,7 +25,6 @@ export default function LaporanRingkas() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const [pdfMode, setPdfMode] = useState(false);
   const reportRef = useRef(null);
 
   useEffect(() => {
@@ -37,47 +34,14 @@ export default function LaporanRingkas() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDownloadPDF = useCallback(async () => {
-    if (!reportRef.current) return;
+  // Use browser's native print for PDF - much more reliable
+  const handleDownloadPDF = () => {
     setDownloading(true);
-    setPdfMode(true);
-    
-    // Wait for charts to re-render without animations
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    try {
-      const element = reportRef.current;
-      const filename = `Laporan_Ringkas_BMN_${new Date().toISOString().split('T')[0].replace(/-/g, '_')}.pdf`;
-      
-      // Capture the page with high quality
-      const canvas = await html2canvas(element, {
-        scale: 2.5,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight
-      });
-      
-      // Create PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-      
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const a4Width = 210;
-      const a4Height = 297;
-      const imgWidth = a4Width;
-      const imgHeight = (canvas.height * a4Width) / canvas.width;
-      
-      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, a4Height));
-      pdf.save(filename);
-      
-    } catch (err) {
-      console.error('PDF generation error:', err);
+    setTimeout(() => {
+      window.print();
+      setDownloading(false);
+    }, 100);
+  };
       alert('Gagal mengunduh PDF. Silakan coba lagi.');
     } finally {
       setPdfMode(false);
