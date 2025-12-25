@@ -66,23 +66,31 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
   const fetchKodeBarangByGolongan = async (golongan) => {
     setLoadingKodeBarang(true);
     try {
-      // Fetch barang filtered by golongan
+      // Fetch all barang
       const res = await api.get('/api/barang', { 
         params: { 
-          limit: 200 
+          limit: 500 
         } 
       });
       
-      // Get unique kode_barang from the results, filtered by golongan (first character of kode_barang)
+      // Get unique kode_barang from the results, filtered by golongan
       const uniqueKodes = [];
       const seenKodes = new Set();
       
+      // Find golongan name from options
+      const golonganInfo = golonganOptions.find(g => g.kode === golongan);
+      const golonganPattern = golonganInfo ? `${golongan} - ${golonganInfo.nama}` : null;
+      
       (res.data.data || []).forEach(item => {
-        // Filter by golongan - check if kode_barang starts with the selected golongan number
         const kodeBarang = item.kode_barang || '';
-        const itemGolongan = kodeBarang.substring(0, 1);
+        const itemGolongan = item.golongan_barang || '';
         
-        if (itemGolongan === golongan && kodeBarang && !seenKodes.has(kodeBarang)) {
+        // Filter by golongan - match "X - Nama" pattern or first character of kode_barang
+        const matchesGolongan = itemGolongan.startsWith(`${golongan} -`) || 
+                                 itemGolongan === golongan ||
+                                 kodeBarang.startsWith(golongan);
+        
+        if (matchesGolongan && kodeBarang && !seenKodes.has(kodeBarang)) {
           seenKodes.add(kodeBarang);
           uniqueKodes.push({
             kode: kodeBarang,
@@ -90,27 +98,6 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
           });
         }
       });
-      
-      // Also try to get from referensi if available
-      try {
-        const refRes = await api.get('/api/referensi/kode-barang', {
-          params: { golongan: golongan }
-        });
-        if (refRes.data && refRes.data.length > 0) {
-          refRes.data.forEach(item => {
-            const itemKode = item.kode || '';
-            if (itemKode && !seenKodes.has(itemKode) && itemKode.startsWith(golongan)) {
-              seenKodes.add(itemKode);
-              uniqueKodes.push({
-                kode: itemKode,
-                nama: item.nama || item.uraian
-              });
-            }
-          });
-        }
-      } catch (refErr) {
-        // Ignore if referensi endpoint doesn't exist
-      }
       
       // Sort by kode
       uniqueKodes.sort((a, b) => a.kode.localeCompare(b.kode));
