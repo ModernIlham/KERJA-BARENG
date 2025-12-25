@@ -73,6 +73,7 @@ export default function App() {
             <Route path="transaksi-persediaan" element={<TransaksiPersediaan />} />
             
             <Route path="opname" element={<StockOpname />} />
+            <Route path="pengamanan-bmn" element={<PengamananBMN />} />
             
             <Route path="laporan" element={<Navigate to="/laporan/bmn" replace />} />
             <Route path="surat" element={<Surat />} />
