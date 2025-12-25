@@ -221,6 +221,7 @@ export default function LaporanBMN({ onBack }) {
     { key: "nama_barang", header: "Nama/Jenis Barang", className: "font-medium" },
     { key: "merk_tipe", header: "Merk/Type", format: (val) => val || '-' },
     { key: "tahun_anggaran", header: "Tahun", align: "center" },
+    // eslint-disable-next-line react/no-unstable-nested-components
     { key: "kondisi", header: "Kondisi", align: "center", format: (val) => (
         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
             val === 'Baik' ? 'bg-green-100 text-green-800' :
