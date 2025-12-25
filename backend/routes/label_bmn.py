@@ -69,6 +69,86 @@ class LabelPrintLog(BaseModel):
     jumlah_cetak: int = 1
 
 
+class StickerDesignConfig(BaseModel):
+    """Konfigurasi design stiker custom"""
+    id: Optional[str] = None
+    name: str  # Nama template (e.g., "Template Default", "Template Kustom 1")
+    size_type: str  # kecil, sedang, besar, custom
+    
+    # Dimensi (dalam mm)
+    width: float = 69.8
+    height: float = 22.1
+    
+    # Pengaturan Layout
+    layout: str = "landscape"  # landscape, portrait
+    
+    # Pengaturan QR Code
+    qr_position: str = "left"  # left, right, top, bottom
+    qr_size: float = 80  # Persentase dari area maksimal
+    qr_padding: float = 3  # mm
+    
+    # Pengaturan Header
+    show_header: bool = True
+    header_show_logo: bool = True
+    header_logo_size: float = 16  # px
+    header_font_size: float = 7.5  # pt
+    header_sub_font_size: float = 6.5  # pt
+    header_text: str = "Otorita Ibu Kota Nusantara"
+    header_bg_color: str = "#ffffff"
+    header_text_color: str = "#1a1a1a"
+    
+    # Pengaturan Info Utama (Kode Barang, Nama)
+    kode_font_size: float = 7.5  # pt
+    kode_font_weight: int = 700
+    nama_font_size: float = 6.5  # pt
+    nama_font_weight: int = 500
+    
+    # Pengaturan NUP/Quantity Box
+    show_nup: bool = True
+    nup_font_size: float = 11  # pt
+    nup_min_width: float = 34  # px
+    nup_bg_color: str = "#ffffff"
+    nup_text_color: str = "#1a1a1a"
+    
+    # Pengaturan Deskripsi
+    show_description: bool = True
+    desc_font_size: float = 5.5  # pt
+    
+    # Pengaturan Warning Text
+    show_warning: bool = True
+    warning_text: str = "Tidak Untuk Diperjualbelikan"
+    warning_font_size: float = 6  # pt
+    warning_color: str = "#DC2626"
+    
+    # Pengaturan Kode Vertikal
+    show_vertical_code: bool = True
+    vertical_font_size: float = 6  # pt
+    vertical_width: float = 13  # px
+    vertical_show_border: bool = False
+    
+    # Pengaturan Gold Stripe (untuk stiker kecil)
+    show_gold_stripe: bool = False
+    gold_stripe_height: float = 3  # px
+    gold_stripe_color: str = "#D4AF37"
+    
+    # Pengaturan Border
+    border_width: float = 1  # px
+    border_color: str = "#2c2c2c"
+    border_radius: float = 0  # px
+    
+    # Pengaturan Font
+    font_family: str = "Roboto"
+    
+    # Pengaturan Warna
+    background_color: str = "#ffffff"
+    text_color: str = "#1a1a1a"
+    
+    # Metadata
+    is_default: bool = False
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
 class ChildAsset(BaseModel):
     """Sub-aset/aksesori yang merupakan bagian dari aset utama"""
     id: Optional[str] = None
