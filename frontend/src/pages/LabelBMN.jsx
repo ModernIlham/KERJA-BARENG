@@ -538,29 +538,8 @@ const StikerSedang = ({ data, instansi, qrDataUrl, qrSettings = DEFAULT_QR_SETTI
     </div>
   );
 };
-        >
-          Tidak Untuk Diperjualbelikan
-        </div>
-        
-        {/* Vertical Code on Right */}
-        <div 
-          className="absolute right-0 top-0 h-full flex items-center justify-center"
-          style={{ 
-            writingMode: 'vertical-rl', 
-            fontSize: `${s(4)}px`, 
-            width: `${s(5)}mm`,
-            background: 'linear-gradient(to bottom, #f3f4f6, #e5e7eb)',
-            borderLeft: '1px solid #d1d5db'
-          }}
-        >
-          <span className="text-gray-600 font-mono tracking-wider">{data.kode_vertikal}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-// Stiker Besar Component - Scaled up version sesuai referensi
+// Stiker Besar Component - Sesuai desain PDF user (scaled up dari Sedang)
 const StikerBesar = ({ data, instansi, qrDataUrl, qrSettings = DEFAULT_QR_SETTINGS, scale = 1 }) => {
   const s = (val) => val * scale;
   const showLogo = qrSettings?.logoEnabled !== false;
@@ -573,51 +552,98 @@ const StikerBesar = ({ data, instansi, qrDataUrl, qrSettings = DEFAULT_QR_SETTIN
         width: `${s(90)}mm`, 
         height: `${s(130)}mm`, 
         fontSize: `${s(9)}px`,
-        border: '2.5px solid #000',
-        borderRadius: '4px'
+        border: '2px solid #000',
+        borderRadius: '0'
       }}
     >
       {/* Left: QR Code Area */}
       <div 
         className="flex items-center justify-center relative"
         style={{ 
-          width: '48%', 
-          borderRight: '2.5px solid #000',
-          background: qrSettings?.lightColor || '#ffffff'
+          width: '40%', 
+          borderRight: '1.5px solid #000',
+          background: qrSettings?.lightColor || '#ffffff',
+          padding: '6px'
         }}
       >
         {qrDataUrl && (
-          <img src={qrDataUrl} alt="QR" className="w-[90%] h-auto object-contain" />
+          <img src={qrDataUrl} alt="QR" className="w-full h-auto object-contain" />
         )}
         {showLogo && instansi?.logo_url && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div 
-              className="bg-white rounded-lg p-1"
-              style={{ width: `${logoSize * 1.2}%`, height: `${logoSize * 1.2}%` }}
+              className="bg-white rounded-sm"
+              style={{ width: `${logoSize}%`, height: `${logoSize}%` }}
             >
-              <img 
-                src={instansi.logo_url} 
-                alt="Logo" 
-                className="w-full h-full object-contain"
-              />
+              <img src={instansi.logo_url} alt="" className="w-full h-full object-contain" />
             </div>
           </div>
         )}
       </div>
       
       {/* Right: Info Area */}
-      <div className="flex-1 flex flex-col relative">
-        {/* Header */}
+      <div className="flex-1 flex flex-col relative pr-6" style={{ minWidth: 0 }}>
+        {/* Header: Instansi + Kode UAKPB.Tahun */}
+        <div className="border-b border-gray-400 px-3 py-2">
+          <div className="font-bold" style={{ fontSize: `${s(8)}px` }}>
+            {instansi?.nama_instansi || 'INSTANSI'}
+          </div>
+          <div className="text-gray-600 font-mono" style={{ fontSize: `${s(6)}px` }}>
+            {instansi?.kode_uakpb || data.kode_satker || ''}.{data.tahun}
+          </div>
+        </div>
+        
+        {/* Kode Barang */}
+        <div className="px-3 pt-2">
+          <div className="font-mono font-bold" style={{ fontSize: `${s(7)}px` }}>
+            {data.kode_barang}
+          </div>
+        </div>
+        
+        {/* Nama Barang */}
+        <div className="px-3 pt-1">
+          <div className="font-semibold leading-tight" style={{ fontSize: `${s(7)}px` }}>
+            {data.nama_barang}
+          </div>
+        </div>
+        
+        {/* Merk/Tipe */}
+        <div className="px-3 pt-1 flex-1">
+          <div className="text-gray-600 leading-tight line-clamp-4" style={{ fontSize: `${s(6)}px` }}>
+            {data.merk_tipe || data.merk || ''}
+            {data.tipe ? ` - ${data.tipe}` : ''}
+          </div>
+        </div>
+        
+        {/* NUP - Bottom Right */}
+        <div className="px-3 py-2 text-right">
+          <span className="font-bold" style={{ fontSize: `${s(8)}px` }}>NUP: {data.nup || '1'}</span>
+        </div>
+        
+        {/* Footer Warning */}
         <div 
-          className="flex items-center gap-2 px-2 py-1.5"
-          style={{ 
-            background: 'linear-gradient(135deg, #1a365d 0%, #2c5282 100%)',
-            borderBottom: '4px solid #d69e2e'
-          }}
+          className="text-center italic border-t border-gray-400 py-1.5"
+          style={{ fontSize: `${s(5.5)}px`, color: '#dc2626' }}
         >
-          {instansi?.logo_url && (
-            <img src={instansi.logo_url} alt="" className="w-8 h-8 object-contain" />
-          )}
+          Tidak Untuk Diperjualbelikan
+        </div>
+      </div>
+      
+      {/* Vertical Code on Right Edge */}
+      <div 
+        className="absolute right-0 top-0 h-full flex items-center justify-center bg-gray-100"
+        style={{ 
+          writingMode: 'vertical-rl', 
+          fontSize: `${s(5)}px`, 
+          width: `${s(5.5)}mm`,
+          borderLeft: '0.5px solid #999'
+        }}
+      >
+        <span className="text-gray-600 font-mono">{data.kode_vertikal}</span>
+      </div>
+    </div>
+  );
+};
           <div className="flex-1 min-w-0">
             <div className="text-white font-bold truncate leading-tight" style={{ fontSize: `${s(7)}px` }}>
               {instansi?.nama_instansi || 'INSTANSI'}
