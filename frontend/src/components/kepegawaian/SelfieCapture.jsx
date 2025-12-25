@@ -300,16 +300,20 @@ export default function SelfieCapture({ onCapture, onLocationChange, disabled = 
         ) : (
           <Button 
             onClick={capturePhoto}
-            disabled={disabled || (!faceDetected && modelsLoaded)}
+            disabled={disabled || !location || (!faceDetected && modelsLoaded)}
             className={cn(
               "w-full py-6 text-lg font-semibold transition-all",
-              faceDetected || !modelsLoaded
+              (faceDetected || !modelsLoaded) && location
                 ? "bg-blue-600 hover:bg-blue-700" 
                 : "bg-slate-400 cursor-not-allowed"
             )}
           >
             <Camera size={24} className="mr-3" />
-            {faceDetected || !modelsLoaded ? 'Ambil Foto' : 'Posisikan Wajah Anda'}
+            {!location 
+              ? 'Menunggu Lokasi...' 
+              : (faceDetected || !modelsLoaded) 
+                ? 'Ambil Foto' 
+                : 'Posisikan Wajah Anda'}
           </Button>
         )}
       </div>
