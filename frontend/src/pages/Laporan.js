@@ -285,7 +285,7 @@ export default function Laporan() {
                             </>
                         ) : (
                             <div className="py-12 text-center text-slate-400">
-                                Pilih rentang tanggal dan klik "Proses Laporan"
+                                Pilih rentang tanggal dan klik &quot;Proses Laporan&quot;
                             </div>
                         )}
                      </CardContent>
