@@ -679,20 +679,8 @@ const StikerKecil = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
 };
 
 // Stiker Sedang Component - Ukuran: 6.98cm x 2.21cm (horizontal/landscape)
-// Sesuai contoh gambar user
+// Sesuai contoh gambar user - Font diperbesar untuk keterbacaan
 const StikerSedang = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
-  // Font sizes for medium sticker (in pt)
-  const fontSize = {
-    instansi: '8pt',
-    kodeUakpb: '6pt',
-    kodeBarang: '9pt',
-    nup: '12pt',
-    namaBarang: '7pt',
-    merkTipe: '6pt',
-    warning: '5pt',
-    kodeVertical: '6pt'
-  };
-  
   return (
     <div 
       className="stiker-sedang bg-white relative overflow-hidden flex"
@@ -703,42 +691,90 @@ const StikerSedang = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
         fontFamily: 'Arial, sans-serif'
       }}
     >
-      {/* Left: QR Code Area - Takes ~32% width, fills height */}
+      {/* Left: QR Code Area - Takes ~30% width, fills height maksimal */}
       <div 
         className="flex items-center justify-center relative"
         style={{ 
-          width: '32%', 
+          width: '30%', 
           borderRight: '1px solid #000',
-          background: qrSettings?.backgroundColor || '#ffffff'
+          background: qrSettings?.backgroundColor || '#ffffff',
+          padding: '0.5mm'
         }}
       >
         <StyledQRCode 
           data={data.kode_register || data.kode_barang}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
-          size={75}
+          size={78}
         />
       </div>
       
       {/* Right: Info Area */}
-      <div className="flex-1 flex flex-col relative" style={{ minWidth: 0, paddingRight: '4mm' }}>
+      <div className="flex-1 flex flex-col relative" style={{ minWidth: 0, paddingRight: '5mm' }}>
         {/* Header: Logo + Instansi + Kode UAKPB */}
-        <div className="flex items-center border-b px-1" style={{ borderColor: '#c9a227', paddingTop: '0.5mm', paddingBottom: '0.5mm' }}>
+        <div className="flex items-center border-b px-1" style={{ borderColor: '#c9a227', borderWidth: '1.5px', paddingTop: '0.5mm', paddingBottom: '0.5mm' }}>
           {instansi?.logo_url && (
-            <img src={instansi.logo_url} alt="" style={{ height: '5mm', width: '5mm', objectFit: 'contain', marginRight: '1mm' }} />
+            <img src={instansi.logo_url} alt="" style={{ height: '4.5mm', width: '4.5mm', objectFit: 'contain', marginRight: '1mm' }} />
           )}
           <div className="flex-1 min-w-0">
-            <div className="font-bold truncate" style={{ fontSize: fontSize.instansi }}>
+            <div className="font-bold truncate" style={{ fontSize: '9pt' }}>
               {instansi?.nama_instansi || 'INSTANSI'}
             </div>
-            <div className="font-mono truncate" style={{ fontSize: fontSize.kodeUakpb, color: '#333' }}>
+            <div className="font-mono truncate" style={{ fontSize: '7pt', color: '#333' }}>
               {instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}
             </div>
           </div>
         </div>
         
         {/* Middle: Kode Barang + NUP */}
-        <div className="flex items-center justify-between px-1 border-b border-gray-300" style={{ paddingTop: '0.5mm', paddingBottom: '0.5mm' }}>
+        <div className="flex items-center justify-between px-1 border-b border-gray-300" style={{ paddingTop: '0.3mm', paddingBottom: '0.3mm' }}>
+          <div className="font-mono font-bold" style={{ fontSize: '10pt' }}>
+            {data.kode_barang}
+          </div>
+          <div className="font-bold" style={{ fontSize: '14pt' }}>
+            {data.nup || '1'}
+          </div>
+        </div>
+        
+        {/* Nama Barang */}
+        <div className="px-1" style={{ paddingTop: '0.3mm' }}>
+          <div className="font-semibold leading-tight truncate" style={{ fontSize: '8pt' }}>
+            {data.nama_barang}
+          </div>
+        </div>
+        
+        {/* Merk/Tipe */}
+        <div className="px-1 flex-1">
+          <div className="leading-tight truncate" style={{ fontSize: '7pt', color: '#555' }}>
+            {data.merk_tipe || data.merk || '-'}
+          </div>
+        </div>
+        
+        {/* Footer Warning */}
+        <div 
+          className="text-center italic border-t border-gray-300"
+          style={{ fontSize: '6pt', color: '#dc2626', paddingTop: '0.3mm', paddingBottom: '0.3mm' }}
+        >
+          Tidak Untuk Diperjualbelikan
+        </div>
+      </div>
+      
+      {/* Vertical Code on Right Edge - NO BORDER/BACKGROUND */}
+      <div 
+        className="absolute right-0 top-0 h-full flex items-center justify-center"
+        style={{ 
+          writingMode: 'vertical-rl', 
+          fontSize: '7pt', 
+          width: '4.5mm',
+          color: '#333',
+          fontFamily: 'Arial, sans-serif'
+        }}
+      >
+        <span>{data.kode_vertikal}</span>
+      </div>
+    </div>
+  );
+};
           <div className="font-mono font-bold" style={{ fontSize: fontSize.kodeBarang }}>
             {data.kode_barang}
           </div>
