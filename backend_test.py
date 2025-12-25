@@ -17528,7 +17528,7 @@ def main():
         return True
 
 if __name__ == "__main__":
-    print("🚀 Starting Transaction Approval System Testing...")
+    print("🚀 Starting Dashboard Functionality Testing...")
     print("=" * 60)
     
     tester = APITester()
@@ -17541,15 +17541,15 @@ if __name__ == "__main__":
     
     print(f"✅ Authentication successful. Token: {tester.token[:20]}...")
     
-    # Run the Transaction Approval System test
-    test_name = "Transaction Approval System (Sistem Persetujuan Transaksi)"
+    # Run the Dashboard Functionality test
+    test_name = "Dashboard Functionality (Critical Fix Verification)"
     
     print(f"\n{'='*60}")
     print(f"🧪 Running: {test_name}")
     print(f"{'='*60}")
     
     try:
-        result = tester.test_transaction_approval_system()
+        result = tester.test_dashboard_functionality()
         if result:
             print(f"✅ {test_name}: PASSED")
         else:
@@ -17560,7 +17560,7 @@ if __name__ == "__main__":
     
     # Final Summary
     print(f"\n{'='*60}")
-    print("📊 TRANSACTION APPROVAL SYSTEM TEST RESULTS")
+    print("📊 DASHBOARD FUNCTIONALITY TEST RESULTS")
     print(f"{'='*60}")
     
     status = "✅ PASSED" if result else "❌ FAILED"
@@ -17571,8 +17571,12 @@ if __name__ == "__main__":
     print(f"📈 Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
     
     if result:
-        print("🎉 Transaction Approval System test passed! All approval workflows are working correctly.")
+        print("🎉 Dashboard functionality test passed! Dashboard loading issue has been resolved.")
+        print("✅ Dashboard loads within 5 seconds")
+        print("✅ All stats cards display data correctly")
+        print("✅ Navigation between pages works smoothly")
+        print("✅ Notification widget responds quickly (< 1 second)")
         exit(0)
     else:
-        print("⚠️ Transaction Approval System test failed. Please check the implementation.")
+        print("⚠️ Dashboard functionality test failed. Please check the implementation.")
         exit(1)
