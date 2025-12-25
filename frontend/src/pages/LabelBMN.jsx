@@ -912,6 +912,50 @@ export default function LabelBMN() {
     setShowPrintPage(false);
   };
   
+  // Handler untuk cetak aksesori dari modal
+  const handlePrintChildAssets = (childAssets, parentAsset) => {
+    // Prepare child assets for printing with parent info
+    const itemsForPrint = childAssets.map(child => ({
+      id: child.id,
+      kode_barang: child.kode_register_anak,
+      kode_register: child.kode_register_anak,
+      nama_barang: child.nama_aksesori,
+      merk: parentAsset?.merk || '',
+      tipe: parentAsset?.tipe || '',
+      nup: '1',
+      tahun: new Date().getFullYear().toString(),
+      ukuran: 'kecil', // Aksesori selalu ukuran kecil
+      is_child: true,
+      child_id: child.id,
+      parent_id: parentAsset?.id
+    }));
+    
+    setSelectedItems(itemsForPrint);
+    setShowPrintPage(true);
+  };
+  
+  // Handler untuk print complete aksesori
+  const handleChildPrintComplete = async () => {
+    try {
+      const childItems = selectedItems.filter(i => i.is_child);
+      if (childItems.length > 0) {
+        await api.post('/api/label-bmn/print-batch', { 
+          items: childItems.map(i => ({ 
+            barang_id: i.parent_id, 
+            ukuran: i.ukuran, 
+            is_child: true,
+            child_id: i.child_id 
+          })), 
+          canvas_size: canvasSize 
+        });
+        toast.success('Pencetakan aksesori dicatat');
+      }
+      loadAssets();
+      setSelectedItems([]);
+    } catch { toast.error('Gagal mencatat'); }
+    setShowPrintPage(false);
+  };
+  
   return (
     <div className="space-y-6 print:hidden">
       <div className="flex justify-between items-start">
