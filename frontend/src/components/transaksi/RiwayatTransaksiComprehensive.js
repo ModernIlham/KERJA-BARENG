@@ -7,15 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { 
   Search, RefreshCw, FileText, Eye, Printer, Filter, 
   ArrowDownToLine, ArrowUpFromLine, RefreshCcw, Construction,
-  ChevronLeft, ChevronRight, Loader2
+  ChevronLeft, ChevronRight, Loader2, PenTool
 } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import TransactionReportA4 from './TransactionReportA4';
+import TransaksiDokumenManager from './TransaksiDokumenManager';
 
 const TRANSACTION_TYPES = [
   { value: 'all', label: 'Semua Jenis' },
