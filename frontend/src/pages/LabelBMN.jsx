@@ -27,7 +27,8 @@ import { Switch } from '../components/ui/switch';
 import { 
   Printer, Search, Plus, Trash2, Package, Tag, QrCode, 
   CheckCircle2, XCircle, History, LayoutGrid, Settings2,
-  Link2, RefreshCw, Eye, Palette, Image, ChevronDown, ChevronUp, Square, Circle
+  Link2, RefreshCw, Eye, Palette, Image, ChevronDown, ChevronUp, Square, Circle,
+  Copy, Save, RotateCcw, Type, AlignLeft, AlignRight, Ruler, Layers, PaintBucket, Move
 } from 'lucide-react';
 import { toast } from 'sonner';
 import QRCodeStyling from 'qr-code-styling';
