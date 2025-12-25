@@ -94,17 +94,7 @@ class PrintBatchRequest(BaseModel):
 
 
 # --- Helper Functions ---
-def sanitize_doc(doc):
-    """Convert MongoDB document to JSON-serializable dict"""
-    if doc is None:
-        return None
-    if "_id" in doc:
-        doc["id"] = str(doc["_id"])
-        del doc["_id"]
-    return doc
-
-
-async def get_instansi_info():
+# --- Models ---
     """Get institution info for sticker header"""
     config = await db.system_settings.find_one({"key": "instansi"})
     if config:
