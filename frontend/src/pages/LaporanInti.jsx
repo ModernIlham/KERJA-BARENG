@@ -279,7 +279,7 @@ export default function LaporanInti() {
                 <div className="h-20">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={ka?.distribusi || []} cx="50%" cy="50%" innerRadius={20} outerRadius={35} dataKey="count" nameKey="label" isAnimationActive={!pdfMode}>
+                      <Pie data={ka?.distribusi || []} cx="50%" cy="50%" innerRadius={20} outerRadius={35} dataKey="count" nameKey="label" isAnimationActive={true}>
                         {(ka?.distribusi || []).map((e, i) => <Cell key={i} fill={e.color} />)}
                       </Pie>
                       <Tooltip formatter={v => `${v} unit`} />
@@ -416,9 +416,9 @@ export default function LaporanInti() {
                       <XAxis dataKey="bulan" tick={{fontSize: 7}} />
                       <YAxis domain={[0, 100]} tick={{fontSize: 7}} />
                       <Tooltip />
-                      <Line type="monotone" dataKey="admin" stroke={C.success} strokeWidth={1.5} dot={{r: 1}} isAnimationActive={!pdfMode} />
-                      <Line type="monotone" dataKey="fisik" stroke={C.info} strokeWidth={1.5} dot={{r: 1}} isAnimationActive={!pdfMode} />
-                      <Line type="monotone" dataKey="hukum" stroke="#7c3aed" strokeWidth={1.5} dot={{r: 1}} isAnimationActive={!pdfMode} />
+                      <Line type="monotone" dataKey="admin" stroke={C.success} strokeWidth={1.5} dot={{r: 1}} isAnimationActive={true} />
+                      <Line type="monotone" dataKey="fisik" stroke={C.info} strokeWidth={1.5} dot={{r: 1}} isAnimationActive={true} />
+                      <Line type="monotone" dataKey="hukum" stroke="#7c3aed" strokeWidth={1.5} dot={{r: 1}} isAnimationActive={true} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -459,7 +459,7 @@ export default function LaporanInti() {
                 <div className="h-20">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={ps?.distribusi_kategori || []} cx="50%" cy="50%" innerRadius={20} outerRadius={35} dataKey="nilai" nameKey="nama" isAnimationActive={!pdfMode}>
+                      <Pie data={ps?.distribusi_kategori || []} cx="50%" cy="50%" innerRadius={20} outerRadius={35} dataKey="nilai" nameKey="nama" isAnimationActive={true}>
                         {(ps?.distribusi_kategori || []).map((e, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
                       <Tooltip formatter={v => fc(v)} />
@@ -476,8 +476,8 @@ export default function LaporanInti() {
                       <XAxis dataKey="bulan" tick={{fontSize: 7}} />
                       <YAxis tickFormatter={v => `${(v/1e9).toFixed(0)}M`} tick={{fontSize: 7}} />
                       <Tooltip formatter={v => fc(v)} />
-                      <Line type="monotone" dataKey="masuk" stroke={C.success} strokeWidth={1.5} isAnimationActive={!pdfMode} />
-                      <Line type="monotone" dataKey="keluar" stroke={C.danger} strokeWidth={1.5} isAnimationActive={!pdfMode} />
+                      <Line type="monotone" dataKey="masuk" stroke={C.success} strokeWidth={1.5} isAnimationActive={true} />
+                      <Line type="monotone" dataKey="keluar" stroke={C.danger} strokeWidth={1.5} isAnimationActive={true} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
