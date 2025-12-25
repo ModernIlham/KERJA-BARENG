@@ -18,7 +18,7 @@ import { id as localeId } from 'date-fns/locale';
 import TransactionReportA4 from './TransactionReportA4';
 
 const TRANSACTION_TYPES = [
-  { value: '', label: 'Semua Jenis' },
+  { value: 'all', label: 'Semua Jenis' },
   { value: 'MASUK', label: 'Barang Masuk', icon: ArrowDownToLine, color: 'text-green-600' },
   { value: 'KELUAR', label: 'Barang Keluar', icon: ArrowUpFromLine, color: 'text-red-600' },
   { value: 'DISTRIBUSI', label: 'Distribusi', icon: ArrowUpFromLine, color: 'text-orange-600' },
