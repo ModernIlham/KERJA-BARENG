@@ -235,6 +235,63 @@ async def lookup_kode(kode: str, current_user: str = Depends(get_current_user)):
         result["uraian_barang"] = ref_map.get(clean_kode[:10], '')
     return result
 
+@router.get("/golongan")
+async def get_golongan_list(current_user: str = Depends(get_current_user)):
+    """Get list of golongan (level 1) from kodefikasi"""
+    cursor = db.kodefikasi.find({"level": 1}).sort("kode", 1)
+    items = await cursor.to_list(None)
+    return [{"kode": item["kode"], "nama": item["uraian"]} for item in items]
+
+@router.get("/by-golongan/{golongan_kode}")
+async def get_kode_by_golongan(
+    golongan_kode: str,
+    search: Optional[str] = None,
+    limit: int = 500,
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Get kode barang (level 5/sub-sub kelompok) filtered by golongan.
+    golongan_kode: first digit of kode barang (e.g., "2" for "2 - Tanah")
+    """
+    # Build query - find items starting with golongan_kode and level 5 (sub-sub kelompok)
+    query = {
+        "kode": {"$regex": f"^{golongan_kode}"},
+        "level": 5  # Only get detailed items (sub-sub kelompok)
+    }
+    
+    if search:
+        query["$or"] = [
+            {"uraian": {"$regex": search, "$options": "i"}},
+            {"kode": {"$regex": search, "$options": "i"}}
+        ]
+    
+    cursor = db.kodefikasi.find(query).sort("kode", 1).limit(limit)
+    items = await cursor.to_list(length=limit)
+    
+    return [{"kode": item["kode"], "uraian": item["uraian"]} for item in items]
+
+@router.get("/all-levels/{golongan_kode}")
+async def get_all_levels_by_golongan(
+    golongan_kode: str,
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Get all kode barang hierarchically filtered by golongan.
+    Returns items at all levels for the given golongan.
+    """
+    query = {
+        "kode": {"$regex": f"^{golongan_kode}"}
+    }
+    
+    cursor = db.kodefikasi.find(query).sort([("level", 1), ("kode", 1)])
+    items = await cursor.to_list(None)
+    
+    return [{
+        "kode": item["kode"], 
+        "uraian": item["uraian"],
+        "level": item.get("level", 5)
+    } for item in items]
+
 # Export Excel - All Referensi Kode
 @router.get("/export/excel")
 async def export_referensi_excel(current_user: str = Depends(get_current_user)):
