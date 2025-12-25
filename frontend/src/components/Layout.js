@@ -6,7 +6,7 @@ import {
   Settings, Mail, ChevronDown, ChevronRight, Book, Box, Building, Network, 
   Clock, Briefcase, FileCheck, ClipboardList, ArrowRightLeft, ChevronsLeft, ChevronsRight,
   Calendar, Activity, Warehouse, Bell, CheckCircle2, ArrowDownToLine, ArrowUpFromLine,
-  History
+  History, Database, Shield, Scale, FolderOpen, RefreshCw
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -169,20 +169,22 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
     { to: '/kepegawaian/absensi', icon: Calendar, label: 'Riwayat Absensi' },
   ];
 
-  const asetTetapItems = [
-    { to: '/barang?tab=aset-tetap', icon: ClipboardList, label: 'Daftar Aset' },
-    { to: '/transaksi-aset', icon: ArrowRightLeft, label: 'Transaksi Aset' },
+  const transaksiAsetItems = [
+    { to: '/transaksi-aset', icon: ArrowRightLeft, label: 'Semua Transaksi' },
     { to: '/aset-pegawai', icon: Package, label: 'Aset Pegawai' },
     { to: '/notifikasi', icon: Bell, label: 'Notifikasi Aset' },
-    { to: '/opname', icon: FileCheck, label: 'Stock Opname' },
   ];
 
-  const persediaanItems = [
-    { to: '/barang?tab=persediaan', icon: ClipboardList, label: 'Daftar Barang' },
+  const transaksiPersediaanItems = [
     { to: '/transaksi-persediaan?tab=masuk', icon: ArrowDownToLine, label: 'Barang Masuk' },
     { to: '/transaksi-persediaan?tab=keluar', icon: ArrowUpFromLine, label: 'Barang Keluar' },
     { to: '/transaksi-persediaan?tab=riwayat', icon: History, label: 'Riwayat Transaksi' },
     { to: '/gudang', icon: Warehouse, label: 'Manajemen Gudang' },
+  ];
+
+  const pengamananItems = [
+    { to: '/pengamanan-bmn', icon: Shield, label: 'Dashboard Pengamanan' },
+    { to: '/opname', icon: FileCheck, label: 'Stock Opname' },
   ];
 
   const laporanItems = [
@@ -221,7 +223,7 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
         
       <ScrollArea className="flex-1 py-4 px-3">
           <div className="space-y-5">
-            {/* Dashboard Utama */}
+            {/* ==================== BERANDA ==================== */}
             <div className="space-y-1">
                 {!collapsed && (
                     <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
@@ -231,7 +233,7 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 <SidebarItem to="/" icon={LayoutDashboard} label="Dashboard Utama" end collapsed={collapsed} />
             </div>
 
-            {/* Kepegawaian (HR) */}
+            {/* ==================== KEPEGAWAIAN ==================== */}
             <div className="space-y-1">
                 {!collapsed && (
                     <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
@@ -253,45 +255,53 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 </SidebarGroup>
             </div>
 
-            {/* Aset Tetap (BMN) */}
+            {/* ==================== MASTER DATA ==================== */}
             <div className="space-y-1">
                 {!collapsed && (
                     <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                        Aset Tetap (BMN)
+                        Master Data
+                    </div>
+                )}
+                <SidebarItem to="/barang?tab=aset-tetap" icon={Database} label="Daftar Aset (BMN)" collapsed={collapsed} />
+                <SidebarItem to="/barang?tab=persediaan" icon={FolderOpen} label="Daftar Persediaan" collapsed={collapsed} />
+            </div>
+
+            {/* ==================== TRANSAKSI ASET ==================== */}
+            <div className="space-y-1">
+                {!collapsed && (
+                    <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                        Transaksi Aset
                     </div>
                 )}
                 
                 <SidebarGroup 
                     icon={Package} 
-                    label="Kelola Aset" 
-                    activePaths={['/barang', '/transaksi-aset', '/opname', '/aset-pegawai', '/notifikasi']} 
+                    label="Kelola Transaksi Aset" 
+                    activePaths={['/transaksi-aset', '/aset-pegawai', '/notifikasi']} 
                     collapsed={collapsed}
-                    items={asetTetapItems}
+                    items={transaksiAsetItems}
                 >
-                    <SidebarItem to="/barang?tab=aset-tetap" icon={ClipboardList} label="Daftar Aset" />
-                    <SidebarItem to="/transaksi-aset" icon={ArrowRightLeft} label="Transaksi Aset" />
+                    <SidebarItem to="/transaksi-aset" icon={ArrowRightLeft} label="Semua Transaksi" />
                     <SidebarItem to="/aset-pegawai" icon={Package} label="Aset Pegawai" />
                     <SidebarItem to="/notifikasi" icon={Bell} label="Notifikasi Aset" />
-                    <SidebarItem to="/opname" icon={FileCheck} label="Stock Opname" />
                 </SidebarGroup>
             </div>
 
-            {/* Persediaan (Gudang) */}
+            {/* ==================== TRANSAKSI PERSEDIAAN ==================== */}
             <div className="space-y-1">
                 {!collapsed && (
                     <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                        Persediaan (Gudang)
+                        Transaksi Persediaan
                     </div>
                 )}
                 
                 <SidebarGroup 
                     icon={Box} 
-                    label="Kelola Persediaan" 
+                    label="Kelola Transaksi Gudang" 
                     activePaths={['/transaksi-persediaan', '/gudang']} 
                     collapsed={collapsed}
-                    items={persediaanItems}
+                    items={transaksiPersediaanItems}
                 >
-                    <SidebarItem to="/barang?tab=persediaan" icon={ClipboardList} label="Daftar Barang" />
                     <SidebarItem to="/transaksi-persediaan?tab=masuk" icon={ArrowDownToLine} label="Barang Masuk" />
                     <SidebarItem to="/transaksi-persediaan?tab=keluar" icon={ArrowUpFromLine} label="Barang Keluar" />
                     <SidebarItem to="/transaksi-persediaan?tab=riwayat" icon={History} label="Riwayat Transaksi" />
@@ -299,7 +309,27 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 </SidebarGroup>
             </div>
 
-            {/* Administrasi */}
+            {/* ==================== PENGAMANAN BMN ==================== */}
+            <div className="space-y-1">
+                {!collapsed && (
+                    <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                        Pengamanan BMN
+                    </div>
+                )}
+                
+                <SidebarGroup 
+                    icon={Shield} 
+                    label="Tertib & Pengamanan" 
+                    activePaths={['/pengamanan-bmn', '/opname']} 
+                    collapsed={collapsed}
+                    items={pengamananItems}
+                >
+                    <SidebarItem to="/pengamanan-bmn" icon={Shield} label="Dashboard Pengamanan" />
+                    <SidebarItem to="/opname" icon={FileCheck} label="Stock Opname" />
+                </SidebarGroup>
+            </div>
+
+            {/* ==================== ADMINISTRASI ==================== */}
             <div className="space-y-1">
                 {!collapsed && (
                     <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
@@ -324,7 +354,7 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 </SidebarGroup>
             </div>
 
-            {/* Sistem */}
+            {/* ==================== SISTEM ==================== */}
             <div className="space-y-1">
                 {!collapsed && (
                     <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
