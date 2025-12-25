@@ -3,7 +3,7 @@
  * All categories: Aset Tetap, Persediaan, Aset Tak Berwujud, KDP
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../api/axios';
 import { Button } from '../components/ui/button';
 import { Loader2, Printer, Download, Shield, FileText, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, XCircle, Package, Warehouse, Building2, Car, MapPin, Wrench, BookOpen, Construction } from 'lucide-react';
@@ -11,7 +11,8 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 // Compact formatters
 const fc = (v) => {
