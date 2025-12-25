@@ -329,8 +329,10 @@ const QRSettingsPanel = ({ settings, onChange, instansi, previewText = "#SAMPLE-
 // ==================== STICKER COMPONENTS ====================
 
 // Stiker Kecil Component (untuk aksesori)
-const StikerKecil = ({ data, instansi, qrDataUrl, scale = 1 }) => {
+const StikerKecil = ({ data, instansi, qrDataUrl, qrSettings = DEFAULT_QR_SETTINGS, scale = 1 }) => {
   const s = (val) => val * scale;
+  const showLogo = qrSettings?.logoEnabled !== false;
+  const logoSize = qrSettings?.logoSize || 25;
   
   return (
     <div 
@@ -362,18 +364,25 @@ const StikerKecil = ({ data, instansi, qrDataUrl, scale = 1 }) => {
       </div>
       
       {/* QR Code Area */}
-      <div className="flex-1 flex items-center justify-center p-1 relative" style={{ height: '60%' }}>
+      <div 
+        className="flex-1 flex items-center justify-center p-1 relative" 
+        style={{ height: '60%', background: qrSettings?.lightColor || '#ffffff' }}
+      >
         {qrDataUrl && (
           <img src={qrDataUrl} alt="QR" className="h-full w-auto object-contain" />
         )}
-        {instansi?.logo_url && (
+        {showLogo && instansi?.logo_url && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <img 
-              src={instansi.logo_url} 
-              alt="Logo" 
-              className="w-1/4 h-auto opacity-90"
-              style={{ filter: 'drop-shadow(0 0 2px white) drop-shadow(0 0 2px white)' }}
-            />
+            <div 
+              className="bg-white rounded p-0.5"
+              style={{ width: `${logoSize * 0.8}%`, height: `${logoSize * 0.8}%` }}
+            >
+              <img 
+                src={instansi.logo_url} 
+                alt="Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
         )}
       </div>
