@@ -650,37 +650,87 @@ async def create_transaksi_perubahan(
             kdp_tujuan = await db.barang.find_one({"_id": ObjectId(kdp_tujuan_id)})
             if kdp_tujuan:
                 nilai_tujuan_sekarang = kdp_tujuan.get("nilai_buku") or kdp_tujuan.get("nilai_perolehan") or 0
-                await db.barang.update_one(
-                    {"_id": ObjectId(kdp_tujuan_id)},
-                    {"$set": {
-                        "nilai_buku": nilai_tujuan_sekarang + nilai_yang_dipindahkan,
-                        "updated_at": datetime.now(timezone.utc)
-                    }}
-                )
+                # Store KDP update in pending changes for approval
+                update_fields["_kdp_tujuan_update"] = {
+                    "id": kdp_tujuan_id,
+                    "nilai_buku": nilai_tujuan_sekarang + nilai_yang_dipindahkan
+                }
     
-    # Insert transaction record
-    result = await db.transaksi.insert_one(transaksi_record)
+    # Check if approval is required
+    needs_approval = await check_approval_required(jenis)
     
-    # Update the asset
-    await db.barang.update_one({"_id": ObjectId(barang_id)}, {"$set": update_fields})
+    # Exclude special types that have their own flow (REKLASIFIKASI_KELUAR has PENDING_MASUK status)
+    if jenis == "REKLASIFIKASI_KELUAR":
+        needs_approval = False
     
-    # Log activity
-    await log_activity(
-        db,
-        user_id=str(current_user.id) if hasattr(current_user, 'id') else "system",
-        user_name=current_user.full_name if hasattr(current_user, 'full_name') else "System",
-        action=f"create_{jenis.lower()}",
-        module="transaksi",
-        target_id=str(result.inserted_id),
-        details=f"Transaksi {jenis} untuk {asset.get('nama_barang')}",
-        metadata={"jenis": jenis, "barang_id": barang_id}
-    )
-    
-    return {
-        "message": f"Transaksi {jenis} berhasil dicatat",
-        "id": str(result.inserted_id),
-        "jenis": jenis
-    }
+    if needs_approval:
+        # Store pending changes instead of applying immediately
+        transaksi_record["approval_status"] = "PENDING"
+        transaksi_record["status"] = "PENDING_APPROVAL"
+        transaksi_record["pending_changes"] = update_fields
+        
+        # Insert transaction record without updating asset
+        result = await db.transaksi.insert_one(transaksi_record)
+        
+        # Log activity
+        await log_activity(
+            db,
+            user_id=str(current_user.id) if hasattr(current_user, 'id') else "system",
+            user_name=current_user.full_name if hasattr(current_user, 'full_name') else "System",
+            action=f"create_{jenis.lower()}_pending",
+            module="transaksi",
+            target_id=str(result.inserted_id),
+            details=f"Transaksi {jenis} menunggu persetujuan untuk {asset.get('nama_barang')}",
+            metadata={"jenis": jenis, "barang_id": barang_id, "requires_approval": True}
+        )
+        
+        return {
+            "message": f"Transaksi {jenis} berhasil dicatat dan menunggu persetujuan",
+            "id": str(result.inserted_id),
+            "jenis": jenis,
+            "status": "PENDING_APPROVAL",
+            "requires_approval": True
+        }
+    else:
+        # Original flow - apply changes immediately
+        transaksi_record["approval_status"] = "AUTO_APPROVED"
+        
+        # Handle special KDP updates
+        kdp_update = update_fields.pop("_kdp_tujuan_update", None)
+        
+        # Insert transaction record
+        result = await db.transaksi.insert_one(transaksi_record)
+        
+        # Update the asset
+        await db.barang.update_one({"_id": ObjectId(barang_id)}, {"$set": update_fields})
+        
+        # Apply KDP tujuan update if exists
+        if kdp_update and ObjectId.is_valid(kdp_update["id"]):
+            await db.barang.update_one(
+                {"_id": ObjectId(kdp_update["id"])},
+                {"$set": {
+                    "nilai_buku": kdp_update["nilai_buku"],
+                    "updated_at": datetime.now(timezone.utc)
+                }}
+            )
+        
+        # Log activity
+        await log_activity(
+            db,
+            user_id=str(current_user.id) if hasattr(current_user, 'id') else "system",
+            user_name=current_user.full_name if hasattr(current_user, 'full_name') else "System",
+            action=f"create_{jenis.lower()}",
+            module="transaksi",
+            target_id=str(result.inserted_id),
+            details=f"Transaksi {jenis} untuk {asset.get('nama_barang')}",
+            metadata={"jenis": jenis, "barang_id": barang_id}
+        )
+        
+        return {
+            "message": f"Transaksi {jenis} berhasil dicatat",
+            "id": str(result.inserted_id),
+            "jenis": jenis
+        }
 
 
 @router.get("/reklasifikasi/pending")
