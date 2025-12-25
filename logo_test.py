@@ -6,7 +6,7 @@ import base64
 import io
 
 class LogoUploadTester:
-    def __init__(self, base_url="https://inventory-pro-123.preview.emergentagent.com"):
+    def __init__(self, base_url="https://appsign-flow.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
 
