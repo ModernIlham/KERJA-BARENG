@@ -17018,7 +17018,7 @@ def main():
         return True
 
 if __name__ == "__main__":
-    print("🚀 Starting Cross-Module Reclassification Testing...")
+    print("🚀 Starting Transaction Approval System Testing...")
     print("=" * 60)
     
     tester = APITester()
@@ -17031,15 +17031,15 @@ if __name__ == "__main__":
     
     print(f"✅ Authentication successful. Token: {tester.token[:20]}...")
     
-    # Run the Cross-Module Reclassification test
-    test_name = "Cross-Module Reclassification (Persediaan ↔ Aset)"
+    # Run the Transaction Approval System test
+    test_name = "Transaction Approval System (Sistem Persetujuan Transaksi)"
     
     print(f"\n{'='*60}")
     print(f"🧪 Running: {test_name}")
     print(f"{'='*60}")
     
     try:
-        result = tester.test_cross_module_reclassification()
+        result = tester.test_transaction_approval_system()
         if result:
             print(f"✅ {test_name}: PASSED")
         else:
@@ -17050,7 +17050,7 @@ if __name__ == "__main__":
     
     # Final Summary
     print(f"\n{'='*60}")
-    print("📊 CROSS-MODULE RECLASSIFICATION TEST RESULTS")
+    print("📊 TRANSACTION APPROVAL SYSTEM TEST RESULTS")
     print(f"{'='*60}")
     
     status = "✅ PASSED" if result else "❌ FAILED"
@@ -17061,8 +17061,8 @@ if __name__ == "__main__":
     print(f"📈 Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
     
     if result:
-        print("🎉 Cross-Module Reclassification test passed! All reclassification flows are working correctly.")
+        print("🎉 Transaction Approval System test passed! All approval workflows are working correctly.")
         exit(0)
     else:
-        print("⚠️ Cross-Module Reclassification test failed. Please check the implementation.")
+        print("⚠️ Transaction Approval System test failed. Please check the implementation.")
         exit(1)
