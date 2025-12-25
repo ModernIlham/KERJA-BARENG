@@ -127,13 +127,13 @@ backend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.3"
-  test_sequence: 9
+  version: "1.4"
+  test_sequence: 10
   run_ui: true
 
 test_plan:
   current_focus:
-    - "Cross-Module Reclassification API"
+    - "Transaction Approval System API"
   stuck_tasks: []
   test_all: false
   test_priority: "high"
