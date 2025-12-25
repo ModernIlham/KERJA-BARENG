@@ -25,30 +25,18 @@ export default function Dashboard() {
     let isMounted = true;
     
     const fetchStats = async () => {
-      console.log('[Dashboard] Starting fetch...');
       try {
-        console.log('[Dashboard] Calling APIs...');
         const [res, optRes] = await Promise.all([
             api.get('/api/dashboard/summary'),
             api.get('/api/dashboard/filter-options')
         ]);
-        console.log('[Dashboard] APIs returned:', res.data, optRes.data);
         
         if (isMounted) {
           setData(res.data);
           setFilterOptions(optRes.data);
         }
-        
-        // Fetch notification widget data
-        try {
-          const notifRes = await api.get('/api/notifications/dashboard-widget');
-          if (isMounted) setNotifWidget(notifRes.data);
-        } catch (e) {
-          console.log('Notification widget not available');
-        }
       } catch (error) {
-        console.error("[Dashboard] Failed to fetch dashboard stats", error);
-        // Fallback mock data if API fails
+        console.error("Failed to fetch dashboard stats", error);
         if (isMounted) {
           setData({
               aset_stats: { total_items: 0, total_value: 0, critical_stock: 0 },
@@ -58,12 +46,30 @@ export default function Dashboard() {
           });
         }
       } finally {
-        console.log('[Dashboard] Setting loading to false');
         if (isMounted) setLoading(false);
       }
     };
     
+    // Fetch notification widget separately with timeout to prevent blocking
+    const fetchNotifications = async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        const notifRes = await api.get('/api/notifications/dashboard-widget', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (isMounted) setNotifWidget(notifRes.data);
+      } catch (e) {
+        // Silently fail - notification widget is optional
+        console.log('Notification widget not available or timed out');
+      }
+    };
+    
     fetchStats();
+    fetchNotifications(); // Non-blocking
     
     return () => {
       isMounted = false;
