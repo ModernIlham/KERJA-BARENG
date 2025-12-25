@@ -446,7 +446,15 @@ const StikerSedang = ({ data, instansi, qrSettings }) => {
 
 /**
  * Stiker BESAR - 9.49cm × 3.22cm (Landscape)
- * Font Specs: Header 10pt, RegCode 9pt, Kode 10pt, Nama 9pt, Qty 14pt, Desc 8pt, Warning 9pt, Vertikal 9pt
+ * SPESIFIKASI FONT (dari HTML template):
+ * - Header "Otorita IKN": 10pt (bold) - Roboto atau Arial
+ * - Kode Registrasi: 9pt (bold) - Roboto Condensed
+ * - Kode Barang: 10pt (bold) - Roboto atau Arial
+ * - Nama Barang: 9pt (medium) - Roboto atau Arial
+ * - Quantity Box: 14pt (bold) - dapat memuat 5 digit
+ * - Deskripsi: 8pt - Roboto atau Arial
+ * - Peringatan Merah: 9pt (bold) - Roboto atau Arial
+ * - Kode Vertikal: 9pt (bold) - Roboto Condensed (TANPA border/background)
  */
 const StikerBesar = ({ data, instansi, qrSettings }) => {
   const styles = {
@@ -558,12 +566,12 @@ const StikerBesar = ({ data, instansi, qrSettings }) => {
       color: '#DC2626',
       marginTop: '3px'
     },
+    // Vertical code TANPA border (sesuai permintaan user)
     verticalCode: {
       width: '21px',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      borderLeft: '1px solid #2c2c2c'
+      justifyContent: 'center'
     },
     verticalText: {
       writingMode: 'vertical-rl',
@@ -580,7 +588,7 @@ const StikerBesar = ({ data, instansi, qrSettings }) => {
     <div style={styles.container}>
       <div style={styles.qrArea}>
         <StyledQRCode 
-          data={data.kode_register || data.kode_barang}
+          data={data.kode_barang}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
           size={105}
