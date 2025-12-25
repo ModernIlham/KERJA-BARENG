@@ -79,16 +79,21 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
       
       // Find golongan name from options
       const golonganInfo = golonganOptions.find(g => g.kode === golongan);
-      const golonganPattern = golonganInfo ? `${golongan} - ${golonganInfo.nama}` : null;
+      const golonganNama = golonganInfo ? golonganInfo.nama : '';
       
       (res.data.data || []).forEach(item => {
         const kodeBarang = item.kode_barang || '';
         const itemGolongan = item.golongan_barang || '';
         
-        // Filter by golongan - match "X - Nama" pattern or first character of kode_barang
-        const matchesGolongan = itemGolongan.startsWith(`${golongan} -`) || 
-                                 itemGolongan === golongan ||
-                                 kodeBarang.startsWith(golongan);
+        // Filter by golongan - multiple match strategies:
+        // 1. Match "X - Nama" pattern exactly
+        // 2. Match golongan nama in the string (e.g., "Tanah" in "2 - Tanah")
+        // 3. Match first character of kode_barang with golongan kode
+        const matchByPattern = itemGolongan.startsWith(`${golongan} -`);
+        const matchByNama = golonganNama && itemGolongan.toLowerCase().includes(golonganNama.toLowerCase());
+        const matchByKode = kodeBarang.startsWith(golongan);
+        
+        const matchesGolongan = matchByPattern || matchByNama || matchByKode;
         
         if (matchesGolongan && kodeBarang && !seenKodes.has(kodeBarang)) {
           seenKodes.add(kodeBarang);
