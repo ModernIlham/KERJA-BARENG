@@ -405,38 +405,6 @@ export default function LaporanInti() {
 
       {/* ==================== PAGE 3 ==================== */}
       <A4Page pageNum={3} totalPages={totalPages} header={header}>
-        {/* Pengamanan Per Unit */}
-        <CompactTable 
-          title="Status Pengamanan per Unit Kerja"
-          columns={[
-            { key: 'unit', header: 'Unit' },
-            { key: 'total', header: 'Total', align: 'center' },
-            { key: 'admin', header: 'Admin (%)', align: 'center', render: (v) => `${v}%` },
-            { key: 'fisik', header: 'Fisik (%)', align: 'center', render: (v) => `${v}%` },
-            { key: 'hukum', header: 'Hukum (%)', align: 'center', render: (v) => `${v}%` },
-            { key: 'overall', header: 'Overall', align: 'center', render: (v) => `${v}%`, bold: true }
-          ]}
-          data={pengamanan_aset?.per_unit_kerja || []}
-        />
-
-        <div className="mt-3">
-          <CompactTable 
-            title="Rencana Aksi Q1 2025"
-            columns={[
-              { key: 'no', header: 'No', align: 'center' },
-              { key: 'kegiatan', header: 'Kegiatan' },
-              { key: 'pic', header: 'PIC' },
-              { key: 'target', header: 'Target' },
-              { key: 'status', header: 'Status', align: 'center', render: (v) => (
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${v === 'Proses' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
-                  {v}
-                </span>
-              )}
-            ]}
-            data={pengamanan_aset?.rencana_aksi || []}
-          />
-        </div>
-
         {/* SECTION VII: PERSEDIAAN */}
         <SectionTitle num="VII" title="Ringkasan Aset Lancar - Persediaan" />
         <div className="grid grid-cols-4 gap-2 mb-3">
@@ -513,7 +481,7 @@ export default function LaporanInti() {
         </div>
 
         {/* Permintaan Per Unit */}
-        <div className="border border-slate-200 rounded p-3">
+        <div className="border border-slate-200 rounded p-3 mb-3">
           <h4 className="text-[9px] font-bold text-slate-600 uppercase mb-2">Permintaan per Unit</h4>
           <div className="h-28">
             <ResponsiveContainer width="100%" height="100%">
@@ -526,6 +494,19 @@ export default function LaporanInti() {
             </ResponsiveContainer>
           </div>
         </div>
+
+        {/* Gudang Table */}
+        <CompactTable 
+          title="Kapasitas Gudang"
+          columns={[
+            { key: 'gudang', header: 'Gudang' },
+            { key: 'pic', header: 'PIC' },
+            { key: 'item', header: 'Item', align: 'center' },
+            { key: 'nilai', header: 'Nilai', align: 'right', render: (v) => compactCurrency(v) },
+            { key: 'kapasitas', header: 'Kapasitas', align: 'center', render: (v) => `${v}%` }
+          ]}
+          data={persediaan?.gudang || []}
+        />
       </A4Page>
 
       {/* ==================== PAGE 4 ==================== */}
