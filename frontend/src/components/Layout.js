@@ -264,6 +264,7 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                         Administrasi
                     </div>
                 )}
+                <SidebarItem to="/persetujuan" icon={CheckCircle2} label="Persetujuan Transaksi" collapsed={collapsed} />
                 <SidebarItem to="/surat" icon={Mail} label="Persuratan" collapsed={collapsed} />
                 <SidebarItem to="/referensi/dokumen" icon={FileSpreadsheet} label="Dokumen Sumber" collapsed={collapsed} />
                 
