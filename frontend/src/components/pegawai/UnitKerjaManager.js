@@ -219,7 +219,7 @@ export default function UnitKerjaManager() {
                         <h3 className="font-semibold text-amber-800">Pimpinan Kementerian/Lembaga</h3>
                         <p className="text-xs text-amber-700 mt-1">
                             Jabatan Pimpinan K/L (Menteri, Kepala Lembaga, dll) berada di atas struktur Eselon I. 
-                            Untuk menandai pegawai sebagai Pimpinan K/L, aktifkan checkbox "Pimpinan Kementerian/Lembaga" 
+                            Untuk menandai pegawai sebagai Pimpinan K/L, aktifkan checkbox &quot;Pimpinan Kementerian/Lembaga&quot; 
                             di form Edit Pegawai pada tab Jabatan.
                         </p>
                     </div>
