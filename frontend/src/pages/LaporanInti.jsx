@@ -62,14 +62,14 @@ const Section = ({ num, title, children }) => (
 
 const MiniCard = ({ title, items, className = '' }) => (
   <div className={`border border-slate-200 rounded text-[8px] ${className}`}>
-    <div className="bg-slate-100 px-2 py-1 border-b border-slate-200">
-      <h3 className="font-bold text-slate-700 uppercase text-[7px]">{title}</h3>
+    <div className="bg-slate-100 px-2 py-1.5 border-b border-slate-200">
+      <h3 className="font-bold text-slate-700 uppercase text-[7px] leading-tight">{title}</h3>
     </div>
     <div className="divide-y divide-slate-100">
       {items.map((item, i) => (
-        <div key={i} className={`px-2 py-1 flex justify-between ${item.highlight ? 'bg-blue-50' : ''}`}>
-          <span className="text-slate-600">{item.label}</span>
-          <span className={`font-bold ${item.highlight ? 'text-blue-700' : item.danger ? 'text-red-600' : 'text-slate-800'}`}>{item.value}</span>
+        <div key={i} className={`px-2 py-1.5 flex justify-between items-center ${item.highlight ? 'bg-blue-50' : ''}`}>
+          <span className="text-slate-600 leading-tight">{item.label}</span>
+          <span className={`font-bold leading-tight ${item.highlight ? 'text-blue-700' : item.danger ? 'text-red-600' : 'text-slate-800'}`}>{item.value}</span>
         </div>
       ))}
     </div>
@@ -78,12 +78,12 @@ const MiniCard = ({ title, items, className = '' }) => (
 
 const MiniTable = ({ columns, data, title }) => (
   <div className="border border-slate-200 rounded overflow-hidden text-[8px]">
-    {title && <div className="bg-slate-100 px-2 py-1 border-b border-slate-200 font-bold text-slate-700 uppercase text-[7px]">{title}</div>}
+    {title && <div className="bg-slate-100 px-2 py-1.5 border-b border-slate-200 font-bold text-slate-700 uppercase text-[7px] leading-tight">{title}</div>}
     <table className="w-full">
       <thead>
         <tr className="bg-slate-50 border-b border-slate-200">
           {columns.map((col, i) => (
-            <th key={i} className={`px-1.5 py-1 text-[7px] font-bold text-slate-600 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>{col.header}</th>
+            <th key={i} className={`px-1.5 py-1.5 text-[7px] font-bold text-slate-600 leading-tight ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>{col.header}</th>
           ))}
         </tr>
       </thead>
@@ -91,7 +91,7 @@ const MiniTable = ({ columns, data, title }) => (
         {data.map((row, i) => (
           <tr key={i} className={i % 2 === 0 ? '' : 'bg-slate-50/50'}>
             {columns.map((col, j) => (
-              <td key={j} className={`px-1.5 py-0.5 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''} ${col.bold ? 'font-bold' : ''}`}>
+              <td key={j} className={`px-1.5 py-1 leading-tight ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''} ${col.bold ? 'font-bold' : ''}`}>
                 {col.render ? col.render(row[col.key], row) : row[col.key]}
               </td>
             ))}
@@ -112,13 +112,25 @@ const StatBox = ({ value, label, sub, color = 'slate' }) => {
     slate: 'bg-slate-50 border-slate-200 text-slate-700'
   };
   return (
-    <div className={`text-center p-1.5 rounded border ${colors[color]}`}>
-      <p className="text-sm font-bold">{value}</p>
-      <p className="text-[7px] text-slate-500">{label}</p>
-      {sub && <p className="text-[6px] text-slate-400">{sub}</p>}
+    <div className={`text-center p-2 rounded border ${colors[color]}`}>
+      <p className="text-sm font-bold leading-tight">{value}</p>
+      <p className="text-[7px] text-slate-500 leading-tight mt-0.5">{label}</p>
+      {sub && <p className="text-[6px] text-slate-400 leading-tight mt-0.5">{sub}</p>}
     </div>
   );
 };
+
+// Chart Legend Component
+const ChartLegend = ({ items }) => (
+  <div className="flex flex-wrap justify-center gap-2 mt-1 text-[7px]">
+    {items.map((item, i) => (
+      <span key={i} className="flex items-center gap-1">
+        <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: item.color }}></span>
+        <span className="text-slate-600">{item.label}</span>
+      </span>
+    ))}
+  </div>
+);
 
 // ==================== MAIN COMPONENT ====================
 export default function LaporanInti() {
