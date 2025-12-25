@@ -335,6 +335,16 @@ export default function LaporanRingkas() {
       </div>
 
       <style>{`
+        /* Screen styles for preview - A4 dimensions */
+        @media screen {
+          .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            max-width: 210mm;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+          }
+        }
+        
         @media print {
           /* Reset everything */
           *, *::before, *::after {
@@ -347,22 +357,22 @@ export default function LaporanRingkas() {
             print-color-adjust: exact !important; 
             margin: 0 !important; 
             padding: 0 !important;
-            width: 210mm !important;
-            height: 297mm !important;
-            overflow: visible !important;
             background: white !important;
           }
           
-          /* Hide ALL UI elements except content */
+          /* Hide ALL UI elements */
           .no-print,
           nav,
           aside,
           [class*="sidebar"],
           [class*="Sidebar"],
           [class*="sticky"],
-          [class*="fixed"] { 
+          [class*="fixed"],
+          .print-container > div:first-child { 
             display: none !important;
             visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
           }
           
           /* Reset all containers */
@@ -371,12 +381,11 @@ export default function LaporanRingkas() {
           .bg-slate-50,
           .print-container,
           [class*="md:ml-"] {
-            min-height: 0 !important;
+            all: unset !important;
+            display: block !important;
             margin: 0 !important;
             padding: 0 !important;
-            margin-left: 0 !important;
-            background: transparent !important;
-            width: 100% !important;
+            background: white !important;
           }
           
           /* A4 Page - exact sizing */
@@ -385,11 +394,12 @@ export default function LaporanRingkas() {
             height: 297mm !important;
             min-height: 297mm !important;
             max-width: 210mm !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
             padding: 0 !important;
             box-shadow: none !important;
             overflow: hidden !important;
             position: relative !important;
+            background: white !important;
           }
           
           /* Page setup */
