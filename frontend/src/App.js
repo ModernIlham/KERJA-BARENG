@@ -76,7 +76,8 @@ export default function App() {
             <Route path="opname" element={<StockOpname />} />
             <Route path="pengamanan-bmn" element={<PengamananBMN />} />
             
-            <Route path="laporan" element={<Navigate to="/laporan/bmn" replace />} />
+            <Route path="laporan" element={<Navigate to="/laporan/inti" replace />} />
+            <Route path="laporan/inti" element={<LaporanInti />} />
             <Route path="surat" element={<Surat />} />
             <Route path="laporan/:type" element={<Laporan />} />
             
