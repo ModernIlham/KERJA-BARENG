@@ -54,6 +54,7 @@ api_router.include_router(settings.router, prefix="/settings", tags=["Pengaturan
 api_router.include_router(referensi.router, prefix="/referensi", tags=["Referensi"])
 api_router.include_router(persediaan_transaksi.router, prefix="/persediaan-transaksi", tags=["Persediaan Transaksi"])
 api_router.include_router(laporan_bmn.router, prefix="/laporan-bmn", tags=["Laporan BMN"])
+api_router.include_router(laporan_inti.router, prefix="/laporan-inti", tags=["Laporan Inti BMN"])
 api_router.include_router(surat.router, prefix="/surat", tags=["Manajemen Persuratan"])
 
 api_router.include_router(tasks.router, prefix="/tasks", tags=["Tasks (Kanban)"])
