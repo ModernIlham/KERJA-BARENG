@@ -688,58 +688,86 @@ export default function LaporanInti() {
 
       <style>{`
         @media print {
-          /* Hide everything except report content */
-          body { 
+          /* Reset everything */
+          *, *::before, *::after {
+            box-sizing: border-box !important;
+          }
+          
+          /* Body reset for print */
+          html, body { 
             -webkit-print-color-adjust: exact !important; 
             print-color-adjust: exact !important; 
             margin: 0 !important; 
             padding: 0 !important;
             width: 210mm !important;
-            overflow: hidden !important;
+            height: 297mm !important;
+            overflow: visible !important;
+            background: white !important;
           }
           
-          /* Hide elements not needed for print */
-          .no-print, 
-          header, 
-          aside, 
+          /* Hide ALL UI elements except content */
+          .no-print,
           nav,
+          aside,
           [class*="sidebar"],
-          [class*="Sidebar"] { 
-            display: none !important; 
+          [class*="Sidebar"],
+          [class*="sticky"],
+          [class*="fixed"] { 
+            display: none !important;
+            visibility: hidden !important;
           }
           
-          /* Reset page container */
-          .min-h-screen { 
-            min-height: 0 !important; 
+          /* Reset all containers */
+          .min-h-screen,
+          .bg-slate-200,
+          .bg-slate-50,
+          [class*="md:ml-"] {
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            margin-left: 0 !important;
+            background: transparent !important;
+            width: 100% !important;
+          }
+          
+          /* Print wrapper */
+          div[ref] {
             margin: 0 !important;
             padding: 0 !important;
           }
           
-          /* Fix main content area */
-          [class*="md:ml-"] {
-            margin-left: 0 !important;
-            width: 100% !important;
+          /* A4 Page - exact sizing */
+          .a4-page { 
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-width: 210mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            page-break-after: always !important;
+            page-break-inside: avoid !important;
+            overflow: hidden !important;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
           }
           
-          /* A4 Page styling */
-          .a4-page { 
-            width: 210mm !important; 
-            min-height: 297mm !important; 
-            max-width: 210mm !important;
-            margin: 0 auto !important; 
-            padding: 0 !important;
-            box-shadow: none !important; 
-            page-break-after: always;
-            overflow: hidden !important;
-          }
           .a4-page:last-child { 
-            page-break-after: auto; 
+            page-break-after: auto !important;
           }
           
           /* Page setup */
           @page { 
-            size: A4 portrait; 
-            margin: 0; 
+            size: 210mm 297mm;
+            margin: 0;
+          }
+        }
+        
+        /* Screen styles for preview */
+        @media screen {
+          .a4-page {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
           }
         }
       `}</style>
