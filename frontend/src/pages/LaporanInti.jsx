@@ -152,19 +152,19 @@ export default function LaporanInti() {
   const totalPages = 4;
 
   return (
-    <div className="bg-slate-200 min-h-screen py-6 print:bg-white print:py-0 print:min-h-0">
+    <div className="print-container bg-slate-200 min-h-screen py-6 print:bg-white print:py-0 print:min-h-0">
       {/* Action Bar - Hidden during print */}
-      <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center no-print shadow-sm mb-4">
+      <div className="no-print sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center shadow-sm mb-4">
         <h1 className="text-sm font-bold text-slate-800">📊 Laporan Inti BMN</h1>
         <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-1 h-3 w-3" />Cetak</Button>
       </div>
 
-      <div ref={reportRef}>
+      <div ref={reportRef} className="print-content">
         {/* ==================== PAGE 1 ==================== */}
         <A4Page pageNum={1} totalPages={totalPages} header={header}>
-          <div className="text-center mb-3 pb-2 border-b-2 border-slate-300">
-            <h1 className="text-base font-bold text-slate-900 uppercase tracking-wide">LAPORAN BARANG MILIK NEGARA (BMN)</h1>
-            <p className="text-[8px] text-slate-500">Sesuai PP No. 27 Tahun 2014</p>
+          <div className="text-center mb-2 pb-1 border-b-2 border-slate-300">
+            <h1 className="text-sm font-bold text-slate-900 uppercase tracking-wide">LAPORAN BARANG MILIK NEGARA (BMN)</h1>
+            <p className="text-[7px] text-slate-500">Sesuai PP No. 27 Tahun 2014</p>
           </div>
 
           {/* SECTION I: ASET TETAP */}
