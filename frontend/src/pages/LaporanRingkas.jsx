@@ -404,15 +404,8 @@ export default function LaporanRingkas() {
           
           /* Page setup */
           @page { 
-            size: 210mm 297mm;
+            size: A4 portrait;
             margin: 0;
-          }
-        }
-        
-        /* Screen styles for preview */
-        @media screen {
-          .a4-page {
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
           }
         }
       `}</style>
