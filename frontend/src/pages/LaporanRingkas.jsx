@@ -55,7 +55,7 @@ export default function LaporanRingkas() {
       </div>
 
       {/* Single A4 Page */}
-      <div ref={reportRef} className="a4-page bg-white mx-auto shadow-xl print:shadow-none relative" style={{ width: '210mm', minHeight: '297mm', maxWidth: '210mm' }}>
+      <div ref={reportRef} className="a4-page bg-white mx-auto shadow-xl relative">
         
         {/* Header */}
         <header className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-4 py-3">
