@@ -40,7 +40,7 @@ export default function RiwayatTransaksiComprehensive() {
   
   // Filters
   const [search, setSearch] = useState('');
-  const [jenisFilter, setJenisFilter] = useState('');
+  const [jenisFilter, setJenisFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
