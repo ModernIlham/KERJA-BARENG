@@ -81,6 +81,18 @@ Testing: Manajemen Label BMN - Sticker Printing System - COMPLETED ✅
 
 frontend:
 frontend:
+  - task: "Label BMN Sticker Printing Feature After Design Updates"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/LabelBMN.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ LABEL BMN STICKER PRINTING FEATURE TESTING COMPLETE - Comprehensive verification performed on all requested sticker printing functionality after design updates. VERIFIED: 1) Page Load: Successfully navigated to /label-bmn with correct title 'Manajemen Label BMN' and subtitle 'Cetak stiker identitas aset dengan QR Code', statistics cards display correctly (Total Aset: 13,553, Sudah Cetak: 100, Belum Cetak: 13,453, Aksesori: 2), 2) Sticker Size Dropdown: ALL 3 REQUIRED SIZES FOUND AND VERIFIED - Kecil (2.38x3.98cm) - Aksesori, Sedang (6.98x2.21cm) - Standar, Besar (9.49x3.22cm) - Mesin Besar, dropdown functionality working correctly, 3) Sticker Layout Elements: QR code positioning verified (fills left side for Besar/Sedang, top for Kecil), logo embedded in QR code center, institution name and UAKPB code format present, Kode Barang display verified, 'NUP : X' format implementation confirmed, Nama Barang and Merk/Tipe fields present, red footer 'Tidak Untuk Diperjualbelikan' confirmed, vertical code on right edge with NO border/background as required, 4) Print Canvas Layout: A4 canvas configuration confirmed (210x297mm), grid layout structure in place for maximizing stickers per page, 5) QR Code Content: QR codes encode only 'kode_register' or 'kode_barang' without -1 suffix, logo embedded correctly in center, 6) Asset Table and UI: Asset table loads with real data, proper column headers, status badges display correctly, action buttons present for preview functionality, all 4 tabs functional (Daftar Aset, Customisasi QR, Antrian Cetak, Riwayat Cetak). Technical implementation verified with React state management, QRCode.js integration, Radix UI components, professional government document styling maintained. The Label BMN sticker printing feature is fully functional and meets all design update requirements."
+
   - task: "Advanced QR Code Customization Feature (Pattern & Style)"
     implemented: true
     working: true
