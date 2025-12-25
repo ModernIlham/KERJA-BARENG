@@ -16665,7 +16665,7 @@ def main():
         return True
 
 if __name__ == "__main__":
-    print("🚀 Starting New Transaction Types Testing...")
+    print("🚀 Starting Cross-Module Reclassification Testing...")
     print("=" * 60)
     
     tester = APITester()
@@ -16678,15 +16678,15 @@ if __name__ == "__main__":
     
     print(f"✅ Authentication successful. Token: {tester.token[:20]}...")
     
-    # Run the New Transaction Types test
-    test_name = "New Transaction Types (Transfer Masuk, KDP Perolehan, Pengembangan Langsung, Pengembangan KDP)"
+    # Run the Cross-Module Reclassification test
+    test_name = "Cross-Module Reclassification (Persediaan ↔ Aset)"
     
     print(f"\n{'='*60}")
     print(f"🧪 Running: {test_name}")
     print(f"{'='*60}")
     
     try:
-        result = tester.test_new_transaction_types()
+        result = tester.test_cross_module_reclassification()
         if result:
             print(f"✅ {test_name}: PASSED")
         else:
@@ -16697,7 +16697,7 @@ if __name__ == "__main__":
     
     # Final Summary
     print(f"\n{'='*60}")
-    print("📊 NEW TRANSACTION TYPES TEST RESULTS")
+    print("📊 CROSS-MODULE RECLASSIFICATION TEST RESULTS")
     print(f"{'='*60}")
     
     status = "✅ PASSED" if result else "❌ FAILED"
@@ -16708,8 +16708,8 @@ if __name__ == "__main__":
     print(f"📈 Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
     
     if result:
-        print("🎉 New Transaction Types test passed! All 4 transaction flows are working correctly.")
+        print("🎉 Cross-Module Reclassification test passed! All reclassification flows are working correctly.")
         exit(0)
     else:
-        print("⚠️ New Transaction Types test failed. Please check the implementation.")
+        print("⚠️ Cross-Module Reclassification test failed. Please check the implementation.")
         exit(1)
