@@ -337,7 +337,7 @@ export default function LaporanInti() {
                 <div className="h-24">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={ka?.distribusi || []} cx="50%" cy="50%" innerRadius={25} outerRadius={40} dataKey="count" nameKey="label">
+                      <Pie data={ka?.distribusi || []} cx="50%" cy="50%" innerRadius={25} outerRadius={40} dataKey="count" nameKey="label" isAnimationActive={!pdfMode}>
                         {(ka?.distribusi || []).map((e, i) => <Cell key={i} fill={e.color} />)}
                       </Pie>
                       <Tooltip formatter={v => `${v} unit`} />
