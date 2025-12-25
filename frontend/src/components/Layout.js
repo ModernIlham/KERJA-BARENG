@@ -188,7 +188,8 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
   ];
 
   const laporanItems = [
-    { to: '/laporan/bmn', icon: FileText, label: 'Laporan Inti' },
+    { to: '/laporan/inti', icon: FileText, label: 'Laporan Inti BMN' },
+    { to: '/laporan/bmn', icon: FileText, label: 'Laporan Ringkas' },
     { to: '/laporan/posisi', icon: FileText, label: 'Posisi Stok' },
     { to: '/laporan/mutasi', icon: FileText, label: 'Mutasi Barang' },
     { to: '/laporan/kartu', icon: FileText, label: 'Kartu Gudang' },
