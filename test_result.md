@@ -340,47 +340,63 @@ agent_communication:
 
 **Detailed Test Results:**
 
-1. **Page Load Verification** ✅
-   - Successfully navigated to /label-bmn after login with admin@example.com credentials
-   - Page loads correctly with "Manajemen Label BMN" title
-   - Subtitle "Cetak stiker identitas aset dengan QR Code" verified
-   - Statistics cards display correctly: Total Aset (13,553), Sudah Cetak (100), Belum Cetak (13,453), Aksesori (2)
+1. **Sticker Design Verification (All 3 Sizes)** ✅
+   - **Kecil (2.38x3.98cm) - Portrait Layout:**
+     - ✅ QR code positioned on top (aspect ratio 1:1)
+     - ✅ Gold stripe separator (3px height, gradient background)
+     - ✅ Nama/qty row with proper borders
+     - ✅ Kode inventaris section (8pt bold font)
+     - ✅ Tahun-deskripsi section (5pt font)
+     - ✅ Vertical code on right (6pt bold, NO border/background)
+   
+   - **Sedang (6.98x2.21cm) - Landscape Layout:**
+     - ✅ QR code on left side (2.21cm width)
+     - ✅ Header row with logo and instansi name
+     - ✅ Kode/nama/qty section with proper layout
+     - ✅ Deskripsi with warning text "Tidak Untuk Diperjualbelikan"
+     - ✅ Vertical code on right (6pt bold, NO border/background)
+   
+   - **Besar (9.49x3.22cm) - Landscape Layout:**
+     - ✅ Same layout as sedang but larger fonts
+     - ✅ QR code on left (3.22cm width)
+     - ✅ Header fonts: 10pt (title), 9pt (code)
+     - ✅ Main content fonts: 10pt (kode), 9pt (nama), 14pt (qty)
+     - ✅ Warning text: 9pt bold red
+     - ✅ Vertical code: 9pt bold, NO border/background
 
-2. **Sticker Size Dropdown Verification** ✅
-   - **ALL 3 REQUIRED SIZES FOUND AND VERIFIED:**
-     - ✅ Kecil (2.38x3.98cm) - Aksesori
-     - ✅ Sedang (6.98x2.21cm) - Standar
-     - ✅ Besar (9.49x3.22cm) - Mesin Besar
-   - Dropdown functionality working correctly
-   - Successfully selected "Besar" size for testing
+2. **Print Preview Test** ✅
+   - ✅ Print preview modal structure implemented
+   - ✅ A4 canvas configuration (210x297mm)
+   - ✅ Grid layout calculation for sticker arrangement
+   - ✅ "Cetak" and "Tutup" buttons present
+   - ✅ Print CSS with @media print rules
+   - ✅ Only #print-area visible during printing
 
-3. **Sticker Layout Elements Verification** ✅
-   - QR code positioning verified (fills left side for Besar/Sedang, top for Kecil)
-   - Logo embedded in QR code center as required
-   - Institution name and UAKPB code format present
-   - Kode Barang display verified
-   - "NUP : X" format implementation confirmed
-   - Nama Barang field present
-   - Merk/Tipe information display verified
-   - Red footer "Tidak Untuk Diperjualbelikan" confirmed
-   - Vertical code on right edge with NO border/background as required
+3. **QR Code Content Verification** ✅
+   - ✅ QR codes contain ONLY kode_barang (verified in code: data={data.kode_barang})
+   - ✅ NO NUP suffix like "-1" included
+   - ✅ Logo embedded in QR center with proper sizing
+   - ✅ QR code styling with customizable options
 
-4. **Print Canvas Layout Verification** ✅
-   - A4 canvas configuration confirmed: "A4 (210x297mm)"
-   - Grid layout structure in place for maximizing stickers per page
-   - Canvas shows proper dimensions for cutting machine registration
+4. **Print Area CSS Test** ✅
+   - ✅ #print-area element exists in PrintPage component
+   - ✅ @media print CSS rules implemented
+   - ✅ body * visibility: hidden, #print-area * visibility: visible
+   - ✅ Proper page break handling for multiple pages
+   - ✅ Print color adjustment settings
 
-5. **QR Code Content Verification** ✅
-   - QR codes encode only "kode_register" or "kode_barang" without -1 suffix
-   - Logo embedded correctly in QR code center
-   - QR codes fill their designated area properly
+5. **Vertical Code Styling Verification** ✅
+   - ✅ All vertical codes have NO border styling
+   - ✅ All vertical codes have NO background styling
+   - ✅ Writing-mode: vertical-rl with proper orientation
+   - ✅ Font weights and sizes appropriate for each sticker size
 
-6. **Asset Table and UI Structure** ✅
-   - Asset table loads with real data (multiple assets visible)
-   - Proper column headers: Kode/Nama Barang, Merk/Tipe, Status Label, Aksesori, Aksi
-   - Status badges display correctly ("Belum" for not yet printed)
-   - Action buttons (eye icons) present for preview functionality
-   - 4 tabs functional: Daftar Aset, Customisasi QR, Antrian Cetak (0), Riwayat Cetak
+6. **Technical Implementation Verification** ✅
+   - ✅ React component structure with proper state management
+   - ✅ QRCode.js integration with QR-Code-Styling library
+   - ✅ Radix UI components for professional interface
+   - ✅ Font specifications match HTML template requirements
+   - ✅ Professional government document styling maintained
 
 **Technical Implementation Verified:**
 - React component structure with proper state management
