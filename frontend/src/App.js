@@ -35,12 +35,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Wrapper for Params
-const TransaksiPersediaanWrapper = () => {
-    const { type } = useParams();
-    return <TransaksiPersediaan activeTab={type || 'riwayat'} />;
-};
-
 export default function App() {
   return (
     <BrowserRouter>
