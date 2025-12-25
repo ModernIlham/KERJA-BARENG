@@ -533,3 +533,333 @@ async def get_print_history(
         "page": page,
         "limit": limit
     }
+
+
+# ==================== STICKER DESIGN CONFIGURATION ====================
+
+DEFAULT_STICKER_DESIGNS = {
+    "kecil": {
+        "name": "Stiker Kecil - Default",
+        "size_type": "kecil",
+        "width": 23.8,
+        "height": 39.8,
+        "layout": "portrait",
+        "qr_position": "top",
+        "qr_size": 85,
+        "qr_padding": 2,
+        "show_header": False,
+        "header_show_logo": False,
+        "header_font_size": 6.5,
+        "header_sub_font_size": 6,
+        "header_text": "",
+        "kode_font_size": 8,
+        "kode_font_weight": 700,
+        "nama_font_size": 6.5,
+        "nama_font_weight": 600,
+        "show_nup": True,
+        "nup_font_size": 10,
+        "nup_min_width": 28,
+        "show_description": True,
+        "desc_font_size": 5,
+        "show_warning": False,
+        "warning_text": "",
+        "warning_font_size": 5,
+        "show_vertical_code": True,
+        "vertical_font_size": 6,
+        "vertical_width": 13,
+        "vertical_show_border": False,
+        "show_gold_stripe": True,
+        "gold_stripe_height": 3,
+        "gold_stripe_color": "#D4AF37",
+        "border_width": 1,
+        "border_color": "#2c2c2c",
+        "border_radius": 0,
+        "font_family": "Roboto",
+        "background_color": "#ffffff",
+        "text_color": "#1a1a1a",
+        "is_default": True
+    },
+    "sedang": {
+        "name": "Stiker Sedang - Default",
+        "size_type": "sedang",
+        "width": 69.8,
+        "height": 22.1,
+        "layout": "landscape",
+        "qr_position": "left",
+        "qr_size": 90,
+        "qr_padding": 3,
+        "show_header": True,
+        "header_show_logo": True,
+        "header_logo_size": 16,
+        "header_font_size": 7.5,
+        "header_sub_font_size": 6.5,
+        "header_text": "Otorita Ibu Kota Nusantara",
+        "kode_font_size": 7.5,
+        "kode_font_weight": 700,
+        "nama_font_size": 6.5,
+        "nama_font_weight": 500,
+        "show_nup": True,
+        "nup_font_size": 11,
+        "nup_min_width": 34,
+        "show_description": True,
+        "desc_font_size": 5.5,
+        "show_warning": True,
+        "warning_text": "Tidak Untuk Diperjualbelikan",
+        "warning_font_size": 6,
+        "warning_color": "#DC2626",
+        "show_vertical_code": True,
+        "vertical_font_size": 6,
+        "vertical_width": 13,
+        "vertical_show_border": False,
+        "show_gold_stripe": False,
+        "border_width": 1,
+        "border_color": "#2c2c2c",
+        "border_radius": 0,
+        "font_family": "Roboto",
+        "background_color": "#ffffff",
+        "text_color": "#1a1a1a",
+        "is_default": True
+    },
+    "besar": {
+        "name": "Stiker Besar - Default",
+        "size_type": "besar",
+        "width": 94.9,
+        "height": 32.2,
+        "layout": "landscape",
+        "qr_position": "left",
+        "qr_size": 95,
+        "qr_padding": 5,
+        "show_header": True,
+        "header_show_logo": True,
+        "header_logo_size": 22,
+        "header_font_size": 10,
+        "header_sub_font_size": 9,
+        "header_text": "Otorita Ibu Kota Nusantara",
+        "kode_font_size": 10,
+        "kode_font_weight": 700,
+        "nama_font_size": 9,
+        "nama_font_weight": 500,
+        "show_nup": True,
+        "nup_font_size": 14,
+        "nup_min_width": 45,
+        "show_description": True,
+        "desc_font_size": 8,
+        "show_warning": True,
+        "warning_text": "Tidak Untuk Diperjualbelikan",
+        "warning_font_size": 9,
+        "warning_color": "#DC2626",
+        "show_vertical_code": True,
+        "vertical_font_size": 9,
+        "vertical_width": 21,
+        "vertical_show_border": False,
+        "show_gold_stripe": False,
+        "border_width": 1,
+        "border_color": "#2c2c2c",
+        "border_radius": 0,
+        "font_family": "Roboto",
+        "background_color": "#ffffff",
+        "text_color": "#1a1a1a",
+        "is_default": True
+    }
+}
+
+
+@router.get("/sticker-designs")
+async def get_sticker_designs(current_user: str = Depends(get_current_user)):
+    """Get all sticker design configurations"""
+    designs = await db.sticker_designs.find({}).to_list(100)
+    
+    result = {
+        "kecil": [],
+        "sedang": [],
+        "besar": [],
+        "custom": []
+    }
+    
+    # Add saved designs
+    for design in designs:
+        design_data = sanitize_doc(design)
+        size_type = design_data.get("size_type", "custom")
+        if size_type in result:
+            result[size_type].append(design_data)
+        else:
+            result["custom"].append(design_data)
+    
+    # Add defaults if no custom designs exist
+    for size_type, default_config in DEFAULT_STICKER_DESIGNS.items():
+        has_default = any(d.get("is_default") for d in result[size_type])
+        if not has_default:
+            result[size_type].insert(0, {**default_config, "id": f"default_{size_type}"})
+    
+    return result
+
+
+@router.get("/sticker-design/{design_id}")
+async def get_sticker_design(design_id: str, current_user: str = Depends(get_current_user)):
+    """Get specific sticker design"""
+    # Check if it's a default design
+    if design_id.startswith("default_"):
+        size_type = design_id.replace("default_", "")
+        if size_type in DEFAULT_STICKER_DESIGNS:
+            return {**DEFAULT_STICKER_DESIGNS[size_type], "id": design_id}
+        raise HTTPException(status_code=404, detail="Design not found")
+    
+    try:
+        design = await db.sticker_designs.find_one({"_id": ObjectId(design_id)})
+        if not design:
+            raise HTTPException(status_code=404, detail="Design not found")
+        return sanitize_doc(design)
+    except:
+        raise HTTPException(status_code=404, detail="Design not found")
+
+
+@router.post("/sticker-design")
+async def create_sticker_design(design: Dict[str, Any] = Body(...), current_user: str = Depends(get_current_user)):
+    """Create a new sticker design configuration"""
+    now = datetime.now(timezone.utc).isoformat()
+    
+    design_doc = {
+        **design,
+        "is_default": False,
+        "created_at": now,
+        "updated_at": now,
+        "created_by": current_user
+    }
+    
+    result = await db.sticker_designs.insert_one(design_doc)
+    design_doc["id"] = str(result.inserted_id)
+    del design_doc["_id"] if "_id" in design_doc else None
+    
+    return {"success": True, "design": sanitize_doc(design_doc)}
+
+
+@router.put("/sticker-design/{design_id}")
+async def update_sticker_design(design_id: str, design: Dict[str, Any] = Body(...), current_user: str = Depends(get_current_user)):
+    """Update an existing sticker design"""
+    if design_id.startswith("default_"):
+        raise HTTPException(status_code=400, detail="Cannot edit default designs. Create a copy instead.")
+    
+    try:
+        design["updated_at"] = datetime.now(timezone.utc).isoformat()
+        design["updated_by"] = current_user
+        
+        # Remove id from update data
+        update_data = {k: v for k, v in design.items() if k not in ["id", "_id"]}
+        
+        result = await db.sticker_designs.update_one(
+            {"_id": ObjectId(design_id)},
+            {"$set": update_data}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Design not found")
+        
+        updated = await db.sticker_designs.find_one({"_id": ObjectId(design_id)})
+        return {"success": True, "design": sanitize_doc(updated)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/sticker-design/{design_id}")
+async def delete_sticker_design(design_id: str, current_user: str = Depends(get_current_user)):
+    """Delete a sticker design"""
+    if design_id.startswith("default_"):
+        raise HTTPException(status_code=400, detail="Cannot delete default designs")
+    
+    try:
+        result = await db.sticker_designs.delete_one({"_id": ObjectId(design_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Design not found")
+        return {"success": True}
+    except:
+        raise HTTPException(status_code=400, detail="Invalid design ID")
+
+
+@router.post("/sticker-design/{design_id}/duplicate")
+async def duplicate_sticker_design(design_id: str, current_user: str = Depends(get_current_user)):
+    """Duplicate an existing sticker design"""
+    # Get source design
+    if design_id.startswith("default_"):
+        size_type = design_id.replace("default_", "")
+        if size_type not in DEFAULT_STICKER_DESIGNS:
+            raise HTTPException(status_code=404, detail="Design not found")
+        source = DEFAULT_STICKER_DESIGNS[size_type].copy()
+    else:
+        try:
+            source_doc = await db.sticker_designs.find_one({"_id": ObjectId(design_id)})
+            if not source_doc:
+                raise HTTPException(status_code=404, detail="Design not found")
+            source = sanitize_doc(source_doc)
+        except:
+            raise HTTPException(status_code=404, detail="Design not found")
+    
+    # Create duplicate
+    now = datetime.now(timezone.utc).isoformat()
+    new_design = {
+        **source,
+        "name": f"{source.get('name', 'Design')} (Salinan)",
+        "is_default": False,
+        "created_at": now,
+        "updated_at": now,
+        "created_by": current_user
+    }
+    
+    # Remove old id
+    new_design.pop("id", None)
+    new_design.pop("_id", None)
+    
+    result = await db.sticker_designs.insert_one(new_design)
+    new_design["id"] = str(result.inserted_id)
+    
+    return {"success": True, "design": sanitize_doc(new_design)}
+
+
+@router.post("/sticker-design/set-active")
+async def set_active_design(data: Dict[str, str] = Body(...), current_user: str = Depends(get_current_user)):
+    """Set the active design for a size type"""
+    size_type = data.get("size_type")
+    design_id = data.get("design_id")
+    
+    if not size_type or not design_id:
+        raise HTTPException(status_code=400, detail="size_type and design_id required")
+    
+    # Save to user preferences or system settings
+    await db.sticker_active_designs.update_one(
+        {"size_type": size_type},
+        {"$set": {
+            "size_type": size_type,
+            "design_id": design_id,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user
+        }},
+        upsert=True
+    )
+    
+    return {"success": True}
+
+
+@router.get("/sticker-design/active/{size_type}")
+async def get_active_design(size_type: str, current_user: str = Depends(get_current_user)):
+    """Get the active design for a size type"""
+    active = await db.sticker_active_designs.find_one({"size_type": size_type})
+    
+    if active and active.get("design_id"):
+        design_id = active["design_id"]
+        
+        if design_id.startswith("default_"):
+            st = design_id.replace("default_", "")
+            if st in DEFAULT_STICKER_DESIGNS:
+                return {**DEFAULT_STICKER_DESIGNS[st], "id": design_id}
+        else:
+            try:
+                design = await db.sticker_designs.find_one({"_id": ObjectId(design_id)})
+                if design:
+                    return sanitize_doc(design)
+            except:
+                pass
+    
+    # Return default
+    if size_type in DEFAULT_STICKER_DESIGNS:
+        return {**DEFAULT_STICKER_DESIGNS[size_type], "id": f"default_{size_type}"}
+    
+    raise HTTPException(status_code=404, detail="No design found")
