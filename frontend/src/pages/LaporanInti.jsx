@@ -140,6 +140,8 @@ export default function LaporanInti() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [downloading, setDownloading] = useState(false);
+  const reportRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -155,6 +157,44 @@ export default function LaporanInti() {
     };
     fetchData();
   }, []);
+
+  // PDF Download Function
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    
+    setDownloading(true);
+    
+    try {
+      const element = reportRef.current;
+      const today = new Date();
+      const filename = `Laporan_BMN_${today.getFullYear()}_${String(today.getMonth() + 1).padStart(2, '0')}_${String(today.getDate()).padStart(2, '0')}.pdf`;
+      
+      const opt = {
+        margin: 0,
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait'
+        },
+        pagebreak: { mode: ['css', 'legacy'], before: '.page-break-before', after: '.page-break-after', avoid: '.avoid-break' }
+      };
+      
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+      alert('Gagal mengunduh PDF. Silakan coba lagi.');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   if (loading) {
     return (
