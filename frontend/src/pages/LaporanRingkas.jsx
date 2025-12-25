@@ -128,7 +128,7 @@ export default function LaporanRingkas() {
                     <div className="w-24 h-24">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={pieData} cx="50%" cy="50%" innerRadius={20} outerRadius={40} dataKey="value" isAnimationActive={!pdfMode}>
+                          <Pie data={pieData} cx="50%" cy="50%" innerRadius={20} outerRadius={40} dataKey="value" isAnimationActive={true}>
                             {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                           </Pie>
                         </PieChart>
