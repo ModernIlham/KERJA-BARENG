@@ -154,28 +154,6 @@ export default function LaporanInti() {
       setDownloading(false);
     }, 100);
   };
-        
-        // Add page (except for first page which is already created)
-        if (i > 0) {
-          pdf.addPage();
-        }
-        
-        // Add image to PDF, centered and scaled to fit
-        const yOffset = imgHeight > a4Height ? 0 : (a4Height - imgHeight) / 2;
-        pdf.addImage(imgData, 'JPEG', 0, Math.max(0, yOffset), imgWidth, Math.min(imgHeight, a4Height));
-      }
-      
-      // Save PDF
-      pdf.save(filename);
-      
-    } catch (err) {
-      console.error('PDF generation error:', err);
-      alert('Gagal mengunduh PDF. Silakan coba lagi.');
-    } finally {
-      setPdfMode(false);
-      setDownloading(false);
-    }
-  }, []);
 
   if (loading) return <div className="flex justify-center items-center min-h-screen"><Loader2 className="animate-spin w-8 h-8 text-slate-400" /></div>;
   if (!data) return <div className="flex justify-center items-center min-h-screen text-red-500">Gagal memuat data</div>;
@@ -183,9 +161,6 @@ export default function LaporanInti() {
   const { ringkasan_eksekutif: re, rekapitulasi_kategori: rk, kondisi_aset: ka, pelabelan_aset: pa, pengamanan_aset: pn, persediaan: ps, dasar_hukum: dh, header } = data;
   const at = re.aset_tetap;
   const totalPages = 4;
-  
-  // Animation duration - disable during PDF generation
-  const animDuration = pdfMode ? 0 : 400;
 
   return (
     <div className="bg-slate-200 min-h-screen py-6 print:bg-white print:py-0">
