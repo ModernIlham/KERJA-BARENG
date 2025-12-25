@@ -864,3 +864,117 @@ async def get_active_design(size_type: str, current_user: str = Depends(get_curr
         return {**DEFAULT_STICKER_DESIGNS[size_type], "id": f"default_{size_type}"}
     
     raise HTTPException(status_code=404, detail="No design found")
+
+
+# ==================== QR CODE TEMPLATE MANAGEMENT ====================
+
+@router.get("/qr-templates")
+async def get_qr_templates(current_user: str = Depends(get_current_user)):
+    """Get all saved QR code templates"""
+    templates = await db.qr_templates.find({}).to_list(50)
+    return [sanitize_doc(t) for t in templates]
+
+
+@router.post("/qr-template")
+async def save_qr_template(template: Dict[str, Any] = Body(...), current_user: str = Depends(get_current_user)):
+    """Save a new QR code template"""
+    now = datetime.now(timezone.utc).isoformat()
+    
+    template_doc = {
+        **template,
+        "created_at": now,
+        "updated_at": now,
+        "created_by": current_user
+    }
+    
+    result = await db.qr_templates.insert_one(template_doc)
+    template_doc["id"] = str(result.inserted_id)
+    
+    return {"success": True, "template": sanitize_doc(template_doc)}
+
+
+@router.put("/qr-template/{template_id}")
+async def update_qr_template(template_id: str, template: Dict[str, Any] = Body(...), current_user: str = Depends(get_current_user)):
+    """Update an existing QR template"""
+    try:
+        template["updated_at"] = datetime.now(timezone.utc).isoformat()
+        template["updated_by"] = current_user
+        
+        update_data = {k: v for k, v in template.items() if k not in ["id", "_id"]}
+        
+        result = await db.qr_templates.update_one(
+            {"_id": ObjectId(template_id)},
+            {"$set": update_data}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        updated = await db.qr_templates.find_one({"_id": ObjectId(template_id)})
+        return {"success": True, "template": sanitize_doc(updated)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/qr-template/{template_id}")
+async def delete_qr_template(template_id: str, current_user: str = Depends(get_current_user)):
+    """Delete a QR template"""
+    try:
+        result = await db.qr_templates.delete_one({"_id": ObjectId(template_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Template not found")
+        return {"success": True}
+    except:
+        raise HTTPException(status_code=400, detail="Invalid template ID")
+
+
+@router.post("/qr-template/set-active")
+async def set_active_qr_template(data: Dict[str, str] = Body(...), current_user: str = Depends(get_current_user)):
+    """Set the active QR template"""
+    template_id = data.get("template_id")
+    
+    if not template_id:
+        raise HTTPException(status_code=400, detail="template_id required")
+    
+    await db.system_settings.update_one(
+        {"key": "active_qr_template"},
+        {"$set": {
+            "key": "active_qr_template",
+            "value": template_id,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user
+        }},
+        upsert=True
+    )
+    
+    return {"success": True}
+
+
+@router.get("/qr-template/active")
+async def get_active_qr_template(current_user: str = Depends(get_current_user)):
+    """Get the active QR template"""
+    setting = await db.system_settings.find_one({"key": "active_qr_template"})
+    
+    if setting and setting.get("value"):
+        template_id = setting["value"]
+        try:
+            template = await db.qr_templates.find_one({"_id": ObjectId(template_id)})
+            if template:
+                return sanitize_doc(template)
+        except:
+            pass
+    
+    # Return default QR settings
+    return {
+        "id": "default",
+        "name": "Default",
+        "bodyColor": "#000000",
+        "bodyStyle": "square",
+        "eyeColor": "#000000",
+        "eyeStyle": "square",
+        "cornerDotColor": "#000000",
+        "cornerDotStyle": "square",
+        "backgroundColor": "#ffffff",
+        "logoSize": 0.3,
+        "logoBgEnabled": True
+    }
