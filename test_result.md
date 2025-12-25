@@ -4,36 +4,40 @@
 (DO NOT EDIT - Standard testing protocol for all features)
 
 ## Current Testing Task
-Testing the new cross-module reclassification feature (Reklasifikasi Persediaan ↔ Aset):
+Testing the Transaction Approval System (Sistem Persetujuan Transaksi):
 
 ### Features to Test:
-1. **Frontend - Reklasifikasi Persediaan → Aset Form**
-   - Navigate to `/transaksi-persediaan/reklasifikasi`
-   - Click on "Persediaan → Aset" sub-tab
-   - Search for persediaan items
-   - Select items, fill SPPA number, date, golongan tujuan, kode barang tujuan
-   - Submit and verify transaction is created
+1. **Backend API - Approval Endpoints**
+   - GET /api/approval/pending - List pending transactions
+   - GET /api/approval/stats - Get approval statistics
+   - POST /api/approval/{id}/approve - Approve a transaction
+   - POST /api/approval/{id}/reject - Reject a transaction (requires alasan)
+   - GET /api/approval/config - Get approval configuration
 
-2. **Frontend - Reklasifikasi Aset → Persediaan Form**
-   - Navigate to `/transaksi-persediaan/reklasifikasi`
-   - Click on "Aset → Persediaan" sub-tab
-   - Search for aset items
-   - Select items, fill SPPA number, date, alasan reklasifikasi
-   - Submit and verify transaction is created
+2. **Frontend - Approval Page (/persetujuan)**
+   - Navigate to /persetujuan
+   - View statistics cards (Menunggu Persetujuan, Disetujui Hari Ini, Ditolak Hari Ini)
+   - View pending transactions list
+   - Test Approve dialog
+   - Test Reject dialog (with required reason)
+   - Test search and filter functionality
 
-3. **Backend API - Cross-module Reklasifikasi**
-   - POST `/api/transaksi-cross/reklasifikasi` with PERSEDIAAN_TO_ASET
-   - POST `/api/transaksi-cross/reklasifikasi` with ASET_TO_PERSEDIAAN
-   - GET `/api/transaksi-cross/riwayat` - history endpoint
+3. **Integration - Transaction Flow**
+   - Create a transaction (e.g., PERUBAHAN_KUANTITAS) via /api/transaksi/perubahan
+   - Verify it goes to PENDING_APPROVAL status
+   - Approve/Reject and verify status changes
+   - Verify master data only updates after approval
 
 ### Test Credentials:
 - Email: admin@example.com
 - Password: admin123
 
 ### Files Involved:
-- Frontend: `/app/frontend/src/components/transaksi/ReklasifikasiPersediaanAsetForm.js`
-- Frontend: `/app/frontend/src/pages/TransaksiPersediaan.js`
-- Backend: `/app/backend/routes/transaksi_cross.py`
+- Backend: /app/backend/routes/approval.py
+- Backend: /app/backend/routes/transaksi.py (modified for approval flow)
+- Frontend: /app/frontend/src/components/transaksi/ApprovalPage.js
+- Frontend: /app/frontend/src/App.js (added route)
+- Frontend: /app/frontend/src/components/Layout.js (added menu)
 
 ## Incorporate User Feedback
 - User requested Unit Penerima with hierarchy based on organizational structure (Eselon I-V)
