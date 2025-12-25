@@ -492,6 +492,11 @@ export default function LaporanInti() {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
+                <ChartLegend items={[
+                  { label: 'Administrasi', color: C.success },
+                  { label: 'Fisik', color: C.info },
+                  { label: 'Hukum', color: '#7c3aed' }
+                ]} />
               </div>
               <MiniTable 
                 title="Status per Unit Kerja"
@@ -521,20 +526,21 @@ export default function LaporanInti() {
             <div className="grid grid-cols-2 gap-3 mb-2">
               <div className="border border-slate-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1">Distribusi per Kategori</h4>
-                <div className="h-24">
+                <div className="h-20">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={ps?.distribusi_kategori || []} cx="50%" cy="50%" innerRadius={25} outerRadius={40} dataKey="nilai" nameKey="nama" isAnimationActive={!pdfMode}>
+                      <Pie data={ps?.distribusi_kategori || []} cx="50%" cy="50%" innerRadius={20} outerRadius={35} dataKey="nilai" nameKey="nama" isAnimationActive={!pdfMode}>
                         {(ps?.distribusi_kategori || []).map((e, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
                       <Tooltip formatter={v => fc(v)} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
+                <ChartLegend items={(ps?.distribusi_kategori || []).map((d, i) => ({ label: d.nama, color: COLORS[i % COLORS.length] }))} />
               </div>
               <div className="border border-slate-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1">Tren Mutasi</h4>
-                <div className="h-24">
+                <div className="h-20">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={ps?.tren_mutasi || []}>
                       <XAxis dataKey="bulan" tick={{fontSize: 7}} />
@@ -545,17 +551,21 @@ export default function LaporanInti() {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
+                <ChartLegend items={[
+                  { label: 'Barang Masuk', color: C.success },
+                  { label: 'Barang Keluar', color: C.danger }
+                ]} />
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-2">
-              <h4 className="text-[7px] font-bold text-amber-800 uppercase mb-1 flex items-center gap-1">
+              <h4 className="text-[7px] font-bold text-amber-800 uppercase mb-1.5 flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" /> Stok Kritis
               </h4>
-              <div className="grid grid-cols-5 gap-1 text-[7px]">
+              <div className="grid grid-cols-5 gap-1.5 text-[7px]">
                 {(ps?.stok_rendah || []).map((s, i) => (
-                  <div key={i} className={`p-1 rounded ${s.status === 'Kritis' ? 'bg-red-100' : 'bg-amber-100'}`}>
-                    <p className="font-bold truncate">{s.nama}</p>
-                    <p className="text-[6px]">Stok: {s.stok}/{s.min} {s.unit}</p>
+                  <div key={i} className={`p-1.5 rounded ${s.status === 'Kritis' ? 'bg-red-100 border border-red-200' : 'bg-amber-100 border border-amber-200'}`}>
+                    <p className="font-bold truncate leading-tight">{s.nama}</p>
+                    <p className="text-[6px] leading-tight mt-0.5">Stok: {s.stok}/{s.min} {s.unit}</p>
                   </div>
                 ))}
               </div>
