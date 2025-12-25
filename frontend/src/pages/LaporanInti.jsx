@@ -27,9 +27,9 @@ const COLORS = ['#1e3a5f', '#2563eb', '#0891b2', '#16a34a', '#ca8a04', '#dc2626'
 const C = { primary: '#1e3a5f', success: '#16a34a', warning: '#ca8a04', danger: '#dc2626', info: '#0891b2' };
 
 // ==================== COMPONENTS ====================
+// A4 at 96 DPI: 794px x 1123px (standard screen resolution)
 const A4Page = ({ children, pageNum, totalPages, header }) => (
-  <div className="a4-page bg-white mx-auto mb-6 shadow-xl print:shadow-none print:mb-0 relative flex flex-col" 
-       style={{ width: '210mm', minHeight: '297mm', maxWidth: '210mm' }}>
+  <div className="a4-page bg-white mx-auto mb-6 shadow-xl relative flex flex-col">
     <header className="bg-slate-900 text-white px-3 py-1.5 flex items-center gap-2">
       <Shield className="w-5 h-5 opacity-80" />
       <div className="flex-1">
