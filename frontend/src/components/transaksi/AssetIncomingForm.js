@@ -494,7 +494,7 @@ export default function AssetIncomingForm({ onSuccess }) {
                                         </SelectContent>
                                     </Select>
                                     <p className="text-[10px] text-slate-500">
-                                        *Diambil dari pegawai dengan jabatan melekat 'PPK'.
+                                        *Diambil dari pegawai dengan jabatan melekat &apos;PPK&apos;.
                                     </p>
                                 </div>
                             </div>
