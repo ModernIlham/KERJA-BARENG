@@ -21,6 +21,7 @@ import AsetPegawaiList from './pages/AsetPegawaiList';
 import GudangList from './pages/GudangList';
 import NotificationList from './pages/NotificationList';
 import ApprovalPage from './components/transaksi/ApprovalPage';
+import PengamananBMN from './pages/PengamananBMN';
 
 import DashboardKepegawaian from './modules/kepegawaian/pages/DashboardKepegawaian';
 import ManajemenLembur from './modules/kepegawaian/pages/ManajemenLembur';
