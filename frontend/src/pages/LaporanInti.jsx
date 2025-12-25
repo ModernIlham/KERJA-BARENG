@@ -111,9 +111,9 @@ const StatBox = ({ value, label, sub, color = 'slate' }) => {
     slate: 'bg-slate-50 border-slate-200 text-slate-700'
   };
   return (
-    <div className={`text-center p-1.5 rounded border ${colors[color]}`}>
-      <p className="text-xs font-bold">{value}</p>
-      <p className="text-[6px] text-slate-500 mt-0.5">{label}</p>
+    <div className={`text-center p-1.5 rounded border overflow-visible ${colors[color]}`}>
+      <p className="text-[10px] font-bold whitespace-nowrap">{value}</p>
+      <p className="text-[6px] text-slate-500 mt-0.5 whitespace-nowrap">{label}</p>
       {sub && <p className="text-[5px] text-slate-400 mt-0.5">{sub}</p>}
     </div>
   );
