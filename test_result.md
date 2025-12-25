@@ -4,10 +4,14 @@
 (DO NOT EDIT - Standard testing protocol for all features)
 
 ## Current Testing Task
-Testing: Manajemen Label BMN - QR Code Customization (QuickChart Style) - IN PROGRESS
+Testing: Manajemen Label BMN - Print Fix & Sticker Design Update - IN PROGRESS
 
 ### Task Description:
-Verify the QR Code customization feature in Label BMN page, similar to QuickChart's bulk QR generator.
+Verify that:
+1. Print functionality works correctly - only the sticker canvas should print, not the entire web page
+2. All three sticker sizes (Kecil, Sedang, Besar) display correctly with proper font sizes per HTML templates
+3. QR Code contains only kode_barang (without NUP suffix)
+4. Vertical code on the side has no border/background
 
 ### Features to Test:
 1. **Customisasi QR Tab** - New tab between Daftar Aset and Antrian Cetak
