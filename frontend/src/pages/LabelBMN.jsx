@@ -608,17 +608,8 @@ const QRSettingsPanel = ({ settings, onChange, instansi, previewText = "#SAMPLE-
 // ==================== STICKER COMPONENTS - REDESIGNED ====================
 
 // Stiker Kecil Component - Ukuran: 2.38cm x 3.98cm (vertical/portrait)
-// Sesuai contoh gambar user
+// Sesuai contoh gambar user - Font diperbesar untuk keterbacaan
 const StikerKecil = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
-  // Font sizes for small sticker (in pt)
-  const fontSize = {
-    namaBarang: '7pt',
-    nup: '14pt',
-    kodeBarang: '6pt',
-    merkTipe: '5pt',
-    kodeVertical: '5pt'
-  };
-  
   return (
     <div 
       className="stiker-kecil bg-white relative overflow-hidden flex flex-col"
@@ -629,44 +620,44 @@ const StikerKecil = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
         fontFamily: 'Arial, sans-serif'
       }}
     >
-      {/* Top: QR Code Area - Full width, fills space */}
+      {/* Top: QR Code Area - Full width, fills space maksimal */}
       <div 
         className="flex items-center justify-center relative"
         style={{ 
-          height: '65%',
+          height: '68%',
           borderBottom: '2px solid #c9a227',
           background: qrSettings?.backgroundColor || '#ffffff',
-          padding: '1mm'
+          padding: '0.5mm'
         }}
       >
         <StyledQRCode 
           data={data.kode_register || data.kode_barang}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
-          size={85}
+          size={95}
         />
       </div>
       
       {/* Bottom: Info Area */}
-      <div className="flex-1 flex flex-col justify-between p-1 pr-4" style={{ minHeight: 0 }}>
+      <div className="flex-1 flex flex-col justify-between px-1 py-0.5" style={{ minHeight: 0, paddingRight: '4mm' }}>
         {/* Nama Barang & NUP */}
-        <div className="flex items-start justify-between gap-1">
-          <div className="font-bold leading-tight flex-1" style={{ fontSize: fontSize.namaBarang }}>
+        <div className="flex items-start justify-between gap-0.5">
+          <div className="font-bold leading-tight flex-1 line-clamp-2" style={{ fontSize: '8pt' }}>
             {data.nama_barang}
           </div>
-          <div className="font-bold" style={{ fontSize: fontSize.nup }}>
+          <div className="font-bold" style={{ fontSize: '16pt' }}>
             {data.nup || '1'}
           </div>
         </div>
         
         {/* Kode Barang */}
-        <div className="font-mono font-bold" style={{ fontSize: fontSize.kodeBarang }}>
+        <div className="font-mono font-bold" style={{ fontSize: '7pt' }}>
           {data.kode_barang}
         </div>
         
         {/* Tahun - Merk/Tipe */}
-        <div className="leading-tight" style={{ fontSize: fontSize.merkTipe, color: '#333' }}>
-          {data.tahun || new Date().getFullYear()} - {data.merk_tipe || data.merk || ''}
+        <div className="leading-tight truncate" style={{ fontSize: '6pt', color: '#333' }}>
+          {data.tahun || new Date().getFullYear()} - {data.merk_tipe || data.merk || '-'}
         </div>
       </div>
       
@@ -675,7 +666,7 @@ const StikerKecil = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
         className="absolute right-0 top-0 h-full flex items-center justify-center"
         style={{ 
           writingMode: 'vertical-rl', 
-          fontSize: fontSize.kodeVertical, 
+          fontSize: '6pt', 
           width: '3.5mm',
           color: '#333',
           fontFamily: 'Arial, sans-serif'
