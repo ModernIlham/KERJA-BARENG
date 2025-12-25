@@ -5,7 +5,7 @@
  * - Canvas A4/A3 dengan crop marks untuk mesin cutting
  * - Tracking status cetak
  * - Parent-Child asset relationship (Induk-Anak untuk aksesori)
- * - QR Code dengan logo instansi embedded
+ * - QR Code customization (like QuickChart)
  */
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
@@ -19,10 +19,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Checkbox } from '../components/ui/checkbox';
 import { Label } from '../components/ui/label';
+import { Slider } from '../components/ui/slider';
 import { 
   Printer, Search, Plus, Trash2, Package, Tag, QrCode, 
   CheckCircle2, XCircle, History, LayoutGrid, Settings2,
-  ChevronRight, Link2, Unlink, RefreshCw, Download, FileText, Eye
+  ChevronRight, Link2, Unlink, RefreshCw, Download, FileText, Eye,
+  Palette, Image, Sliders, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
@@ -43,14 +45,48 @@ const CROP_MARK_LENGTH = 5; // mm
 const MARGIN = 10; // mm from edge
 const GAP = 3; // mm between stickers
 
-// ==================== QR CODE GENERATOR ====================
-const generateQRCodeDataURL = async (text, size = 100) => {
+// Default QR Settings
+const DEFAULT_QR_SETTINGS = {
+  size: 200,
+  margin: 1,
+  darkColor: '#000000',
+  lightColor: '#ffffff',
+  errorCorrectionLevel: 'M',
+  logoEnabled: true,
+  logoSize: 25, // percentage of QR size
+  cornerRadius: 0, // 0 = square, 100 = fully rounded
+  dotStyle: 'square' // square, dots, rounded
+};
+
+const ERROR_CORRECTION_LEVELS = [
+  { value: 'L', label: 'Low (7%)', desc: 'Minimum koreksi' },
+  { value: 'M', label: 'Medium (15%)', desc: 'Rekomendasi' },
+  { value: 'Q', label: 'Quartile (25%)', desc: 'Dengan logo' },
+  { value: 'H', label: 'High (30%)', desc: 'Maximum koreksi' }
+];
+
+const COLOR_PRESETS = [
+  { name: 'Klasik', dark: '#000000', light: '#ffffff' },
+  { name: 'Biru Tua', dark: '#1a365d', light: '#ffffff' },
+  { name: 'Hijau', dark: '#166534', light: '#ffffff' },
+  { name: 'Merah', dark: '#991b1b', light: '#ffffff' },
+  { name: 'Ungu', dark: '#5b21b6', light: '#ffffff' },
+  { name: 'Navy Gold', dark: '#1e3a5f', light: '#fef3c7' },
+];
+
+// ==================== QR CODE GENERATOR WITH OPTIONS ====================
+const generateQRCodeDataURL = async (text, options = {}) => {
+  const settings = { ...DEFAULT_QR_SETTINGS, ...options };
+  
   try {
     return await QRCode.toDataURL(text, {
-      width: size,
-      margin: 0,
-      errorCorrectionLevel: 'M',
-      color: { dark: '#000000', light: '#ffffff' }
+      width: settings.size,
+      margin: settings.margin,
+      errorCorrectionLevel: settings.errorCorrectionLevel,
+      color: { 
+        dark: settings.darkColor, 
+        light: settings.lightColor 
+      }
     });
   } catch (err) {
     console.error('QR generation error:', err);
