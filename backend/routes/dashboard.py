@@ -62,7 +62,19 @@ async def get_dashboard_summary(current_user: str = Depends(get_current_user)):
     
     # Combine and Sort
     all_tx = recent_tx_asset + recent_tx_inv
-    all_tx.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+    
+    def get_sort_key(x):
+        ts = x.get('timestamp')
+        if ts is None:
+            return datetime.min
+        if isinstance(ts, str):
+            try:
+                return datetime.fromisoformat(ts.replace('Z', '+00:00'))
+            except:
+                return datetime.min
+        return ts if isinstance(ts, datetime) else datetime.min
+    
+    all_tx.sort(key=get_sort_key, reverse=True)
     recent_tx = all_tx[:5]
     
     # Format sanitized response
