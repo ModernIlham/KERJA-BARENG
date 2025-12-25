@@ -114,9 +114,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Notification alerts API"
-    - "Notification page UI"
-    - "Dashboard widget"
+    - "Cross-Module Reclassification API"
   stuck_tasks: []
   test_all: false
   test_priority: "high"
