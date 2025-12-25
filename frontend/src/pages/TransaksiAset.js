@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Badge } from '../components/ui/badge';
 import { 
     Package, ArrowDownToLine, ArrowUpFromLine, RefreshCw, Construction,
-    FileText, DollarSign, Layers, ArrowLeftRight, ChevronRight
+    FileText, DollarSign, Layers, ArrowLeftRight, ChevronRight, History
 } from 'lucide-react';
 
 // Import all transaction form components
@@ -23,6 +23,8 @@ import PerubahanKondisiForm from '../components/transaksi/PerubahanKondisiForm';
 import KoreksiNilaiForm from '../components/transaksi/KoreksiNilaiForm';
 import ReklasifikasiForm from '../components/transaksi/ReklasifikasiForm';
 import ReklasifikasiKDPForm from '../components/transaksi/ReklasifikasiKDPForm';
+import ReklasifikasiMasukForm from '../components/transaksi/ReklasifikasiMasukForm';
+import RiwayatTransaksiComprehensive from '../components/transaksi/RiwayatTransaksiComprehensive';
 
 export default function TransaksiAset() {
     const [activeTab, setActiveTab] = useState('riwayat');
