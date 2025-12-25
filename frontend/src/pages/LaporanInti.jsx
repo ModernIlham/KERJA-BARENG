@@ -134,7 +134,6 @@ const ChartLegend = ({ items }) => (
 export default function LaporanInti() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
   const reportRef = useRef(null);
 
   useEffect(() => {
@@ -143,17 +142,6 @@ export default function LaporanInti() {
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, []);
-
-  // Use browser's native print for PDF - much more reliable
-  const handleDownloadPDF = () => {
-    setDownloading(true);
-    
-    // Small delay to show loading state
-    setTimeout(() => {
-      window.print();
-      setDownloading(false);
-    }, 100);
-  };
 
   if (loading) return <div className="flex justify-center items-center min-h-screen"><Loader2 className="animate-spin w-8 h-8 text-slate-400" /></div>;
   if (!data) return <div className="flex justify-center items-center min-h-screen text-red-500">Gagal memuat data</div>;
