@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Clock, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import { Clock, MapPin, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import SelfieCapture from './SelfieCapture';
 import api from '../../api/axios';
 import { toast } from 'sonner';
