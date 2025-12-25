@@ -77,8 +77,9 @@ export default function TransaksiDokumenManager({ transaksiId, onUpdate }) {
   const searchPegawai = async () => {
     setSearchingPegawai(true);
     try {
+      // Include all pegawai, but show which ones have signatures
       const res = await api.get('/api/transaksi-dokumen/pegawai-with-signature', {
-        params: { search: pegawaiSearch, limit: 20 }
+        params: { search: pegawaiSearch, limit: 20, include_all: true }
       });
       setPegawaiList(res.data || []);
     } catch (e) {
