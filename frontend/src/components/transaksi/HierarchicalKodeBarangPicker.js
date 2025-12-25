@@ -223,7 +223,7 @@ export default function HierarchicalKodeBarangPicker({
     if (filteredItems.length === 0) {
       return (
         <div className="text-center py-8 text-slate-500">
-          Tidak ditemukan kode barang dengan kata kunci "{search}"
+          Tidak ditemukan kode barang dengan kata kunci &quot;{search}&quot;
         </div>
       );
     }

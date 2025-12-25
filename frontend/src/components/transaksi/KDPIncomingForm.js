@@ -581,7 +581,7 @@ export default function KDPIncomingForm({ onSuccess }) {
                         {dokumenList.length === 0 ? (
                             <div className="text-center py-8 text-slate-500">
                                 Tidak ada dokumen KDP tersimpan.<br/>
-                                <span className="text-xs">Silakan rekam dokumen dengan Kategori "KDP" terlebih dahulu.</span>
+                                <span className="text-xs">Silakan rekam dokumen dengan Kategori &quot;KDP&quot; terlebih dahulu.</span>
                             </div>
                         ) : (
                             <table className="w-full text-sm border-collapse">

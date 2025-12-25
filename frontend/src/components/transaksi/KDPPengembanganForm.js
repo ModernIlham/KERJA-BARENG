@@ -652,7 +652,7 @@ export default function KDPPengembanganForm({ onSuccess }) {
                         {dokumenList.length === 0 ? (
                             <div className="text-center py-8 text-slate-500">
                                 Tidak ada dokumen tersimpan.<br/>
-                                <span className="text-xs">Silakan rekam dokumen dengan Kategori "Aset Tetap Pengembangan KDP" terlebih dahulu.</span>
+                                <span className="text-xs">Silakan rekam dokumen dengan Kategori &quot;Aset Tetap Pengembangan KDP&quot; terlebih dahulu.</span>
                             </div>
                         ) : (
                             <table className="w-full text-sm border-collapse">
