@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 
 # Import Routers
-from routes import auth, barang, pegawai, pegawai_photos, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn, laporan_inti, surat, dokumen, kepegawaian, tasks, activity, kib, aset_pegawai, gudang, notifications, transaksi_cross, approval, transaksi_dokumen
+from routes import auth, barang, pegawai, pegawai_photos, transaksi, dashboard, banding, opname, laporan, settings, referensi, persediaan, persediaan_transaksi, laporan_bmn, laporan_inti, surat, dokumen, kepegawaian, tasks, activity, kib, aset_pegawai, gudang, notifications, transaksi_cross, approval, transaksi_dokumen, label_bmn
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
