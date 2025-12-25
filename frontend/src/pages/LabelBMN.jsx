@@ -1521,7 +1521,7 @@ function PrintHistoryTab() {
 }
 
 
-// ==================== DEFAULT STICKER DESIGN CONFIGS ====================
+// ==================== DEFAULT STICKER DESIGN CONFIGS (ADVANCED) ====================
 const DEFAULT_DESIGN_CONFIGS = {
   kecil: {
     name: "Stiker Kecil - Default",
@@ -1529,9 +1529,18 @@ const DEFAULT_DESIGN_CONFIGS = {
     width: 23.8,
     height: 39.8,
     layout: "portrait",
+    
+    // QR Code Settings (Advanced)
     qr_position: "top",
     qr_size: 85,
-    qr_padding: 2,
+    qr_padding: 0,
+    qr_margin_top: 2,
+    qr_margin_bottom: 0,
+    qr_margin_left: 2,
+    qr_margin_right: 2,
+    qr_align: "center",
+    
+    // Header Settings
     show_header: false,
     header_show_logo: false,
     header_font_size: 6.5,
@@ -1539,34 +1548,93 @@ const DEFAULT_DESIGN_CONFIGS = {
     header_text: "",
     header_bg_color: "#ffffff",
     header_text_color: "#1a1a1a",
+    header_align: "center",
+    header_padding: 3,
+    header_border_bottom: true,
+    
+    // Kode Barang Settings
     kode_font_size: 8,
     kode_font_weight: 700,
+    kode_align: "center",
+    kode_padding: 3,
+    kode_bg_color: "#ffffff",
+    kode_text_color: "#1a1a1a",
+    kode_border_bottom: true,
+    kode_letter_spacing: 0,
+    kode_text_transform: "none",
+    
+    // Nama Barang Settings
     nama_font_size: 6.5,
     nama_font_weight: 600,
+    nama_align: "center",
+    nama_padding: 2,
+    nama_line_height: 1.2,
+    nama_max_lines: 2,
+    
+    // NUP Settings
     show_nup: true,
     nup_font_size: 10,
     nup_min_width: 28,
     nup_bg_color: "#ffffff",
     nup_text_color: "#1a1a1a",
+    nup_border_left: true,
+    nup_align: "center",
+    
+    // Description Settings
     show_description: true,
     desc_font_size: 5,
+    desc_align: "center",
+    desc_line_height: 1.3,
+    desc_padding: 2,
+    desc_bg_color: "#ffffff",
+    
+    // Warning Settings
     show_warning: false,
     warning_text: "",
     warning_font_size: 5,
     warning_color: "#DC2626",
+    warning_align: "center",
+    warning_font_weight: 700,
+    
+    // Vertical Code Settings
     show_vertical_code: true,
     vertical_font_size: 6,
     vertical_width: 13,
     vertical_show_border: false,
+    vertical_bg_color: "#ffffff",
+    vertical_text_color: "#1a1a1a",
+    vertical_letter_spacing: 0.3,
+    
+    // Gold Stripe Settings
     show_gold_stripe: true,
     gold_stripe_height: 3,
     gold_stripe_color: "#D4AF37",
+    gold_stripe_gradient: true,
+    gold_stripe_color_end: "#C9A227",
+    
+    // Border & Frame Settings
     border_width: 1,
     border_color: "#2c2c2c",
+    border_style: "solid",
     border_radius: 0,
+    border_top: true,
+    border_right: true,
+    border_bottom: true,
+    border_left: true,
+    
+    // Section Borders (Table-like)
+    section_border_width: 1,
+    section_border_color: "#2c2c2c",
+    section_border_style: "solid",
+    
+    // Background & Shading
     font_family: "Roboto",
     background_color: "#ffffff",
-    text_color: "#1a1a1a"
+    text_color: "#1a1a1a",
+    
+    // Advanced Spacing
+    content_padding: 0,
+    element_gap: 0
   },
   sedang: {
     name: "Stiker Sedang - Default",
@@ -1574,9 +1642,18 @@ const DEFAULT_DESIGN_CONFIGS = {
     width: 69.8,
     height: 22.1,
     layout: "landscape",
+    
+    // QR Code Settings (Advanced)
     qr_position: "left",
-    qr_size: 90,
-    qr_padding: 3,
+    qr_size: 95,
+    qr_padding: 0,
+    qr_margin_top: 2,
+    qr_margin_bottom: 2,
+    qr_margin_left: 2,
+    qr_margin_right: 2,
+    qr_align: "center",
+    
+    // Header Settings
     show_header: true,
     header_show_logo: true,
     header_logo_size: 16,
@@ -1585,34 +1662,93 @@ const DEFAULT_DESIGN_CONFIGS = {
     header_text: "Otorita Ibu Kota Nusantara",
     header_bg_color: "#ffffff",
     header_text_color: "#1a1a1a",
+    header_align: "left",
+    header_padding: 4,
+    header_border_bottom: true,
+    
+    // Kode Barang Settings
     kode_font_size: 7.5,
     kode_font_weight: 700,
+    kode_align: "left",
+    kode_padding: 4,
+    kode_bg_color: "#ffffff",
+    kode_text_color: "#1a1a1a",
+    kode_border_bottom: false,
+    kode_letter_spacing: 0,
+    kode_text_transform: "none",
+    
+    // Nama Barang Settings
     nama_font_size: 6.5,
     nama_font_weight: 500,
+    nama_align: "left",
+    nama_padding: 4,
+    nama_line_height: 1.2,
+    nama_max_lines: 1,
+    
+    // NUP Settings
     show_nup: true,
     nup_font_size: 11,
     nup_min_width: 34,
     nup_bg_color: "#ffffff",
     nup_text_color: "#1a1a1a",
+    nup_border_left: true,
+    nup_align: "center",
+    
+    // Description Settings
     show_description: true,
     desc_font_size: 5.5,
+    desc_align: "left",
+    desc_line_height: 1.3,
+    desc_padding: 4,
+    desc_bg_color: "#ffffff",
+    
+    // Warning Settings
     show_warning: true,
     warning_text: "Tidak Untuk Diperjualbelikan",
     warning_font_size: 6,
     warning_color: "#DC2626",
+    warning_align: "left",
+    warning_font_weight: 700,
+    
+    // Vertical Code Settings
     show_vertical_code: true,
     vertical_font_size: 6,
     vertical_width: 13,
     vertical_show_border: false,
+    vertical_bg_color: "#ffffff",
+    vertical_text_color: "#1a1a1a",
+    vertical_letter_spacing: 0.3,
+    
+    // Gold Stripe Settings
     show_gold_stripe: false,
     gold_stripe_height: 3,
     gold_stripe_color: "#D4AF37",
+    gold_stripe_gradient: true,
+    gold_stripe_color_end: "#C9A227",
+    
+    // Border & Frame Settings
     border_width: 1,
     border_color: "#2c2c2c",
+    border_style: "solid",
     border_radius: 0,
+    border_top: true,
+    border_right: true,
+    border_bottom: true,
+    border_left: true,
+    
+    // Section Borders
+    section_border_width: 1,
+    section_border_color: "#2c2c2c",
+    section_border_style: "solid",
+    
+    // Background & Shading
     font_family: "Roboto",
     background_color: "#ffffff",
-    text_color: "#1a1a1a"
+    text_color: "#1a1a1a",
+    
+    // Advanced Spacing
+    content_padding: 0,
+    element_gap: 0
   },
   besar: {
     name: "Stiker Besar - Default",
@@ -1620,9 +1756,18 @@ const DEFAULT_DESIGN_CONFIGS = {
     width: 94.9,
     height: 32.2,
     layout: "landscape",
+    
+    // QR Code Settings (Advanced)
     qr_position: "left",
-    qr_size: 95,
-    qr_padding: 5,
+    qr_size: 98,
+    qr_padding: 0,
+    qr_margin_top: 3,
+    qr_margin_bottom: 3,
+    qr_margin_left: 3,
+    qr_margin_right: 3,
+    qr_align: "center",
+    
+    // Header Settings
     show_header: true,
     header_show_logo: true,
     header_logo_size: 22,
@@ -1631,34 +1776,93 @@ const DEFAULT_DESIGN_CONFIGS = {
     header_text: "Otorita Ibu Kota Nusantara",
     header_bg_color: "#ffffff",
     header_text_color: "#1a1a1a",
+    header_align: "left",
+    header_padding: 5,
+    header_border_bottom: true,
+    
+    // Kode Barang Settings
     kode_font_size: 10,
     kode_font_weight: 700,
+    kode_align: "left",
+    kode_padding: 5,
+    kode_bg_color: "#ffffff",
+    kode_text_color: "#1a1a1a",
+    kode_border_bottom: false,
+    kode_letter_spacing: 0,
+    kode_text_transform: "none",
+    
+    // Nama Barang Settings
     nama_font_size: 9,
     nama_font_weight: 500,
+    nama_align: "left",
+    nama_padding: 5,
+    nama_line_height: 1.2,
+    nama_max_lines: 1,
+    
+    // NUP Settings
     show_nup: true,
     nup_font_size: 14,
     nup_min_width: 45,
     nup_bg_color: "#ffffff",
     nup_text_color: "#1a1a1a",
+    nup_border_left: true,
+    nup_align: "center",
+    
+    // Description Settings
     show_description: true,
     desc_font_size: 8,
+    desc_align: "left",
+    desc_line_height: 1.3,
+    desc_padding: 5,
+    desc_bg_color: "#ffffff",
+    
+    // Warning Settings
     show_warning: true,
     warning_text: "Tidak Untuk Diperjualbelikan",
     warning_font_size: 9,
     warning_color: "#DC2626",
+    warning_align: "left",
+    warning_font_weight: 700,
+    
+    // Vertical Code Settings
     show_vertical_code: true,
     vertical_font_size: 9,
     vertical_width: 21,
     vertical_show_border: false,
+    vertical_bg_color: "#ffffff",
+    vertical_text_color: "#1a1a1a",
+    vertical_letter_spacing: 0.5,
+    
+    // Gold Stripe Settings
     show_gold_stripe: false,
     gold_stripe_height: 3,
     gold_stripe_color: "#D4AF37",
+    gold_stripe_gradient: true,
+    gold_stripe_color_end: "#C9A227",
+    
+    // Border & Frame Settings
     border_width: 1,
     border_color: "#2c2c2c",
+    border_style: "solid",
     border_radius: 0,
+    border_top: true,
+    border_right: true,
+    border_bottom: true,
+    border_left: true,
+    
+    // Section Borders
+    section_border_width: 1,
+    section_border_color: "#2c2c2c",
+    section_border_style: "solid",
+    
+    // Background & Shading
     font_family: "Roboto",
     background_color: "#ffffff",
-    text_color: "#1a1a1a"
+    text_color: "#1a1a1a",
+    
+    // Advanced Spacing
+    content_padding: 0,
+    element_gap: 0
   }
 };
 
