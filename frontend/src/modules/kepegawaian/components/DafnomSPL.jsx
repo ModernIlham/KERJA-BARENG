@@ -263,7 +263,7 @@ const DafnomSPLTable = ({ batches, holidays, cutiNasional, daysInMonth, employee
                                 <th style={thStyle}>(3)</th>
                                 <th style={thStyle}>(4)</th>
                                 <th style={thStyle}>(5)</th>
-                                <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(6) tanda "-" = Libur ; tanda "+" = Kerja</th>
+                                <th colSpan={16} style={{...thStyle, fontStyle: 'italic', fontSize: '6px'}}>(6) tanda &quot;-&quot; = Libur ; tanda &quot;+&quot; = Kerja</th>
                                 <th style={thStyle}>(7)</th>
                                 <th style={thStyle}>(8)</th>
                                 <th style={thStyle}>(9)</th>
@@ -452,6 +452,7 @@ const DafnomSPL = ({ month, year }) => {
     useEffect(() => {
         fetchData();
         fetchPPKList();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [month, year]);
 
     const batches = data?.batches || [];
