@@ -1,11 +1,14 @@
 /**
  * LabelBMN.jsx - Halaman Manajemen Pelabelan Stiker BMN
- * Desain stiker berdasarkan analisis dokumen Word dan gambar contoh
  * 
- * Ukuran Stiker:
- * - Kecil: 2.38cm x 3.98cm (portrait) - QR 72% atas, Info 28% bawah
- * - Sedang: 6.98cm x 2.21cm (landscape) - QR 50%, Info 50%
- * - Besar: 9.49cm x 3.22cm (landscape) - QR 50%, Info 50%
+ * UKURAN STIKER:
+ * - Kecil: 2.38cm × 3.98cm (Portrait)
+ * - Sedang: 6.98cm × 2.21cm (Landscape) 
+ * - Besar: 9.49cm × 3.22cm (Landscape)
+ * 
+ * FONT SPECS:
+ * - Primary: Roboto, Arial fallback
+ * - Minimum readable: 5pt
  */
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
@@ -45,27 +48,7 @@ const CROP_MARK_LENGTH = 3;
 const MARGIN = 5;
 const GAP = 2;
 
-// QR Code Options
-const DOT_STYLES = [
-  { value: 'square', label: 'Kotak' },
-  { value: 'dots', label: 'Bulat' },
-  { value: 'rounded', label: 'Kotak Bulat' },
-  { value: 'extra-rounded', label: 'Extra Bulat' },
-  { value: 'classy', label: 'Classy' },
-  { value: 'classy-rounded', label: 'Classy Bulat' }
-];
-
-const CORNER_SQUARE_STYLES = [
-  { value: 'square', label: 'Kotak' },
-  { value: 'dot', label: 'Bulat' },
-  { value: 'extra-rounded', label: 'Extra Bulat' }
-];
-
-const CORNER_DOT_STYLES = [
-  { value: 'square', label: 'Kotak' },
-  { value: 'dot', label: 'Bulat' }
-];
-
+// Default QR Settings
 const DEFAULT_QR_SETTINGS = {
   size: 200,
   margin: 0,
@@ -83,20 +66,6 @@ const DEFAULT_QR_SETTINGS = {
   errorCorrectionLevel: 'M'
 };
 
-const ERROR_CORRECTION_LEVELS = [
-  { value: 'L', label: 'Low (7%)' },
-  { value: 'M', label: 'Medium (15%)' },
-  { value: 'Q', label: 'Quartile (25%)' },
-  { value: 'H', label: 'High (30%)' }
-];
-
-const COLOR_PRESETS = [
-  { name: 'Klasik', dots: '#000000', corner: '#000000', bg: '#ffffff' },
-  { name: 'Biru Tua', dots: '#1a365d', corner: '#0f172a', bg: '#ffffff' },
-  { name: 'Hijau', dots: '#166534', corner: '#14532d', bg: '#ffffff' },
-  { name: 'Merah', dots: '#991b1b', corner: '#7f1d1d', bg: '#ffffff' },
-];
-
 // ==================== QR CODE COMPONENT ====================
 const StyledQRCode = ({ data, settings, logoUrl, size = 200 }) => {
   const qrRef = useRef(null);
@@ -110,15 +79,15 @@ const StyledQRCode = ({ data, settings, logoUrl, size = 200 }) => {
       height: size,
       type: 'svg',
       data: data || 'SAMPLE001',
-      margin: settings.margin || 0,
-      qrOptions: { errorCorrectionLevel: settings.errorCorrectionLevel || 'M' },
-      dotsOptions: { color: settings.dotsColor || '#000000', type: settings.dotsStyle || 'square' },
-      cornersSquareOptions: { color: settings.cornerSquareColor || '#000000', type: settings.cornerSquareStyle || 'square' },
-      cornersDotOptions: { color: settings.cornerDotColor || '#000000', type: settings.cornerDotStyle || 'square' },
-      backgroundOptions: { color: settings.backgroundColor || '#ffffff' }
+      margin: settings?.margin || 0,
+      qrOptions: { errorCorrectionLevel: settings?.errorCorrectionLevel || 'M' },
+      dotsOptions: { color: settings?.dotsColor || '#000000', type: settings?.dotsStyle || 'square' },
+      cornersSquareOptions: { color: settings?.cornerSquareColor || '#000000', type: settings?.cornerSquareStyle || 'square' },
+      cornersDotOptions: { color: settings?.cornerDotColor || '#000000', type: settings?.cornerDotStyle || 'square' },
+      backgroundOptions: { color: settings?.backgroundColor || '#ffffff' }
     };
 
-    if (settings.logoEnabled && logoUrl) {
+    if (settings?.logoEnabled && logoUrl) {
       qrOptions.image = logoUrl;
       qrOptions.imageOptions = {
         crossOrigin: 'anonymous',
@@ -135,501 +104,516 @@ const StyledQRCode = ({ data, settings, logoUrl, size = 200 }) => {
   return <div ref={qrRef} style={{ width: size, height: size }} />;
 };
 
-// ==================== STICKER COMPONENTS - EXACT MATCH TO SAMPLES ====================
+// ==================== STICKER COMPONENTS - FROM HTML TEMPLATES ====================
 
 /**
- * Stiker KECIL - 2.38cm x 3.98cm (Portrait/Vertical)
- * Layout: QR 72% atas, Info 28% bawah
- * Golden divider antara QR dan info
+ * Stiker KECIL - 2.38cm × 3.98cm (Portrait)
+ * Font Specs: Nama 6.5pt, Qty 10pt, Kode 8pt, Tahun 5.5pt, Desc 5pt, Vertikal 6pt
  */
-const StikerKecil = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
+const StikerKecil = ({ data, instansi, qrSettings }) => {
+  const styles = {
+    container: {
+      width: '2.38cm',
+      height: '3.98cm',
+      background: 'white',
+      border: '1px solid #2c2c2c',
+      display: 'flex',
+      flexDirection: 'column',
+      fontFamily: "'Roboto', Arial, sans-serif",
+      overflow: 'hidden'
+    },
+    mainContainer: {
+      display: 'flex',
+      flex: 1,
+      minHeight: 0
+    },
+    leftContent: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 'calc(100% - 13px)'
+    },
+    qrArea: {
+      aspectRatio: '1/1',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderBottom: '1px solid #2c2c2c',
+      padding: '2px',
+      background: qrSettings?.backgroundColor || '#ffffff'
+    },
+    goldStripe: {
+      width: '100%',
+      height: '3px',
+      background: 'linear-gradient(90deg, #D4AF37, #C9A227)'
+    },
+    infoSection: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      color: '#1a1a1a',
+      minHeight: 0
+    },
+    namaQtyRow: {
+      display: 'flex',
+      borderBottom: '1px solid #2c2c2c'
+    },
+    namaBarang: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '6.5pt',
+      fontWeight: 600,
+      padding: '2px 3px',
+      lineHeight: 1.2,
+      borderRight: '1px solid #2c2c2c',
+      textAlign: 'center',
+      overflow: 'hidden'
+    },
+    quantityBox: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '10pt',
+      fontWeight: 700,
+      minWidth: '28px',
+      padding: '2px 3px'
+    },
+    kodeInventaris: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '8pt',
+      fontWeight: 700,
+      padding: '3px 2px',
+      borderBottom: '1px solid #2c2c2c'
+    },
+    tahunDeskripsi: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      fontSize: '5pt',
+      fontWeight: 400,
+      padding: '2px 3px',
+      lineHeight: 1.3
+    },
+    verticalCode: {
+      width: '13px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderLeft: '1px solid #2c2c2c'
+    },
+    verticalText: {
+      writingMode: 'vertical-rl',
+      textOrientation: 'mixed',
+      fontSize: '6pt',
+      fontWeight: 700,
+      letterSpacing: '0.3px',
+      whiteSpace: 'nowrap',
+      color: '#1a1a1a'
+    }
+  };
+
   return (
-    <div 
-      className="stiker-kecil bg-white relative overflow-hidden flex flex-col"
-      style={{ 
-        width: '23.8mm', 
-        height: '39.8mm', 
-        border: '0.5pt solid #000',
-        fontFamily: 'Arial, sans-serif'
-      }}
-    >
-      {/* QR Code Area - 72% height */}
-      <div 
-        className="flex items-center justify-center"
-        style={{ 
-          height: '72%',
-          background: qrSettings?.backgroundColor || '#ffffff',
-          padding: '1mm'
-        }}
-      >
-        <StyledQRCode 
-          data={data.kode_register || data.kode_barang}
-          settings={qrSettings}
-          logoUrl={instansi?.logo_url}
-          size={100}
-        />
-      </div>
-      
-      {/* Golden Divider */}
-      <div style={{ height: '1.5pt', background: '#c9a227' }} />
-      
-      {/* Info Area - 28% height */}
-      <div className="flex-1 flex flex-col px-1" style={{ paddingRight: '3.5mm', paddingTop: '0.5mm' }}>
-        {/* Row 1: Nama Barang + NUP */}
-        <div className="flex items-start justify-between">
-          <div className="font-bold leading-tight flex-1 line-clamp-1" style={{ fontSize: '7pt' }}>
-            {data.nama_barang}
+    <div style={styles.container}>
+      <div style={styles.mainContainer}>
+        <div style={styles.leftContent}>
+          <div style={styles.qrArea}>
+            <StyledQRCode 
+              data={data.kode_register || data.kode_barang}
+              settings={qrSettings}
+              logoUrl={instansi?.logo_url}
+              size={72}
+            />
           </div>
-          <div className="font-bold ml-1" style={{ fontSize: '14pt', lineHeight: 1 }}>
-            {data.nup || '1'}
+          <div style={styles.goldStripe} />
+          <div style={styles.infoSection}>
+            <div style={styles.namaQtyRow}>
+              <div style={styles.namaBarang}>{data.nama_barang}</div>
+              <div style={styles.quantityBox}>{data.nup || '1'}</div>
+            </div>
+            <div style={styles.kodeInventaris}>{data.kode_barang}</div>
+            <div style={styles.tahunDeskripsi}>
+              <span><strong style={{ fontSize: '5.5pt', fontWeight: 700 }}>{data.tahun || new Date().getFullYear()}</strong> - {data.merk || data.merk_tipe || '-'}</span>
+            </div>
           </div>
         </div>
-        
-        {/* Row 2: Kode Barang */}
-        <div className="font-mono font-semibold" style={{ fontSize: '6pt' }}>
-          {data.kode_barang}
+        <div style={styles.verticalCode}>
+          <span style={styles.verticalText}>{data.kode_vertikal}</span>
         </div>
-        
-        {/* Row 3: Tahun - Merk */}
-        <div className="leading-tight truncate" style={{ fontSize: '5pt', color: '#333' }}>
-          {data.tahun || new Date().getFullYear()} - {data.merk_tipe || data.merk || '-'}
-        </div>
-      </div>
-      
-      {/* Vertical Code Strip - 8-10% width, NO BORDER */}
-      <div 
-        className="absolute right-0 top-0 h-full flex items-center justify-center"
-        style={{ 
-          writingMode: 'vertical-rl', 
-          fontSize: '5pt', 
-          width: '3mm',
-          color: '#333'
-        }}
-      >
-        {data.kode_vertikal}
       </div>
     </div>
   );
 };
 
 /**
- * Stiker SEDANG - 6.98cm x 2.21cm (Landscape/Horizontal)
- * Layout: QR 50-55% kiri, Info 45-50% kanan
- * TIDAK ADA golden divider (hanya garis hitam)
- * NUP: Angka besar di kanan (bukan format "NUP : X")
+ * Stiker SEDANG - 6.98cm × 2.21cm (Landscape)
+ * Font Specs: Header 7.5pt, RegCode 6.5pt, Kode 7.5pt, Nama 6.5pt, Qty 11pt, Desc 5.5pt, Warning 6pt, Vertikal 6pt
  */
-const StikerSedang = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
+const StikerSedang = ({ data, instansi, qrSettings }) => {
+  const styles = {
+    container: {
+      width: '6.98cm',
+      height: '2.21cm',
+      background: 'white',
+      border: '1px solid #2c2c2c',
+      display: 'flex',
+      fontFamily: "'Roboto', Arial, sans-serif",
+      overflow: 'hidden'
+    },
+    qrArea: {
+      width: '2.21cm',
+      minWidth: '2.21cm',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRight: '1px solid #2c2c2c',
+      padding: '3px',
+      background: qrSettings?.backgroundColor || '#ffffff'
+    },
+    middleContent: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      minWidth: 0
+    },
+    headerRow: {
+      display: 'flex',
+      alignItems: 'center',
+      borderBottom: '1px solid #2c2c2c',
+      padding: '3px 5px'
+    },
+    headerLogo: {
+      flexShrink: 0
+    },
+    headerText: {
+      display: 'flex',
+      flexDirection: 'column',
+      marginLeft: '8px',
+      minWidth: 0
+    },
+    headerTitle: {
+      fontSize: '7.5pt',
+      fontWeight: 700,
+      lineHeight: 1.2,
+      color: '#1a1a1a'
+    },
+    headerCode: {
+      fontSize: '6.5pt',
+      fontWeight: 700,
+      lineHeight: 1.2,
+      color: '#1a1a1a'
+    },
+    mainContent: {
+      flex: 1,
+      display: 'flex'
+    },
+    infoSection: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      borderRight: '1px solid #2c2c2c'
+    },
+    kodeQtyRow: {
+      display: 'flex',
+      borderBottom: '1px solid #2c2c2c'
+    },
+    kodeInfo: {
+      flex: 1,
+      padding: '2px 5px'
+    },
+    kodeBarang: {
+      fontSize: '7.5pt',
+      fontWeight: 700,
+      lineHeight: 1.2,
+      color: '#1a1a1a'
+    },
+    namaBarang: {
+      fontSize: '6.5pt',
+      fontWeight: 500,
+      lineHeight: 1.2,
+      color: '#1a1a1a'
+    },
+    quantityBox: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '11pt',
+      fontWeight: 700,
+      minWidth: '34px',
+      padding: '2px 5px',
+      borderLeft: '1px solid #2c2c2c',
+      color: '#1a1a1a'
+    },
+    deskripsiArea: {
+      flex: 1,
+      padding: '2px 5px'
+    },
+    deskripsi: {
+      fontSize: '5.5pt',
+      lineHeight: 1.3,
+      color: '#1a1a1a'
+    },
+    warningText: {
+      fontSize: '6pt',
+      fontWeight: 700,
+      color: '#DC2626',
+      marginTop: '2px'
+    },
+    verticalCode: {
+      width: '13px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderLeft: '1px solid #2c2c2c'
+    },
+    verticalText: {
+      writingMode: 'vertical-rl',
+      textOrientation: 'mixed',
+      fontSize: '6pt',
+      fontWeight: 700,
+      letterSpacing: '0.3px',
+      whiteSpace: 'nowrap',
+      color: '#1a1a1a'
+    }
+  };
+
   return (
-    <div 
-      className="stiker-sedang bg-white relative overflow-hidden flex"
-      style={{ 
-        width: '69.8mm', 
-        height: '22.1mm', 
-        border: '0.5pt solid #000',
-        fontFamily: 'Arial, sans-serif'
-      }}
-    >
-      {/* QR Code Area - 50% width */}
-      <div 
-        className="flex items-center justify-center"
-        style={{ 
-          width: '50%', 
-          borderRight: '0.5pt solid #000',
-          background: qrSettings?.backgroundColor || '#ffffff'
-        }}
-      >
+    <div style={styles.container}>
+      <div style={styles.qrArea}>
         <StyledQRCode 
           data={data.kode_register || data.kode_barang}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
-          size={78}
+          size={70}
         />
       </div>
       
-      {/* Info Area - 50% width */}
-      <div className="flex-1 flex flex-col relative" style={{ paddingRight: '4.5mm' }}>
-        {/* Header: Instansi + Kode UAKPB */}
-        <div 
-          className="flex items-center px-1 border-b border-black"
-          style={{ paddingTop: '0.8mm', paddingBottom: '0.5mm' }}
-        >
+      <div style={styles.middleContent}>
+        <div style={styles.headerRow}>
           {instansi?.logo_url && (
-            <img src={instansi.logo_url} alt="" style={{ height: '4mm', width: '4mm', marginRight: '1mm' }} />
+            <div style={styles.headerLogo}>
+              <img src={instansi.logo_url} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+            </div>
           )}
-          <div className="flex-1 min-w-0">
-            <div className="font-bold truncate" style={{ fontSize: '8pt' }}>
-              {instansi?.nama_instansi || 'INSTANSI'}
+          <div style={styles.headerText}>
+            <span style={styles.headerTitle}>{instansi?.nama_instansi || 'Otorita Ibu Kota Nusantara'}</span>
+            <span style={styles.headerCode}>{instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}</span>
+          </div>
+        </div>
+        
+        <div style={styles.mainContent}>
+          <div style={styles.infoSection}>
+            <div style={styles.kodeQtyRow}>
+              <div style={styles.kodeInfo}>
+                <div style={styles.kodeBarang}>{data.kode_barang}</div>
+                <div style={styles.namaBarang}>{data.nama_barang}</div>
+              </div>
+              <div style={styles.quantityBox}>{data.nup || '1'}</div>
             </div>
-            <div className="font-mono truncate" style={{ fontSize: '6pt', color: '#333' }}>
-              {instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}
+            <div style={styles.deskripsiArea}>
+              <p style={styles.deskripsi}>{data.merk_tipe || data.merk || '-'}</p>
+              <p style={styles.warningText}>Tidak Untuk Diperjualbelikan</p>
             </div>
           </div>
-        </div>
-        
-        {/* Row 2: Kode Barang + NUP (angka besar) */}
-        <div 
-          className="flex items-center justify-between px-1 border-b border-black"
-          style={{ paddingTop: '0.3mm', paddingBottom: '0.3mm' }}
-        >
-          <div className="font-mono font-bold" style={{ fontSize: '9pt' }}>
-            {data.kode_barang}
-          </div>
-          <div className="font-bold" style={{ fontSize: '13pt', lineHeight: 1 }}>
-            {data.nup || '1'}
-          </div>
-        </div>
-        
-        {/* Row 3: Nama Barang */}
-        <div className="px-1" style={{ paddingTop: '0.3mm' }}>
-          <div className="font-semibold truncate" style={{ fontSize: '7pt' }}>
-            {data.nama_barang}
-          </div>
-        </div>
-        
-        {/* Row 4: Merk/Brand */}
-        <div className="px-1 flex-1">
-          <div className="truncate" style={{ fontSize: '6pt', color: '#555' }}>
-            {data.merk || '-'}
-          </div>
-        </div>
-        
-        {/* Footer: Tidak Untuk Diperjualbelikan */}
-        <div 
-          className="text-center font-bold border-t border-black"
-          style={{ fontSize: '5pt', color: '#dc2626', paddingTop: '0.3mm', paddingBottom: '0.3mm' }}
-        >
-          Tidak Untuk Diperjualbelikan
         </div>
       </div>
       
-      {/* Vertical Code Strip - 6-8% width, NO BORDER */}
-      <div 
-        className="absolute right-0 top-0 h-full flex items-center justify-center"
-        style={{ 
-          writingMode: 'vertical-rl', 
-          fontSize: '6pt', 
-          width: '4mm',
-          color: '#333'
-        }}
-      >
-        {data.kode_vertikal}
+      <div style={styles.verticalCode}>
+        <span style={styles.verticalText}>{data.kode_vertikal}</span>
       </div>
     </div>
   );
 };
 
 /**
- * Stiker BESAR - 9.49cm x 3.22cm (Landscape/Horizontal)
- * Layout: QR 50% kiri, Info 50% kanan
- * Golden divider di bawah header
- * NUP: Format "NUP : X" di sebelah kanan kode barang
+ * Stiker BESAR - 9.49cm × 3.22cm (Landscape)
+ * Font Specs: Header 10pt, RegCode 9pt, Kode 10pt, Nama 9pt, Qty 14pt, Desc 8pt, Warning 9pt, Vertikal 9pt
  */
-const StikerBesar = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
+const StikerBesar = ({ data, instansi, qrSettings }) => {
+  const styles = {
+    container: {
+      width: '9.49cm',
+      height: '3.22cm',
+      background: 'white',
+      border: '1px solid #2c2c2c',
+      display: 'flex',
+      fontFamily: "'Roboto', Arial, sans-serif",
+      overflow: 'hidden'
+    },
+    qrArea: {
+      width: '3.22cm',
+      minWidth: '3.22cm',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRight: '1px solid #2c2c2c',
+      padding: '5px',
+      background: qrSettings?.backgroundColor || '#ffffff'
+    },
+    middleContent: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      minWidth: 0
+    },
+    headerRow: {
+      display: 'flex',
+      alignItems: 'center',
+      borderBottom: '1px solid #2c2c2c',
+      padding: '5px 8px'
+    },
+    headerLogo: {
+      flexShrink: 0
+    },
+    headerText: {
+      display: 'flex',
+      flexDirection: 'column',
+      marginLeft: '12px',
+      minWidth: 0
+    },
+    headerTitle: {
+      fontSize: '10pt',
+      fontWeight: 700,
+      lineHeight: 1.2,
+      color: '#1a1a1a'
+    },
+    headerCode: {
+      fontSize: '9pt',
+      fontWeight: 700,
+      lineHeight: 1.2,
+      color: '#1a1a1a'
+    },
+    mainContent: {
+      flex: 1,
+      display: 'flex'
+    },
+    infoSection: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      borderRight: '1px solid #2c2c2c'
+    },
+    kodeQtyRow: {
+      display: 'flex',
+      borderBottom: '1px solid #2c2c2c'
+    },
+    kodeInfo: {
+      flex: 1,
+      padding: '3px 8px'
+    },
+    kodeBarang: {
+      fontSize: '10pt',
+      fontWeight: 700,
+      lineHeight: 1.2,
+      color: '#1a1a1a'
+    },
+    namaBarang: {
+      fontSize: '9pt',
+      fontWeight: 500,
+      lineHeight: 1.2,
+      color: '#1a1a1a'
+    },
+    quantityBox: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '14pt',
+      fontWeight: 700,
+      minWidth: '45px',
+      padding: '3px 8px',
+      borderLeft: '1px solid #2c2c2c',
+      color: '#1a1a1a'
+    },
+    deskripsiArea: {
+      flex: 1,
+      padding: '3px 8px'
+    },
+    deskripsi: {
+      fontSize: '8pt',
+      lineHeight: 1.3,
+      color: '#1a1a1a'
+    },
+    warningText: {
+      fontSize: '9pt',
+      fontWeight: 700,
+      color: '#DC2626',
+      marginTop: '3px'
+    },
+    verticalCode: {
+      width: '21px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderLeft: '1px solid #2c2c2c'
+    },
+    verticalText: {
+      writingMode: 'vertical-rl',
+      textOrientation: 'mixed',
+      fontSize: '9pt',
+      fontWeight: 700,
+      letterSpacing: '0.5px',
+      whiteSpace: 'nowrap',
+      color: '#1a1a1a'
+    }
+  };
+
   return (
-    <div 
-      className="stiker-besar bg-white relative overflow-hidden flex"
-      style={{ 
-        width: '94.9mm', 
-        height: '32.2mm', 
-        border: '0.5pt solid #000',
-        fontFamily: 'Arial, sans-serif'
-      }}
-    >
-      {/* QR Code Area - 50% width */}
-      <div 
-        className="flex items-center justify-center"
-        style={{ 
-          width: '50%', 
-          borderRight: '0.5pt solid #000',
-          background: qrSettings?.backgroundColor || '#ffffff'
-        }}
-      >
+    <div style={styles.container}>
+      <div style={styles.qrArea}>
         <StyledQRCode 
           data={data.kode_register || data.kode_barang}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
-          size={115}
+          size={105}
         />
       </div>
       
-      {/* Info Area - 50% width */}
-      <div className="flex-1 flex flex-col relative" style={{ paddingRight: '5mm' }}>
-        {/* Header: Logo + Instansi + Kode UAKPB */}
-        <div 
-          className="flex items-center px-1.5"
-          style={{ paddingTop: '1mm', paddingBottom: '0.8mm' }}
-        >
+      <div style={styles.middleContent}>
+        <div style={styles.headerRow}>
           {instansi?.logo_url && (
-            <img src={instansi.logo_url} alt="" style={{ height: '6mm', width: '6mm', marginRight: '1.5mm' }} />
+            <div style={styles.headerLogo}>
+              <img src={instansi.logo_url} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+            </div>
           )}
-          <div className="flex-1 min-w-0">
-            <div className="font-bold truncate" style={{ fontSize: '11pt' }}>
-              {instansi?.nama_instansi || 'INSTANSI'}
+          <div style={styles.headerText}>
+            <span style={styles.headerTitle}>{instansi?.nama_instansi || 'Otorita Ibu Kota Nusantara'}</span>
+            <span style={styles.headerCode}>{instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}</span>
+          </div>
+        </div>
+        
+        <div style={styles.mainContent}>
+          <div style={styles.infoSection}>
+            <div style={styles.kodeQtyRow}>
+              <div style={styles.kodeInfo}>
+                <div style={styles.kodeBarang}>{data.kode_barang}</div>
+                <div style={styles.namaBarang}>{data.nama_barang}</div>
+              </div>
+              <div style={styles.quantityBox}>{data.nup || '1'}</div>
             </div>
-            <div className="font-mono truncate" style={{ fontSize: '8pt', color: '#333' }}>
-              {instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}
+            <div style={styles.deskripsiArea}>
+              <p style={styles.deskripsi}>{data.merk_tipe || data.merk || '-'}</p>
+              <p style={styles.warningText}>Tidak Untuk Diperjualbelikan</p>
             </div>
           </div>
-        </div>
-        
-        {/* Golden Divider */}
-        <div style={{ height: '2pt', background: '#c9a227' }} />
-        
-        {/* Row 2: Kode Barang + NUP */}
-        <div 
-          className="flex items-center justify-between px-1.5 border-b border-black"
-          style={{ paddingTop: '0.8mm', paddingBottom: '0.5mm' }}
-        >
-          <div className="font-mono font-bold" style={{ fontSize: '11pt' }}>
-            {data.kode_barang}
-          </div>
-          <div style={{ fontSize: '11pt' }}>
-            <span style={{ color: '#555' }}>NUP : </span>
-            <span className="font-bold">{data.nup || '1'}</span>
-          </div>
-        </div>
-        
-        {/* Row 3: Nama Barang */}
-        <div className="px-1.5" style={{ paddingTop: '0.5mm' }}>
-          <div className="font-semibold" style={{ fontSize: '10pt' }}>
-            {data.nama_barang}
-          </div>
-        </div>
-        
-        {/* Row 4: Deskripsi/Merk/Tipe */}
-        <div className="px-1.5 flex-1">
-          <div className="line-clamp-2" style={{ fontSize: '8pt', color: '#555' }}>
-            {data.merk_tipe || data.merk || '-'}
-          </div>
-        </div>
-        
-        {/* Footer: Tidak Untuk Diperjualbelikan */}
-        <div 
-          className="text-center font-bold border-t border-black"
-          style={{ fontSize: '7pt', color: '#dc2626', paddingTop: '0.5mm', paddingBottom: '0.5mm' }}
-        >
-          Tidak Untuk Diperjualbelikan
         </div>
       </div>
       
-      {/* Vertical Code Strip - 5% width, NO BORDER */}
-      <div 
-        className="absolute right-0 top-0 h-full flex items-center justify-center"
-        style={{ 
-          writingMode: 'vertical-rl', 
-          fontSize: '7pt', 
-          width: '4.5mm',
-          color: '#333'
-        }}
-      >
-        {data.kode_vertikal}
+      <div style={styles.verticalCode}>
+        <span style={styles.verticalText}>{data.kode_vertikal}</span>
       </div>
     </div>
   );
 };
 
-// ==================== QR SETTINGS PANEL ====================
-const QRSettingsPanel = ({ settings, onChange, instansi, previewText = "SAMPLE001" }) => {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [activeSection, setActiveSection] = useState('body');
-  
-  const updateSetting = (key, value) => onChange({ ...settings, [key]: value });
-  
-  return (
-    <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
-      <CardHeader className="py-3 border-b bg-blue-100/50">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <QrCode className="w-4 h-4 text-blue-600" />
-          Customisasi QR Code
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-4 space-y-4">
-        <div className="flex gap-4">
-          <div className="flex-shrink-0">
-            <div className="text-xs text-gray-500 mb-1">Preview</div>
-            <div className="w-40 h-40 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-white overflow-hidden">
-              <StyledQRCode data={previewText} settings={settings} logoUrl={instansi?.logo_url} size={150} />
-            </div>
-          </div>
-          
-          <div className="flex-1 space-y-3">
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <Label>Ukuran (px)</Label>
-                <span className="text-gray-500">{settings.size}px</span>
-              </div>
-              <Slider value={[settings.size]} onValueChange={([val]) => updateSetting('size', val)} min={100} max={400} step={10} />
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <Label>Margin</Label>
-                <span className="text-gray-500">{settings.margin}</span>
-              </div>
-              <Slider value={[settings.margin]} onValueChange={([val]) => updateSetting('margin', val)} min={0} max={4} step={1} />
-            </div>
-
-            <div>
-              <Label className="text-xs mb-1 block">Error Correction</Label>
-              <Select value={settings.errorCorrectionLevel} onValueChange={(val) => updateSetting('errorCorrectionLevel', val)}>
-                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {ERROR_CORRECTION_LEVELS.map((level) => (
-                    <SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-        
-        <div>
-          <Label className="text-xs mb-2 block">Preset Warna</Label>
-          <div className="flex flex-wrap gap-1">
-            {COLOR_PRESETS.map((preset) => (
-              <button
-                key={preset.name}
-                onClick={() => {
-                  updateSetting('dotsColor', preset.dots);
-                  updateSetting('cornerSquareColor', preset.corner);
-                  updateSetting('cornerDotColor', preset.corner);
-                  updateSetting('backgroundColor', preset.bg);
-                }}
-                className="flex items-center gap-1 px-2 py-1 rounded border hover:bg-gray-50 text-xs"
-              >
-                <div className="w-4 h-4 rounded border" style={{ backgroundColor: preset.dots }} />
-                <span>{preset.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <button onClick={() => setShowAdvanced(!showAdvanced)} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">
-          {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          Opsi Lanjutan (Pattern & Style)
-        </button>
-        
-        {showAdvanced && (
-          <div className="space-y-4 pt-2 border-t">
-            <div className="flex gap-1 border-b">
-              {[
-                { id: 'body', label: 'Body Pattern', icon: Square },
-                { id: 'external', label: 'External Eye', icon: Square },
-                { id: 'internal', label: 'Internal Eye', icon: Circle },
-                { id: 'logo', label: 'Logo', icon: Image }
-              ].map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveSection(id)}
-                  className={`flex items-center gap-1 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
-                    activeSection === id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Icon className="w-3 h-3" />{label}
-                </button>
-              ))}
-            </div>
-
-            {activeSection === 'body' && (
-              <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
-                <h4 className="text-xs font-semibold text-gray-700">Body Pattern</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs">Bentuk</Label>
-                    <Select value={settings.dotsStyle} onValueChange={(val) => updateSetting('dotsStyle', val)}>
-                      <SelectTrigger className="h-8 text-xs mt-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>{DOT_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Warna</Label>
-                    <div className="flex gap-1 mt-1">
-                      <input type="color" value={settings.dotsColor} onChange={(e) => updateSetting('dotsColor', e.target.value)} className="w-8 h-8 rounded cursor-pointer border" />
-                      <Input value={settings.dotsColor} onChange={(e) => updateSetting('dotsColor', e.target.value)} className="h-8 text-xs font-mono flex-1" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeSection === 'external' && (
-              <div className="space-y-3 p-3 bg-orange-50 rounded-lg">
-                <h4 className="text-xs font-semibold text-orange-700">External Eye Pattern</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs">Bentuk</Label>
-                    <Select value={settings.cornerSquareStyle} onValueChange={(val) => updateSetting('cornerSquareStyle', val)}>
-                      <SelectTrigger className="h-8 text-xs mt-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>{CORNER_SQUARE_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Warna</Label>
-                    <div className="flex gap-1 mt-1">
-                      <input type="color" value={settings.cornerSquareColor} onChange={(e) => updateSetting('cornerSquareColor', e.target.value)} className="w-8 h-8 rounded cursor-pointer border" />
-                      <Input value={settings.cornerSquareColor} onChange={(e) => updateSetting('cornerSquareColor', e.target.value)} className="h-8 text-xs font-mono flex-1" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeSection === 'internal' && (
-              <div className="space-y-3 p-3 bg-purple-50 rounded-lg">
-                <h4 className="text-xs font-semibold text-purple-700">Internal Eye Pattern</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs">Bentuk</Label>
-                    <Select value={settings.cornerDotStyle} onValueChange={(val) => updateSetting('cornerDotStyle', val)}>
-                      <SelectTrigger className="h-8 text-xs mt-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>{CORNER_DOT_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Warna</Label>
-                    <div className="flex gap-1 mt-1">
-                      <input type="color" value={settings.cornerDotColor} onChange={(e) => updateSetting('cornerDotColor', e.target.value)} className="w-8 h-8 rounded cursor-pointer border" />
-                      <Input value={settings.cornerDotColor} onChange={(e) => updateSetting('cornerDotColor', e.target.value)} className="h-8 text-xs font-mono flex-1" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeSection === 'logo' && (
-              <div className="space-y-3 p-3 bg-green-50 rounded-lg">
-                <h4 className="text-xs font-semibold text-green-700">Logo Instansi</h4>
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Tampilkan Logo</Label>
-                  <Switch checked={settings.logoEnabled} onCheckedChange={(checked) => updateSetting('logoEnabled', checked)} />
-                </div>
-                {settings.logoEnabled && (
-                  <>
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <Label>Ukuran Logo</Label>
-                        <span className="text-gray-500">{settings.logoSize}%</span>
-                      </div>
-                      <Slider value={[settings.logoSize]} onValueChange={([val]) => updateSetting('logoSize', val)} min={15} max={35} step={5} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">Background Logo (Putih)</Label>
-                      <Switch checked={settings.logoBackgroundEnabled} onCheckedChange={(checked) => updateSetting('logoBackgroundEnabled', checked)} />
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
-// ==================== PRINT CANVAS ====================
-const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintComplete }) => {
+// ==================== PRINT PAGE COMPONENT ====================
+const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintComplete }) => {
   const [loading, setLoading] = useState(true);
+  const printRef = useRef(null);
   const canvas = CANVAS_SIZES[canvasSize];
   
   useEffect(() => {
@@ -673,7 +657,7 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose, onPrint
   
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 print:hidden">
         <div className="bg-white p-8 rounded-lg text-center">
           <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
           <p>Generating QR Codes...</p>
@@ -683,29 +667,118 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose, onPrint
   }
   
   return (
-    <div className="fixed inset-0 bg-slate-900/95 z-50 overflow-auto">
-      <div className="no-print sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center z-10">
-        <div>
-          <h2 className="font-bold">Preview Cetak Label ({items.length} stiker)</h2>
-          <p className="text-sm text-gray-500">Canvas: {canvasSize} | {cols}x{rows} per halaman | {pages} halaman</p>
+    <>
+      {/* Print Styles - CRITICAL: Hide everything except print content */}
+      <style>{`
+        @media print {
+          /* Hide everything first */
+          body * {
+            visibility: hidden;
+          }
+          /* Show only print area */
+          .print-area, .print-area * {
+            visibility: visible;
+          }
+          .print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          .print-page {
+            page-break-after: always;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+          }
+          .print-page:last-child {
+            page-break-after: auto;
+          }
+          .no-print {
+            display: none !important;
+          }
+          body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
+          }
+          @page {
+            size: ${canvasSize};
+            margin: 0;
+          }
+        }
+      `}</style>
+      
+      {/* Screen UI - Hidden when printing */}
+      <div className="fixed inset-0 bg-slate-900/95 z-50 overflow-auto no-print">
+        <div className="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center z-10">
+          <div>
+            <h2 className="font-bold">Preview Cetak Label ({items.length} stiker)</h2>
+            <p className="text-sm text-gray-500">Canvas: {canvasSize} | {cols}x{rows} per halaman | {pages} halaman</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>Tutup</Button>
+            <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
+              <Printer className="w-4 h-4 mr-2" />Cetak ({pages} Halaman)
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onClose}>Tutup</Button>
-          <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
-            <Printer className="w-4 h-4 mr-2" />Cetak Semua ({pages} Halaman)
-          </Button>
+        
+        <div className="p-4 flex flex-col items-center">
+          {Array.from({ length: pages }).map((_, pageIdx) => {
+            const pageItems = items.slice(pageIdx * itemsPerPage, (pageIdx + 1) * itemsPerPage);
+            const size = STICKER_SIZES[items[0].ukuran];
+            
+            return (
+              <div 
+                key={pageIdx}
+                className="bg-white mb-4 relative"
+                style={{ 
+                  width: `${canvas.width}mm`, 
+                  height: `${canvas.height}mm`,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                }}
+              >
+                <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                  Hal {pageIdx + 1}/{pages}
+                </div>
+                
+                <div 
+                  className="absolute grid"
+                  style={{ 
+                    left: `${MARGIN}mm`, 
+                    top: `${MARGIN}mm`,
+                    gap: `${GAP}mm`,
+                    gridTemplateColumns: `repeat(${cols}, ${size.width}mm)`
+                  }}
+                >
+                  {pageItems.map((item, idx) => (
+                    <div key={idx}>{renderSticker(item, prepareStickerData(item))}</div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
       
-      <div className="print-content p-4">
+      {/* Print Area - Only this shows when printing */}
+      <div ref={printRef} className="print-area fixed left-0 top-0 hidden print:block">
         {Array.from({ length: pages }).map((_, pageIdx) => {
           const pageItems = items.slice(pageIdx * itemsPerPage, (pageIdx + 1) * itemsPerPage);
           const size = STICKER_SIZES[items[0].ukuran];
           
           return (
-            <div key={pageIdx} className="print-page bg-white mx-auto mb-4 relative" style={{ width: `${canvas.width}mm`, height: `${canvas.height}mm`, boxShadow: '0 4px 20px rgba(0,0,0,0.3)', pageBreakAfter: 'always' }}>
-              <div className="no-print absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">Hal {pageIdx + 1}/{pages}</div>
-              
+            <div 
+              key={pageIdx}
+              className="print-page bg-white relative"
+              style={{ 
+                width: `${canvas.width}mm`, 
+                height: `${canvas.height}mm`
+              }}
+            >
+              {/* Crop Marks */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
                 <line x1="0" y1={`${CROP_MARK_LENGTH}mm`} x2="0" y2="0" stroke="black" strokeWidth="0.3" />
                 <line x1="0" y1="0" x2={`${CROP_MARK_LENGTH}mm`} y2="0" stroke="black" strokeWidth="0.3" />
@@ -717,94 +790,24 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose, onPrint
                 <line x1={`${canvas.width}mm`} y1={`${canvas.height}mm`} x2={`${canvas.width - CROP_MARK_LENGTH}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
               </svg>
               
-              <div className="absolute grid" style={{ left: `${MARGIN}mm`, top: `${MARGIN}mm`, gap: `${GAP}mm`, gridTemplateColumns: `repeat(${cols}, ${size.width}mm)` }}>
-                {pageItems.map((item, idx) => <div key={idx}>{renderSticker(item, prepareStickerData(item))}</div>)}
+              <div 
+                className="absolute grid"
+                style={{ 
+                  left: `${MARGIN}mm`, 
+                  top: `${MARGIN}mm`,
+                  gap: `${GAP}mm`,
+                  gridTemplateColumns: `repeat(${cols}, ${size.width}mm)`
+                }}
+              >
+                {pageItems.map((item, idx) => (
+                  <div key={idx}>{renderSticker(item, prepareStickerData(item))}</div>
+                ))}
               </div>
             </div>
           );
         })}
       </div>
-      
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          .print-page { page-break-after: always; margin: 0 !important; box-shadow: none !important; }
-          .print-page:last-child { page-break-after: auto; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
-          @page { size: ${canvasSize}; margin: 0; }
-        }
-      `}</style>
-    </div>
-  );
-};
-
-// ==================== CHILD ASSET MODAL ====================
-const ChildAssetModal = ({ open, onClose, parentAsset, onSuccess }) => {
-  const [children, setChildren] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [newChild, setNewChild] = useState({ nama_aksesori: '', keterangan: '' });
-  
-  useEffect(() => {
-    if (open && parentAsset?.id) {
-      setLoading(true);
-      api.get(`/api/label-bmn/child-assets/${parentAsset.id}`)
-        .then(res => setChildren(res.data))
-        .catch(() => toast.error('Gagal memuat data aksesori'))
-        .finally(() => setLoading(false));
-    }
-  }, [open, parentAsset]);
-  
-  const handleAddChild = async () => {
-    if (!newChild.nama_aksesori.trim()) return toast.error('Nama aksesori harus diisi');
-    try {
-      await api.post('/api/label-bmn/child-asset', { parent_barang_id: parentAsset.id, ...newChild });
-      toast.success('Aksesori berhasil ditambahkan');
-      setNewChild({ nama_aksesori: '', keterangan: '' });
-      api.get(`/api/label-bmn/child-assets/${parentAsset.id}`).then(res => setChildren(res.data));
-      onSuccess?.();
-    } catch { toast.error('Gagal menambah aksesori'); }
-  };
-  
-  const PRESETS = ['Charger/Adaptor', 'Tas Laptop', 'Mouse', 'Keyboard', 'Kabel Power', 'USB Hub', 'Headset'];
-  
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><Link2 className="w-5 h-5" />Kelola Aksesori - {parentAsset?.nama_barang}</DialogTitle>
-          <DialogDescription>Kode: #{parentAsset?.kode_register || parentAsset?.kode_barang}</DialogDescription>
-        </DialogHeader>
-        
-        <Card>
-          <CardHeader className="py-3"><CardTitle className="text-sm">Tambah Aksesori</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex flex-wrap gap-1">{PRESETS.map(p => <Badge key={p} variant="outline" className="cursor-pointer hover:bg-blue-50" onClick={() => setNewChild({ ...newChild, nama_aksesori: p })}>{p}</Badge>)}</div>
-            <div className="flex gap-2">
-              <Input placeholder="Nama aksesori" value={newChild.nama_aksesori} onChange={e => setNewChild({ ...newChild, nama_aksesori: e.target.value })} className="flex-1" />
-              <Input placeholder="Keterangan" value={newChild.keterangan} onChange={e => setNewChild({ ...newChild, keterangan: e.target.value })} className="flex-1" />
-              <Button onClick={handleAddChild}><Plus className="w-4 h-4 mr-1" />Tambah</Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-100"><tr><th className="text-left p-2">Nama</th><th className="text-left p-2">Kode</th><th className="text-center p-2">Aksi</th></tr></thead>
-            <tbody>
-              {loading ? <tr><td colSpan={3} className="text-center p-4">Memuat...</td></tr> :
-               children.length === 0 ? <tr><td colSpan={3} className="text-center p-4 text-gray-500">Belum ada aksesori</td></tr> :
-               children.map(c => (
-                 <tr key={c.id} className="border-t">
-                   <td className="p-2">{c.nama_aksesori}</td>
-                   <td className="p-2"><code className="bg-slate-100 px-1 rounded text-xs">#{c.kode_register_anak}</code></td>
-                   <td className="text-center p-2"><Button variant="ghost" size="sm" onClick={async () => { await api.delete(`/api/label-bmn/child-asset/${c.id}`); api.get(`/api/label-bmn/child-assets/${parentAsset.id}`).then(res => setChildren(res.data)); }}><Trash2 className="w-4 h-4 text-red-500" /></Button></td>
-                 </tr>
-               ))}
-            </tbody>
-          </table>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </>
   );
 };
 
@@ -822,7 +825,7 @@ export default function LabelBMN() {
   const [selectedSize, setSelectedSize] = useState('sedang');
   const [canvasSize, setCanvasSize] = useState('A4');
   const [qrSettings, setQrSettings] = useState(DEFAULT_QR_SETTINGS);
-  const [showPrintCanvas, setShowPrintCanvas] = useState(false);
+  const [showPrintPage, setShowPrintPage] = useState(false);
   const [showChildModal, setShowChildModal] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
   const [activeTab, setActiveTab] = useState('daftar');
@@ -853,7 +856,7 @@ export default function LabelBMN() {
   
   const handlePrint = () => {
     if (selectedItems.length === 0) return toast.error('Pilih minimal 1 aset');
-    setShowPrintCanvas(true);
+    setShowPrintPage(true);
   };
   
   const handlePrintComplete = async () => {
@@ -863,11 +866,11 @@ export default function LabelBMN() {
       loadAssets();
       setSelectedItems([]);
     } catch { toast.error('Gagal mencatat'); }
-    setShowPrintCanvas(false);
+    setShowPrintPage(false);
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:hidden">
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><Tag className="w-6 h-6" />Manajemen Label BMN</h1>
@@ -885,12 +888,9 @@ export default function LabelBMN() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="daftar" className="flex items-center gap-1"><LayoutGrid className="w-4 h-4" />Daftar Aset</TabsTrigger>
-          <TabsTrigger value="qr-settings" className="flex items-center gap-1"><Palette className="w-4 h-4" />Customisasi QR</TabsTrigger>
           <TabsTrigger value="cetak" className="flex items-center gap-1"><Printer className="w-4 h-4" />Antrian ({selectedItems.length})</TabsTrigger>
           <TabsTrigger value="riwayat" className="flex items-center gap-1"><History className="w-4 h-4" />Riwayat</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="qr-settings"><QRSettingsPanel settings={qrSettings} onChange={setQrSettings} instansi={instansi} previewText={selectedItems[0]?.kode_register || "SAMPLE001"} /></TabsContent>
         
         <TabsContent value="daftar" className="space-y-4">
           <Card>
@@ -970,7 +970,7 @@ export default function LabelBMN() {
                          <td className="text-center p-3">
                            <div className="flex justify-center gap-1">
                              <Button variant="ghost" size="sm" onClick={() => { setSelectedParent(asset); setShowChildModal(true); }}><Link2 className="w-4 h-4" /></Button>
-                             <Button variant="ghost" size="sm" onClick={() => { setSelectedItems([{ ...asset, ukuran: selectedSize }]); setShowPrintCanvas(true); }}><Eye className="w-4 h-4" /></Button>
+                             <Button variant="ghost" size="sm" onClick={() => { setSelectedItems([{ ...asset, ukuran: selectedSize }]); setShowPrintPage(true); }}><Eye className="w-4 h-4" /></Button>
                            </div>
                          </td>
                        </tr>
@@ -1031,12 +1031,100 @@ export default function LabelBMN() {
         <TabsContent value="riwayat"><PrintHistoryTab /></TabsContent>
       </Tabs>
       
-      {showPrintCanvas && <PrintCanvas items={selectedItems} canvasSize={canvasSize} instansi={instansi} qrSettings={qrSettings} onClose={() => setShowPrintCanvas(false)} onPrintComplete={handlePrintComplete} />}
-      <ChildAssetModal open={showChildModal} onClose={() => setShowChildModal(false)} parentAsset={selectedParent} onSuccess={loadAssets} />
+      {showPrintPage && (
+        <PrintPage 
+          items={selectedItems}
+          canvasSize={canvasSize}
+          instansi={instansi}
+          qrSettings={qrSettings}
+          onClose={() => setShowPrintPage(false)}
+          onPrintComplete={handlePrintComplete}
+        />
+      )}
+      
+      {showChildModal && (
+        <ChildAssetModal 
+          open={showChildModal}
+          onClose={() => setShowChildModal(false)}
+          parentAsset={selectedParent}
+          onSuccess={loadAssets}
+        />
+      )}
     </div>
   );
 }
 
+// ==================== CHILD ASSET MODAL ====================
+function ChildAssetModal({ open, onClose, parentAsset, onSuccess }) {
+  const [children, setChildren] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [newChild, setNewChild] = useState({ nama_aksesori: '', keterangan: '' });
+  
+  useEffect(() => {
+    if (open && parentAsset?.id) {
+      setLoading(true);
+      api.get(`/api/label-bmn/child-assets/${parentAsset.id}`)
+        .then(res => setChildren(res.data))
+        .catch(() => toast.error('Gagal memuat data aksesori'))
+        .finally(() => setLoading(false));
+    }
+  }, [open, parentAsset]);
+  
+  const handleAddChild = async () => {
+    if (!newChild.nama_aksesori.trim()) return toast.error('Nama aksesori harus diisi');
+    try {
+      await api.post('/api/label-bmn/child-asset', { parent_barang_id: parentAsset.id, ...newChild });
+      toast.success('Aksesori berhasil ditambahkan');
+      setNewChild({ nama_aksesori: '', keterangan: '' });
+      api.get(`/api/label-bmn/child-assets/${parentAsset.id}`).then(res => setChildren(res.data));
+      onSuccess?.();
+    } catch { toast.error('Gagal menambah aksesori'); }
+  };
+  
+  const PRESETS = ['Charger/Adaptor', 'Tas Laptop', 'Mouse', 'Keyboard', 'Kabel Power', 'USB Hub', 'Headset'];
+  
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Link2 className="w-5 h-5" />Kelola Aksesori - {parentAsset?.nama_barang}</DialogTitle>
+          <DialogDescription>Kode: #{parentAsset?.kode_register || parentAsset?.kode_barang}</DialogDescription>
+        </DialogHeader>
+        
+        <Card>
+          <CardHeader className="py-3"><CardTitle className="text-sm">Tambah Aksesori</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-1">{PRESETS.map(p => <Badge key={p} variant="outline" className="cursor-pointer hover:bg-blue-50" onClick={() => setNewChild({ ...newChild, nama_aksesori: p })}>{p}</Badge>)}</div>
+            <div className="flex gap-2">
+              <Input placeholder="Nama aksesori" value={newChild.nama_aksesori} onChange={e => setNewChild({ ...newChild, nama_aksesori: e.target.value })} className="flex-1" />
+              <Input placeholder="Keterangan" value={newChild.keterangan} onChange={e => setNewChild({ ...newChild, keterangan: e.target.value })} className="flex-1" />
+              <Button onClick={handleAddChild}><Plus className="w-4 h-4 mr-1" />Tambah</Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-100"><tr><th className="text-left p-2">Nama</th><th className="text-left p-2">Kode</th><th className="text-center p-2">Aksi</th></tr></thead>
+            <tbody>
+              {loading ? <tr><td colSpan={3} className="text-center p-4">Memuat...</td></tr> :
+               children.length === 0 ? <tr><td colSpan={3} className="text-center p-4 text-gray-500">Belum ada aksesori</td></tr> :
+               children.map(c => (
+                 <tr key={c.id} className="border-t">
+                   <td className="p-2">{c.nama_aksesori}</td>
+                   <td className="p-2"><code className="bg-slate-100 px-1 rounded text-xs">#{c.kode_register_anak}</code></td>
+                   <td className="text-center p-2"><Button variant="ghost" size="sm" onClick={async () => { await api.delete(`/api/label-bmn/child-asset/${c.id}`); api.get(`/api/label-bmn/child-assets/${parentAsset.id}`).then(res => setChildren(res.data)); }}><Trash2 className="w-4 h-4 text-red-500" /></Button></td>
+                 </tr>
+               ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ==================== PRINT HISTORY TAB ====================
 function PrintHistoryTab() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
