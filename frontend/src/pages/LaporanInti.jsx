@@ -699,7 +699,6 @@ export default function LaporanInti() {
             print-color-adjust: exact !important; 
             margin: 0 !important; 
             padding: 0 !important;
-            width: 210mm !important;
             background: white !important;
           }
           
@@ -714,6 +713,9 @@ export default function LaporanInti() {
           .print-container > div:first-child { 
             display: none !important;
             visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
           }
           
           /* Reset ALL containers */
@@ -722,27 +724,27 @@ export default function LaporanInti() {
           .bg-slate-50,
           .print-container,
           [class*="md:ml-"] {
-            min-height: auto !important;
+            all: unset !important;
+            display: block !important;
             margin: 0 !important;
             padding: 0 !important;
-            margin-left: 0 !important;
             background: white !important;
-            width: auto !important;
           }
           
           /* Print content wrapper */
           .print-content {
+            display: block !important;
             margin: 0 !important;
             padding: 0 !important;
           }
           
-          /* A4 Page - exact sizing and scaling */
+          /* A4 Page - exact sizing */
           .a4-page { 
             width: 210mm !important;
             height: 297mm !important;
             min-height: 297mm !important;
             max-width: 210mm !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
             padding: 0 !important;
             box-shadow: none !important;
             page-break-after: always !important;
@@ -751,22 +753,26 @@ export default function LaporanInti() {
             position: relative !important;
             display: flex !important;
             flex-direction: column !important;
+            background: white !important;
           }
           
           .a4-page:last-child { 
             page-break-after: auto !important;
           }
           
-          /* Page setup */
+          /* Page setup - critical for proper sizing */
           @page { 
-            size: 210mm 297mm;
+            size: A4 portrait;
             margin: 0;
           }
         }
         
-        /* Screen styles for preview */
+        /* Screen styles for preview - A4 dimensions */
         @media screen {
           .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            max-width: 210mm;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
           }
         }
