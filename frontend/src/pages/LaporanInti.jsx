@@ -687,11 +687,59 @@ export default function LaporanInti() {
 
       <style>{`
         @media print {
-          body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; margin: 0 !important; }
-          .no-print { display: none !important; }
-          .a4-page { width: 210mm !important; min-height: 297mm !important; margin: 0 !important; box-shadow: none !important; page-break-after: always; }
-          .a4-page:last-child { page-break-after: auto; }
-          @page { size: A4 portrait; margin: 0; }
+          /* Hide everything except report content */
+          body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+            margin: 0 !important; 
+            padding: 0 !important;
+            width: 210mm !important;
+            overflow: hidden !important;
+          }
+          
+          /* Hide elements not needed for print */
+          .no-print, 
+          header, 
+          aside, 
+          nav,
+          [class*="sidebar"],
+          [class*="Sidebar"] { 
+            display: none !important; 
+          }
+          
+          /* Reset page container */
+          .min-h-screen { 
+            min-height: 0 !important; 
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          
+          /* Fix main content area */
+          [class*="md:ml-"] {
+            margin-left: 0 !important;
+            width: 100% !important;
+          }
+          
+          /* A4 Page styling */
+          .a4-page { 
+            width: 210mm !important; 
+            min-height: 297mm !important; 
+            max-width: 210mm !important;
+            margin: 0 auto !important; 
+            padding: 0 !important;
+            box-shadow: none !important; 
+            page-break-after: always;
+            overflow: hidden !important;
+          }
+          .a4-page:last-child { 
+            page-break-after: auto; 
+          }
+          
+          /* Page setup */
+          @page { 
+            size: A4 portrait; 
+            margin: 0; 
+          }
         }
       `}</style>
     </div>
