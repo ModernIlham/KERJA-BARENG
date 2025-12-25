@@ -1035,12 +1035,13 @@ export default function LabelBMN() {
                   <th className="w-10 p-3"></th>
                   <th className="text-left p-3">Kode / Nama Barang</th>
                   <th className="text-left p-3">Merk / Tipe</th>
-                  <th className="text-center p-3">Status</th>
+                  <th className="text-center p-3">Aksesori</th>
+                  <th className="text-center p-3">Status Cetak</th>
                   <th className="text-center p-3">Aksi</th>
                 </tr></thead>
                 <tbody>
-                  {loading ? <tr><td colSpan={5} className="text-center p-8">Memuat...</td></tr> :
-                   assets.length === 0 ? <tr><td colSpan={5} className="text-center p-8 text-gray-500">Tidak ada data</td></tr> :
+                  {loading ? <tr><td colSpan={6} className="text-center p-8">Memuat...</td></tr> :
+                   assets.length === 0 ? <tr><td colSpan={6} className="text-center p-8 text-gray-500">Tidak ada data</td></tr> :
                    assets.map(asset => {
                      const isSelected = selectedItems.some(i => i.id === asset.id);
                      return (
@@ -1052,13 +1053,45 @@ export default function LabelBMN() {
                          </td>
                          <td className="p-3"><div>{asset.merk || '-'}</div><div className="text-xs text-gray-500">{asset.tipe || ''}</div></td>
                          <td className="text-center p-3">
-                           {asset.print_count > 0 ? <Badge className="bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3 mr-1" />{asset.print_count}x</Badge> : <Badge variant="secondary"><XCircle className="w-3 h-3 mr-1" />Belum</Badge>}
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             onClick={() => { setSelectedParent(asset); setShowChildModal(true); }}
+                             className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                           >
+                             <Link2 className="w-4 h-4 mr-1" />
+                             {asset.child_count > 0 ? (
+                               <Badge variant="secondary" className="ml-1">{asset.child_count}</Badge>
+                             ) : (
+                               <span className="text-xs">Kelola</span>
+                             )}
+                           </Button>
                          </td>
                          <td className="text-center p-3">
-                           <div className="flex justify-center gap-1">
-                             <Button variant="ghost" size="sm" onClick={() => { setSelectedParent(asset); setShowChildModal(true); }}><Link2 className="w-4 h-4" /></Button>
-                             <Button variant="ghost" size="sm" onClick={() => { setSelectedItems([{ ...asset, ukuran: selectedSize }]); setShowPrintPage(true); }}><Eye className="w-4 h-4" /></Button>
-                           </div>
+                           {asset.print_count > 0 ? (
+                             <div className="flex flex-col items-center gap-1">
+                               <Badge className="bg-green-100 text-green-700">
+                                 <CheckCircle2 className="w-3 h-3 mr-1" />{asset.print_count}x
+                               </Badge>
+                               {asset.last_printed && (
+                                 <span className="text-xs text-gray-400">
+                                   {new Date(asset.last_printed).toLocaleDateString('id-ID')}
+                                 </span>
+                               )}
+                             </div>
+                           ) : (
+                             <Badge variant="secondary"><XCircle className="w-3 h-3 mr-1" />Belum</Badge>
+                           )}
+                         </td>
+                         <td className="text-center p-3">
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             onClick={() => { setSelectedItems([{ ...asset, ukuran: selectedSize }]); setShowPrintPage(true); }}
+                             title="Preview & Cetak"
+                           >
+                             <Eye className="w-4 h-4" />
+                           </Button>
                          </td>
                        </tr>
                      );
