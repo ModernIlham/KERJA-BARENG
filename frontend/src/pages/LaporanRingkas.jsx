@@ -24,7 +24,6 @@ const COLORS = ['#1e3a5f', '#2563eb', '#0891b2', '#16a34a', '#ca8a04'];
 export default function LaporanRingkas() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
   const reportRef = useRef(null);
 
   useEffect(() => {
@@ -33,15 +32,6 @@ export default function LaporanRingkas() {
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, []);
-
-  // Use browser's native print for PDF - much more reliable
-  const handleDownloadPDF = () => {
-    setDownloading(true);
-    setTimeout(() => {
-      window.print();
-      setDownloading(false);
-    }, 100);
-  };
 
   if (loading) return <div className="flex justify-center items-center min-h-screen"><Loader2 className="animate-spin w-8 h-8 text-slate-400" /></div>;
   if (!data) return <div className="flex justify-center items-center min-h-screen text-red-500">Gagal memuat data</div>;
