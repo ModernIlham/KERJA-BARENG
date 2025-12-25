@@ -84,24 +84,21 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
       
       // Find golongan name from options
       const golonganInfo = golonganOptions.find(g => g.kode === golongan);
-      const golonganNama = golonganInfo ? golonganInfo.nama : '';
+      const golonganNama = golonganInfo ? golonganInfo.nama.toLowerCase() : '';
       
       (res.data.data || []).forEach(item => {
         const kodeBarang = item.kode_barang || '';
         const itemGolongan = item.golongan_barang || '';
+        const itemGolonganLower = itemGolongan.toLowerCase();
         
-        // Strict filter - only match by golongan_barang field containing the golongan name
-        // e.g., "2 - Tanah" should match golongan "1" if nama is "Tanah"
-        // Or match by exact golongan number in kode_barang pattern
+        // Strict filter - match by golongan name in golongan_barang field
+        // e.g., if golongan selected is "1 - Tanah", match items with golongan_barang containing "tanah"
+        // e.g., if golongan selected is "2 - Peralatan dan Mesin", match items with "peralatan" in golongan_barang
+        
         let matchesGolongan = false;
         
-        // Strategy 1: Match golongan nama in golongan_barang (e.g., "Tanah" in "2 - Tanah")
-        if (golonganNama && itemGolongan.toLowerCase().includes(golonganNama.toLowerCase())) {
-          matchesGolongan = true;
-        }
-        
-        // Strategy 2: Match by golongan_barang starting with "X - " where X is the golongan code
-        if (itemGolongan.startsWith(`${golongan} -`)) {
+        // Only match by golongan nama (strict match)
+        if (golonganNama && itemGolonganLower.includes(golonganNama)) {
           matchesGolongan = true;
         }
         
