@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, MapPin, Clock, RefreshCw, XCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Camera, MapPin, Clock, RefreshCw, XCircle, CheckCircle2, ExternalLink, LogIn, LogOut } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import Webcam from 'react-webcam';
@@ -10,9 +12,8 @@ import { toast } from 'sonner';
 
 const AbsensiWidget = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [status, setStatus] = useState('loading'); // 'loading', 'in', 'out'
-  const [checkInTime, setCheckInTime] = useState(null);
-  const [checkOutTime, setCheckOutTime] = useState(null);
+  const [status, setStatus] = useState('loading'); // 'loading', 'out', 'in', 'completed'
+  const [todayData, setTodayData] = useState(null);
   const [loading, setLoading] = useState(false);
   
   // Camera & Location
@@ -21,6 +22,10 @@ const AbsensiWidget = () => {
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
+  
+  // Photo dialog
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -32,19 +37,19 @@ const AbsensiWidget = () => {
     try {
         const res = await api.get('/api/kepegawaian/attendance/today');
         if (res.data) {
-            setCheckInTime(new Date(res.data.clock_in));
+            setTodayData(res.data);
             if (res.data.clock_out) {
-                setCheckOutTime(new Date(res.data.clock_out));
-                setStatus('completed'); // Already clocked out
+                setStatus('completed');
             } else {
-                setStatus('in'); // Clocked in, waiting for out
+                setStatus('in');
             }
         } else {
-            setStatus('out'); // Not checked in yet
+            setStatus('out');
+            setTodayData(null);
         }
     } catch (e) {
         console.error("Fetch status error", e);
-        setStatus('out'); // Default
+        setStatus('out');
     }
   };
 
@@ -84,7 +89,6 @@ const AbsensiWidget = () => {
     
     setLoading(true);
     try {
-        // Ensure location
         let loc = location;
         if (!loc) {
             try {
@@ -105,16 +109,13 @@ const AbsensiWidget = () => {
         if (status === 'out') {
             await api.post('/api/kepegawaian/attendance/clock-in', payload);
             toast.success("Berhasil Clock In!");
-            setStatus('in');
-            setCheckInTime(new Date());
         } else if (status === 'in') {
             await api.post('/api/kepegawaian/attendance/clock-out', payload);
             toast.success("Berhasil Clock Out!");
-            setStatus('completed');
-            setCheckOutTime(new Date());
         }
         
         setCapturedImage(null);
+        fetchTodayStatus(); // Refresh data
     } catch (e) {
         toast.error(e.response?.data?.detail || "Gagal memproses absensi");
     } finally {
@@ -122,10 +123,30 @@ const AbsensiWidget = () => {
     }
   };
 
-  // Helper to reset if user wants to retake photo
   const retakePhoto = () => {
       setCapturedImage(null);
       setShowCamera(true);
+  };
+
+  const openPhotoDialog = (photoUrl) => {
+      setSelectedPhoto(photoUrl);
+      setPhotoDialogOpen(true);
+  };
+
+  // Format location address
+  const formatLocation = (loc) => {
+      if (!loc) return null;
+      if (loc.address) return loc.address;
+      if (loc.lat && loc.lng) {
+          return `${loc.lat.toFixed(6)}, ${loc.lng.toFixed(6)}`;
+      }
+      return 'Lokasi tersedia';
+  };
+
+  // Get map link
+  const getMapLink = (loc) => {
+      if (!loc || !loc.lat || !loc.lng) return null;
+      return `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
   };
 
   return (
@@ -143,21 +164,125 @@ const AbsensiWidget = () => {
           {format(currentTime, 'EEEE, d MMMM yyyy', { locale: id })}
         </div>
         
-        {/* Status Display */}
-        <div className="flex flex-col gap-2">
-            {checkInTime && (
-                <div className="flex justify-between text-sm items-center p-2 bg-green-50 text-green-700 rounded border border-green-100">
-                    <span className="flex items-center gap-2"><Clock size={14}/> Masuk</span>
-                    <span className="font-bold">{format(checkInTime, 'HH:mm')}</span>
+        {/* Today's Attendance Detail - Like RiwayatAbsensi */}
+        {todayData && (
+          <div className="space-y-4">
+            {/* Status Badge & Jam Kerja */}
+            <div className="flex items-center justify-between">
+              <Badge className="bg-green-600 hover:bg-green-700 px-3 py-1">
+                <CheckCircle2 size={14} className="mr-1"/> Hadir
+              </Badge>
+              <div className="text-right">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Jam Kerja</p>
+                <p className="font-mono text-sm font-bold text-slate-800">
+                  {format(new Date(todayData.clock_in), 'HH:mm')} - {todayData.clock_out ? format(new Date(todayData.clock_out), 'HH:mm') : '...'}
+                </p>
+              </div>
+            </div>
+
+            {/* Clock In Section */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Clock In (Masuk)
+              </h4>
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <div className="flex gap-3">
+                  {todayData.clock_in_photo ? (
+                    <img 
+                      src={todayData.clock_in_photo} 
+                      alt="Clock In" 
+                      className="w-16 h-16 object-cover rounded-lg bg-slate-200 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => openPhotoDialog(todayData.clock_in_photo)}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-slate-200 rounded-lg flex items-center justify-center">
+                      <Camera size={20} className="text-slate-400" />
+                    </div>
+                  )}
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Clock size={12} className="text-blue-600"/>
+                      {format(new Date(todayData.clock_in), 'HH:mm:ss')}
+                    </div>
+                    {todayData.location_in && (
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] text-slate-600 line-clamp-2">
+                          {formatLocation(todayData.location_in)}
+                        </p>
+                        {getMapLink(todayData.location_in) && (
+                          <a 
+                            href={getMapLink(todayData.location_in)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            <MapPin size={10} /> Maps
+                            <ExternalLink size={8} />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-            )}
-            {checkOutTime && (
-                <div className="flex justify-between text-sm items-center p-2 bg-orange-50 text-orange-700 rounded border border-orange-100">
-                    <span className="flex items-center gap-2"><Clock size={14}/> Pulang</span>
-                    <span className="font-bold">{format(checkOutTime, 'HH:mm')}</span>
+              </div>
+            </div>
+
+            {/* Clock Out Section */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                Clock Out (Pulang)
+              </h4>
+              {todayData.clock_out ? (
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <div className="flex gap-3">
+                    {todayData.clock_out_photo ? (
+                      <img 
+                        src={todayData.clock_out_photo} 
+                        alt="Clock Out" 
+                        className="w-16 h-16 object-cover rounded-lg bg-slate-200 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => openPhotoDialog(todayData.clock_out_photo)}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-slate-200 rounded-lg flex items-center justify-center">
+                        <Camera size={20} className="text-slate-400" />
+                      </div>
+                    )}
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <Clock size={12} className="text-orange-600"/>
+                        {format(new Date(todayData.clock_out), 'HH:mm:ss')}
+                      </div>
+                      {todayData.location_out && (
+                        <div className="space-y-0.5">
+                          <p className="text-[10px] text-slate-600 line-clamp-2">
+                            {formatLocation(todayData.location_out)}
+                          </p>
+                          {getMapLink(todayData.location_out) && (
+                            <a 
+                              href={getMapLink(todayData.location_out)} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"
+                            >
+                              <MapPin size={10} /> Maps
+                              <ExternalLink size={8} />
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-            )}
-        </div>
+              ) : (
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 border-dashed text-center text-slate-400 text-xs italic">
+                  Belum melakukan clock out
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Camera View */}
         {showCamera && (
@@ -197,17 +322,48 @@ const AbsensiWidget = () => {
         {/* Action Button */}
         {status !== 'completed' ? (
             <Button 
-                className={`w-full ${status === 'out' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'} text-white`}
+                className={`w-full ${status === 'out' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'} text-white`}
                 onClick={handleProcess}
                 disabled={loading}
             >
-                {loading ? "Memproses..." : (capturedImage ? (status === 'out' ? 'Konfirmasi Clock In' : 'Konfirmasi Clock Out') : (status === 'out' ? 'Ambil Foto & Clock In' : 'Ambil Foto & Clock Out'))}
+                {loading ? "Memproses..." : (
+                  capturedImage ? (
+                    status === 'out' ? (
+                      <><LogIn size={16} className="mr-2"/> Konfirmasi Clock In</>
+                    ) : (
+                      <><LogOut size={16} className="mr-2"/> Konfirmasi Clock Out</>
+                    )
+                  ) : (
+                    status === 'out' ? (
+                      <><Camera size={16} className="mr-2"/> Ambil Foto & Clock In</>
+                    ) : (
+                      <><Camera size={16} className="mr-2"/> Ambil Foto & Clock Out</>
+                    )
+                  )
+                )}
             </Button>
         ) : (
-            <div className="p-3 bg-slate-100 text-slate-500 text-center rounded text-sm font-medium">
-                Anda sudah menyelesaikan absensi hari ini.
+            <div className="p-3 bg-green-50 text-green-700 text-center rounded text-sm font-medium border border-green-200">
+                <CheckCircle2 size={16} className="inline mr-2"/>
+                Absensi hari ini sudah lengkap
             </div>
         )}
+        
+        {/* Photo Dialog */}
+        <Dialog open={photoDialogOpen} onOpenChange={setPhotoDialogOpen}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Foto Absensi</DialogTitle>
+                </DialogHeader>
+                {selectedPhoto && (
+                    <img 
+                        src={selectedPhoto} 
+                        alt="Attendance Photo" 
+                        className="w-full rounded-lg"
+                    />
+                )}
+            </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
