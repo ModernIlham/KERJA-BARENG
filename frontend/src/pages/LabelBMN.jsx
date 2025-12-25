@@ -1,7 +1,7 @@
 /**
  * LabelBMN.jsx - Halaman Manajemen Pelabelan Stiker BMN
  * Features:
- * - 3 ukuran stiker: Kecil (3.98x2.38cm), Sedang (6.98x2.21cm), Besar (9.49x3.22cm)
+ * - 3 ukuran stiker: Kecil (2.38x3.98cm), Sedang (6.98x2.21cm), Besar (9.49x3.22cm)
  * - Canvas A4/A3 dengan crop marks untuk mesin cutting
  * - Tracking status cetak
  * - Parent-Child asset relationship (Induk-Anak untuk aksesori)
@@ -43,9 +43,9 @@ const CANVAS_SIZES = {
   A3: { width: 297, height: 420, label: 'A3 (297x420mm)' }
 };
 
-const CROP_MARK_LENGTH = 5; // mm
-const MARGIN = 10; // mm from edge
-const GAP = 3; // mm between stickers
+const CROP_MARK_LENGTH = 3; // mm - reduced
+const MARGIN = 5; // mm from edge - reduced for more stickers
+const GAP = 2; // mm between stickers - reduced
 
 // QR Code Pattern Options
 const DOT_STYLES = [
@@ -71,7 +71,7 @@ const CORNER_DOT_STYLES = [
 // Default QR Settings with Advanced Options
 const DEFAULT_QR_SETTINGS = {
   size: 200,
-  margin: 1,
+  margin: 0,
   // Body/Dots
   dotsColor: '#000000',
   dotsStyle: 'square',
@@ -111,7 +111,6 @@ const COLOR_PRESETS = [
 // ==================== QR CODE COMPONENT WITH STYLING ====================
 const StyledQRCode = ({ data, settings, logoUrl, size = 200, className = "" }) => {
   const qrRef = useRef(null);
-  const [key, setKey] = useState(0);
 
   useEffect(() => {
     if (!qrRef.current) return;
@@ -124,7 +123,7 @@ const StyledQRCode = ({ data, settings, logoUrl, size = 200, className = "" }) =
       height: size,
       type: 'svg',
       data: data || '#SAMPLE-001',
-      margin: settings.margin || 1,
+      margin: settings.margin || 0,
       qrOptions: {
         errorCorrectionLevel: settings.errorCorrectionLevel || 'M'
       },
@@ -606,148 +605,167 @@ const QRSettingsPanel = ({ settings, onChange, instansi, previewText = "#SAMPLE-
   );
 };
 
-// ==================== STICKER COMPONENTS ====================
+// ==================== STICKER COMPONENTS - REDESIGNED ====================
 
 // Stiker Kecil Component - Ukuran: 2.38cm x 3.98cm (vertical/portrait)
-const StikerKecil = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS, scale = 1 }) => {
-  const s = (val) => val * scale;
+// Sesuai contoh gambar user
+const StikerKecil = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
+  // Font sizes for small sticker (in pt)
+  const fontSize = {
+    namaBarang: '7pt',
+    nup: '14pt',
+    kodeBarang: '6pt',
+    merkTipe: '5pt',
+    kodeVertical: '5pt'
+  };
   
   return (
     <div 
       className="stiker-kecil bg-white relative overflow-hidden flex flex-col"
       style={{ 
-        width: `${s(23.8)}mm`, 
-        height: `${s(39.8)}mm`, 
+        width: '23.8mm', 
+        height: '39.8mm', 
         border: '1px solid #000',
-        borderRadius: '0'
+        fontFamily: 'Arial, sans-serif'
       }}
     >
-      {/* Top: QR Code with Logo */}
+      {/* Top: QR Code Area - Full width, fills space */}
       <div 
         className="flex items-center justify-center relative"
         style={{ 
-          height: '60%',
-          borderBottom: '1px solid #c9a227',
+          height: '65%',
+          borderBottom: '2px solid #c9a227',
           background: qrSettings?.backgroundColor || '#ffffff',
-          padding: '2px'
+          padding: '1mm'
         }}
       >
         <StyledQRCode 
-          data={`#${data.kode_register || data.kode_barang}-${data.nup || '1'}`}
+          data={data.kode_register || data.kode_barang}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
-          size={Math.min(s(20) * 3.78, 80)}
+          size={85}
         />
       </div>
       
       {/* Bottom: Info Area */}
-      <div className="flex-1 flex flex-col px-1 py-0.5 relative" style={{ minHeight: 0 }}>
+      <div className="flex-1 flex flex-col justify-between p-1 pr-4" style={{ minHeight: 0 }}>
         {/* Nama Barang & NUP */}
-        <div className="flex items-start justify-between">
-          <div className="font-bold leading-tight flex-1" style={{ fontSize: `${s(3.5)}px` }}>
+        <div className="flex items-start justify-between gap-1">
+          <div className="font-bold leading-tight flex-1" style={{ fontSize: fontSize.namaBarang }}>
             {data.nama_barang}
           </div>
-          <div className="font-bold ml-1" style={{ fontSize: `${s(4)}px` }}>
+          <div className="font-bold" style={{ fontSize: fontSize.nup }}>
             {data.nup || '1'}
           </div>
         </div>
         
         {/* Kode Barang */}
-        <div className="font-mono font-bold" style={{ fontSize: `${s(3.2)}px` }}>
+        <div className="font-mono font-bold" style={{ fontSize: fontSize.kodeBarang }}>
           {data.kode_barang}
         </div>
         
-        {/* Merk/Tipe */}
-        <div className="text-gray-600 leading-tight truncate" style={{ fontSize: `${s(2.8)}px` }}>
+        {/* Tahun - Merk/Tipe */}
+        <div className="leading-tight" style={{ fontSize: fontSize.merkTipe, color: '#333' }}>
           {data.tahun || new Date().getFullYear()} - {data.merk_tipe || data.merk || ''}
         </div>
       </div>
       
-      {/* Vertical Code on Right Edge */}
+      {/* Vertical Code on Right Edge - NO BORDER */}
       <div 
-        className="absolute right-0 top-0 h-full flex items-center justify-center bg-gray-100"
+        className="absolute right-0 top-0 h-full flex items-center justify-center"
         style={{ 
           writingMode: 'vertical-rl', 
-          fontSize: `${s(2.5)}px`, 
-          width: `${s(2.5)}mm`,
-          borderLeft: '0.5px solid #999'
+          fontSize: fontSize.kodeVertical, 
+          width: '3.5mm',
+          color: '#333',
+          fontFamily: 'Arial, sans-serif'
         }}
       >
-        <span className="text-gray-600 font-mono">{data.kode_vertikal}</span>
+        <span>{data.kode_vertikal}</span>
       </div>
     </div>
   );
 };
 
 // Stiker Sedang Component - Ukuran: 6.98cm x 2.21cm (horizontal/landscape)
-const StikerSedang = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS, scale = 1 }) => {
-  const s = (val) => val * scale;
+// Sesuai contoh gambar user
+const StikerSedang = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
+  // Font sizes for medium sticker (in pt)
+  const fontSize = {
+    instansi: '8pt',
+    kodeUakpb: '6pt',
+    kodeBarang: '9pt',
+    nup: '12pt',
+    namaBarang: '7pt',
+    merkTipe: '6pt',
+    warning: '5pt',
+    kodeVertical: '6pt'
+  };
   
   return (
     <div 
       className="stiker-sedang bg-white relative overflow-hidden flex"
       style={{ 
-        width: `${s(69.8)}mm`, 
-        height: `${s(22.1)}mm`, 
+        width: '69.8mm', 
+        height: '22.1mm', 
         border: '1px solid #000',
-        borderRadius: '0'
+        fontFamily: 'Arial, sans-serif'
       }}
     >
-      {/* Left: QR Code Area */}
+      {/* Left: QR Code Area - Takes ~32% width, fills height */}
       <div 
         className="flex items-center justify-center relative"
         style={{ 
           width: '32%', 
           borderRight: '1px solid #000',
-          background: qrSettings?.backgroundColor || '#ffffff',
-          padding: '2px'
+          background: qrSettings?.backgroundColor || '#ffffff'
         }}
       >
         <StyledQRCode 
-          data={`#${data.kode_register || data.kode_barang}-${data.nup || '1'}`}
+          data={data.kode_register || data.kode_barang}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
-          size={Math.min(s(18) * 3.78, 70)}
+          size={75}
         />
       </div>
       
       {/* Right: Info Area */}
-      <div className="flex-1 flex flex-col relative pr-4" style={{ minWidth: 0 }}>
+      <div className="flex-1 flex flex-col relative" style={{ minWidth: 0, paddingRight: '4mm' }}>
         {/* Header: Logo + Instansi + Kode UAKPB */}
-        <div className="flex items-center border-b border-gray-400 px-1 py-0.5">
+        <div className="flex items-center border-b px-1" style={{ borderColor: '#c9a227', paddingTop: '0.5mm', paddingBottom: '0.5mm' }}>
           {instansi?.logo_url && (
-            <img src={instansi.logo_url} alt="" className="h-4 w-4 object-contain mr-1" />
+            <img src={instansi.logo_url} alt="" style={{ height: '5mm', width: '5mm', objectFit: 'contain', marginRight: '1mm' }} />
           )}
           <div className="flex-1 min-w-0">
-            <div className="font-bold truncate" style={{ fontSize: `${s(3.5)}px` }}>
+            <div className="font-bold truncate" style={{ fontSize: fontSize.instansi }}>
               {instansi?.nama_instansi || 'INSTANSI'}
             </div>
-            <div className="text-gray-600 font-mono truncate" style={{ fontSize: `${s(2.8)}px` }}>
-              {instansi?.kode_uakpb || data.kode_satker || ''}KP.{data.tahun || new Date().getFullYear()}
+            <div className="font-mono truncate" style={{ fontSize: fontSize.kodeUakpb, color: '#333' }}>
+              {instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}
             </div>
           </div>
         </div>
         
         {/* Middle: Kode Barang + NUP */}
-        <div className="flex items-center justify-between px-1 py-0.5 border-b border-gray-300">
-          <div className="font-mono font-bold" style={{ fontSize: `${s(3.5)}px` }}>
+        <div className="flex items-center justify-between px-1 border-b border-gray-300" style={{ paddingTop: '0.5mm', paddingBottom: '0.5mm' }}>
+          <div className="font-mono font-bold" style={{ fontSize: fontSize.kodeBarang }}>
             {data.kode_barang}
           </div>
-          <div className="font-bold" style={{ fontSize: `${s(4)}px` }}>
+          <div className="font-bold" style={{ fontSize: fontSize.nup }}>
             {data.nup || '1'}
           </div>
         </div>
         
         {/* Nama Barang */}
-        <div className="px-1">
-          <div className="font-semibold leading-tight truncate" style={{ fontSize: `${s(3.2)}px` }}>
+        <div className="px-1" style={{ paddingTop: '0.3mm' }}>
+          <div className="font-semibold leading-tight truncate" style={{ fontSize: fontSize.namaBarang }}>
             {data.nama_barang}
           </div>
         </div>
         
         {/* Merk/Tipe */}
         <div className="px-1 flex-1">
-          <div className="text-gray-600 leading-tight truncate" style={{ fontSize: `${s(2.8)}px` }}>
+          <div className="leading-tight truncate" style={{ fontSize: fontSize.merkTipe, color: '#555' }}>
             {data.merk_tipe || data.merk || ''}
           </div>
         </div>
@@ -755,142 +773,154 @@ const StikerSedang = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS, scale 
         {/* Footer Warning */}
         <div 
           className="text-center italic border-t border-gray-300"
-          style={{ fontSize: `${s(2.5)}px`, color: '#dc2626', padding: '1px' }}
+          style={{ fontSize: fontSize.warning, color: '#dc2626', paddingTop: '0.3mm', paddingBottom: '0.3mm' }}
         >
           Tidak Untuk Diperjualbelikan
         </div>
       </div>
       
-      {/* Vertical Code on Right Edge */}
+      {/* Vertical Code on Right Edge - NO BORDER/BACKGROUND */}
       <div 
-        className="absolute right-0 top-0 h-full flex items-center justify-center bg-gray-100"
+        className="absolute right-0 top-0 h-full flex items-center justify-center"
         style={{ 
           writingMode: 'vertical-rl', 
-          fontSize: `${s(2.8)}px`, 
-          width: `${s(3)}mm`,
-          borderLeft: '0.5px solid #999'
+          fontSize: fontSize.kodeVertical, 
+          width: '4mm',
+          color: '#333',
+          fontFamily: 'Arial, sans-serif'
         }}
       >
-        <span className="text-gray-600 font-mono">{data.kode_vertikal}</span>
+        <span>{data.kode_vertikal}</span>
       </div>
     </div>
   );
 };
 
 // Stiker Besar Component - Ukuran: 9.49cm x 3.22cm (horizontal/landscape)
-const StikerBesar = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS, scale = 1 }) => {
-  const s = (val) => val * scale;
+// Sesuai contoh gambar user - REDESIGNED to match PDF exactly
+const StikerBesar = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
+  // Font sizes for large sticker (in pt)
+  const fontSize = {
+    instansi: '11pt',
+    kodeUakpb: '8pt',
+    kodeBarang: '12pt',
+    nupLabel: '8pt',
+    nup: '14pt',
+    namaBarang: '10pt',
+    merkTipe: '9pt',
+    warning: '7pt',
+    kodeVertical: '7pt'
+  };
   
   return (
     <div 
       className="stiker-besar bg-white relative overflow-hidden flex"
       style={{ 
-        width: `${s(94.9)}mm`, 
-        height: `${s(32.2)}mm`, 
+        width: '94.9mm', 
+        height: '32.2mm', 
         border: '1.5px solid #000',
-        borderRadius: '0'
+        fontFamily: 'Arial, sans-serif'
       }}
     >
-      {/* Left: QR Code Area */}
+      {/* Left: QR Code Area - Takes ~34% width, fills height */}
       <div 
         className="flex items-center justify-center relative"
         style={{ 
-          width: '32%', 
+          width: '34%', 
           borderRight: '1px solid #000',
-          background: qrSettings?.backgroundColor || '#ffffff',
-          padding: '4px'
+          background: qrSettings?.backgroundColor || '#ffffff'
         }}
       >
         <StyledQRCode 
-          data={`#${data.kode_register || data.kode_barang}-${data.nup || '1'}`}
+          data={data.kode_register || data.kode_barang}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
-          size={Math.min(s(28) * 3.78, 100)}
+          size={110}
         />
       </div>
       
       {/* Right: Info Area */}
-      <div className="flex-1 flex flex-col relative pr-5" style={{ minWidth: 0 }}>
+      <div className="flex-1 flex flex-col relative" style={{ minWidth: 0, paddingRight: '5mm' }}>
         {/* Header: Logo + Instansi + Kode UAKPB */}
-        <div className="flex items-center border-b border-gray-400 px-2 py-1">
+        <div className="flex items-center border-b px-2" style={{ borderColor: '#c9a227', borderWidth: '2px', paddingTop: '1mm', paddingBottom: '1mm' }}>
           {instansi?.logo_url && (
-            <img src={instansi.logo_url} alt="" className="h-6 w-6 object-contain mr-2" />
+            <img src={instansi.logo_url} alt="" style={{ height: '7mm', width: '7mm', objectFit: 'contain', marginRight: '2mm' }} />
           )}
           <div className="flex-1 min-w-0">
-            <div className="font-bold truncate" style={{ fontSize: `${s(5)}px` }}>
+            <div className="font-bold truncate" style={{ fontSize: fontSize.instansi }}>
               {instansi?.nama_instansi || 'INSTANSI'}
             </div>
-            <div className="text-gray-600 font-mono truncate" style={{ fontSize: `${s(4)}px` }}>
-              {instansi?.kode_uakpb || data.kode_satker || ''}KP.{data.tahun || new Date().getFullYear()}
+            <div className="font-mono truncate" style={{ fontSize: fontSize.kodeUakpb, color: '#333' }}>
+              {instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}
             </div>
           </div>
         </div>
         
         {/* Middle: Kode Barang + NUP */}
-        <div className="flex items-center justify-between px-2 py-0.5 border-b border-gray-300">
-          <div className="font-mono font-bold" style={{ fontSize: `${s(5)}px` }}>
+        <div className="flex items-center justify-between px-2 border-b border-gray-300" style={{ paddingTop: '1mm', paddingBottom: '1mm' }}>
+          <div className="font-mono font-bold" style={{ fontSize: fontSize.kodeBarang }}>
             {data.kode_barang}
           </div>
           <div>
-            <span className="text-gray-500" style={{ fontSize: `${s(3.5)}px` }}>NUP : </span>
-            <span className="font-bold" style={{ fontSize: `${s(5.5)}px` }}>{data.nup || '1'}</span>
+            <span style={{ fontSize: fontSize.nupLabel, color: '#555' }}>NUP : </span>
+            <span className="font-bold" style={{ fontSize: fontSize.nup }}>{data.nup || '1'}</span>
           </div>
         </div>
         
         {/* Nama Barang */}
-        <div className="px-2 pt-0.5">
-          <div className="font-semibold leading-tight" style={{ fontSize: `${s(4.5)}px` }}>
+        <div className="px-2" style={{ paddingTop: '0.5mm' }}>
+          <div className="font-semibold leading-tight" style={{ fontSize: fontSize.namaBarang }}>
             {data.nama_barang}
           </div>
         </div>
         
         {/* Merk/Tipe */}
         <div className="px-2 flex-1">
-          <div className="text-gray-600 leading-tight line-clamp-2" style={{ fontSize: `${s(4)}px` }}>
+          <div className="leading-tight" style={{ fontSize: fontSize.merkTipe, color: '#555' }}>
             {data.merk_tipe || data.merk || ''}
-            {data.tipe ? ` - ${data.tipe}` : ''}
           </div>
         </div>
         
         {/* Footer Warning */}
         <div 
-          className="text-center italic border-t border-gray-400 py-0.5"
-          style={{ fontSize: `${s(3.5)}px`, color: '#dc2626' }}
+          className="text-center italic border-t border-gray-400"
+          style={{ fontSize: fontSize.warning, color: '#dc2626', paddingTop: '0.5mm', paddingBottom: '0.5mm' }}
         >
           Tidak Untuk Diperjualbelikan
         </div>
       </div>
       
-      {/* Vertical Code on Right Edge */}
+      {/* Vertical Code on Right Edge - NO BORDER/BACKGROUND */}
       <div 
-        className="absolute right-0 top-0 h-full flex items-center justify-center bg-gray-100"
+        className="absolute right-0 top-0 h-full flex items-center justify-center"
         style={{ 
           writingMode: 'vertical-rl', 
-          fontSize: `${s(3.5)}px`, 
-          width: `${s(4)}mm`,
-          borderLeft: '0.5px solid #999'
+          fontSize: fontSize.kodeVertical, 
+          width: '5mm',
+          color: '#333',
+          fontFamily: 'Arial, sans-serif'
         }}
       >
-        <span className="text-gray-600 font-mono">{data.kode_vertikal}</span>
+        <span>{data.kode_vertikal}</span>
       </div>
     </div>
   );
 };
 
 // ==================== PRINT CANVAS COMPONENT ====================
-const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
+const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintComplete }) => {
   const printRef = useRef(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     // Small delay to ensure QR codes are rendered
-    const timer = setTimeout(() => setLoading(false), 1000);
+    const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, [items]);
   
   const canvas = CANVAS_SIZES[canvasSize];
   
-  // Calculate grid layout
+  // Calculate grid layout with minimal margins
   const calculateGrid = useCallback(() => {
     if (items.length === 0) return { cols: 0, rows: 0, itemsPerPage: 0 };
     
@@ -901,8 +931,8 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
     const cols = Math.floor((usableWidth + GAP) / (size.width + GAP));
     const rows = Math.floor((usableHeight + GAP) / (size.height + GAP));
     
-    return { cols, rows, itemsPerPage: cols * rows };
-  }, [items, canvasSize]);
+    return { cols: Math.max(cols, 1), rows: Math.max(rows, 1), itemsPerPage: Math.max(cols * rows, 1) };
+  }, [items, canvasSize, canvas]);
   
   const { cols, rows, itemsPerPage } = calculateGrid();
   const pages = Math.ceil(items.length / itemsPerPage) || 1;
@@ -910,10 +940,8 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
   // Prepare sticker data
   const prepareStickerData = (item) => ({
     ...item,
-    kode_display: `#${item.kode_register || `${item.kode_barang}-${item.nup || '1'}`}`,
-    kode_register_full: item.kode_register || `${item.kode_barang}-${item.nup || '1'}`,
-    kode_vertikal: `${item.kode_barang?.substring(0, 6) || '000000'}T/${item.nup || '1'}/${new Date().getFullYear()}`,
-    kode_satker: item.kode_satker || instansi?.kode_uakpb || '126010199621001000',
+    kode_register: item.kode_register || item.kode_barang,
+    kode_vertikal: `${item.kode_barang?.substring(0, 6) || '000000'}T/${item.nup || '1'}/${item.tahun || new Date().getFullYear()}`,
     merk_tipe: item.merk && item.tipe 
       ? `${item.merk} - ${item.tipe}` 
       : item.merk || item.tipe || '',
@@ -922,6 +950,10 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
   
   const handlePrint = () => {
     window.print();
+    // Call onPrintComplete after printing
+    if (onPrintComplete) {
+      setTimeout(() => onPrintComplete(), 500);
+    }
   };
   
   const renderSticker = (item, stickerData) => {
@@ -953,13 +985,15 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
       <div className="no-print sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center z-10">
         <div>
           <h2 className="font-bold">Preview Cetak Label ({items.length} stiker)</h2>
-          <p className="text-sm text-gray-500">Canvas: {canvasSize} | {cols}x{rows} per halaman | {pages} halaman</p>
+          <p className="text-sm text-gray-500">
+            Canvas: {canvasSize} | {cols}x{rows} per halaman | {pages} halaman total
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={onClose}>Tutup</Button>
-          <Button onClick={handlePrint}>
+          <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
             <Printer className="w-4 h-4 mr-2" />
-            Cetak
+            Cetak Semua ({pages} Halaman)
           </Button>
         </div>
       </div>
@@ -977,20 +1011,26 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
               style={{ 
                 width: `${canvas.width}mm`, 
                 height: `${canvas.height}mm`,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                pageBreakAfter: 'always'
               }}
             >
+              {/* Page Number - No Print */}
+              <div className="no-print absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                Halaman {pageIdx + 1} dari {pages}
+              </div>
+              
               {/* Crop Marks */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
                 {/* Corner marks */}
-                <line x1="0" y1={`${CROP_MARK_LENGTH}mm`} x2="0" y2="0" stroke="black" strokeWidth="0.5" />
-                <line x1="0" y1="0" x2={`${CROP_MARK_LENGTH}mm`} y2="0" stroke="black" strokeWidth="0.5" />
-                <line x1={`${canvas.width}mm`} y1={`${CROP_MARK_LENGTH}mm`} x2={`${canvas.width}mm`} y2="0" stroke="black" strokeWidth="0.5" />
-                <line x1={`${canvas.width}mm`} y1="0" x2={`${canvas.width - CROP_MARK_LENGTH}mm`} y2="0" stroke="black" strokeWidth="0.5" />
-                <line x1="0" y1={`${canvas.height - CROP_MARK_LENGTH}mm`} x2="0" y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.5" />
-                <line x1="0" y1={`${canvas.height}mm`} x2={`${CROP_MARK_LENGTH}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.5" />
-                <line x1={`${canvas.width}mm`} y1={`${canvas.height - CROP_MARK_LENGTH}mm`} x2={`${canvas.width}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.5" />
-                <line x1={`${canvas.width}mm`} y1={`${canvas.height}mm`} x2={`${canvas.width - CROP_MARK_LENGTH}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.5" />
+                <line x1="0" y1={`${CROP_MARK_LENGTH}mm`} x2="0" y2="0" stroke="black" strokeWidth="0.3" />
+                <line x1="0" y1="0" x2={`${CROP_MARK_LENGTH}mm`} y2="0" stroke="black" strokeWidth="0.3" />
+                <line x1={`${canvas.width}mm`} y1={`${CROP_MARK_LENGTH}mm`} x2={`${canvas.width}mm`} y2="0" stroke="black" strokeWidth="0.3" />
+                <line x1={`${canvas.width}mm`} y1="0" x2={`${canvas.width - CROP_MARK_LENGTH}mm`} y2="0" stroke="black" strokeWidth="0.3" />
+                <line x1="0" y1={`${canvas.height - CROP_MARK_LENGTH}mm`} x2="0" y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
+                <line x1="0" y1={`${canvas.height}mm`} x2={`${CROP_MARK_LENGTH}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
+                <line x1={`${canvas.width}mm`} y1={`${canvas.height - CROP_MARK_LENGTH}mm`} x2={`${canvas.width}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
+                <line x1={`${canvas.width}mm`} y1={`${canvas.height}mm`} x2={`${canvas.width - CROP_MARK_LENGTH}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
               </svg>
               
               {/* Stickers Grid */}
@@ -1026,7 +1066,19 @@ const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
             margin: 0 !important;
             box-shadow: none !important;
           }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .print-page:last-child {
+            page-break-after: auto;
+          }
+          body { 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
+          }
+          @page {
+            size: ${canvasSize};
+            margin: 0;
+          }
         }
       `}</style>
     </div>
@@ -1106,7 +1158,7 @@ const ChildAssetModal = ({ open, onClose, parentAsset, onSuccess }) => {
             Kelola Aksesori - {parentAsset?.nama_barang}
           </DialogTitle>
           <DialogDescription>
-            Kode Induk: #{parentAsset?.kode_register || `${parentAsset?.kode_barang}-${parentAsset?.nup || '1'}`}
+            Kode Induk: #{parentAsset?.kode_register || parentAsset?.kode_barang}
           </DialogDescription>
         </DialogHeader>
         
@@ -1377,10 +1429,7 @@ export default function LabelBMN() {
             settings={qrSettings}
             onChange={setQrSettings}
             instansi={instansi}
-            previewText={selectedItems[0] 
-              ? `#${selectedItems[0].kode_register || selectedItems[0].kode_barang}-${selectedItems[0].nup || '1'}`
-              : "#SAMPLE-001"
-            }
+            previewText={selectedItems[0]?.kode_register || selectedItems[0]?.kode_barang || "SAMPLE001"}
           />
         </TabsContent>
         
@@ -1506,7 +1555,7 @@ export default function LabelBMN() {
                           <div className="font-medium">{asset.nama_barang}</div>
                           <div className="text-xs text-gray-500">
                             <code className="bg-slate-100 px-1 rounded">
-                              #{asset.kode_register || `${asset.kode_barang}-${asset.nup || '1'}`}
+                              #{asset.kode_register || asset.kode_barang}
                             </code>
                           </div>
                         </td>
@@ -1635,7 +1684,7 @@ export default function LabelBMN() {
                       <div className="flex-1">
                         <div className="font-medium">{item.nama_barang}</div>
                         <div className="text-xs text-gray-500">
-                          #{item.kode_register || `${item.kode_barang}-${item.nup || '1'}`}
+                          #{item.kode_register || item.kode_barang}
                         </div>
                       </div>
                       <Select 
@@ -1683,9 +1732,8 @@ export default function LabelBMN() {
           canvasSize={canvasSize}
           instansi={instansi}
           qrSettings={qrSettings}
-          onClose={() => {
-            handlePrintComplete();
-          }}
+          onClose={() => setShowPrintCanvas(false)}
+          onPrintComplete={handlePrintComplete}
         />
       )}
       
