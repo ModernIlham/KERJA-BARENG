@@ -844,15 +844,15 @@ const StikerBesar = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
         
         {/* Merk/Tipe */}
         <div className="px-2 flex-1">
-          <div className="leading-tight" style={{ fontSize: fontSize.merkTipe, color: '#555' }}>
-            {data.merk_tipe || data.merk || ''}
+          <div className="leading-tight" style={{ fontSize: '10pt', color: '#555' }}>
+            {data.merk_tipe || data.merk || '-'}
           </div>
         </div>
         
         {/* Footer Warning */}
         <div 
           className="text-center italic border-t border-gray-400"
-          style={{ fontSize: fontSize.warning, color: '#dc2626', paddingTop: '0.5mm', paddingBottom: '0.5mm' }}
+          style={{ fontSize: '8pt', color: '#dc2626', paddingTop: '0.5mm', paddingBottom: '0.5mm' }}
         >
           Tidak Untuk Diperjualbelikan
         </div>
@@ -863,8 +863,8 @@ const StikerBesar = ({ data, instansi, qrSettings = DEFAULT_QR_SETTINGS }) => {
         className="absolute right-0 top-0 h-full flex items-center justify-center"
         style={{ 
           writingMode: 'vertical-rl', 
-          fontSize: fontSize.kodeVertical, 
-          width: '5mm',
+          fontSize: '8pt', 
+          width: '5.5mm',
           color: '#333',
           fontFamily: 'Arial, sans-serif'
         }}
