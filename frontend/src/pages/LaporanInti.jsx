@@ -163,16 +163,11 @@ export default function LaporanInti() {
   const totalPages = 4;
 
   return (
-    <div className="bg-slate-200 min-h-screen py-6 print:bg-white print:py-0">
-      {/* Action Bar */}
+    <div className="bg-slate-200 min-h-screen py-6 print:bg-white print:py-0 print:min-h-0">
+      {/* Action Bar - Hidden during print */}
       <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center no-print shadow-sm mb-4">
         <h1 className="text-sm font-bold text-slate-800">📊 Laporan Inti BMN</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-1 h-3 w-3" />Cetak</Button>
-          <Button size="sm" className="bg-blue-700 text-white" onClick={handleDownloadPDF} disabled={downloading}>
-            {downloading ? <><Loader2 className="mr-1 h-3 w-3 animate-spin" />Proses...</> : <><Download className="mr-1 h-3 w-3" />PDF</>}
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-1 h-3 w-3" />Cetak</Button>
       </div>
 
       <div ref={reportRef}>
