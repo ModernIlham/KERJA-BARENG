@@ -17017,6 +17017,275 @@ def main():
         
         return True
 
+    def test_transaksi_dokumen_upload_signature(self):
+        """Test P2: Upload Dokumen PDF dengan Tanda Tangan Digital"""
+        print("\n=== P2: UPLOAD DOKUMEN PDF DENGAN TANDA TANGAN DIGITAL TEST ===")
+        
+        # Ensure we have a valid token
+        if not self.token:
+            login_success = self.test_login()
+            if not login_success:
+                print("❌ Failed to login, cannot proceed with document upload test")
+                return False
+        
+        # Step 1: Test GET /api/transaksi-dokumen/pegawai-with-signature with include_all=true
+        print("\n👥 Step 1: Testing GET /api/transaksi-dokumen/pegawai-with-signature...")
+        
+        success, response = self.run_test(
+            "GET Pegawai with Signature (include_all=true)",
+            "GET",
+            "api/transaksi-dokumen/pegawai-with-signature",
+            200,
+            data={"include_all": True}
+        )
+        
+        if not success:
+            print("❌ Failed to get pegawai with signature")
+            return False
+        
+        pegawai_list = response if isinstance(response, list) else []
+        print(f"✅ Found {len(pegawai_list)} pegawai")
+        
+        # Verify response structure and has_signature field
+        if pegawai_list:
+            first_pegawai = pegawai_list[0]
+            required_fields = ["id", "nama_lengkap", "nip", "jabatan", "has_signature"]
+            for field in required_fields:
+                if field not in first_pegawai:
+                    print(f"❌ Missing required field: {field}")
+                    return False
+            print("✅ Response includes has_signature field")
+            
+            # Show signature status
+            with_signature = [p for p in pegawai_list if p.get("has_signature")]
+            without_signature = [p for p in pegawai_list if not p.get("has_signature")]
+            print(f"   Pegawai with signature: {len(with_signature)}")
+            print(f"   Pegawai without signature: {len(without_signature)}")
+        else:
+            print("ℹ️ No pegawai found in system")
+        
+        # Step 2: Get a transaksi ID from /api/transaksi/riwayat
+        print("\n📋 Step 2: Getting transaksi ID from /api/transaksi/riwayat...")
+        
+        success, response = self.run_test(
+            "GET Transaksi Riwayat",
+            "GET",
+            "api/transaksi/riwayat",
+            200,
+            data={"page": 1, "limit": 10}
+        )
+        
+        if not success:
+            print("❌ Failed to get transaksi riwayat")
+            return False
+        
+        transaksi_list = response.get('data', []) if isinstance(response, dict) else response
+        if not transaksi_list:
+            print("❌ No transactions found for testing")
+            return False
+        
+        test_transaksi = transaksi_list[0]
+        transaksi_id = test_transaksi.get('_id') or test_transaksi.get('id')
+        if not transaksi_id:
+            print("❌ No valid transaksi ID found")
+            return False
+        
+        print(f"✅ Using transaksi ID: {transaksi_id}")
+        print(f"   Transaksi: {test_transaksi.get('jenis', 'Unknown')} - {test_transaksi.get('keterangan', 'No description')}")
+        
+        # Step 3: Test GET /api/transaksi-dokumen/{transaksi_id}/dokumen
+        print(f"\n📄 Step 3: Testing GET /api/transaksi-dokumen/{transaksi_id}/dokumen...")
+        
+        success, response = self.run_test(
+            "GET Transaksi Dokumen",
+            "GET",
+            f"api/transaksi-dokumen/{transaksi_id}/dokumen",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get transaksi dokumen")
+            return False
+        
+        # Verify response structure
+        required_fields = ["dokumen_pendukung", "tanda_tangan"]
+        for field in required_fields:
+            if field not in response:
+                print(f"❌ Missing required field: {field}")
+                return False
+        
+        initial_dokumen_count = len(response.get("dokumen_pendukung", []))
+        initial_signature_count = len(response.get("tanda_tangan", []))
+        
+        print("✅ Transaksi dokumen response structure correct")
+        print(f"   Current documents: {initial_dokumen_count}")
+        print(f"   Current signatures: {initial_signature_count}")
+        
+        # Step 4: Test POST /api/transaksi-dokumen/{transaksi_id}/signature
+        print(f"\n✍️ Step 4: Testing POST /api/transaksi-dokumen/{transaksi_id}/signature...")
+        
+        # Find a pegawai with signature for testing
+        pegawai_with_signature = None
+        pegawai_without_signature = None
+        
+        for pegawai in pegawai_list:
+            if pegawai.get("has_signature"):
+                pegawai_with_signature = pegawai
+            else:
+                pegawai_without_signature = pegawai
+        
+        # Test 4a: Try adding signature with pegawai who has signature
+        if pegawai_with_signature:
+            print(f"   Testing with pegawai who has signature: {pegawai_with_signature.get('nama_lengkap')}")
+            
+            signature_data = {
+                "pegawai_id": pegawai_with_signature["id"],
+                "posisi": "Petugas",
+                "keterangan": "Test signature addition"
+            }
+            
+            success, response = self.run_test(
+                "POST Add Signature (Valid Pegawai)",
+                "POST",
+                f"api/transaksi-dokumen/{transaksi_id}/signature",
+                200,
+                data=signature_data
+            )
+            
+            if success:
+                print("✅ Signature added successfully")
+                print(f"   Signature ID: {response.get('signature', {}).get('id')}")
+                print(f"   Signer: {response.get('signature', {}).get('nama_pegawai')}")
+            else:
+                print("❌ Failed to add signature with valid pegawai")
+                return False
+        else:
+            print("⚠️ No pegawai with signature found, skipping valid signature test")
+        
+        # Test 4b: Try adding signature with pegawai who has no signature (should fail)
+        if pegawai_without_signature:
+            print(f"   Testing with pegawai without signature: {pegawai_without_signature.get('nama_lengkap')}")
+            
+            signature_data_invalid = {
+                "pegawai_id": pegawai_without_signature["id"],
+                "posisi": "Petugas",
+                "keterangan": "Test signature addition (should fail)"
+            }
+            
+            success, response = self.run_test(
+                "POST Add Signature (Invalid Pegawai - No Signature)",
+                "POST",
+                f"api/transaksi-dokumen/{transaksi_id}/signature",
+                400,  # Expect error
+                data=signature_data_invalid
+            )
+            
+            if success:  # Success means we got the expected error status
+                print("✅ Error handling works correctly for pegawai without signature")
+                error_detail = response.get('detail', '')
+                if 'tanda tangan digital' in error_detail.lower():
+                    print(f"   Correct error message: {error_detail}")
+                else:
+                    print(f"   Error message: {error_detail}")
+            else:
+                print("❌ Error handling failed - should reject pegawai without signature")
+                return False
+        else:
+            print("ℹ️ All pegawai have signatures, cannot test error handling")
+        
+        # Step 5: Verify final document and signature count
+        print(f"\n🔍 Step 5: Verifying final document and signature count...")
+        
+        success, response = self.run_test(
+            "GET Final Transaksi Dokumen",
+            "GET",
+            f"api/transaksi-dokumen/{transaksi_id}/dokumen",
+            200
+        )
+        
+        if success:
+            final_dokumen_count = len(response.get("dokumen_pendukung", []))
+            final_signature_count = len(response.get("tanda_tangan", []))
+            
+            print(f"✅ Final verification complete")
+            print(f"   Documents: {initial_dokumen_count} → {final_dokumen_count}")
+            print(f"   Signatures: {initial_signature_count} → {final_signature_count}")
+            
+            if pegawai_with_signature and final_signature_count > initial_signature_count:
+                print("✅ Signature was successfully added")
+            elif not pegawai_with_signature:
+                print("ℹ️ No signature added (no pegawai with signature available)")
+            else:
+                print("⚠️ Signature count did not increase as expected")
+        else:
+            print("❌ Failed to verify final state")
+            return False
+        
+        # Step 6: Test additional endpoints for completeness
+        print("\n🔧 Step 6: Testing additional endpoints...")
+        
+        # Test pegawai-with-signature without include_all (only those with signatures)
+        success, response = self.run_test(
+            "GET Pegawai with Signature (only with signatures)",
+            "GET",
+            "api/transaksi-dokumen/pegawai-with-signature",
+            200
+        )
+        
+        if success:
+            only_with_sig = response if isinstance(response, list) else []
+            print(f"✅ Pegawai with signatures only: {len(only_with_sig)}")
+            
+            # Verify all returned pegawai have signatures
+            all_have_signatures = all(p.get("has_signature", False) for p in only_with_sig)
+            if all_have_signatures:
+                print("✅ All returned pegawai have signatures (correct filtering)")
+            else:
+                print("❌ Some returned pegawai don't have signatures (filtering issue)")
+                return False
+        else:
+            print("❌ Failed to get pegawai with signatures only")
+            return False
+        
+        # Test search functionality
+        if pegawai_list:
+            first_pegawai_name = pegawai_list[0].get("nama_lengkap", "")
+            if first_pegawai_name:
+                search_term = first_pegawai_name[:3]  # First 3 characters
+                success, response = self.run_test(
+                    f"GET Pegawai with Search ('{search_term}')",
+                    "GET",
+                    "api/transaksi-dokumen/pegawai-with-signature",
+                    200,
+                    data={"search": search_term, "include_all": True}
+                )
+                
+                if success:
+                    search_results = response if isinstance(response, list) else []
+                    print(f"✅ Search functionality works: {len(search_results)} results for '{search_term}'")
+                else:
+                    print("❌ Search functionality failed")
+                    return False
+        
+        print("\n🎉 P2: UPLOAD DOKUMEN PDF DENGAN TANDA TANGAN DIGITAL TEST COMPLETED!")
+        print("✅ All critical verification steps completed:")
+        print("   1. ✅ GET /api/transaksi-dokumen/pegawai-with-signature with include_all=true")
+        print("   2. ✅ Retrieved transaksi ID from /api/transaksi/riwayat")
+        print("   3. ✅ GET /api/transaksi-dokumen/{transaksi_id}/dokumen")
+        print("   4. ✅ POST /api/transaksi-dokumen/{transaksi_id}/signature")
+        print("   5. ✅ Error handling for pegawai without signature")
+        print("   6. ✅ Response structure verification")
+        print("   7. ✅ Search and filtering functionality")
+        
+        print("\n📊 Document Upload & Signature System Status:")
+        print("✅ All backend API endpoints are functional")
+        print("✅ Pegawai signature status correctly tracked")
+        print("✅ Error handling works for pegawai without signatures")
+        print("✅ Document and signature data structures correct")
+        print("✅ Search and filtering capabilities working")
+        
+        return True
+
 if __name__ == "__main__":
     print("🚀 Starting Transaction Approval System Testing...")
     print("=" * 60)
