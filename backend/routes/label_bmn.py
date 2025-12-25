@@ -423,36 +423,29 @@ async def get_print_history(
     """Get recent print history with asset details"""
     skip = (page - 1) * limit
     
-    pipeline = [
-        {"$sort": {"printed_at": -1}},
-        {"$skip": skip},
-        {"$limit": limit},
-        {"$addFields": {
-            "barang_oid": {"$toObjectId": "$barang_id"}
-        }},
-        {"$lookup": {
-            "from": "barang",
-            "localField": "barang_oid",
-            "foreignField": "_id",
-            "as": "barang"
-        }},
-        {"$unwind": {"path": "$barang", "preserveNullAndEmptyArrays": True}},
-        {"$project": {
-            "barang_oid": 0
-        }}
-    ]
-    
-    logs = await db.label_print_logs.aggregate(pipeline).to_list(limit)
+    # Simple query without lookup - avoid ObjectId conversion issues
+    logs = await db.label_print_logs.find({}).sort("printed_at", -1).skip(skip).limit(limit).to_list(limit)
     total = await db.label_print_logs.count_documents({})
     
     result = []
     for log in logs:
-        log["id"] = str(log["_id"])
-        del log["_id"]
-        if log.get("barang"):
-            log["barang"]["id"] = str(log["barang"]["_id"])
-            del log["barang"]["_id"]
-        result.append(log)
+        log_data = sanitize_doc(log)
+        
+        # Try to get asset info if barang_id exists
+        if log.get("barang_id"):
+            try:
+                # Try as ObjectId first
+                barang_oid = ObjectId(log["barang_id"])
+                barang = await db.barang.find_one({"_id": barang_oid}, {"_id": 0, "nama_barang": 1, "kode_barang": 1})
+                if barang:
+                    log_data["barang"] = barang
+            except:
+                # If not ObjectId, try direct string match
+                barang = await db.barang.find_one({"id": log["barang_id"]}, {"_id": 0, "nama_barang": 1, "kode_barang": 1})
+                if barang:
+                    log_data["barang"] = barang
+        
+        result.append(log_data)
     
     return {
         "data": result,
