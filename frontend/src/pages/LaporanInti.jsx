@@ -655,6 +655,7 @@ export default function LaporanInti() {
           Dokumen ini dibuat secara otomatis oleh Sistem Informasi Manajemen Aset Negara (SIMAN-G) • © {new Date().getFullYear()} Kementerian Contoh RI
         </div>
       </A4Page>
+      </div> {/* End of reportRef */}
 
       {/* Print Styles */}
       <style>{`
