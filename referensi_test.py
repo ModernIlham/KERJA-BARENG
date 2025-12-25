@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class ReferensiAPITester:
-    def __init__(self, base_url: str = "https://inventory-labels-1.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://bmn-sticker-maker.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
