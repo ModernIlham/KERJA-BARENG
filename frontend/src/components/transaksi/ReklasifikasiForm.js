@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { toast } from 'sonner';
 import { Save, Loader2, ArrowDownToLine, ArrowUpFromLine, Search, CheckSquare, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
+import HierarchicalKodeBarangPicker from './HierarchicalKodeBarangPicker';
 
 export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
   const [loading, setLoading] = useState(false);
