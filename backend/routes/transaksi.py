@@ -16,6 +16,26 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+def sanitize_for_json(obj):
+    """
+    Sanitize MongoDB document for JSON serialization.
+    Handles: ObjectId, datetime, float infinity/nan values
+    """
+    import math
+    if isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(v) for v in obj]
+    elif isinstance(obj, ObjectId):
+        return str(obj)
+    elif isinstance(obj, datetime):
+        return obj.isoformat()
+    elif isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    return obj
+
 # Reuse FIFO logic (Optimized)
 async def process_fifo_out(barang_id: str, quantity: int, session=None):
     cursor = db.stok_batches.find(
