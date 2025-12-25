@@ -111,10 +111,13 @@ const COLOR_PRESETS = [
 // ==================== QR CODE COMPONENT WITH STYLING ====================
 const StyledQRCode = ({ data, settings, logoUrl, size = 200, className = "" }) => {
   const qrRef = useRef(null);
-  const qrCodeInstance = useRef(null);
+  const [key, setKey] = useState(0);
 
   useEffect(() => {
     if (!qrRef.current) return;
+
+    // Clear previous QR code
+    qrRef.current.innerHTML = '';
 
     const qrOptions = {
       width: size,
@@ -153,21 +156,16 @@ const StyledQRCode = ({ data, settings, logoUrl, size = 200, className = "" }) =
       };
     }
 
-    // Create or update QR code
-    if (qrCodeInstance.current) {
-      qrCodeInstance.current.update(qrOptions);
-    } else {
-      qrCodeInstance.current = new QRCodeStyling(qrOptions);
-      qrRef.current.innerHTML = '';
-      qrCodeInstance.current.append(qrRef.current);
-    }
+    // Create new QR code instance every time
+    const qrCode = new QRCodeStyling(qrOptions);
+    qrCode.append(qrRef.current);
 
     return () => {
-      // Cleanup on unmount
+      // Cleanup
     };
   }, [data, settings, logoUrl, size]);
 
-  // Handle logo background
+  // Handle logo background overlay
   const logoBackgroundStyle = settings.logoEnabled && logoUrl && settings.logoBackgroundEnabled ? {
     position: 'absolute',
     top: '50%',
