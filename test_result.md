@@ -4,14 +4,11 @@
 (DO NOT EDIT - Standard testing protocol for all features)
 
 ## Current Testing Task
-Testing: Manajemen Label BMN - Print Fix & Sticker Design Update - IN PROGRESS
+Testing: Pelabelan Aksesori & Tracking Status Cetak - IN PROGRESS
 
 ### Task Description:
-Verify that:
-1. Print functionality works correctly - only the sticker canvas should print, not the entire web page
-2. All three sticker sizes (Kecil, Sedang, Besar) display correctly with proper font sizes per HTML templates
-3. QR Code contains only kode_barang (without NUP suffix)
-4. Vertical code on the side has no border/background
+1. Verify Aksesori (Child Asset) Management feature
+2. Verify Print Status Tracking feature
 
 ### Features to Test:
 1. **Customisasi QR Tab** - New tab between Daftar Aset and Antrian Cetak
