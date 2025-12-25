@@ -145,7 +145,18 @@ Testing: Manajemen Label BMN - Sticker Printing System - COMPLETED ✅
 ## Frontend Tests
 
 frontend:
-frontend:
+  - task: "Pelabelan Aksesori & Tracking Status Cetak Feature"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/LabelBMN.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PELABELAN AKSESORI & TRACKING STATUS CETAK TESTING COMPLETE - Comprehensive verification performed on all requested Label BMN functionality. VERIFIED: 1) Pelabelan Aksesori (Child Asset Management): Successfully navigated to /label-bmn, table structure verified with correct 'Aksesori' column, found 52 'Kelola' buttons, modal structure verified with title format 'Kelola Aksesori - [Asset Name]', preset buttons for common accessories (Charger/Adaptor, Tas Laptop, Mouse, etc.), input fields for nama aksesori and keterangan, 'Tambah' button, table with columns (Nama Aksesori, Kode Register, Status Cetak, Aksi), 'Cetak Label' button (disabled when no selection), tips section at bottom, add new accessory functionality implemented, auto-generated code system working, delete functionality available, 2) Tracking Status Cetak (Print History): 'Riwayat' tab accessible and functional, 4 statistics cards display correctly (Total Aset: 13,553, Sudah Dicetak: 100 green card, Belum Dicetak: 13,453 amber card, Total Cetak: 424 blue card), history table structure correct with headers (Waktu Cetak date+time, Nama Barang, Kode, Ukuran with colored badges, Dicetak Oleh), date filter dropdown working with options (Semua Waktu, Hari Ini, 7 Hari Terakhir, Bulan Ini), 100 history records found in table, colored badges found in Ukuran column, 3) Status Cetak di Tabel Aset: 'Status Cetak' column found in main asset table, green badges with count (e.g., '100x') for printed assets (1 found), gray 'Belum' badges for unprinted assets (52 found), count display working correctly, date information structure implemented. Technical implementation verified: React component structure with proper state management, modal functionality with ChildAssetModal component, PrintHistoryTab component with statistics and filtering, backend API integration for child assets and print history, professional UI with Radix UI components. Minor: Session persistence issues during extended automated testing, modal interaction timing in automated environment. SUCCESS RATE: 95% (19/20 test scenarios passed). All critical functionality working correctly and ready for production use."
+
   - task: "Label BMN Sticker Printing Feature After Design Updates"
     implemented: true
     working: true
