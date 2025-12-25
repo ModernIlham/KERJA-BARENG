@@ -1,195 +1,262 @@
-import React, { useEffect, useState } from 'react';
-import api from '../api/axios';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import React, { useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Button } from '../components/ui/button';
-import { Pagination } from '../components/ui/pagination';
-import { Plus, ArrowLeftRight, ChevronRight, Package, Box } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import TransactionTable from '../components/transaksi/TransactionTable';
+import { Card, CardContent } from '../components/ui/card';
+import { 
+    Package, ArrowDownToLine, ArrowUpFromLine, RefreshCw, 
+    FileText, ArrowLeftRight, ChevronRight, Box
+} from 'lucide-react';
+
+// Import transaction form components
 import PersediaanIncomingForm from '../components/transaksi/PersediaanIncomingForm';
 import PersediaanOutgoingForm from '../components/transaksi/PersediaanOutgoingForm';
 import ReklasifikasiPersediaanAsetForm from '../components/transaksi/ReklasifikasiPersediaanAsetForm';
+import RiwayatTransaksiPersediaan from '../components/transaksi/RiwayatTransaksiPersediaan';
 
-import SuratGeneratorModal from '../components/transaksi/SuratGeneratorModal';
-import { Printer } from 'lucide-react';
+export default function TransaksiPersediaan() {
+    const [activeTab, setActiveTab] = useState('riwayat');
+    const [activeSubTab, setActiveSubTab] = useState('');
 
-export default function TransaksiPersediaan({ activeTab = 'riwayat' }) {
-  const navigate = useNavigate();
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeSubTab, setActiveSubTab] = useState('persediaan_to_aset');
-  
-  // Printing State
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [printTxIds, setPrintTxIds] = useState([]); // IDs to print
+    // Tab categories for better organization - same structure as TransaksiAset
+    const tabCategories = {
+        riwayat: {
+            label: 'Riwayat',
+            icon: FileText,
+            color: 'text-slate-600'
+        },
+        perolehan: {
+            label: 'Barang Masuk',
+            icon: ArrowDownToLine,
+            color: 'text-green-600',
+            subTabs: [
+                { id: 'pembelian', label: 'Pembelian/Pengadaan', desc: 'Perolehan melalui pembelian atau pengadaan', icon: Package },
+                { id: 'transfer_masuk', label: 'Transfer Masuk', desc: 'Penerimaan dari unit/satker lain', icon: ArrowDownToLine },
+                { id: 'hibah', label: 'Hibah/Sumbangan', desc: 'Penerimaan dari hibah atau sumbangan', icon: Package }
+            ]
+        },
+        pengeluaran: {
+            label: 'Barang Keluar',
+            icon: ArrowUpFromLine,
+            color: 'text-red-600',
+            subTabs: [
+                { id: 'pemakaian', label: 'Pemakaian Harian', desc: 'Pengeluaran untuk pemakaian kantor', icon: ArrowUpFromLine },
+                { id: 'serah_terima', label: 'Serah Terima', desc: 'Serah terima ke pegawai/unit', icon: ArrowUpFromLine },
+                { id: 'rusak_hilang', label: 'Rusak/Hilang', desc: 'Penghapusan karena rusak atau hilang', icon: ArrowUpFromLine }
+            ]
+        },
+        perubahan: {
+            label: 'Perubahan',
+            icon: RefreshCw,
+            color: 'text-blue-600',
+            subTabs: [
+                { id: 'koreksi_stok', label: 'Koreksi Stok', desc: 'Penyesuaian jumlah stok', icon: RefreshCw },
+                { id: 'koreksi_nilai', label: 'Koreksi Nilai', desc: 'Penyesuaian nilai satuan', icon: RefreshCw }
+            ]
+        },
+        reklasifikasi: {
+            label: 'Reklasifikasi',
+            icon: ArrowLeftRight,
+            color: 'text-purple-600',
+            subTabs: [
+                { id: 'persediaan_to_aset', label: 'Persediaan → Aset', desc: 'Reklasifikasi persediaan menjadi aset tetap', icon: Box },
+                { id: 'aset_to_persediaan', label: 'Aset → Persediaan', desc: 'Reklasifikasi aset tetap menjadi persediaan', icon: Package }
+            ]
+        }
+    };
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const limit = 20;
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        // Reset subtab when changing main tab
+        if (tab !== 'riwayat' && tabCategories[tab]?.subTabs) {
+            setActiveSubTab(tabCategories[tab].subTabs[0].id);
+        } else {
+            setActiveSubTab('');
+        }
+    };
 
-  useEffect(() => {
-      fetchData();
-  }, [activeTab, currentPage]);
+    const handleFormSuccess = () => {
+        setActiveTab('riwayat');
+    };
 
-  const fetchData = async () => {
-      setLoading(true);
-      try {
-          const params = { page: currentPage, limit };
-          
-          // Use Grouped endpoint for 'riwayat' tab
-          const endpoint = activeTab === 'riwayat' 
-              ? '/api/persediaan-transaksi/grouped' 
-              : '/api/persediaan-transaksi/';
-              
-          const res = await api.get(endpoint, { params });
-          
-          let items = res.data.data;
-          // Filter logic not needed for grouped endpoint as it returns groups
-          if (activeTab !== 'riwayat') {
-              const filterType = activeTab === 'masuk' ? 'in' : 'out';
-              items = items.filter(i => i.jenis === filterType);
-          }
+    const renderSubTabContent = () => {
+        switch (activeSubTab) {
+            // Perolehan / Barang Masuk
+            case 'pembelian':
+            case 'transfer_masuk':
+            case 'hibah':
+                return <PersediaanIncomingForm onSuccess={handleFormSuccess} jenis={activeSubTab} />;
+            
+            // Pengeluaran / Barang Keluar
+            case 'pemakaian':
+            case 'serah_terima':
+            case 'rusak_hilang':
+                return <PersediaanOutgoingForm onSuccess={handleFormSuccess} jenis={activeSubTab} />;
+            
+            // Perubahan
+            case 'koreksi_stok':
+                return <PersediaanIncomingForm onSuccess={handleFormSuccess} jenis="koreksi_stok" />;
+            case 'koreksi_nilai':
+                return <PersediaanIncomingForm onSuccess={handleFormSuccess} jenis="koreksi_nilai" />;
+            
+            // Reklasifikasi
+            case 'persediaan_to_aset':
+                return <ReklasifikasiPersediaanAsetForm onSuccess={handleFormSuccess} direction="PERSEDIAAN_TO_ASET" />;
+            case 'aset_to_persediaan':
+                return <ReklasifikasiPersediaanAsetForm onSuccess={handleFormSuccess} direction="ASET_TO_PERSEDIAAN" />;
+            
+            default:
+                return null;
+        }
+    };
 
-          setData(items);
-          setTotalPages(res.data.total_pages);
-          setTotalItems(res.data.total);
-      } catch (err) {
-          console.error(err);
-      } finally {
-          setLoading(false);
-      }
-  };
+    const getIconForSubTab = (subTab, categoryKey) => {
+        if (subTab.icon) {
+            const IconComponent = subTab.icon;
+            return <IconComponent className="h-4 w-4" />;
+        }
+        const CategoryIcon = tabCategories[categoryKey].icon;
+        return <CategoryIcon className="h-4 w-4" />;
+    };
 
-  // Conditions to show "Direct Form"
-  const isDirectIncomingMode = activeTab === 'masuk';
-  const isDirectOutgoingMode = activeTab === 'keluar';
-  const isReklasifikasiMode = activeTab === 'reklasifikasi';
+    const getColorClass = (categoryKey, isActive) => {
+        const colorMap = {
+            perolehan: isActive ? 'bg-green-50 border-green-300 text-green-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50',
+            pengeluaran: isActive ? 'bg-red-50 border-red-300 text-red-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50',
+            perubahan: isActive ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50',
+            reklasifikasi: isActive ? 'bg-purple-50 border-purple-300 text-purple-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+        };
+        return colorMap[categoryKey] || (isActive ? 'bg-slate-100 border-slate-300' : 'bg-white border-slate-200');
+    };
 
-  const handlePrintClick = () => {
-      // Collect IDs from visible data (or allow selection)
-      // For now, let's just print visible items for "BAST Harian" scenario
-      // Or better, filter by active tab if 'masuk'/'keluar'
-      if (data.length === 0) return;
-      const ids = data.map(i => i._id);
-      setPrintTxIds(ids);
-      setIsPrintModalOpen(true);
-  };
-
-  const handleFormSuccess = () => {
-      fetchData();
-  };
-
-  // Reklasifikasi sub-tabs
-  const reklasifikasiSubTabs = [
-    { id: 'persediaan_to_aset', label: 'Persediaan → Aset', desc: 'Reklasifikasi persediaan menjadi aset tetap', icon: Box },
-    { id: 'aset_to_persediaan', label: 'Aset → Persediaan', desc: 'Reklasifikasi aset tetap menjadi persediaan', icon: Package }
-  ];
-
-  const renderReklasifikasiContent = () => {
-    switch (activeSubTab) {
-      case 'persediaan_to_aset':
-        return <ReklasifikasiPersediaanAsetForm onSuccess={handleFormSuccess} direction="PERSEDIAAN_TO_ASET" />;
-      case 'aset_to_persediaan':
-        return <ReklasifikasiPersediaanAsetForm onSuccess={handleFormSuccess} direction="ASET_TO_PERSEDIAAN" />;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-        <div className="flex justify-between items-start">
+    return (
+        <div className="space-y-6">
+            {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-slate-900">Transaksi Gudang (Persediaan)</h1>
-                <p className="text-slate-500 text-sm">Kelola barang masuk, keluar, dan reklasifikasi untuk persediaan / barang habis pakai</p>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Transaksi Gudang (Persediaan)</h1>
+                <p className="text-sm text-slate-500">
+                    Pencatatan transaksi persediaan / barang habis pakai
+                </p>
             </div>
-            {/* Global Print Button for current view */}
-            <Button variant="outline" className="bg-white border-blue-200 text-blue-700 hover:bg-blue-50" onClick={handlePrintClick}>
-                <Printer className="mr-2 h-4 w-4"/> Buat Surat / BA
-            </Button>
-        </div>
 
-        <Tabs value={activeTab} onValueChange={(val) => navigate(`/transaksi-persediaan/${val}`)} className="w-full">
-            <TabsList className="bg-slate-100 p-1 mb-6">
-                <TabsTrigger value="masuk" className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white">Barang Masuk</TabsTrigger>
-                <TabsTrigger value="keluar" className="px-6 data-[state=active]:bg-red-600 data-[state=active]:text-white">Barang Keluar</TabsTrigger>
-                <TabsTrigger value="reklasifikasi" className="px-6 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                    <ArrowLeftRight className="h-4 w-4 mr-1" /> Reklasifikasi
-                </TabsTrigger>
-                <TabsTrigger value="riwayat" className="px-6">Riwayat Transaksi</TabsTrigger>
-            </TabsList>
+            {/* Main Tabs */}
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
+                <TabsList className="grid grid-cols-5 w-full max-w-3xl bg-slate-100 p-1 rounded-lg">
+                    {Object.entries(tabCategories).map(([key, cat]) => (
+                        <TabsTrigger 
+                            key={key} 
+                            value={key}
+                            className={`flex items-center gap-1.5 text-xs sm:text-sm data-[state=active]:${cat.color}`}
+                        >
+                            <cat.icon className="h-4 w-4" />
+                            <span className="hidden sm:inline">{cat.label}</span>
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
 
-            {/* Reklasifikasi Tab Content */}
-            <TabsContent value="reklasifikasi">
-                <Card className="mb-4">
-                    <CardContent className="py-4">
-                        <div className="flex flex-wrap gap-2">
-                            {reklasifikasiSubTabs.map(sub => (
-                                <button
-                                    key={sub.id}
-                                    onClick={() => setActiveSubTab(sub.id)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
-                                        activeSubTab === sub.id 
-                                            ? 'bg-purple-50 border-purple-300 text-purple-700' 
-                                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                                    }`}
-                                >
-                                    <sub.icon className="h-4 w-4" />
-                                    <div className="text-left">
-                                        <div className="font-medium text-sm">{sub.label}</div>
-                                        <div className="text-xs opacity-70">{sub.desc}</div>
-                                    </div>
-                                    {activeSubTab === sub.id && <ChevronRight className="h-4 w-4 ml-2" />}
-                                </button>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-                {renderReklasifikasiContent()}
-            </TabsContent>
+                {/* Riwayat Tab */}
+                <TabsContent value="riwayat">
+                    <RiwayatTransaksiPersediaan />
+                </TabsContent>
 
-            <div className="space-y-4">
-                {isDirectIncomingMode && <PersediaanIncomingForm onSuccess={fetchData} />}
-                {isDirectOutgoingMode && <PersediaanOutgoingForm onSuccess={fetchData} />}
-
-                {!isReklasifikasiMode && (
-                    <Card>
-                        <CardHeader className="pb-3 border-b">
-                            <CardTitle className="text-base flex justify-between items-center">
-                                <span>
-                                    {activeTab === 'riwayat' ? 'Semua Riwayat' : `Daftar Barang ${activeTab === 'masuk' ? 'Masuk' : 'Keluar'}`} 
-                                    <SuratGeneratorModal 
-                                        isOpen={isPrintModalOpen} 
-                                        onClose={() => setIsPrintModalOpen(false)} 
-                                        transactionIds={printTxIds}
-                                        defaultType={activeTab === 'masuk' ? 'BAST' : 'SBB'}
-                                    />
-                                </span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <TransactionTable 
-                                data={data} 
-                                loading={loading} 
-                                assetType="persediaan"
-                                type={activeTab} 
-                                isGrouped={activeTab === 'riwayat'}
-                            />
-                            <Pagination 
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                totalItems={totalItems}
-                                limit={limit}
-                                onPageChange={setCurrentPage}
-                            />
+                {/* Perolehan / Barang Masuk Tab */}
+                <TabsContent value="perolehan">
+                    <Card className="mb-4">
+                        <CardContent className="py-4">
+                            <div className="flex flex-wrap gap-2">
+                                {tabCategories.perolehan.subTabs.map(sub => (
+                                    <button
+                                        key={sub.id}
+                                        onClick={() => setActiveSubTab(sub.id)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${getColorClass('perolehan', activeSubTab === sub.id)}`}
+                                    >
+                                        {getIconForSubTab(sub, 'perolehan')}
+                                        <div className="text-left">
+                                            <div className="font-medium text-sm">{sub.label}</div>
+                                            <div className="text-xs opacity-70">{sub.desc}</div>
+                                        </div>
+                                        {activeSubTab === sub.id && <ChevronRight className="h-4 w-4 ml-2" />}
+                                    </button>
+                                ))}
+                            </div>
                         </CardContent>
                     </Card>
-                )}
-            </div>
-        </Tabs>
-    </div>
-  );
+                    {renderSubTabContent()}
+                </TabsContent>
+
+                {/* Pengeluaran / Barang Keluar Tab */}
+                <TabsContent value="pengeluaran">
+                    <Card className="mb-4">
+                        <CardContent className="py-4">
+                            <div className="flex flex-wrap gap-2">
+                                {tabCategories.pengeluaran.subTabs.map(sub => (
+                                    <button
+                                        key={sub.id}
+                                        onClick={() => setActiveSubTab(sub.id)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${getColorClass('pengeluaran', activeSubTab === sub.id)}`}
+                                    >
+                                        {getIconForSubTab(sub, 'pengeluaran')}
+                                        <div className="text-left">
+                                            <div className="font-medium text-sm">{sub.label}</div>
+                                            <div className="text-xs opacity-70">{sub.desc}</div>
+                                        </div>
+                                        {activeSubTab === sub.id && <ChevronRight className="h-4 w-4 ml-2" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    {renderSubTabContent()}
+                </TabsContent>
+
+                {/* Perubahan Tab */}
+                <TabsContent value="perubahan">
+                    <Card className="mb-4">
+                        <CardContent className="py-4">
+                            <div className="flex flex-wrap gap-2">
+                                {tabCategories.perubahan.subTabs.map(sub => (
+                                    <button
+                                        key={sub.id}
+                                        onClick={() => setActiveSubTab(sub.id)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${getColorClass('perubahan', activeSubTab === sub.id)}`}
+                                    >
+                                        {getIconForSubTab(sub, 'perubahan')}
+                                        <div className="text-left">
+                                            <div className="font-medium text-sm">{sub.label}</div>
+                                            <div className="text-xs opacity-70">{sub.desc}</div>
+                                        </div>
+                                        {activeSubTab === sub.id && <ChevronRight className="h-4 w-4 ml-2" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    {renderSubTabContent()}
+                </TabsContent>
+
+                {/* Reklasifikasi Tab */}
+                <TabsContent value="reklasifikasi">
+                    <Card className="mb-4">
+                        <CardContent className="py-4">
+                            <div className="flex flex-wrap gap-2">
+                                {tabCategories.reklasifikasi.subTabs.map(sub => (
+                                    <button
+                                        key={sub.id}
+                                        onClick={() => setActiveSubTab(sub.id)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${getColorClass('reklasifikasi', activeSubTab === sub.id)}`}
+                                    >
+                                        {getIconForSubTab(sub, 'reklasifikasi')}
+                                        <div className="text-left">
+                                            <div className="font-medium text-sm">{sub.label}</div>
+                                            <div className="text-xs opacity-70">{sub.desc}</div>
+                                        </div>
+                                        {activeSubTab === sub.id && <ChevronRight className="h-4 w-4 ml-2" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    {renderSubTabContent()}
+                </TabsContent>
+            </Tabs>
+        </div>
+    );
 }
