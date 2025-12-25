@@ -7,13 +7,15 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { toast } from 'sonner';
-import { Save, Package, Loader2, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { Save, Package, Loader2, ArrowDownToLine, ArrowUpFromLine, AlertCircle } from 'lucide-react';
 import AsyncSelect from 'react-select/async';
 
 export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
   const [loading, setLoading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [golonganOptions, setGolonganOptions] = useState([]);
+  const [kodeBarangOptions, setKodeBarangOptions] = useState([]);
+  const [loadingKodeBarang, setLoadingKodeBarang] = useState(false);
   
   const [formData, setFormData] = useState({
     no_sppa: '',
@@ -32,6 +34,17 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
     fetchGolonganOptions();
   }, []);
 
+  // Fetch kode barang when golongan_baru changes
+  useEffect(() => {
+    if (formData.golongan_baru) {
+      fetchKodeBarangByGolongan(formData.golongan_baru);
+      // Reset kode_barang_baru when golongan changes
+      setFormData(prev => ({ ...prev, kode_barang_baru: '' }));
+    } else {
+      setKodeBarangOptions([]);
+    }
+  }, [formData.golongan_baru]);
+
   const fetchGolonganOptions = async () => {
     try {
       const res = await api.get('/api/referensi/golongan');
@@ -47,6 +60,63 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
         { kode: '6', nama: 'Konstruksi Dalam Pengerjaan' },
         { kode: '7', nama: 'Aset Tak Berwujud' }
       ]);
+    }
+  };
+
+  const fetchKodeBarangByGolongan = async (golongan) => {
+    setLoadingKodeBarang(true);
+    try {
+      // Fetch barang filtered by golongan
+      const res = await api.get('/api/barang', { 
+        params: { 
+          golongan: golongan,
+          limit: 100 
+        } 
+      });
+      
+      // Get unique kode_barang from the results
+      const uniqueKodes = [];
+      const seenKodes = new Set();
+      
+      (res.data.data || []).forEach(item => {
+        if (item.kode_barang && !seenKodes.has(item.kode_barang)) {
+          seenKodes.add(item.kode_barang);
+          uniqueKodes.push({
+            kode: item.kode_barang,
+            nama: item.nama_barang
+          });
+        }
+      });
+      
+      // Also try to get from referensi if available
+      try {
+        const refRes = await api.get('/api/referensi/kode-barang', {
+          params: { golongan: golongan }
+        });
+        if (refRes.data && refRes.data.length > 0) {
+          refRes.data.forEach(item => {
+            if (item.kode && !seenKodes.has(item.kode)) {
+              seenKodes.add(item.kode);
+              uniqueKodes.push({
+                kode: item.kode,
+                nama: item.nama || item.uraian
+              });
+            }
+          });
+        }
+      } catch (refErr) {
+        // Ignore if referensi endpoint doesn't exist
+      }
+      
+      // Sort by kode
+      uniqueKodes.sort((a, b) => a.kode.localeCompare(b.kode));
+      
+      setKodeBarangOptions(uniqueKodes);
+    } catch (e) {
+      console.error('Error fetching kode barang:', e);
+      setKodeBarangOptions([]);
+    } finally {
+      setLoadingKodeBarang(false);
     }
   };
 
@@ -105,6 +175,14 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
     }
     if (formData.golongan_awal === formData.golongan_baru) {
       toast.error('Golongan baru harus berbeda dari golongan awal');
+      return;
+    }
+    if (!formData.kode_barang_baru) {
+      toast.error('Pilih kode barang baru');
+      return;
+    }
+    if (!formData.alasan_reklasifikasi) {
+      toast.error('Pilih alasan reklasifikasi');
       return;
     }
 
@@ -286,13 +364,64 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
             </div>
           </div>
 
+          {/* Kode Barang Baru - Now Required and Filtered by Golongan */}
           <div className="mt-4 space-y-2">
-            <Label>Kode Barang Baru (Opsional)</Label>
-            <Input
-              value={formData.kode_barang_baru}
-              onChange={(e) => setFormData({...formData, kode_barang_baru: e.target.value})}
-              placeholder="Kode barang setelah reklasifikasi (jika berbeda)"
-            />
+            <Label className="flex items-center gap-1">
+              Kode Barang Baru *
+              {!formData.golongan_baru && (
+                <span className="text-xs text-amber-600 font-normal ml-2">
+                  (Pilih golongan baru terlebih dahulu)
+                </span>
+              )}
+            </Label>
+            
+            {!formData.golongan_baru ? (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm flex items-center gap-2">
+                <AlertCircle size={16} />
+                <span>Pilih golongan baru terlebih dahulu untuk melihat daftar kode barang</span>
+              </div>
+            ) : loadingKodeBarang ? (
+              <div className="p-3 bg-slate-100 border rounded-lg text-slate-600 text-sm flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                <span>Memuat daftar kode barang...</span>
+              </div>
+            ) : kodeBarangOptions.length === 0 ? (
+              <div className="space-y-2">
+                <div className="p-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 text-sm">
+                  Tidak ada kode barang ditemukan untuk golongan ini. Masukkan kode barang secara manual:
+                </div>
+                <Input
+                  value={formData.kode_barang_baru}
+                  onChange={(e) => setFormData({...formData, kode_barang_baru: e.target.value})}
+                  placeholder="Masukkan kode barang baru"
+                />
+              </div>
+            ) : (
+              <Select 
+                value={formData.kode_barang_baru} 
+                onValueChange={(v) => setFormData({...formData, kode_barang_baru: v})}
+              >
+                <SelectTrigger className={!formData.kode_barang_baru ? 'border-amber-300' : ''}>
+                  <SelectValue placeholder="Pilih kode barang baru..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {kodeBarangOptions.map(kb => (
+                    <SelectItem key={kb.kode} value={kb.kode}>
+                      <div className="flex flex-col">
+                        <span className="font-mono font-medium">{kb.kode}</span>
+                        <span className="text-xs text-slate-500 truncate max-w-[300px]">{kb.nama}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {formData.golongan_baru && kodeBarangOptions.length > 0 && (
+              <p className="text-xs text-slate-500">
+                Menampilkan {kodeBarangOptions.length} kode barang untuk golongan {formData.golongan_baru}
+              </p>
+            )}
           </div>
         </div>
 
@@ -362,7 +491,7 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
         <div className="flex justify-end pt-4 border-t">
           <Button 
             onClick={handleSubmit} 
-            disabled={loading || (formData.golongan_awal === formData.golongan_baru && formData.golongan_baru)}
+            disabled={loading || !formData.kode_barang_baru || (formData.golongan_awal === formData.golongan_baru && formData.golongan_baru)}
             className={!isMasuk ? 'bg-red-600 hover:bg-red-700' : ''}
           >
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
