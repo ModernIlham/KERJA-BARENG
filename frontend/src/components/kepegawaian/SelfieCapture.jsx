@@ -24,30 +24,6 @@ export default function SelfieCapture({ onCapture, onLocationChange, disabled = 
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState('');
 
-  // Load face detection models
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        setLoadingModels(true);
-        
-        // Try to load from public folder first
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        
-        setModelsLoaded(true);
-        setLoadingModels(false);
-      } catch (error) {
-        console.error('Error loading face detection models:', error);
-        // If models fail to load, allow capture without detection
-        setModelsLoaded(false);
-        setLoadingModels(false);
-        setErrorMessage('Face detection tidak tersedia. Anda tetap dapat mengambil foto.');
-      }
-    };
-    
-    loadModels();
-    getLocation();
-  }, []);
-
   // Get current location
   const getLocation = useCallback(() => {
     setLocationLoading(true);
