@@ -346,24 +346,17 @@ export default function LaporanInti() {
             <div className="grid grid-cols-2 gap-3">
               <div className="border border-slate-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1">Distribusi Kondisi</h4>
-                <div className="h-24">
+                <div className="h-20">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={ka?.distribusi || []} cx="50%" cy="50%" innerRadius={25} outerRadius={40} dataKey="count" nameKey="label" isAnimationActive={!pdfMode}>
+                      <Pie data={ka?.distribusi || []} cx="50%" cy="50%" innerRadius={20} outerRadius={35} dataKey="count" nameKey="label" isAnimationActive={!pdfMode}>
                         {(ka?.distribusi || []).map((e, i) => <Cell key={i} fill={e.color} />)}
                       </Pie>
                       <Tooltip formatter={v => `${v} unit`} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="flex justify-center gap-3 text-[7px]">
-                  {(ka?.distribusi || []).map((d, i) => (
-                    <span key={i} className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full" style={{backgroundColor: d.color}}></span>
-                      {d.label}: {d.persentase}%
-                    </span>
-                  ))}
-                </div>
+                <ChartLegend items={(ka?.distribusi || []).map(d => ({ label: `${d.label} (${d.persentase}%)`, color: d.color }))} />
               </div>
               <MiniTable 
                 title="Kondisi per Kategori"
