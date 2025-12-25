@@ -169,7 +169,7 @@ export default function LaporanInti() {
 
           {/* SECTION I: ASET TETAP */}
           <Section num="I" title="Ringkasan Eksekutif - Aset Tetap">
-            <div className="grid grid-cols-5 gap-2 mb-2">
+            <div className="grid grid-cols-5 gap-1 mb-2">
               <MiniCard title="Tanah (1.3.1)" items={[
                 { label: 'Perolehan', value: fc(at.tanah?.nilai_perolehan) },
                 { label: 'Penyusutan', value: fc(at.tanah?.nilai_penyusutan) },
@@ -209,7 +209,7 @@ export default function LaporanInti() {
 
           {/* SECTION II: PERSEDIAAN, ATB, KDP */}
           <Section num="II" title="Aset Lancar, Tak Berwujud & KDP">
-            <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="grid grid-cols-3 gap-1 mb-2">
               <MiniCard title="Persediaan (1.1.5)" items={[
                 { label: 'Total Nilai', value: fc(re.persediaan?.total_nilai), highlight: true },
                 { label: 'Total Item', value: fn(re.persediaan?.total_item) },
@@ -257,7 +257,7 @@ export default function LaporanInti() {
 
           {/* SECTION IV: KONDISI ASET */}
           <Section num="IV" title="Kondisi Aset">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <div className="border border-slate-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1">Distribusi Kondisi</h4>
                 <div className="h-20">
@@ -291,7 +291,7 @@ export default function LaporanInti() {
         <A4Page pageNum={2} totalPages={totalPages} header={header}>
           {/* SECTION V: DETAIL ASET */}
           <Section num="V" title="Detail Aset per Sub-Kategori">
-            <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-2 gap-1.5 mb-3">
               <MiniTable 
                 title="Sub-Kategori Peralatan & Mesin"
                 columns={[
@@ -311,7 +311,7 @@ export default function LaporanInti() {
                 data={at.gedung_bangunan?.sub_kategori?.slice(0, 6) || []}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <MiniTable 
                 title="Lokasi Tanah"
                 columns={[
@@ -347,7 +347,7 @@ export default function LaporanInti() {
               ]}
               data={re.kdp?.proyek_aktif?.slice(0, 5) || []}
             />
-            <div className="mt-2 grid grid-cols-3 gap-2">
+            <div className="mt-2 grid grid-cols-3 gap-1">
               <StatBox value={re.kdp?.status_proyek?.on_track || 0} label="On Track" color="green" />
               <StatBox value={re.kdp?.status_proyek?.delayed || 0} label="Delayed" color="amber" />
               <StatBox value={`${re.kdp?.realisasi_anggaran?.persentase || 0}%`} label="Realisasi Anggaran" color="blue" />
@@ -356,7 +356,7 @@ export default function LaporanInti() {
 
           {/* SECTION VII: PELABELAN */}
           <Section num="VII" title="Manajemen Pelabelan Aset">
-            <div className="grid grid-cols-4 gap-2 mb-2">
+            <div className="grid grid-cols-4 gap-1 mb-2">
               <StatBox value={`${pa?.status_label?.persentase_terlabel || 0}%`} label="Terlabel" sub={`${fn(pa?.status_label?.terlabel)} unit`} color="green" />
               <StatBox value={`${(100 - (pa?.status_label?.persentase_terlabel || 0)).toFixed(1)}%`} label="Belum Label" sub={`${fn(pa?.status_label?.belum)} unit`} color="amber" />
               <StatBox value={`${pa?.status_cetak?.persentase_tercetak || 0}%`} label="Tercetak" sub={`${fn(pa?.status_cetak?.tercetak)} unit`} color="blue" />
@@ -377,7 +377,7 @@ export default function LaporanInti() {
 
           {/* SECTION VIII: PENGAMANAN */}
           <Section num="VIII" title="Pengamanan Aset BMN">
-            <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="grid grid-cols-3 gap-1 mb-2">
               <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded p-2 text-center">
                 <p className="text-lg font-bold">{pn?.tertib?.administrasi?.persentase || 0}%</p>
                 <p className="text-[8px] text-green-100">Tertib Administrasi</p>
@@ -391,7 +391,7 @@ export default function LaporanInti() {
                 <p className="text-[8px] text-purple-100">Tertib Hukum</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <div className="border border-slate-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1">Tren Pengamanan</h4>
                 <div className="h-20">
@@ -431,13 +431,13 @@ export default function LaporanInti() {
         <A4Page pageNum={3} totalPages={totalPages} header={header}>
           {/* SECTION IX: PERSEDIAAN */}
           <Section num="IX" title="Aset Lancar - Persediaan">
-            <div className="grid grid-cols-4 gap-2 mb-2">
+            <div className="grid grid-cols-4 gap-1 mb-2">
               <StatBox value={fc(ps?.nilai_persediaan?.total_nilai)} label="Total Nilai" color="blue" />
               <StatBox value={fn(ps?.nilai_persediaan?.total_item)} label="Total Item" color="slate" />
               <StatBox value={fc(ps?.mutasi?.masuk)} label="Masuk" color="green" />
               <StatBox value={fc(ps?.mutasi?.keluar)} label="Keluar" color="red" />
             </div>
-            <div className="grid grid-cols-2 gap-3 mb-2">
+            <div className="grid grid-cols-2 gap-1.5 mb-2">
               <div className="border border-slate-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1">Distribusi per Kategori</h4>
                 <div className="h-20">
@@ -484,7 +484,7 @@ export default function LaporanInti() {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <MiniTable 
                 title="Kapasitas Gudang"
                 columns={[
@@ -511,7 +511,7 @@ export default function LaporanInti() {
 
           {/* SECTION X: MANAJEMEN ASET KOMPREHENSIF */}
           <Section num="X" title="Manajemen Aset Komprehensif">
-            <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="grid grid-cols-3 gap-1 mb-2">
               {/* Manajemen Dokumen */}
               <MiniCard title="Kelengkapan Dokumen" items={[
                 { label: 'Dokumen Perolehan', value: '95%', highlight: true },
@@ -534,7 +534,7 @@ export default function LaporanInti() {
                 { label: 'Tingkat Utilisasi', value: '92%' }
               ]} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               {/* Penyusutan & Umur Ekonomis */}
               <div className="border border-slate-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1.5">Analisis Penyusutan</h4>
@@ -607,7 +607,7 @@ export default function LaporanInti() {
               ]}
               data={pn?.rencana_aksi || []}
             />
-            <div className="grid grid-cols-3 gap-2 mt-2">
+            <div className="grid grid-cols-3 gap-1 mt-2">
               <div className="bg-blue-50 border border-blue-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-blue-800 uppercase mb-1">Rekomendasi Pelabelan</h4>
                 <ul className="text-[7px] text-blue-700 space-y-0.5">
@@ -637,7 +637,7 @@ export default function LaporanInti() {
 
           {/* SECTION XII: DASAR HUKUM */}
           <Section num="XII" title="Dasar Hukum & Catatan">
-            <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-2 gap-1.5 mb-3">
               <div className="bg-slate-50 border border-slate-200 rounded p-2">
                 <h4 className="text-[7px] font-bold text-slate-700 uppercase border-b border-slate-200 mb-1.5 pb-1">Dasar Hukum</h4>
                 <ul className="space-y-1">
