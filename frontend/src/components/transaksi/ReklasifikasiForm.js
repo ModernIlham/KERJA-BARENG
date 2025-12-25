@@ -69,20 +69,23 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
       // Fetch barang filtered by golongan
       const res = await api.get('/api/barang', { 
         params: { 
-          golongan: golongan,
-          limit: 100 
+          limit: 200 
         } 
       });
       
-      // Get unique kode_barang from the results
+      // Get unique kode_barang from the results, filtered by golongan (first character of kode_barang)
       const uniqueKodes = [];
       const seenKodes = new Set();
       
       (res.data.data || []).forEach(item => {
-        if (item.kode_barang && !seenKodes.has(item.kode_barang)) {
-          seenKodes.add(item.kode_barang);
+        // Filter by golongan - check if kode_barang starts with the selected golongan number
+        const kodeBarang = item.kode_barang || '';
+        const itemGolongan = kodeBarang.substring(0, 1);
+        
+        if (itemGolongan === golongan && kodeBarang && !seenKodes.has(kodeBarang)) {
+          seenKodes.add(kodeBarang);
           uniqueKodes.push({
-            kode: item.kode_barang,
+            kode: kodeBarang,
             nama: item.nama_barang
           });
         }
@@ -95,10 +98,11 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
         });
         if (refRes.data && refRes.data.length > 0) {
           refRes.data.forEach(item => {
-            if (item.kode && !seenKodes.has(item.kode)) {
-              seenKodes.add(item.kode);
+            const itemKode = item.kode || '';
+            if (itemKode && !seenKodes.has(itemKode) && itemKode.startsWith(golongan)) {
+              seenKodes.add(itemKode);
               uniqueKodes.push({
-                kode: item.kode,
+                kode: itemKode,
                 nama: item.nama || item.uraian
               });
             }
