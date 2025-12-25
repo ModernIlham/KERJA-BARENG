@@ -6,7 +6,7 @@ import time
 import json
 
 class OrganizationalStructureTester:
-    def __init__(self, base_url="https://transctl.preview.emergentagent.com"):
+    def __init__(self, base_url="https://inventory-pro-123.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
