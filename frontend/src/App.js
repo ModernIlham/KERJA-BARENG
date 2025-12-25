@@ -75,8 +75,7 @@ export default function App() {
             
             {/* New Simplified Transaction Routes */}
             <Route path="transaksi-aset" element={<TransaksiAset />} />
-            <Route path="transaksi-persediaan" element={<Navigate to="/transaksi-persediaan/riwayat" replace />} />
-            <Route path="transaksi-persediaan/:type" element={<TransaksiPersediaanWrapper />} />
+            <Route path="transaksi-persediaan" element={<TransaksiPersediaan />} />
             
             <Route path="opname" element={<StockOpname />} />
             
