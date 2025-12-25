@@ -50,9 +50,9 @@ const A4Page = ({ children, pageNum, totalPages, header }) => (
 
 const Section = ({ num, title, children }) => (
   <div className="mb-3">
-    <div className="flex items-center gap-1.5 border-b-2 border-slate-700" style={{ marginBottom: '8px', paddingBottom: '4px' }}>
-      <span className="bg-slate-900 text-white text-[8px] font-bold rounded" style={{ padding: '2px 6px', lineHeight: '1.2' }}>{num}</span>
-      <h2 className="text-[10px] font-bold text-slate-900 uppercase" style={{ margin: 0, lineHeight: '1.2' }}>{title}</h2>
+    <div className="flex items-center gap-1.5 mb-2 pb-1 border-b-2 border-slate-700">
+      <span className="bg-slate-900 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">{num}</span>
+      <h2 className="text-[10px] font-bold text-slate-900 uppercase">{title}</h2>
     </div>
     {children}
   </div>
@@ -60,14 +60,14 @@ const Section = ({ num, title, children }) => (
 
 const MiniCard = ({ title, items, className = '' }) => (
   <div className={`border border-slate-200 rounded text-[8px] ${className}`}>
-    <div className="bg-slate-100 border-b border-slate-200" style={{ padding: '6px 8px' }}>
-      <h3 className="font-bold text-slate-700 uppercase text-[7px]" style={{ lineHeight: '1.2', margin: 0 }}>{title}</h3>
+    <div className="bg-slate-100 px-2 py-1.5 border-b border-slate-200">
+      <h3 className="font-bold text-slate-700 uppercase text-[7px]">{title}</h3>
     </div>
     <div className="divide-y divide-slate-100">
       {items.map((item, i) => (
-        <div key={i} className={`flex justify-between items-center ${item.highlight ? 'bg-blue-50' : ''}`} style={{ padding: '5px 8px' }}>
-          <span className="text-slate-600" style={{ lineHeight: '1.3' }}>{item.label}</span>
-          <span className={`font-bold ${item.highlight ? 'text-blue-700' : item.danger ? 'text-red-600' : 'text-slate-800'}`} style={{ lineHeight: '1.3' }}>{item.value}</span>
+        <div key={i} className={`px-2 py-1.5 flex justify-between items-center ${item.highlight ? 'bg-blue-50' : ''}`}>
+          <span className="text-slate-600">{item.label}</span>
+          <span className={`font-bold ${item.highlight ? 'text-blue-700' : item.danger ? 'text-red-600' : 'text-slate-800'}`}>{item.value}</span>
         </div>
       ))}
     </div>
@@ -76,12 +76,12 @@ const MiniCard = ({ title, items, className = '' }) => (
 
 const MiniTable = ({ columns, data, title }) => (
   <div className="border border-slate-200 rounded overflow-hidden text-[8px]">
-    {title && <div className="bg-slate-100 border-b border-slate-200 font-bold text-slate-700 uppercase text-[7px]" style={{ padding: '6px 8px', lineHeight: '1.2' }}>{title}</div>}
-    <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+    {title && <div className="bg-slate-100 px-2 py-1.5 border-b border-slate-200 font-bold text-slate-700 uppercase text-[7px]">{title}</div>}
+    <table className="w-full">
       <thead>
         <tr className="bg-slate-50 border-b border-slate-200">
           {columns.map((col, i) => (
-            <th key={i} className={`text-[7px] font-bold text-slate-600 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`} style={{ padding: '6px 6px', lineHeight: '1.2', verticalAlign: 'middle' }}>{col.header}</th>
+            <th key={i} className={`px-1.5 py-1.5 text-[7px] font-bold text-slate-600 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>{col.header}</th>
           ))}
         </tr>
       </thead>
@@ -89,7 +89,7 @@ const MiniTable = ({ columns, data, title }) => (
         {data.map((row, i) => (
           <tr key={i} className={i % 2 === 0 ? '' : 'bg-slate-50/50'}>
             {columns.map((col, j) => (
-              <td key={j} className={`${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''} ${col.bold ? 'font-bold' : ''}`} style={{ padding: '5px 6px', lineHeight: '1.3', verticalAlign: 'middle' }}>
+              <td key={j} className={`px-1.5 py-1 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''} ${col.bold ? 'font-bold' : ''}`}>
                 {col.render ? col.render(row[col.key], row) : row[col.key]}
               </td>
             ))}
@@ -110,20 +110,20 @@ const StatBox = ({ value, label, sub, color = 'slate' }) => {
     slate: 'bg-slate-50 border-slate-200 text-slate-700'
   };
   return (
-    <div className={`text-center rounded border ${colors[color]}`} style={{ padding: '8px' }}>
-      <p className="text-sm font-bold" style={{ lineHeight: '1.2', margin: 0 }}>{value}</p>
-      <p className="text-[7px] text-slate-500" style={{ lineHeight: '1.2', marginTop: '3px', marginBottom: 0 }}>{label}</p>
-      {sub && <p className="text-[6px] text-slate-400" style={{ lineHeight: '1.2', marginTop: '2px', marginBottom: 0 }}>{sub}</p>}
+    <div className={`text-center p-2 rounded border ${colors[color]}`}>
+      <p className="text-sm font-bold">{value}</p>
+      <p className="text-[7px] text-slate-500 mt-0.5">{label}</p>
+      {sub && <p className="text-[6px] text-slate-400 mt-0.5">{sub}</p>}
     </div>
   );
 };
 
 // Chart Legend Component
 const ChartLegend = ({ items }) => (
-  <div className="flex flex-wrap justify-center gap-2 mt-1 text-[7px]" style={{ marginTop: '4px' }}>
+  <div className="flex flex-wrap justify-center gap-2 mt-1 text-[7px]">
     {items.map((item, i) => (
-      <span key={i} className="flex items-center gap-1" style={{ lineHeight: '1.2' }}>
-        <span className="rounded-sm" style={{ width: '10px', height: '10px', backgroundColor: item.color, flexShrink: 0 }}></span>
+      <span key={i} className="flex items-center gap-1">
+        <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: item.color }}></span>
         <span className="text-slate-600">{item.label}</span>
       </span>
     ))}
