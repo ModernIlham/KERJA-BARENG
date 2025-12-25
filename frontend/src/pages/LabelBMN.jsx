@@ -1874,7 +1874,14 @@ function StickerDesignTab({ instansi, qrSettings }) {
   const [editingDesign, setEditingDesign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showEditor, setShowEditor] = useState(false);
+  const [showQRTemplates, setShowQRTemplates] = useState(false);
+  
+  // Function to apply QR template
+  const setQrSettingsFromTemplate = (template) => {
+    // This would need to be passed up to parent to update qrSettings
+    // For now, just show toast
+    toast.success(`Template QR "${template.name}" dipilih`);
+  };
   
   // Load designs
   useEffect(() => {
