@@ -39,10 +39,10 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
     fetchGolonganOptions();
   }, []);
 
-  // Fetch kode barang when golongan_baru changes
+  // Fetch kode barang when golongan_baru changes - from Referensi Kodefikasi BMN
   useEffect(() => {
     if (formData.golongan_baru) {
-      fetchKodeBarangByGolongan(formData.golongan_baru);
+      fetchKodeBarangFromReferensi(formData.golongan_baru);
       // Reset kode_barang_baru when golongan changes
       setFormData(prev => ({ ...prev, kode_barang_baru: '' }));
     } else {
@@ -52,8 +52,13 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
 
   const fetchGolonganOptions = async () => {
     try {
+      // Try to get golongan from referensi kodefikasi first
       const res = await api.get('/api/referensi/golongan');
-      setGolonganOptions(res.data || []);
+      if (res.data && res.data.length > 0) {
+        setGolonganOptions(res.data);
+      } else {
+        throw new Error('Empty golongan data');
+      }
     } catch (e) {
       // Fallback options
       setGolonganOptions([
@@ -68,21 +73,42 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
     }
   };
 
-  const fetchKodeBarangByGolongan = async (golongan) => {
+  // Fetch kode barang from Referensi Kodefikasi BMN
+  const fetchKodeBarangFromReferensi = async (golongan) => {
     setLoadingKodeBarang(true);
     try {
-      // Fetch ALL barang without limit to get complete list
-      const res = await api.get('/api/barang', { 
-        params: { 
-          limit: 10000 
-        } 
+      // Get kode barang from referensi kodefikasi filtered by golongan
+      const res = await api.get(`/api/referensi/by-golongan/${golongan}`, {
+        params: { limit: 1000 }
       });
       
-      // Get unique kode_barang from the results, filtered by golongan
+      if (res.data && res.data.length > 0) {
+        setKodeBarangOptions(res.data.map(item => ({
+          kode: item.kode,
+          nama: item.uraian
+        })));
+      } else {
+        // Fallback: try to get from existing barang collection
+        await fetchKodeBarangFromBarang(golongan);
+      }
+    } catch (e) {
+      console.error('Error fetching from referensi:', e);
+      // Fallback: try to get from existing barang collection
+      await fetchKodeBarangFromBarang(golongan);
+    } finally {
+      setLoadingKodeBarang(false);
+    }
+  };
+
+  // Fallback: fetch from barang collection
+  const fetchKodeBarangFromBarang = async (golongan) => {
+    try {
+      const res = await api.get('/api/barang', { 
+        params: { limit: 10000 } 
+      });
+      
       const uniqueKodes = [];
       const seenKodes = new Set();
-      
-      // Find golongan name from options
       const golonganInfo = golonganOptions.find(g => g.kode === golongan);
       const golonganNama = golonganInfo ? golonganInfo.nama.toLowerCase() : '';
       
@@ -91,13 +117,7 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
         const itemGolongan = item.golongan_barang || '';
         const itemGolonganLower = itemGolongan.toLowerCase();
         
-        // Strict filter - match by golongan name in golongan_barang field
-        // e.g., if golongan selected is "1 - Tanah", match items with golongan_barang containing "tanah"
-        // e.g., if golongan selected is "2 - Peralatan dan Mesin", match items with "peralatan" in golongan_barang
-        
         let matchesGolongan = false;
-        
-        // Only match by golongan nama (strict match)
         if (golonganNama && itemGolonganLower.includes(golonganNama)) {
           matchesGolongan = true;
         }
@@ -106,21 +126,16 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
           seenKodes.add(kodeBarang);
           uniqueKodes.push({
             kode: kodeBarang,
-            nama: item.nama_barang,
-            golongan_display: itemGolongan
+            nama: item.nama_barang
           });
         }
       });
       
-      // Sort by kode
       uniqueKodes.sort((a, b) => a.kode.localeCompare(b.kode));
-      
       setKodeBarangOptions(uniqueKodes);
     } catch (e) {
-      console.error('Error fetching kode barang:', e);
+      console.error('Error fetching from barang:', e);
       setKodeBarangOptions([]);
-    } finally {
-      setLoadingKodeBarang(false);
     }
   };
 
