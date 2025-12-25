@@ -1493,7 +1493,11 @@ function PrintHistoryTab() {
                           {STICKER_SIZES[log.ukuran]?.label || log.ukuran}
                         </Badge>
                       </td>
-                      <td className="p-3 text-gray-500">{log.printed_by || 'System'}</td>
+                      <td className="p-3 text-gray-500 text-sm max-w-[150px] truncate">
+                        {typeof log.printed_by === 'object' 
+                          ? (log.printed_by?.full_name || log.printed_by?.email || 'Admin')
+                          : (log.printed_by || 'System')}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
