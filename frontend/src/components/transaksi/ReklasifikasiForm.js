@@ -24,6 +24,7 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
   
   const [formData, setFormData] = useState({
     no_sppa: '',
+    no_sppa_2: '',
     tanggal_transaksi: new Date().toISOString().split('T')[0],
     golongan_baru: '',
     kode_barang_baru: '',
@@ -115,7 +116,7 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
       toast.error('Pilih aset terlebih dahulu');
       return;
     }
-    if (!formData.no_sppa.trim()) {
+    if (!formData.no_sppa.trim() && !formData.no_sppa_2.trim()) {
       toast.error('No SPPA wajib diisi');
       return;
     }
@@ -148,7 +149,7 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
             kode_barang: asset.kode_barang,
             nup: asset.nup,
             nama_barang: asset.nama_barang,
-            no_sppa: formData.no_sppa,
+            no_sppa: `${formData.no_sppa}${formData.no_sppa_2 ? '/' + formData.no_sppa_2 : ''}`.trim(),
             tanggal_transaksi: formData.tanggal_transaksi,
             golongan_awal: asset.golongan_barang || asset.kode_barang?.substring(0, 1) || '',
             golongan_baru: formData.golongan_baru,
@@ -183,6 +184,7 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
       setSearch('');
       setFormData({
         no_sppa: '',
+        no_sppa_2: '',
         tanggal_transaksi: new Date().toISOString().split('T')[0],
         golongan_baru: '',
         kode_barang_baru: '',
@@ -331,12 +333,20 @@ export default function ReklasifikasiForm({ onSuccess, direction = 'MASUK' }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">No SPPA *</Label>
-                <Input
-                  value={formData.no_sppa}
-                  onChange={(e) => setFormData({...formData, no_sppa: e.target.value})}
-                  placeholder="Masukkan No SPPA"
-                  className="bg-white"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.no_sppa}
+                    onChange={(e) => setFormData({...formData, no_sppa: e.target.value})}
+                    placeholder="Prefix..."
+                    className="bg-white flex-1"
+                  />
+                  <Input
+                    value={formData.no_sppa_2}
+                    onChange={(e) => setFormData({...formData, no_sppa_2: e.target.value})}
+                    placeholder="Nomor SPPA..."
+                    className="bg-white flex-[2]"
+                  />
+                </div>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Tanggal Transaksi *</Label>
