@@ -625,11 +625,13 @@ async def create_transaksi_perubahan(
     # Log activity
     await log_activity(
         db,
-        entity_type="transaksi",
-        entity_id=str(result.inserted_id),
+        user_id=str(current_user.id) if hasattr(current_user, 'id') else "system",
+        user_name=current_user.full_name if hasattr(current_user, 'full_name') else "System",
         action=f"create_{jenis.lower()}",
-        description=f"Transaksi {jenis} untuk {asset.get('nama_barang')}",
-        user_name=current_user.full_name
+        module="transaksi",
+        target_id=str(result.inserted_id),
+        details=f"Transaksi {jenis} untuk {asset.get('nama_barang')}",
+        metadata={"jenis": jenis, "barang_id": barang_id}
     )
     
     return {
