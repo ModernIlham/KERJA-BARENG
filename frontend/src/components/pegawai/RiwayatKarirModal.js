@@ -63,7 +63,7 @@ export default function RiwayatKarirModal({ isOpen, onClose, pegawai }) {
                                     
                                     {item.deskripsi && (
                                         <p className="text-xs text-slate-500 italic mt-1 border-t border-slate-200 pt-1">
-                                            "{item.deskripsi}"
+                                            &quot;{item.deskripsi}&quot;
                                         </p>
                                     )}
                                     

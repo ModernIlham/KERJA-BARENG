@@ -132,9 +132,9 @@ export default function BankManager() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700">
                 <strong>Info:</strong> Bank yang ditambahkan akan otomatis muncul di:
                 <ul className="mt-1 list-disc list-inside">
-                    <li>Dropdown "Nama Bank" di form Pegawai</li>
+                    <li>Dropdown &quot;Nama Bank&quot; di form Pegawai</li>
                     <li>Pilihan dropdown di Template Import Excel</li>
-                    <li>Sheet "Referensi Data" di Template Excel</li>
+                    <li>Sheet &quot;Referensi Data&quot; di Template Excel</li>
                 </ul>
             </div>
 
