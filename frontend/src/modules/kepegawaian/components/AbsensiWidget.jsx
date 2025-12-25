@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Camera, MapPin, Clock, RefreshCw, XCircle, CheckCircle2, ExternalLink, LogIn, LogOut } from 'lucide-react';
+import { Camera, MapPin, Clock, CheckCircle2, ExternalLink, LogIn, LogOut, AlertCircle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import Webcam from 'react-webcam';
+import SelfieCapture from '@/components/kepegawaian/SelfieCapture';
 import api from '../../../api/axios';
 import { toast } from 'sonner';
 
@@ -16,12 +16,15 @@ const AbsensiWidget = () => {
   const [todayData, setTodayData] = useState(null);
   const [loading, setLoading] = useState(false);
   
-  // Camera & Location
-  const webcamRef = useRef(null);
-  const [showCamera, setShowCamera] = useState(false);
+  // Modal states
+  const [clockInModalOpen, setClockInModalOpen] = useState(false);
+  const [clockOutModalOpen, setClockOutModalOpen] = useState(false);
+  
+  // Capture states
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
   const [location, setLocation] = useState(null);
-  const [locationError, setLocationError] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   
   // Photo dialog
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
@@ -53,79 +56,58 @@ const AbsensiWidget = () => {
     }
   };
 
-  const getLocation = () => {
-    return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-            reject("Geolocation not supported");
-        } else {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    });
-                    resolve(position.coords);
-                },
-                (error) => {
-                    setLocationError("Gagal mendapatkan lokasi: " + error.message);
-                    reject(error);
-                }
-            );
-        }
-    });
-  };
-
-  const handleCapture = useCallback(() => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    setCapturedImage(imageSrc);
-    setShowCamera(false);
-  }, [webcamRef]);
-
-  const handleProcess = async () => {
-    if (!capturedImage) {
-        setShowCamera(true);
-        return;
+  const handleSubmit = async (type) => {
+    if (!capturedPhoto) {
+      toast.error('Silakan ambil foto terlebih dahulu');
+      return;
     }
     
-    setLoading(true);
+    if (!location) {
+      toast.error('Lokasi belum terdeteksi. Mohon izinkan akses lokasi dan refresh.');
+      return;
+    }
+
+    setSubmitting(true);
+    
     try {
-        let loc = location;
-        if (!loc) {
-            try {
-                const pos = await getLocation();
-                loc = { lat: pos.latitude, lng: pos.longitude };
-            } catch (e) {
-                toast.error("Wajib mengaktifkan lokasi untuk absensi!");
-                setLoading(false);
-                return;
-            }
+      const endpoint = type === 'clock-in' 
+        ? '/api/kepegawaian/attendance/clock-in' 
+        : '/api/kepegawaian/attendance/clock-out';
+      
+      const payload = {
+        photo: capturedPhoto,
+        location: {
+          lat: location.lat,
+          lng: location.lng,
+          accuracy: location.accuracy,
+          address: location.address
         }
-
-        const payload = {
-            photo: capturedImage,
-            location: loc
-        };
-
-        if (status === 'out') {
-            await api.post('/api/kepegawaian/attendance/clock-in', payload);
-            toast.success("Berhasil Clock In!");
-        } else if (status === 'in') {
-            await api.post('/api/kepegawaian/attendance/clock-out', payload);
-            toast.success("Berhasil Clock Out!");
-        }
-        
-        setCapturedImage(null);
-        fetchTodayStatus(); // Refresh data
-    } catch (e) {
-        toast.error(e.response?.data?.detail || "Gagal memproses absensi");
+      };
+      
+      await api.post(endpoint, payload);
+      
+      setSuccess(true);
+      toast.success(type === 'clock-in' ? 'Clock In berhasil!' : 'Clock Out berhasil!');
+      
+      setTimeout(() => {
+        handleCloseModal();
+        fetchTodayStatus();
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Attendance error:', error);
+      toast.error(error.response?.data?.detail || 'Gagal melakukan absensi');
     } finally {
-        setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  const retakePhoto = () => {
-      setCapturedImage(null);
-      setShowCamera(true);
+  const handleCloseModal = () => {
+    setCapturedPhoto(null);
+    setLocation(null);
+    setSuccess(false);
+    setClockInModalOpen(false);
+    setClockOutModalOpen(false);
   };
 
   const openPhotoDialog = (photoUrl) => {
@@ -149,6 +131,8 @@ const AbsensiWidget = () => {
       return `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
   };
 
+  const isClockIn = !todayData || !todayData.clock_in;
+
   return (
     <Card className="w-full border-slate-200 shadow-sm">
       <CardHeader className="pb-2">
@@ -164,7 +148,7 @@ const AbsensiWidget = () => {
           {format(currentTime, 'EEEE, d MMMM yyyy', { locale: id })}
         </div>
         
-        {/* Today's Attendance Detail - Like RiwayatAbsensi */}
+        {/* Today's Attendance Detail */}
         {todayData && (
           <div className="space-y-4">
             {/* Status Badge & Jam Kerja */}
@@ -284,62 +268,17 @@ const AbsensiWidget = () => {
           </div>
         )}
 
-        {/* Camera View */}
-        {showCamera && (
-            <div className="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center">
-                <Webcam
-                    audio={false}
-                    ref={webcamRef}
-                    screenshotFormat="image/jpeg"
-                    className="w-full h-full object-cover"
-                    videoConstraints={{ facingMode: "user" }}
-                />
-                <Button size="sm" className="absolute bottom-2 bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white border-white/50" onClick={handleCapture}>
-                    <Camera className="mr-2 h-4 w-4" /> Ambil Foto
-                </Button>
-                <Button size="icon" variant="ghost" className="absolute top-2 right-2 text-white" onClick={() => setShowCamera(false)}>
-                    <XCircle />
-                </Button>
-            </div>
-        )}
-
-        {/* Captured Preview */}
-        {capturedImage && !showCamera && (
-            <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
-                <img src={capturedImage} alt="Selfie" className="w-full h-full object-cover" />
-                <Button size="sm" variant="secondary" className="absolute bottom-2 right-2 text-xs" onClick={retakePhoto}>
-                    <RefreshCw className="mr-1 h-3 w-3" /> Foto Ulang
-                </Button>
-            </div>
-        )}
-        
-        {/* Location Status */}
-        <div className="text-xs text-center text-slate-400 flex items-center justify-center gap-1">
-            <MapPin size={12} /> 
-            {location ? "Lokasi Terdeteksi" : locationError ? <span className="text-red-400">Lokasi Error</span> : "Menunggu Lokasi..."}
-        </div>
-
         {/* Action Button */}
         {status !== 'completed' ? (
             <Button 
                 className={`w-full ${status === 'out' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'} text-white`}
-                onClick={handleProcess}
+                onClick={() => status === 'out' ? setClockInModalOpen(true) : setClockOutModalOpen(true)}
                 disabled={loading}
             >
-                {loading ? "Memproses..." : (
-                  capturedImage ? (
-                    status === 'out' ? (
-                      <><LogIn size={16} className="mr-2"/> Konfirmasi Clock In</>
-                    ) : (
-                      <><LogOut size={16} className="mr-2"/> Konfirmasi Clock Out</>
-                    )
-                  ) : (
-                    status === 'out' ? (
-                      <><Camera size={16} className="mr-2"/> Ambil Foto & Clock In</>
-                    ) : (
-                      <><Camera size={16} className="mr-2"/> Ambil Foto & Clock Out</>
-                    )
-                  )
+                {status === 'out' ? (
+                  <><LogIn size={16} className="mr-2"/> Clock In</>
+                ) : (
+                  <><LogOut size={16} className="mr-2"/> Clock Out</>
                 )}
             </Button>
         ) : (
@@ -348,6 +287,136 @@ const AbsensiWidget = () => {
                 Absensi hari ini sudah lengkap
             </div>
         )}
+        
+        {/* Clock In Modal */}
+        <Dialog open={clockInModalOpen} onOpenChange={handleCloseModal}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Clock className="text-blue-600" size={20} />
+                Clock In - Masuk Kerja
+              </DialogTitle>
+              <DialogDescription>
+                Ambil foto selfie dengan deteksi wajah dan pastikan lokasi Anda terdeteksi.
+              </DialogDescription>
+            </DialogHeader>
+
+            {success ? (
+              <div className="py-12 flex flex-col items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-4 animate-in zoom-in">
+                  <CheckCircle2 size={48} className="text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold text-green-700 mb-1">Clock In Berhasil!</h3>
+                <p className="text-slate-500 text-sm">
+                  {format(new Date(), 'EEEE, d MMMM yyyy - HH:mm', { locale: id })}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <SelfieCapture 
+                  onCapture={setCapturedPhoto}
+                  onLocationChange={setLocation}
+                  disabled={submitting}
+                />
+                
+                {/* Location Warning */}
+                {!location && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                    <AlertCircle size={16} />
+                    <span>Lokasi wajib terdeteksi untuk absensi. Mohon izinkan akses lokasi.</span>
+                  </div>
+                )}
+                
+                <div className="flex gap-3 pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCloseModal} 
+                    className="flex-1"
+                    disabled={submitting}
+                  >
+                    Batal
+                  </Button>
+                  <Button 
+                    onClick={() => handleSubmit('clock-in')}
+                    disabled={!capturedPhoto || !location || submitting}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  >
+                    {submitting ? (
+                      <><Loader2 size={16} className="mr-2 animate-spin" /> Memproses...</>
+                    ) : (
+                      <><Clock size={16} className="mr-2" /> Clock In</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Clock Out Modal */}
+        <Dialog open={clockOutModalOpen} onOpenChange={handleCloseModal}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Clock className="text-orange-600" size={20} />
+                Clock Out - Pulang Kerja
+              </DialogTitle>
+              <DialogDescription>
+                Ambil foto selfie dengan deteksi wajah dan pastikan lokasi Anda terdeteksi.
+              </DialogDescription>
+            </DialogHeader>
+
+            {success ? (
+              <div className="py-12 flex flex-col items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-4 animate-in zoom-in">
+                  <CheckCircle2 size={48} className="text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold text-green-700 mb-1">Clock Out Berhasil!</h3>
+                <p className="text-slate-500 text-sm">
+                  {format(new Date(), 'EEEE, d MMMM yyyy - HH:mm', { locale: id })}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <SelfieCapture 
+                  onCapture={setCapturedPhoto}
+                  onLocationChange={setLocation}
+                  disabled={submitting}
+                />
+                
+                {/* Location Warning */}
+                {!location && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                    <AlertCircle size={16} />
+                    <span>Lokasi wajib terdeteksi untuk absensi. Mohon izinkan akses lokasi.</span>
+                  </div>
+                )}
+                
+                <div className="flex gap-3 pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCloseModal} 
+                    className="flex-1"
+                    disabled={submitting}
+                  >
+                    Batal
+                  </Button>
+                  <Button 
+                    onClick={() => handleSubmit('clock-out')}
+                    disabled={!capturedPhoto || !location || submitting}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700"
+                  >
+                    {submitting ? (
+                      <><Loader2 size={16} className="mr-2 animate-spin" /> Memproses...</>
+                    ) : (
+                      <><Clock size={16} className="mr-2" /> Clock Out</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
         
         {/* Photo Dialog */}
         <Dialog open={photoDialogOpen} onOpenChange={setPhotoDialogOpen}>
