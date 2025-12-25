@@ -328,7 +328,7 @@ export default function LaporanRingkas() {
         </main>
 
         {/* Footer */}
-        <footer className="absolute bottom-0 left-0 right-0 px-6 py-2 border-t border-slate-200 flex justify-between text-[8px] text-slate-400">
+        <footer className="absolute bottom-0 left-0 right-0 px-4 py-1.5 border-t border-slate-200 flex justify-between text-[7px] text-slate-400">
           <span>LAPORAN RINGKAS BMN - Executive Summary</span>
           <span>{header?.tanggal}</span>
         </footer>
@@ -336,53 +336,73 @@ export default function LaporanRingkas() {
 
       <style>{`
         @media print {
-          /* Hide everything except report content */
-          body { 
+          /* Reset everything */
+          *, *::before, *::after {
+            box-sizing: border-box !important;
+          }
+          
+          /* Body reset for print */
+          html, body { 
             -webkit-print-color-adjust: exact !important; 
             print-color-adjust: exact !important; 
             margin: 0 !important; 
             padding: 0 !important;
             width: 210mm !important;
-            overflow: hidden !important;
+            height: 297mm !important;
+            overflow: visible !important;
+            background: white !important;
           }
           
-          /* Hide elements not needed for print */
-          .no-print, 
-          header, 
-          aside, 
+          /* Hide ALL UI elements except content */
+          .no-print,
           nav,
+          aside,
           [class*="sidebar"],
-          [class*="Sidebar"] { 
-            display: none !important; 
+          [class*="Sidebar"],
+          [class*="sticky"],
+          [class*="fixed"] { 
+            display: none !important;
+            visibility: hidden !important;
           }
           
-          /* Reset page container */
-          .min-h-screen { 
-            min-height: 0 !important; 
+          /* Reset all containers */
+          .min-h-screen,
+          .bg-slate-200,
+          .bg-slate-50,
+          .print-container,
+          [class*="md:ml-"] {
+            min-height: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
-          }
-          
-          /* Fix main content area */
-          [class*="md:ml-"] {
             margin-left: 0 !important;
+            background: transparent !important;
             width: 100% !important;
           }
           
-          /* A4 Page styling */
+          /* A4 Page - exact sizing */
           .a4-page { 
-            width: 210mm !important; 
-            min-height: 297mm !important; 
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
             max-width: 210mm !important;
-            margin: 0 auto !important; 
-            box-shadow: none !important; 
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
             overflow: hidden !important;
+            position: relative !important;
           }
           
           /* Page setup */
           @page { 
-            size: A4 portrait; 
-            margin: 0; 
+            size: 210mm 297mm;
+            margin: 0;
+          }
+        }
+        
+        /* Screen styles for preview */
+        @media screen {
+          .a4-page {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
           }
         }
       `}</style>
