@@ -555,7 +555,7 @@ export default function AssetPengembanganForm({ onSuccess }) {
                         {dokumenList.length === 0 ? (
                             <div className="text-center py-8 text-slate-500">
                                 Tidak ada dokumen pengembangan tersimpan.<br/>
-                                <span className="text-xs">Silakan rekam dokumen dengan Kategori "Aset Tetap Pengembangan Langsung" terlebih dahulu.</span>
+                                <span className="text-xs">Silakan rekam dokumen dengan Kategori &quot;Aset Tetap Pengembangan Langsung&quot; terlebih dahulu.</span>
                             </div>
                         ) : (
                             <table className="w-full text-sm border-collapse">
