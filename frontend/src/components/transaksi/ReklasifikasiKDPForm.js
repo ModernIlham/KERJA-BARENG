@@ -17,6 +17,7 @@ export default function ReklasifikasiKDPForm({ onSuccess }) {
   
   const [formData, setFormData] = useState({
     no_sppa: '',
+    no_sppa_2: '',
     tanggal_transaksi: new Date().toISOString().split('T')[0],
     nilai_yang_dipindahkan: 0,
     alasan_reklasifikasi: '',
@@ -65,7 +66,7 @@ export default function ReklasifikasiKDPForm({ onSuccess }) {
       toast.error('KDP asal dan tujuan tidak boleh sama');
       return;
     }
-    if (!formData.no_sppa.trim()) {
+    if (!formData.no_sppa.trim() && !formData.no_sppa_2.trim()) {
       toast.error('No SPPA wajib diisi');
       return;
     }
@@ -94,7 +95,7 @@ export default function ReklasifikasiKDPForm({ onSuccess }) {
         kdp_tujuan_nama: selectedKDPTujuan.nama_barang,
         kdp_tujuan_nilai_awal: selectedKDPTujuan.nilai_buku || selectedKDPTujuan.nilai_perolehan,
         // Transaction details
-        no_sppa: formData.no_sppa,
+        no_sppa: `${formData.no_sppa}${formData.no_sppa_2 ? '/' + formData.no_sppa_2 : ''}`.trim(),
         tanggal_transaksi: formData.tanggal_transaksi,
         nilai_yang_dipindahkan: formData.nilai_yang_dipindahkan,
         alasan_reklasifikasi: formData.alasan_reklasifikasi,
@@ -110,6 +111,7 @@ export default function ReklasifikasiKDPForm({ onSuccess }) {
       setSelectedKDPTujuan(null);
       setFormData({
         no_sppa: '',
+        no_sppa_2: '',
         tanggal_transaksi: new Date().toISOString().split('T')[0],
         nilai_yang_dipindahkan: 0,
         alasan_reklasifikasi: '',
@@ -240,11 +242,20 @@ export default function ReklasifikasiKDPForm({ onSuccess }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>No SPPA *</Label>
-            <Input
-              value={formData.no_sppa}
-              onChange={(e) => setFormData({...formData, no_sppa: e.target.value})}
-              placeholder="Masukkan No SPPA"
-            />
+            <div className="flex gap-2">
+              <Input
+                value={formData.no_sppa}
+                onChange={(e) => setFormData({...formData, no_sppa: e.target.value})}
+                placeholder="Prefix..."
+                className="flex-1"
+              />
+              <Input
+                value={formData.no_sppa_2}
+                onChange={(e) => setFormData({...formData, no_sppa_2: e.target.value})}
+                placeholder="Nomor SPPA..."
+                className="flex-[2]"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Tanggal Transaksi *</Label>
