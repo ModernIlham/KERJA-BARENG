@@ -637,3 +637,150 @@ async def create_transaksi_perubahan(
         "id": str(result.inserted_id),
         "jenis": jenis
     }
+
+
+@router.get("/reklasifikasi/pending")
+async def get_pending_reklasifikasi(
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Get list of Reklasifikasi Keluar transactions that are pending for Reklasifikasi Masuk.
+    """
+    cursor = db.transaksi.find({
+        "jenis": "REKLASIFIKASI_KELUAR",
+        "status": "PENDING_MASUK"
+    }).sort("created_at", -1)
+    
+    items = await cursor.to_list(None)
+    
+    # Enrich with asset data
+    result = []
+    for item in items:
+        if "_id" in item:
+            item["id"] = str(item["_id"])
+            del item["_id"]
+        
+        # Get current asset data
+        if item.get("barang_id") and ObjectId.is_valid(item.get("barang_id")):
+            asset = await db.barang.find_one({"_id": ObjectId(item["barang_id"])})
+            if asset:
+                item["asset_info"] = {
+                    "nama_barang": asset.get("nama_barang"),
+                    "kode_barang": asset.get("kode_barang"),
+                    "nup": asset.get("nup"),
+                    "golongan_barang": asset.get("golongan_barang"),
+                    "nilai_perolehan": asset.get("nilai_perolehan"),
+                    "nilai_buku": asset.get("nilai_buku"),
+                    "kondisi": asset.get("kondisi"),
+                    "merk": asset.get("merk"),
+                    "tipe": asset.get("tipe")
+                }
+        
+        result.append(item)
+    
+    return result
+
+@router.get("/detail/{id}")
+async def get_transaksi_detail(
+    id: str,
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Get detailed transaction info including related asset data.
+    """
+    if not ObjectId.is_valid(id):
+        raise HTTPException(status_code=400, detail="Invalid transaction ID")
+    
+    transaksi = await db.transaksi.find_one({"_id": ObjectId(id)})
+    if not transaksi:
+        raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
+    
+    # Convert ID
+    transaksi["id"] = str(transaksi["_id"])
+    del transaksi["_id"]
+    
+    # Get asset data
+    if transaksi.get("barang_id") and ObjectId.is_valid(transaksi.get("barang_id")):
+        asset = await db.barang.find_one({"_id": ObjectId(transaksi["barang_id"])})
+        if asset:
+            asset["id"] = str(asset["_id"])
+            del asset["_id"]
+            transaksi["asset"] = asset
+    
+    # Get linked transaction if exists
+    if transaksi.get("linked_transaction_id") and ObjectId.is_valid(transaksi.get("linked_transaction_id")):
+        linked = await db.transaksi.find_one({"_id": ObjectId(transaksi["linked_transaction_id"])})
+        if linked:
+            linked["id"] = str(linked["_id"])
+            del linked["_id"]
+            transaksi["linked_transaction"] = linked
+    
+    return transaksi
+
+@router.get("/riwayat")
+async def get_riwayat_transaksi(
+    page: int = 1,
+    limit: int = 50,
+    jenis: str = None,
+    search: str = None,
+    start_date: str = None,
+    end_date: str = None,
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Get comprehensive transaction history with filters.
+    """
+    query = {}
+    
+    if jenis:
+        query["jenis"] = jenis
+    
+    if search:
+        query["$or"] = [
+            {"nama_barang": {"$regex": search, "$options": "i"}},
+            {"kode_barang": {"$regex": search, "$options": "i"}},
+            {"no_sppa": {"$regex": search, "$options": "i"}},
+            {"nup": {"$regex": search, "$options": "i"}}
+        ]
+    
+    if start_date:
+        query["created_at"] = {"$gte": datetime.fromisoformat(start_date.replace('Z', '+00:00'))}
+    
+    if end_date:
+        if "created_at" in query:
+            query["created_at"]["$lte"] = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        else:
+            query["created_at"] = {"$lte": datetime.fromisoformat(end_date.replace('Z', '+00:00'))}
+    
+    skip = (page - 1) * limit
+    total = await db.transaksi.count_documents(query)
+    
+    cursor = db.transaksi.find(query).sort("created_at", -1).skip(skip).limit(limit)
+    items = await cursor.to_list(length=limit)
+    
+    # Convert IDs and enrich data
+    result = []
+    for item in items:
+        if "_id" in item:
+            item["id"] = str(item["_id"])
+            del item["_id"]
+        result.append(item)
+    
+    # Get transaction type summary
+    pipeline = [
+        {"$match": query if jenis else {}},
+        {"$group": {"_id": "$jenis", "count": {"$sum": 1}}}
+    ]
+    type_summary = {}
+    async for doc in db.transaksi.aggregate(pipeline):
+        type_summary[doc["_id"]] = doc["count"]
+    
+    return {
+        "data": result,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": math.ceil(total / limit),
+        "type_summary": type_summary
+    }
+
