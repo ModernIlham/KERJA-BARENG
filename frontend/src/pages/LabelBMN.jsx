@@ -690,41 +690,59 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
   
   return (
     <>
-      {/* Print Styles - CRITICAL: Hide everything except print content */}
+      {/* 
+        CRITICAL PRINT STYLES - Mengikuti template HTML dari user
+        Hanya #print-area yang akan terlihat saat dicetak
+      */}
       <style>{`
         @media print {
-          /* Hide everything first */
+          /* Sembunyikan SEMUA elemen terlebih dahulu */
           body * {
-            visibility: hidden;
+            visibility: hidden !important;
           }
-          /* Show only print area */
-          .print-area, .print-area * {
-            visibility: visible;
+          
+          /* Tampilkan HANYA area cetak dan semua child-nya */
+          #print-area,
+          #print-area * {
+            visibility: visible !important;
           }
-          .print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+          
+          /* Posisikan area cetak di pojok kiri atas */
+          #print-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
           }
+          
+          /* Page break untuk setiap halaman */
           .print-page {
-            page-break-after: always;
+            page-break-after: always !important;
             margin: 0 !important;
             padding: 0 !important;
             box-shadow: none !important;
           }
+          
           .print-page:last-child {
-            page-break-after: auto;
+            page-break-after: auto !important;
           }
+          
+          /* Sembunyikan elemen no-print */
           .no-print {
             display: none !important;
+            visibility: hidden !important;
           }
+          
+          /* Pengaturan body untuk cetak */
           body {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-            margin: 0;
-            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
+          
+          /* Pengaturan halaman cetak */
           @page {
             size: ${canvasSize};
             margin: 0;
@@ -732,7 +750,7 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
         }
       `}</style>
       
-      {/* Screen UI - Hidden when printing */}
+      {/* Screen UI - Disembunyikan saat mencetak dengan class no-print */}
       <div className="fixed inset-0 bg-slate-900/95 z-50 overflow-auto no-print">
         <div className="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center z-10">
           <div>
@@ -785,8 +803,11 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
         </div>
       </div>
       
-      {/* Print Area - Only this shows when printing */}
-      <div ref={printRef} className="print-area fixed left-0 top-0 hidden print:block">
+      {/* 
+        AREA CETAK - Hanya ini yang tampil saat mencetak
+        ID "print-area" digunakan oleh CSS @media print
+      */}
+      <div id="print-area" ref={printRef} className="fixed left-0 top-0 hidden print:block">
         {Array.from({ length: pages }).map((_, pageIdx) => {
           const pageItems = items.slice(pageIdx * itemsPerPage, (pageIdx + 1) * itemsPerPage);
           const size = STICKER_SIZES[items[0].ukuran];
