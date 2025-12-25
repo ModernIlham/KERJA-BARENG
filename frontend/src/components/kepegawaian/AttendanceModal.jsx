@@ -102,6 +102,14 @@ export default function AttendanceModal({ isOpen, onClose, type = 'clock-in', on
               disabled={submitting}
             />
             
+            {/* Location Warning - Required */}
+            {!location && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                <AlertCircle size={16} />
+                <span>Lokasi wajib terdeteksi untuk absensi. Mohon izinkan akses lokasi.</span>
+              </div>
+            )}
+            
             <div className="flex gap-3 pt-2">
               <Button 
                 variant="outline" 
