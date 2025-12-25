@@ -537,8 +537,10 @@ const StikerSedang = ({ data, instansi, qrDataUrl, qrSettings = DEFAULT_QR_SETTI
 };
 
 // Stiker Besar Component - Scaled up version sesuai referensi
-const StikerBesar = ({ data, instansi, qrDataUrl, scale = 1 }) => {
+const StikerBesar = ({ data, instansi, qrDataUrl, qrSettings = DEFAULT_QR_SETTINGS, scale = 1 }) => {
   const s = (val) => val * scale;
+  const showLogo = qrSettings?.logoEnabled !== false;
+  const logoSize = qrSettings?.logoSize || 25;
   
   return (
     <div 
@@ -557,19 +559,22 @@ const StikerBesar = ({ data, instansi, qrDataUrl, scale = 1 }) => {
         style={{ 
           width: '48%', 
           borderRight: '2.5px solid #000',
-          background: '#ffffff'
+          background: qrSettings?.lightColor || '#ffffff'
         }}
       >
         {qrDataUrl && (
           <img src={qrDataUrl} alt="QR" className="w-[90%] h-auto object-contain" />
         )}
-        {instansi?.logo_url && (
+        {showLogo && instansi?.logo_url && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-white p-2 rounded-lg">
+            <div 
+              className="bg-white rounded-lg p-1"
+              style={{ width: `${logoSize * 1.2}%`, height: `${logoSize * 1.2}%` }}
+            >
               <img 
                 src={instansi.logo_url} 
                 alt="Logo" 
-                className="w-10 h-10 object-contain"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>
