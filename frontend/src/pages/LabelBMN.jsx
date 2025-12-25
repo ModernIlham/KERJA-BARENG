@@ -404,8 +404,10 @@ const StikerKecil = ({ data, instansi, qrDataUrl, scale = 1 }) => {
 };
 
 // Stiker Sedang Component - Sesuai referensi gambar user
-const StikerSedang = ({ data, instansi, qrDataUrl, scale = 1 }) => {
+const StikerSedang = ({ data, instansi, qrDataUrl, qrSettings = DEFAULT_QR_SETTINGS, scale = 1 }) => {
   const s = (val) => val * scale;
+  const showLogo = qrSettings?.logoEnabled !== false;
+  const logoSize = qrSettings?.logoSize || 25;
   
   return (
     <div 
@@ -424,20 +426,23 @@ const StikerSedang = ({ data, instansi, qrDataUrl, scale = 1 }) => {
         style={{ 
           width: '48%', 
           borderRight: '2px solid #000',
-          background: '#ffffff'
+          background: qrSettings?.lightColor || '#ffffff'
         }}
       >
         {qrDataUrl && (
           <img src={qrDataUrl} alt="QR" className="w-[90%] h-auto object-contain" />
         )}
         {/* Logo overlay di tengah QR */}
-        {instansi?.logo_url && (
+        {showLogo && instansi?.logo_url && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-white p-1 rounded">
+            <div 
+              className="bg-white rounded p-0.5"
+              style={{ width: `${logoSize}%`, height: `${logoSize}%` }}
+            >
               <img 
                 src={instansi.logo_url} 
                 alt="Logo" 
-                className="w-6 h-6 object-contain"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>
