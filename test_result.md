@@ -738,3 +738,38 @@ frontend:
 
 ### Reason for Change
 html2canvas does not properly render Tailwind CSS classes like `leading-tight`, `py-1.5`, etc. Using inline styles ensures consistent rendering in PDF output.
+
+## Current Testing Session - December 25, 2025
+
+### Feature Implemented: Advanced QR Code Customization & Sticker Size Updates
+
+**Changes Made:**
+1. **Advanced QR Code Customization:**
+   - Toggle Logo Background (show/hide white background behind logo)
+   - External Eye Patterns (independent shape and color customization)
+   - Internal Eye Patterns (independent shape and color customization)  
+   - Body Patterns (independent shape and color customization)
+   - Used qr-code-styling library for advanced styling
+
+2. **Updated Sticker Sizes:**
+   - Besar: 9.49 cm x 3.22 cm (was 90x130mm)
+   - Sedang: 6.98 cm x 2.21 cm (was 60x90mm)
+   - Kecil: 3.98 cm x 2.38 cm (was 35x50mm)
+
+**Test Requirements:**
+1. Verify QR customization panel opens with 4 sub-tabs: Body Pattern, External Eye, Internal Eye, Logo
+2. Test each pattern customization independently changes the QR code
+3. Test Logo Background toggle (on/off)
+4. Test sticker size changes in print preview
+5. Verify print output matches new dimensions
+
+**Login Credentials:**
+- Email: admin@example.com
+- Password: admin123
+
+**File Modified:**
+- /app/frontend/src/pages/LabelBMN.jsx
+
+**Library Added:**
+- qr-code-styling (yarn add)
+
