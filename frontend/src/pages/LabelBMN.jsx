@@ -94,6 +94,238 @@ const generateQRCodeDataURL = async (text, options = {}) => {
   }
 };
 
+// ==================== QR SETTINGS PANEL (Like QuickChart) ====================
+const QRSettingsPanel = ({ settings, onChange, instansi, previewText = "#SAMPLE-001" }) => {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [previewQR, setPreviewQR] = useState(null);
+  
+  // Generate preview QR
+  useEffect(() => {
+    const generatePreview = async () => {
+      const qr = await generateQRCodeDataURL(previewText, settings);
+      setPreviewQR(qr);
+    };
+    generatePreview();
+  }, [settings, previewText]);
+  
+  const updateSetting = (key, value) => {
+    onChange({ ...settings, [key]: value });
+  };
+  
+  return (
+    <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+      <CardHeader className="py-3 border-b bg-blue-100/50">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <QrCode className="w-4 h-4 text-blue-600" />
+          Customisasi QR Code
+          <Badge variant="outline" className="ml-auto text-xs">QuickChart Style</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 space-y-4">
+        {/* Preview Section */}
+        <div className="flex gap-4">
+          {/* QR Preview */}
+          <div className="flex-shrink-0">
+            <div className="text-xs text-gray-500 mb-1">Preview</div>
+            <div 
+              className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-white relative overflow-hidden"
+              style={{ backgroundColor: settings.lightColor }}
+            >
+              {previewQR && (
+                <img src={previewQR} alt="QR Preview" className="w-28 h-28 object-contain" />
+              )}
+              {settings.logoEnabled && instansi?.logo_url && (
+                <div 
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                >
+                  <div 
+                    className="bg-white rounded p-0.5"
+                    style={{ width: `${settings.logoSize}%`, height: `${settings.logoSize}%` }}
+                  >
+                    <img 
+                      src={instansi.logo_url} 
+                      alt="Logo" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Basic Settings */}
+          <div className="flex-1 space-y-3">
+            {/* Size */}
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <Label>Ukuran (px)</Label>
+                <span className="text-gray-500">{settings.size}px</span>
+              </div>
+              <Slider
+                value={[settings.size]}
+                onValueChange={([val]) => updateSetting('size', val)}
+                min={100}
+                max={400}
+                step={10}
+                className="w-full"
+              />
+            </div>
+            
+            {/* Margin */}
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <Label>Margin (blocks)</Label>
+                <span className="text-gray-500">{settings.margin}</span>
+              </div>
+              <Slider
+                value={[settings.margin]}
+                onValueChange={([val]) => updateSetting('margin', val)}
+                min={0}
+                max={4}
+                step={1}
+                className="w-full"
+              />
+            </div>
+            
+            {/* Colors */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Warna QR</Label>
+                <div className="flex gap-1 mt-1">
+                  <input 
+                    type="color"
+                    value={settings.darkColor}
+                    onChange={(e) => updateSetting('darkColor', e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer border"
+                  />
+                  <Input 
+                    value={settings.darkColor}
+                    onChange={(e) => updateSetting('darkColor', e.target.value)}
+                    className="h-8 text-xs font-mono flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Warna Background</Label>
+                <div className="flex gap-1 mt-1">
+                  <input 
+                    type="color"
+                    value={settings.lightColor}
+                    onChange={(e) => updateSetting('lightColor', e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer border"
+                  />
+                  <Input 
+                    value={settings.lightColor}
+                    onChange={(e) => updateSetting('lightColor', e.target.value)}
+                    className="h-8 text-xs font-mono flex-1"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Color Presets */}
+        <div>
+          <Label className="text-xs mb-2 block">Preset Warna</Label>
+          <div className="flex flex-wrap gap-1">
+            {COLOR_PRESETS.map((preset) => (
+              <button
+                key={preset.name}
+                onClick={() => {
+                  updateSetting('darkColor', preset.dark);
+                  updateSetting('lightColor', preset.light);
+                }}
+                className="flex items-center gap-1 px-2 py-1 rounded border hover:bg-gray-50 text-xs"
+                title={preset.name}
+              >
+                <div 
+                  className="w-4 h-4 rounded border"
+                  style={{ backgroundColor: preset.dark }}
+                />
+                <div 
+                  className="w-4 h-4 rounded border"
+                  style={{ backgroundColor: preset.light }}
+                />
+                <span>{preset.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Advanced Options Toggle */}
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+        >
+          {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          Opsi Lanjutan
+        </button>
+        
+        {showAdvanced && (
+          <div className="space-y-3 pt-2 border-t">
+            {/* Error Correction Level */}
+            <div>
+              <Label className="text-xs mb-1 block">Error Correction Level</Label>
+              <Select 
+                value={settings.errorCorrectionLevel} 
+                onValueChange={(val) => updateSetting('errorCorrectionLevel', val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ERROR_CORRECTION_LEVELS.map((level) => (
+                    <SelectItem key={level.value} value={level.value}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{level.label}</span>
+                        <span className="text-gray-400 text-xs">- {level.desc}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Gunakan "Quartile" atau "High" jika ingin menambahkan logo di tengah QR
+              </p>
+            </div>
+            
+            {/* Logo Settings */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Checkbox 
+                  id="logoEnabled"
+                  checked={settings.logoEnabled}
+                  onCheckedChange={(checked) => updateSetting('logoEnabled', checked)}
+                />
+                <Label htmlFor="logoEnabled" className="text-xs">Tampilkan Logo Instansi di QR</Label>
+              </div>
+              
+              {settings.logoEnabled && (
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <Label>Ukuran Logo</Label>
+                    <span className="text-gray-500">{settings.logoSize}%</span>
+                  </div>
+                  <Slider
+                    value={[settings.logoSize]}
+                    onValueChange={([val]) => updateSetting('logoSize', val)}
+                    min={15}
+                    max={35}
+                    step={5}
+                    className="w-full"
+                    disabled={!settings.logoEnabled}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 // ==================== STICKER COMPONENTS ====================
 
 // Stiker Kecil Component (untuk aksesori)
