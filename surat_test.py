@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 class SuratAPITester:
-    def __init__(self, base_url="https://bmn-laporan.preview.emergentagent.com"):
+    def __init__(self, base_url="https://summaryreport-app.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
