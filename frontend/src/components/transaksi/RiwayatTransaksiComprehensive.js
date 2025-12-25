@@ -320,7 +320,7 @@ export default function RiwayatTransaksiComprehensive() {
 
       {/* Detail Dialog */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>Detail Transaksi</DialogTitle>
           </DialogHeader>
@@ -329,75 +329,95 @@ export default function RiwayatTransaksiComprehensive() {
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-slate-400" />
             </div>
           ) : selectedTransaction && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs text-slate-500">Jenis Transaksi</label>
-                  <p className="font-medium">{selectedTransaction.jenis?.replace(/_/g, ' ')}</p>
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500">Status</label>
-                  <p>{getStatusBadge(selectedTransaction.status)}</p>
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500">No SPPA</label>
-                  <p className="font-mono">{selectedTransaction.no_sppa || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500">Tanggal</label>
-                  <p>{formatDate(selectedTransaction.tanggal_transaksi || selectedTransaction.created_at)}</p>
-                </div>
-              </div>
+            <Tabs defaultValue="detail" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="detail">
+                  <Eye className="h-4 w-4 mr-2" /> Detail Transaksi
+                </TabsTrigger>
+                <TabsTrigger value="dokumen">
+                  <PenTool className="h-4 w-4 mr-2" /> Dokumen & TTD
+                </TabsTrigger>
+              </TabsList>
               
-              <div className="border-t pt-4">
-                <h4 className="font-semibold mb-2">Data Aset</h4>
-                <div className="bg-slate-50 p-3 rounded">
-                  <p className="font-medium">{selectedTransaction.nama_barang}</p>
-                  <p className="text-sm text-slate-600 font-mono">
-                    {selectedTransaction.kode_barang} {selectedTransaction.nup && `/ NUP ${selectedTransaction.nup}`}
-                  </p>
-                  <p className="text-sm mt-2">
-                    Nilai: <strong>{formatCurrency(selectedTransaction.nilai_perolehan || selectedTransaction.total_nilai || 0)}</strong>
-                  </p>
-                </div>
-              </div>
-
-              {/* Transaction-specific details */}
-              {(selectedTransaction.jenis === 'REKLASIFIKASI_KELUAR' || selectedTransaction.jenis === 'REKLASIFIKASI_MASUK') && (
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-2">Detail Reklasifikasi</h4>
-                  <div className="flex items-center justify-center gap-4 p-4 bg-gradient-to-r from-red-50 to-green-50 rounded">
-                    <div className="text-center">
-                      <p className="text-xs text-slate-500">Golongan Lama</p>
-                      <p className="font-bold text-red-600">{selectedTransaction.golongan_awal || '-'}</p>
+              <TabsContent value="detail" className="mt-4">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-slate-500">Jenis Transaksi</label>
+                      <p className="font-medium">{selectedTransaction.jenis?.replace(/_/g, ' ')}</p>
                     </div>
-                    <span className="text-2xl">→</span>
-                    <div className="text-center">
-                      <p className="text-xs text-slate-500">Golongan Baru</p>
-                      <p className="font-bold text-green-600">{selectedTransaction.golongan_baru || '-'}</p>
+                    <div>
+                      <label className="text-xs text-slate-500">Status</label>
+                      <p>{getStatusBadge(selectedTransaction.status)}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500">No SPPA</label>
+                      <p className="font-mono">{selectedTransaction.no_sppa || '-'}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500">Tanggal</label>
+                      <p>{formatDate(selectedTransaction.tanggal_transaksi || selectedTransaction.created_at)}</p>
                     </div>
                   </div>
-                  {selectedTransaction.kode_barang_baru && (
-                    <p className="text-center mt-2 text-sm">
-                      Kode Baru: <span className="font-mono font-bold">{selectedTransaction.kode_barang_baru}</span>
-                    </p>
+                  
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-2">Data Aset</h4>
+                    <div className="bg-slate-50 p-3 rounded">
+                      <p className="font-medium">{selectedTransaction.nama_barang}</p>
+                      <p className="text-sm text-slate-600 font-mono">
+                        {selectedTransaction.kode_barang} {selectedTransaction.nup && `/ NUP ${selectedTransaction.nup}`}
+                      </p>
+                      <p className="text-sm mt-2">
+                        Nilai: <strong>{formatCurrency(selectedTransaction.nilai_perolehan || selectedTransaction.total_nilai || 0)}</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Transaction-specific details */}
+                  {(selectedTransaction.jenis === 'REKLASIFIKASI_KELUAR' || selectedTransaction.jenis === 'REKLASIFIKASI_MASUK') && (
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold mb-2">Detail Reklasifikasi</h4>
+                      <div className="flex items-center justify-center gap-4 p-4 bg-gradient-to-r from-red-50 to-green-50 rounded">
+                        <div className="text-center">
+                          <p className="text-xs text-slate-500">Golongan Lama</p>
+                          <p className="font-bold text-red-600">{selectedTransaction.golongan_awal || '-'}</p>
+                        </div>
+                        <span className="text-2xl">→</span>
+                        <div className="text-center">
+                          <p className="text-xs text-slate-500">Golongan Baru</p>
+                          <p className="font-bold text-green-600">{selectedTransaction.golongan_baru || '-'}</p>
+                        </div>
+                      </div>
+                      {selectedTransaction.kode_barang_baru && (
+                        <p className="text-center mt-2 text-sm">
+                          Kode Baru: <span className="font-mono font-bold">{selectedTransaction.kode_barang_baru}</span>
+                        </p>
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
 
-              {selectedTransaction.keterangan && (
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-2">Keterangan</h4>
-                  <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded">{selectedTransaction.keterangan}</p>
-                </div>
-              )}
+                  {selectedTransaction.keterangan && (
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold mb-2">Keterangan</h4>
+                      <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded">{selectedTransaction.keterangan}</p>
+                    </div>
+                  )}
 
-              <div className="border-t pt-4 flex justify-end">
-                <Button onClick={() => { setDetailDialogOpen(false); setReportDialogOpen(true); }}>
-                  <Printer className="h-4 w-4 mr-2" /> Cetak Laporan A4
-                </Button>
-              </div>
-            </div>
+                  <div className="border-t pt-4 flex justify-end">
+                    <Button onClick={() => { setDetailDialogOpen(false); setReportDialogOpen(true); }}>
+                      <Printer className="h-4 w-4 mr-2" /> Cetak Laporan A4
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="dokumen" className="mt-4">
+                <TransaksiDokumenManager 
+                  transaksiId={selectedTransaction.id}
+                  onUpdate={() => handleViewDetail(selectedTransaction)}
+                />
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>
