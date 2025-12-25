@@ -12,6 +12,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
+import html2pdf from 'html2pdf.js';
 
 // Compact currency formatter
 const compactCurrency = (value) => {
