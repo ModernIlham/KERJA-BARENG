@@ -73,78 +73,73 @@ code {
     }
 }
 
-@layer base {
-    * {
-        @apply border-border;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
-}
-
-@layer base {
-    [data-debug-wrapper="true"] {
-        display: contents !important;
-    }
-
-    [data-debug-wrapper="true"] > * {
-        margin-left: inherit;
-        margin-right: inherit;
-        margin-top: inherit;
-        margin-bottom: inherit;
-        padding-left: inherit;
-        padding-right: inherit;
-        padding-top: inherit;
-        padding-bottom: inherit;
-        column-gap: inherit;
-        row-gap: inherit;
-        gap: inherit;
-        border-left-width: inherit;
-        border-right-width: inherit;
-        border-top-width: inherit;
-        border-bottom-width: inherit;
-        border-left-style: inherit;
-        border-right-style: inherit;
-        border-top-style: inherit;
-        border-bottom-style: inherit;
-        border-left-color: inherit;
-        border-right-color: inherit;
-        border-top-color: inherit;
-        border-bottom-color: inherit;
-    }
-}
-
-/* Global Print Styles */
+/* Global Print Styles - Override Everything */
 @media print {
-  /* Hide sidebar and navigation */
+  /* Reset HTML and Body */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    overflow: visible !important;
+  }
+  
+  /* Hide ALL non-printable elements */
   aside,
   nav,
   .no-print,
   [class*="sidebar"],
-  [class*="Sidebar"] {
+  [class*="Sidebar"],
+  [class*="sticky"],
+  [class*="fixed"]:not(.a4-page *) {
     display: none !important;
     visibility: hidden !important;
     width: 0 !important;
     height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
   }
   
-  /* Reset body */
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 210mm !important;
-    background: white !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  
-  /* Reset main container margins */
+  /* Reset ALL layout containers */
   [class*="md:ml-"],
-  [class*="ml-"] {
+  [class*="ml-64"],
+  [class*="ml-[70px]"],
+  .min-h-screen,
+  .bg-slate-200,
+  .bg-slate-50,
+  .print-container {
+    margin: 0 !important;
     margin-left: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    background: transparent !important;
+    width: 100% !important;
   }
   
-  /* Page size */
+  /* A4 Page Exact Sizing */
+  .a4-page {
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+    page-break-inside: avoid !important;
+    overflow: hidden !important;
+    background: white !important;
+  }
+  
+  .a4-page:last-child {
+    page-break-after: auto !important;
+  }
+  
+  /* Page Setup */
   @page {
     size: A4 portrait;
     margin: 0;
