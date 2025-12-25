@@ -4,40 +4,35 @@
 (DO NOT EDIT - Standard testing protocol for all features)
 
 ## Current Testing Task
-Testing the Transaction Approval System (Sistem Persetujuan Transaksi):
+Testing P2: Upload Dokumen PDF dengan Tanda Tangan Digital
 
 ### Features to Test:
-1. **Backend API - Approval Endpoints**
-   - GET /api/approval/pending - List pending transactions
-   - GET /api/approval/stats - Get approval statistics
-   - POST /api/approval/{id}/approve - Approve a transaction
-   - POST /api/approval/{id}/reject - Reject a transaction (requires alasan)
-   - GET /api/approval/config - Get approval configuration
+1. **Backend API - Document Upload**
+   - POST /api/transaksi-dokumen/{transaksi_id}/upload - Upload PDF document
+   - GET /api/transaksi-dokumen/{transaksi_id}/dokumen - Get documents & signatures
+   - DELETE /api/transaksi-dokumen/{transaksi_id}/dokumen/{dokumen_id} - Delete document
 
-2. **Frontend - Approval Page (/persetujuan)**
-   - Navigate to /persetujuan
-   - View statistics cards (Menunggu Persetujuan, Disetujui Hari Ini, Ditolak Hari Ini)
-   - View pending transactions list
-   - Test Approve dialog
-   - Test Reject dialog (with required reason)
-   - Test search and filter functionality
+2. **Backend API - Signature**
+   - GET /api/transaksi-dokumen/pegawai-with-signature - List pegawai with signatures
+   - POST /api/transaksi-dokumen/{transaksi_id}/signature - Add signature
+   - DELETE /api/transaksi-dokumen/{transaksi_id}/signature/{signature_id} - Remove signature
 
-3. **Integration - Transaction Flow**
-   - Create a transaction (e.g., PERUBAHAN_KUANTITAS) via /api/transaksi/perubahan
-   - Verify it goes to PENDING_APPROVAL status
-   - Approve/Reject and verify status changes
-   - Verify master data only updates after approval
+3. **Frontend - Detail Transaction Dialog**
+   - Navigate to /transaksi-aset
+   - Click on eye icon to view transaction detail
+   - Verify "Detail Transaksi" and "Dokumen & TTD" tabs exist
+   - Click on "Dokumen & TTD" tab
+   - Verify Upload PDF button works
+   - Verify Add TTD (signature) button works
 
 ### Test Credentials:
 - Email: admin@example.com
 - Password: admin123
 
 ### Files Involved:
-- Backend: /app/backend/routes/approval.py
-- Backend: /app/backend/routes/transaksi.py (modified for approval flow)
-- Frontend: /app/frontend/src/components/transaksi/ApprovalPage.js
-- Frontend: /app/frontend/src/App.js (added route)
-- Frontend: /app/frontend/src/components/Layout.js (added menu)
+- Backend: /app/backend/routes/transaksi_dokumen.py
+- Frontend: /app/frontend/src/components/transaksi/TransaksiDokumenManager.js
+- Frontend: /app/frontend/src/components/transaksi/RiwayatTransaksiComprehensive.js
 
 ## Incorporate User Feedback
 - User requested Unit Penerima with hierarchy based on organizational structure (Eselon I-V)
