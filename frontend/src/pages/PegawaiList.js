@@ -81,7 +81,9 @@ export default function PegawaiList() {
         const eselon2 = res.data.filter(u => u.eselon === "2").map(u => u.nama_unit);
         setUnitKerjaOptions(eselon1);
         setUnitKerjaEselon2(eselon2);
-      } catch (e) {}
+      } catch (e) {
+        // Silently handle error
+      }
     };
     fetchUnitKerja();
   }, []);
