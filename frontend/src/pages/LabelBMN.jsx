@@ -108,7 +108,13 @@ const StyledQRCode = ({ data, settings, logoUrl, size = 200 }) => {
 
 /**
  * Stiker KECIL - 2.38cm × 3.98cm (Portrait)
- * Font Specs: Nama 6.5pt, Qty 10pt, Kode 8pt, Tahun 5.5pt, Desc 5pt, Vertikal 6pt
+ * SPESIFIKASI FONT (dari HTML template):
+ * - Nama Barang: 6.5pt (bold) - Roboto Condensed atau Arial Narrow
+ * - Quantity Box: 10pt (bold) - dapat memuat 5 digit
+ * - Kode Inventaris: 8pt (bold) - Roboto atau Arial
+ * - Tahun (bold): 5.5pt - Roboto atau Arial  
+ * - Deskripsi: 5pt - Roboto atau Arial
+ * - Kode Vertikal: 6pt (bold) - Roboto Condensed (TANPA border/background)
  */
 const StikerKecil = ({ data, instansi, qrSettings }) => {
   const styles = {
@@ -200,12 +206,12 @@ const StikerKecil = ({ data, instansi, qrSettings }) => {
       padding: '2px 3px',
       lineHeight: 1.3
     },
+    // Vertical code TANPA border (sesuai permintaan user)
     verticalCode: {
       width: '13px',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      borderLeft: '1px solid #2c2c2c'
+      justifyContent: 'center'
     },
     verticalText: {
       writingMode: 'vertical-rl',
@@ -224,7 +230,7 @@ const StikerKecil = ({ data, instansi, qrSettings }) => {
         <div style={styles.leftContent}>
           <div style={styles.qrArea}>
             <StyledQRCode 
-              data={data.kode_register || data.kode_barang}
+              data={data.kode_barang}
               settings={qrSettings}
               logoUrl={instansi?.logo_url}
               size={72}
