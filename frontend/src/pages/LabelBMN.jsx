@@ -66,46 +66,70 @@ const StikerKecil = ({ data, instansi, qrDataUrl, scale = 1 }) => {
   
   return (
     <div 
-      className="stiker-kecil bg-white border border-black relative overflow-hidden"
-      style={{ width: `${s(35)}mm`, height: `${s(50)}mm`, fontSize: `${s(6)}px` }}
+      className="stiker-kecil bg-white relative overflow-hidden"
+      style={{ 
+        width: `${s(35)}mm`, 
+        height: `${s(50)}mm`, 
+        fontSize: `${s(6)}px`,
+        border: '1.5px solid #000',
+        borderRadius: '2px'
+      }}
     >
+      {/* Header with Logo & Instansi */}
+      <div 
+        className="flex items-center gap-1 px-1 py-0.5"
+        style={{ 
+          background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
+          borderBottom: '2px solid #d4a853'
+        }}
+      >
+        {instansi?.logo_url && (
+          <img src={instansi.logo_url} alt="" className="w-3 h-3 object-contain" />
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="text-white font-bold truncate" style={{ fontSize: `${s(4)}px` }}>
+            {instansi?.nama_instansi || 'INSTANSI'}
+          </div>
+        </div>
+      </div>
+      
       {/* QR Code Area */}
-      <div className="absolute inset-0 flex flex-col">
-        {/* QR Code with Logo */}
-        <div className="flex-1 flex items-center justify-center p-1 relative">
-          {qrDataUrl && (
-            <img src={qrDataUrl} alt="QR" className="w-full h-auto max-h-full object-contain" />
-          )}
-          {/* Logo overlay */}
-          {instansi?.logo_url && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <img 
-                src={instansi.logo_url} 
-                alt="Logo" 
-                className="w-1/3 h-auto opacity-90"
-                style={{ filter: 'drop-shadow(0 0 1px white)' }}
-              />
-            </div>
-          )}
+      <div className="flex-1 flex items-center justify-center p-1 relative" style={{ height: '60%' }}>
+        {qrDataUrl && (
+          <img src={qrDataUrl} alt="QR" className="h-full w-auto object-contain" />
+        )}
+        {instansi?.logo_url && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <img 
+              src={instansi.logo_url} 
+              alt="Logo" 
+              className="w-1/4 h-auto opacity-90"
+              style={{ filter: 'drop-shadow(0 0 2px white) drop-shadow(0 0 2px white)' }}
+            />
+          </div>
+        )}
+      </div>
+      
+      {/* Info Area */}
+      <div className="px-1 pb-1 space-y-0.5 border-t border-gray-300" style={{ fontSize: `${s(4.5)}px` }}>
+        <div className="font-bold truncate text-center">{data.nama_aksesori || data.nama_barang}</div>
+        <div className="text-center text-gray-600 font-mono" style={{ fontSize: `${s(4)}px` }}>
+          {data.kode_display}
         </div>
-        
-        {/* Gold separator line */}
-        <div className="h-[2px] bg-amber-500 mx-1"></div>
-        
-        {/* Info Area */}
-        <div className="p-1 space-y-0.5" style={{ fontSize: `${s(5)}px` }}>
-          <div className="font-bold truncate">{data.nama_aksesori || data.nama_barang}</div>
-          <div className="text-[0.7em] text-gray-600">{data.kode_display}</div>
-          <div className="text-[0.65em] truncate">{data.tahun} - {data.parent_nama || data.nama_barang}</div>
-        </div>
-        
-        {/* Vertical Code on Right */}
-        <div 
-          className="absolute right-0 top-0 h-full flex items-center justify-center bg-white"
-          style={{ writingMode: 'vertical-rl', fontSize: `${s(4)}px`, width: `${s(4)}mm` }}
-        >
-          <span className="text-gray-500">{data.kode_vertikal}</span>
-        </div>
+      </div>
+      
+      {/* Vertical Code on Right */}
+      <div 
+        className="absolute right-0 top-0 h-full flex items-center justify-center"
+        style={{ 
+          writingMode: 'vertical-rl', 
+          fontSize: `${s(3.5)}px`, 
+          width: `${s(3.5)}mm`,
+          background: 'linear-gradient(to bottom, #f8f8f8, #e8e8e8)',
+          borderLeft: '1px solid #ccc'
+        }}
+      >
+        <span className="text-gray-600 font-mono">{data.kode_vertikal}</span>
       </div>
     </div>
   );
