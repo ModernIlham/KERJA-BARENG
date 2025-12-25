@@ -2009,7 +2009,7 @@ function StickerDesignTab({ instansi, qrSettings }) {
   return (
     <div className="space-y-4">
       {/* Size Type Selector */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {['kecil', 'sedang', 'besar'].map(size => (
           <Button 
             key={size}
@@ -2021,7 +2021,17 @@ function StickerDesignTab({ instansi, qrSettings }) {
             Stiker {size}
           </Button>
         ))}
+        <div className="flex-1" />
+        <Button variant="outline" onClick={() => setShowQRTemplates(prev => !prev)}>
+          <QrCode className="w-4 h-4 mr-2" />
+          Template QR
+        </Button>
       </div>
+      
+      {/* QR Templates Panel */}
+      {showQRTemplates && (
+        <QRTemplatesPanel qrSettings={qrSettings} onSelectTemplate={setQrSettingsFromTemplate} />
+      )}
       
       <div className="grid grid-cols-3 gap-4">
         {/* Left Panel - Design List */}
@@ -2072,12 +2082,12 @@ function StickerDesignTab({ instansi, qrSettings }) {
               )}
             </div>
           </CardContent>
-          <div className="p-3 border-t flex gap-2 justify-center">
+          <div className="p-3 border-t flex gap-2 justify-center flex-wrap">
             <Button size="sm" variant="outline" onClick={handleResetToDefault}>
               <RotateCcw className="w-4 h-4 mr-1" />Reset
             </Button>
             <Button size="sm" onClick={handleSaveDesign} disabled={saving}>
-              <Save className="w-4 h-4 mr-1" />{saving ? 'Menyimpan...' : 'Simpan'}
+              <Save className="w-4 h-4 mr-1" />{saving ? 'Menyimpan...' : 'Simpan Design'}
             </Button>
             <Button size="sm" variant="secondary" onClick={handleSetActive}>
               <CheckCircle2 className="w-4 h-4 mr-1" />Set Aktif
