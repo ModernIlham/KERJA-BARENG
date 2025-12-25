@@ -1018,6 +1018,10 @@ export default function LabelBMN() {
   const [selectedSize, setSelectedSize] = useState('sedang');
   const [canvasSize, setCanvasSize] = useState('A4');
   
+  // QR Settings (QuickChart style)
+  const [qrSettings, setQrSettings] = useState(DEFAULT_QR_SETTINGS);
+  const [showQRSettings, setShowQRSettings] = useState(false);
+  
   // Modals
   const [showPrintCanvas, setShowPrintCanvas] = useState(false);
   const [showChildModal, setShowChildModal] = useState(false);
