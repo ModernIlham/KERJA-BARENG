@@ -89,6 +89,7 @@ export default function TransaksiPersediaan() {
         } else {
             setActiveSubTab('');
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     const handleTabChange = (tab) => {
