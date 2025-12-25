@@ -536,12 +536,23 @@ async def create_transaksi_perubahan(
         golongan_baru = payload.get("golongan_baru")
         kode_barang_baru = payload.get("kode_barang_baru")
         
+        # Determine status based on transaction type
+        if jenis == "REKLASIFIKASI_KELUAR":
+            transaksi_record["status"] = "PENDING_MASUK"  # Waiting for Reklasifikasi Masuk
+        else:
+            transaksi_record["status"] = "COMPLETED"
+            # Link to the original KELUAR transaction if provided
+            if payload.get("linked_transaction_id"):
+                transaksi_record["linked_transaction_id"] = payload.get("linked_transaction_id")
+        
         transaksi_record.update({
             "golongan_awal": golongan_awal,
             "golongan_baru": golongan_baru,
             "kode_barang_baru": kode_barang_baru,
-            "nilai_perolehan": payload.get("nilai_perolehan"),
-            "nilai_buku": payload.get("nilai_buku"),
+            "kode_barang_lama": asset.get("kode_barang"),
+            "nama_barang_baru": payload.get("nama_barang_baru"),
+            "nilai_perolehan": payload.get("nilai_perolehan") or asset.get("nilai_perolehan"),
+            "nilai_buku": payload.get("nilai_buku") or asset.get("nilai_buku"),
             "alasan_reklasifikasi": payload.get("alasan_reklasifikasi"),
             "unit_asal": payload.get("unit_asal"),
             "unit_tujuan": payload.get("unit_tujuan"),
@@ -549,10 +560,28 @@ async def create_transaksi_perubahan(
             "keterangan": payload.get("keterangan")
         })
         
-        # Update asset classification
-        update_fields["golongan_barang"] = golongan_baru
-        if kode_barang_baru:
-            update_fields["kode_barang"] = kode_barang_baru
+        # For REKLASIFIKASI_KELUAR: Mark asset as pending reclassification
+        if jenis == "REKLASIFIKASI_KELUAR":
+            update_fields["status_reklasifikasi"] = "PENDING_MASUK"
+            update_fields["reklasifikasi_tujuan"] = {
+                "golongan_baru": golongan_baru,
+                "kode_barang_baru": kode_barang_baru
+            }
+        
+        # For REKLASIFIKASI_MASUK: Update asset to new classification
+        if jenis == "REKLASIFIKASI_MASUK":
+            update_fields["golongan_barang"] = golongan_baru
+            if kode_barang_baru:
+                update_fields["kode_barang"] = kode_barang_baru
+            update_fields["status_reklasifikasi"] = None
+            update_fields["reklasifikasi_tujuan"] = None
+            
+            # Update the linked KELUAR transaction to COMPLETED
+            if payload.get("linked_transaction_id") and ObjectId.is_valid(payload.get("linked_transaction_id")):
+                await db.transaksi.update_one(
+                    {"_id": ObjectId(payload.get("linked_transaction_id"))},
+                    {"$set": {"status": "COMPLETED", "completed_at": datetime.now(timezone.utc)}}
+                )
             
     elif jenis == "REKLASIFIKASI_KDP":
         kdp_tujuan_id = payload.get("kdp_tujuan_id")
