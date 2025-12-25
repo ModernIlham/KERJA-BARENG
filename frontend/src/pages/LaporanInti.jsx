@@ -622,42 +622,42 @@ export default function LaporanInti() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {/* Penyusutan & Umur Ekonomis */}
-              <div className="border border-slate-200 rounded p-2">
-                <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1.5">Analisis Penyusutan</h4>
-                <div className="space-y-1 text-[7px]">
-                  <div className="flex justify-between">
+              <div className="border border-slate-200 rounded" style={{ padding: '8px' }}>
+                <h4 className="text-[7px] font-bold text-slate-600 uppercase" style={{ marginBottom: '6px', lineHeight: '1.2' }}>Analisis Penyusutan</h4>
+                <div className="text-[7px]" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div className="flex justify-between" style={{ lineHeight: '1.3' }}>
                     <span className="text-slate-600">Total Nilai Perolehan</span>
                     <span className="font-bold text-slate-800">{fc(at.total?.nilai_perolehan)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between" style={{ lineHeight: '1.3' }}>
                     <span className="text-slate-600">Akumulasi Penyusutan</span>
                     <span className="font-bold text-red-600">{fc(at.total?.nilai_penyusutan)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between" style={{ lineHeight: '1.3' }}>
                     <span className="text-slate-600">Nilai Buku</span>
                     <span className="font-bold text-blue-700">{fc(at.total?.nilai_buku)}</span>
                   </div>
-                  <div className="flex justify-between pt-1 border-t border-slate-200">
+                  <div className="flex justify-between border-t border-slate-200" style={{ lineHeight: '1.3', paddingTop: '4px' }}>
                     <span className="text-slate-600">Rasio Penyusutan</span>
                     <span className="font-bold text-amber-600">{at.total?.nilai_perolehan ? ((at.total?.nilai_penyusutan / at.total?.nilai_perolehan) * 100).toFixed(1) : 0}%</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between" style={{ lineHeight: '1.3' }}>
                     <span className="text-slate-600">Aset Mendekati Habis UE</span>
                     <span className="font-bold text-red-600">{fn(Math.round((at.total?.unit || 0) * 0.08))} unit</span>
                   </div>
                 </div>
               </div>
               {/* Status Asuransi & Sertifikasi */}
-              <div className="border border-slate-200 rounded p-2">
-                <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1.5">Asuransi & Sertifikasi</h4>
-                <div className="space-y-1.5 text-[7px]">
-                  <div className="flex justify-between items-center">
+              <div className="border border-slate-200 rounded" style={{ padding: '8px' }}>
+                <h4 className="text-[7px] font-bold text-slate-600 uppercase" style={{ marginBottom: '6px', lineHeight: '1.2' }}>Asuransi & Sertifikasi</h4>
+                <div className="text-[7px]" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <div className="flex justify-between items-center" style={{ lineHeight: '1.3' }}>
                     <span className="text-slate-600">Tanah Bersertifikat</span>
-                    <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[6px] font-bold">85%</span>
+                    <span className="bg-green-100 text-green-700 rounded text-[6px] font-bold" style={{ padding: '2px 6px' }}>85%</span>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center" style={{ lineHeight: '1.3' }}>
                     <span className="text-slate-600">Bangunan Ber-IMB</span>
-                    <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[6px] font-bold">92%</span>
+                    <span className="bg-green-100 text-green-700 rounded text-[6px] font-bold" style={{ padding: '2px 6px' }}>92%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-600">Kendaraan Berasuransi</span>
