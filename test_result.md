@@ -302,6 +302,90 @@ agent_communication:
 
 **Detailed Test Results:**
 
+1. **Page Navigation & Authentication** ✅
+   - Successfully logged in with admin@example.com credentials
+   - Page loads correctly at /label-bmn
+   - Title "Manajemen Label BMN" displays properly
+   - Subtitle "Cetak stiker identitas aset dengan QR Code" verified
+
+2. **Tab Navigation** ✅
+   - All 4 tabs present and functional:
+     - Daftar Aset (default active)
+     - Customisasi QR (QR customization feature)
+     - Antrian Cetak (shows queue count: 0)
+     - Riwayat Cetak (shows history)
+   - Tab switching works smoothly between all tabs
+
+3. **Statistics Cards** ✅
+   - Total Aset: 13,553 (displayed correctly)
+   - Sudah Cetak: 0 (displayed correctly)
+   - Belum Cetak: 13,553 (displayed correctly)
+   - Aksesori: 0 (displayed correctly)
+
+4. **QR Code Customization Panel (QuickChart Style)** ✅
+   - Panel header "Customisasi QR Code" with "QuickChart Style" badge verified
+   - QR Preview box shows live preview with logo embedded
+   - Professional blue gradient styling matches QuickChart design
+
+5. **Basic Controls** ✅
+   - "Ukuran (px)" slider exists (range 100-400px) - functional
+   - "Margin (blocks)" slider exists (range 0-4) - functional
+   - "Warna QR" color picker with hex input (#000000 default) - working
+   - "Warna Background" color picker with hex input (#ffffff default) - working
+   - All sliders respond to user input correctly
+
+6. **Color Presets** ✅
+   - All 6 preset buttons verified: Klasik, Biru Tua, Hijau, Merah, Ungu, Navy Gold
+   - Navy Gold preset tested - successfully changes background color to #fef3c7
+   - Color preview updates in real-time when presets are clicked
+
+7. **Advanced Options** ✅
+   - "Opsi Lanjutan" expandable section working correctly
+   - "Error Correction Level" dropdown with options: Low, Medium, Quartile, High
+   - "Tampilkan Logo Instansi di QR" checkbox for logo toggle
+   - "Ukuran Logo" slider (range 15-35%) for logo size control
+
+8. **Tips Section** ✅
+   - Tips card exists with amber styling (bg-amber-50, border-amber-200)
+   - Contains helpful tips about Error Correction, color contrast, margin, logo size
+   - Professional government document styling maintained
+
+9. **Print Preview Integration** ✅
+   - Asset selection from "Daftar Aset" tab working
+   - Preview modal opens with "Preview Cetak Label" header
+   - QR codes generated with custom settings (color/logo) display correctly
+   - Sticker design includes institution header, QR code, asset details
+   - Print functionality integrated with customization settings
+
+10. **State Persistence** ✅
+    - QR customization settings preserved when switching between tabs
+    - Navy Gold preset remains active after tab navigation
+    - User preferences maintained throughout session
+
+**Technical Implementation Verified:**
+- React component structure with proper state management
+- QRCode.js library integration for dynamic QR generation
+- Radix UI components for professional interface
+- Real-time preview updates with custom settings
+- Color picker and slider controls working correctly
+
+**Files Tested:**
+- `/app/frontend/src/pages/LabelBMN.jsx` (QR customization feature working correctly)
+- Backend API endpoints functional for QR settings
+
+**API Endpoints Verified:**
+- GET /api/label-bmn/print-stats ✅
+- GET /api/label-bmn/assets ✅  
+- GET /api/label-bmn/instansi-info ✅
+
+**Minor Issues Identified:**
+- Session management: Some session timeouts during extended testing
+- Backend BSON encoding error in print logging (non-critical, doesn't affect QR customization)
+
+## Previous Testing Session - Sticker Printing System (December 2025)
+
+**Detailed Test Results:**
+
 1. **Page Loading & Layout** ✅
    - Page loads correctly at /label-bmn
    - Title "Manajemen Label BMN" displays properly
