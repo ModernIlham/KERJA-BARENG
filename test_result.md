@@ -4,37 +4,30 @@
 (DO NOT EDIT - Standard testing protocol for all features)
 
 ## Current Testing Task
-Testing: Manajemen Label BMN - Sticker Printing System - IN PROGRESS
+Testing: Manajemen Label BMN - QR Code Customization (QuickChart Style) - IN PROGRESS
 
 ### Task Description:
-Verify the new "Label BMN" feature at /label-bmn which allows printing asset stickers with QR codes.
+Verify the QR Code customization feature in Label BMN page, similar to QuickChart's bulk QR generator.
 
 ### Features to Test:
-1. **Page Loading** - Verify /label-bmn page loads with header statistics
-2. **Statistics Cards** - Check Total Aset, Sudah Cetak, Belum Cetak, Aksesori counts
-3. **3 Tabs** - Daftar Aset, Antrian Cetak, Riwayat Cetak
-4. **Filter Controls** - Search, Status Cetak, Ukuran Stiker, Ukuran Kertas
-5. **Asset Table** - List assets with Kode/Nama, Merk, Status Label, Aksesori columns
-6. **Selection** - Checkbox selection for multiple assets
-7. **Print Preview** - Opens modal with A4/A3 canvas and sticker preview
-8. **Sticker Design** - QR code, Logo instansi, NUP, Kategori, Deskripsi, Warning text
-9. **Crop Marks** - Cutting machine registration marks on canvas
-10. **Child Asset Modal** - Add/manage accessories (charger, mouse, etc)
-11. **Print History** - View previous print logs
+1. **Customisasi QR Tab** - New tab between Daftar Aset and Antrian Cetak
+2. **QR Preview** - Live preview with logo embedded
+3. **Size Slider** - Ukuran (px) from 100-400px
+4. **Margin Slider** - Margin (blocks) from 0-4
+5. **Color Pickers** - Warna QR and Warna Background with hex input
+6. **Color Presets** - 6 presets (Klasik, Biru Tua, Hijau, Merah, Ungu, Navy Gold)
+7. **Advanced Options** - Expandable section
+8. **Error Correction Level** - Dropdown (Low, Medium, Quartile, High)
+9. **Logo Toggle** - Checkbox to show/hide logo in QR
+10. **Logo Size Slider** - From 15-35%
+11. **Print Preview Integration** - QR settings applied to stickers
 
 ### Login Credentials:
 - Email: admin@example.com
 - Password: admin123
 
-### API Endpoints to Test:
-- GET /api/label-bmn/print-stats
-- GET /api/label-bmn/assets
-- GET /api/label-bmn/instansi-info
-- POST /api/label-bmn/child-asset
-- POST /api/label-bmn/print-batch
-
 ### Previous Testing:
-Testing: Laporan Ringkas BMN - COMPLETED ✅
+Testing: Manajemen Label BMN - Sticker Printing System - COMPLETED ✅
 
 ### Features Tested:
 1. **Halaman Transaksi Persediaan (/transaksi-persediaan)** ✅
