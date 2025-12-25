@@ -177,14 +177,18 @@ class DocumentUploadTester:
             return False
         
         # Verify response structure
+        if not response:
+            print("❌ Empty response from transaksi dokumen endpoint")
+            return False
+            
         required_fields = ["dokumen_pendukung", "tanda_tangan"]
         for field in required_fields:
             if field not in response:
                 print(f"❌ Missing required field: {field}")
                 return False
         
-        initial_dokumen_count = len(response.get("dokumen_pendukung", []))
-        initial_signature_count = len(response.get("tanda_tangan", []))
+        initial_dokumen_count = len(response.get("dokumen_pendukung") or [])
+        initial_signature_count = len(response.get("tanda_tangan") or [])
         
         print("✅ Transaksi dokumen response structure correct")
         print(f"   Current documents: {initial_dokumen_count}")
