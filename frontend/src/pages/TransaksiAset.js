@@ -184,25 +184,7 @@ export default function TransaksiAset() {
 
                 {/* Riwayat Tab */}
                 <TabsContent value="riwayat">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-slate-500" />
-                                Riwayat Transaksi Aset
-                            </CardTitle>
-                            <CardDescription>
-                                Daftar seluruh transaksi perolehan, pengembangan, perubahan, dan penghapusan BMN/KDP
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <TransactionTable 
-                                data={transactions}
-                                loading={loading} 
-                                assetType="aset" 
-                                type="all"
-                            />
-                        </CardContent>
-                    </Card>
+                    <RiwayatTransaksiComprehensive />
                 </TabsContent>
 
                 {/* Perolehan Tab */}
