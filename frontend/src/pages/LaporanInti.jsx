@@ -481,9 +481,9 @@ export default function LaporanInti() {
                       <XAxis dataKey="bulan" tick={{fontSize: 7}} />
                       <YAxis domain={[0, 100]} tick={{fontSize: 7}} />
                       <Tooltip />
-                      <Line type="monotone" dataKey="admin" stroke={C.success} strokeWidth={1.5} dot={{r: 1}} />
-                      <Line type="monotone" dataKey="fisik" stroke={C.info} strokeWidth={1.5} dot={{r: 1}} />
-                      <Line type="monotone" dataKey="hukum" stroke="#7c3aed" strokeWidth={1.5} dot={{r: 1}} />
+                      <Line type="monotone" dataKey="admin" stroke={C.success} strokeWidth={1.5} dot={{r: 1}} isAnimationActive={!pdfMode} />
+                      <Line type="monotone" dataKey="fisik" stroke={C.info} strokeWidth={1.5} dot={{r: 1}} isAnimationActive={!pdfMode} />
+                      <Line type="monotone" dataKey="hukum" stroke="#7c3aed" strokeWidth={1.5} dot={{r: 1}} isAnimationActive={!pdfMode} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
