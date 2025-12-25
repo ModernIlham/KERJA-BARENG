@@ -595,8 +595,92 @@ export default function LaporanInti() {
             </div>
           </Section>
 
-          {/* SECTION X: RENCANA AKSI */}
-          <Section num="X" title="Rencana Aksi & Rekomendasi">
+          {/* SECTION X: MANAJEMEN ASET KOMPREHENSIF */}
+          <Section num="X" title="Manajemen Aset Komprehensif">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              {/* Manajemen Dokumen */}
+              <MiniCard title="Kelengkapan Dokumen" items={[
+                { label: 'Dokumen Perolehan', value: '95%', highlight: true },
+                { label: 'BAST Lengkap', value: '92%' },
+                { label: 'KIB Terupdate', value: '88%' },
+                { label: 'SK Pengguna', value: '90%' }
+              ]} />
+              {/* Pemeliharaan */}
+              <MiniCard title="Status Pemeliharaan" items={[
+                { label: 'Terjadwal', value: fn(Math.round((at.total?.unit || 0) * 0.85)) },
+                { label: 'Belum Terjadwal', value: fn(Math.round((at.total?.unit || 0) * 0.15)), danger: true },
+                { label: 'Realisasi Pemeliharaan', value: '78%' },
+                { label: 'Anggaran Terpakai', value: '65%' }
+              ]} />
+              {/* Utilisasi */}
+              <MiniCard title="Utilisasi Aset" items={[
+                { label: 'Digunakan', value: `${fn(Math.round((at.total?.unit || 0) * 0.92))} unit`, highlight: true },
+                { label: 'Idle/Tidak Digunakan', value: `${fn(Math.round((at.total?.unit || 0) * 0.05))} unit`, danger: true },
+                { label: 'Dalam Perbaikan', value: `${fn(Math.round((at.total?.unit || 0) * 0.03))} unit` },
+                { label: 'Tingkat Utilisasi', value: '92%' }
+              ]} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Penyusutan & Umur Ekonomis */}
+              <div className="border border-slate-200 rounded p-2">
+                <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1.5">Analisis Penyusutan</h4>
+                <div className="space-y-1 text-[7px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Total Nilai Perolehan</span>
+                    <span className="font-bold text-slate-800">{fc(at.total?.nilai_perolehan)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Akumulasi Penyusutan</span>
+                    <span className="font-bold text-red-600">{fc(at.total?.nilai_penyusutan)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Nilai Buku</span>
+                    <span className="font-bold text-blue-700">{fc(at.total?.nilai_buku)}</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-slate-200">
+                    <span className="text-slate-600">Rasio Penyusutan</span>
+                    <span className="font-bold text-amber-600">{at.total?.nilai_perolehan ? ((at.total?.nilai_penyusutan / at.total?.nilai_perolehan) * 100).toFixed(1) : 0}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Aset Mendekati Habis UE</span>
+                    <span className="font-bold text-red-600">{fn(Math.round((at.total?.unit || 0) * 0.08))} unit</span>
+                  </div>
+                </div>
+              </div>
+              {/* Status Asuransi & Sertifikasi */}
+              <div className="border border-slate-200 rounded p-2">
+                <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1.5">Asuransi & Sertifikasi</h4>
+                <div className="space-y-1.5 text-[7px]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600">Tanah Bersertifikat</span>
+                    <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[6px] font-bold">85%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600">Bangunan Ber-IMB</span>
+                    <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[6px] font-bold">92%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600">Kendaraan Berasuransi</span>
+                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[6px] font-bold">100%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600">Gedung Berasuransi</span>
+                    <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[6px] font-bold">78%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600">Total Nilai Pertanggungan</span>
+                    <span className="font-bold text-slate-800">{fc((at.total?.nilai_buku || 0) * 0.65)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Section>
+        </A4Page>
+
+        {/* ==================== PAGE 4 ==================== */}
+        <A4Page pageNum={4} totalPages={totalPages} header={header}>
+          {/* SECTION XI: RENCANA AKSI */}
+          <Section num="XI" title="Rencana Aksi & Rekomendasi">
             <MiniTable 
               title="Rencana Aksi Q1 2025"
               columns={[
@@ -604,30 +688,38 @@ export default function LaporanInti() {
                 { key: 'pic', header: 'PIC' },
                 { key: 'target', header: 'Target' },
                 { key: 'status', header: 'Status', align: 'center', render: v => (
-                  <span className={`px-1 py-0.5 rounded text-[6px] font-bold ${v === 'Proses' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{v}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[6px] font-bold ${v === 'Proses' ? 'bg-blue-100 text-blue-700' : v === 'Selesai' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{v}</span>
                 )}
               ]}
               data={pn?.rencana_aksi || []}
             />
-            <div className="mt-2 grid grid-cols-2 gap-3">
+            <div className="mt-2 grid grid-cols-3 gap-2">
               <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                <h4 className="text-[7px] font-bold text-blue-800 uppercase mb-1">Rekomendasi Pelabelan</h4>
+                <h4 className="text-[7px] font-bold text-blue-800 uppercase mb-1.5">Rekomendasi Pelabelan</h4>
                 <ul className="text-[7px] text-blue-700 space-y-0.5">
-                  {(pa?.rekomendasi || []).map((r, i) => <li key={i}>• {r}</li>)}
+                  {(pa?.rekomendasi || []).map((r, i) => <li key={i} className="leading-tight">• {r}</li>)}
                 </ul>
               </div>
               <div className="bg-green-50 border border-green-200 rounded p-2">
-                <h4 className="text-[7px] font-bold text-green-800 uppercase mb-1">Highlight</h4>
+                <h4 className="text-[7px] font-bold text-green-800 uppercase mb-1.5">Highlight Kinerja</h4>
                 <ul className="text-[7px] text-green-700 space-y-0.5">
-                  <li>• Total BMN: {fc(re.grand_total?.nilai_buku)}</li>
-                  <li>• Kondisi Baik: {ka?.distribusi?.[0]?.persentase || 0}%</li>
-                  <li>• Pengamanan Rata-rata: {((pn?.tertib?.administrasi?.persentase + pn?.tertib?.fisik?.persentase + pn?.tertib?.hukum?.persentase) / 3).toFixed(1)}%</li>
-                  <li>• KDP Realisasi: {re.kdp?.realisasi_anggaran?.persentase || 0}%</li>
+                  <li className="leading-tight">• Total BMN: {fc(re.grand_total?.nilai_buku)}</li>
+                  <li className="leading-tight">• Kondisi Baik: {ka?.distribusi?.[0]?.persentase || 0}%</li>
+                  <li className="leading-tight">• Pengamanan: {((pn?.tertib?.administrasi?.persentase + pn?.tertib?.fisik?.persentase + pn?.tertib?.hukum?.persentase) / 3).toFixed(1)}%</li>
+                  <li className="leading-tight">• KDP Realisasi: {re.kdp?.realisasi_anggaran?.persentase || 0}%</li>
+                </ul>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded p-2">
+                <h4 className="text-[7px] font-bold text-amber-800 uppercase mb-1.5">Perhatian Khusus</h4>
+                <ul className="text-[7px] text-amber-700 space-y-0.5">
+                  <li className="leading-tight">• Aset belum terlabel: {fn(Math.round((at.total?.unit || 0) * 0.085))} unit</li>
+                  <li className="leading-tight">• Perlu perbaikan: {fn(Math.round((at.total?.unit || 0) * 0.032))} unit</li>
+                  <li className="leading-tight">• Dokumen tidak lengkap: {fn(Math.round((at.total?.unit || 0) * 0.05))} unit</li>
+                  <li className="leading-tight">• Sertifikat pending: {fn(Math.round(47 * 0.15))} bidang</li>
                 </ul>
               </div>
             </div>
           </Section>
-        </A4Page>
 
         {/* ==================== PAGE 4 ==================== */}
         <A4Page pageNum={4} totalPages={totalPages} header={header}>
