@@ -978,6 +978,7 @@ export default function LabelBMN() {
           <TabsTrigger value="daftar" className="flex items-center gap-1"><LayoutGrid className="w-4 h-4" />Daftar Aset</TabsTrigger>
           <TabsTrigger value="cetak" className="flex items-center gap-1"><Printer className="w-4 h-4" />Antrian ({selectedItems.length})</TabsTrigger>
           <TabsTrigger value="riwayat" className="flex items-center gap-1"><History className="w-4 h-4" />Riwayat</TabsTrigger>
+          <TabsTrigger value="design" className="flex items-center gap-1"><Settings2 className="w-4 h-4" />Pengaturan Design</TabsTrigger>
         </TabsList>
         
         <TabsContent value="daftar" className="space-y-4">
