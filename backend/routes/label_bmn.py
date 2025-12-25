@@ -93,7 +93,7 @@ class PrintBatchRequest(BaseModel):
     canvas_size: str = "A4"  # A4 atau A3
 
 
-# --- Helper Functions ---
+async def get_instansi_info():
 # --- Models ---
     """Get institution info for sticker header"""
     config = await db.system_settings.find_one({"key": "instansi"})
