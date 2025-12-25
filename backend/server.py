@@ -68,6 +68,9 @@ api_router.include_router(gudang.router, prefix="/gudang", tags=["Gudang (Wareho
 # Notifications (Asset Return Alerts)
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 
+# Cross-module transactions (Persediaan <-> Aset)
+api_router.include_router(transaksi_cross.router, prefix="/transaksi-cross", tags=["Transaksi Cross Module"])
+
 @api_router.get("/")
 async def root():
     return {"message": "SIMAN-G API Ready"}
