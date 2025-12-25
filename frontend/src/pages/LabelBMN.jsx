@@ -637,25 +637,25 @@ const StikerBesar = ({ data, instansi, qrDataUrl, scale = 1 }) => {
 };
 
 // ==================== PRINT CANVAS COMPONENT ====================
-const PrintCanvas = ({ items, canvasSize, instansi, onClose }) => {
+const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
   const printRef = useRef(null);
   const [qrCodes, setQrCodes] = useState({});
   const [loading, setLoading] = useState(true);
   
-  // Generate QR codes for all items
+  // Generate QR codes for all items with custom settings
   useEffect(() => {
     const generateQRCodes = async () => {
       setLoading(true);
       const codes = {};
       for (const item of items) {
         const qrText = `#${item.kode_register || item.kode_barang}-${item.nup || '1'}`;
-        codes[item.id] = await generateQRCodeDataURL(qrText, 200);
+        codes[item.id] = await generateQRCodeDataURL(qrText, qrSettings);
       }
       setQrCodes(codes);
       setLoading(false);
     };
     generateQRCodes();
-  }, [items]);
+  }, [items, qrSettings]);
   
   const canvas = CANVAS_SIZES[canvasSize];
   
