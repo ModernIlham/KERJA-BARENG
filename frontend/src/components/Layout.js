@@ -417,21 +417,24 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} collapsed={collapsed} toggleCollapse={toggleCollapse} />
+    <div className="min-h-screen bg-slate-50 font-sans print:bg-white print:min-h-0">
+      {/* Sidebar - hidden during print */}
+      <div className="print:hidden">
+        <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} collapsed={collapsed} toggleCollapse={toggleCollapse} />
+      </div>
       
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 md:hidden transition-opacity" 
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 md:hidden transition-opacity print:hidden" 
           onClick={toggleSidebar}
         />
       )}
       
       {/* Main content */}
-      <div className={cn("min-h-screen flex flex-col transition-all duration-300", collapsed ? "md:ml-[70px]" : "md:ml-64")}>
-        {/* Top bar */}
-        <header className="bg-white border-b border-slate-200 px-6 py-3 sticky top-0 z-30 shadow-sm">
+      <div className={cn("min-h-screen flex flex-col transition-all duration-300 print:min-h-0 print:ml-0", collapsed ? "md:ml-[70px]" : "md:ml-64")}>
+        {/* Top bar - hidden during print */}
+        <header className="bg-white border-b border-slate-200 px-6 py-3 sticky top-0 z-30 shadow-sm print:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
                 <button 
