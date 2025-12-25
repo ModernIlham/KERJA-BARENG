@@ -16,6 +16,28 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Transaction types that require approval
+APPROVAL_REQUIRED_TYPES = [
+    'PERUBAHAN_KUANTITAS',
+    'PERUBAHAN_KONDISI', 
+    'KOREKSI_NILAI_BMN',
+    'KOREKSI_NILAI_KDP',
+    'REKLASIFIKASI_MASUK',
+    'REKLASIFIKASI_KELUAR',
+    'REKLASIFIKASI_KDP',
+    'PERSEDIAAN_TO_ASET',
+    'ASET_TO_PERSEDIAAN'
+]
+
+async def check_approval_required(jenis: str) -> bool:
+    """Check if transaction type requires approval based on system settings."""
+    config = await db.system_settings.find_one({"key": "approval_config"})
+    if not config or not config.get("enabled", True):
+        return False
+    
+    require_approval_for = config.get("require_approval_for", APPROVAL_REQUIRED_TYPES)
+    return jenis in require_approval_for
+
 def sanitize_for_json(obj):
     """
     Sanitize MongoDB document for JSON serialization.
