@@ -229,25 +229,40 @@ export default function LaporanInti() {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="mr-1.5 h-4 w-4" /> Cetak
           </Button>
-          <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white">
-            <Download className="mr-1.5 h-4 w-4" /> PDF
+          <Button 
+            size="sm" 
+            className="bg-blue-700 hover:bg-blue-800 text-white"
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <>
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Mengunduh...
+              </>
+            ) : (
+              <>
+                <Download className="mr-1.5 h-4 w-4" /> Unduh PDF
+              </>
+            )}
           </Button>
         </div>
       </div>
 
-      {/* ==================== PAGE 1 ==================== */}
-      <A4Page pageNum={1} totalPages={totalPages} header={header}>
-        {/* Document Title */}
-        <div className="text-center mb-4 pb-3 border-b-2 border-slate-300">
-          <h1 className="text-lg font-bold text-slate-900 uppercase tracking-[0.1em]">LAPORAN BARANG MILIK NEGARA (BMN)</h1>
-          <p className="text-[10px] text-slate-500 mt-1">Sesuai PP No. 27 Tahun 2014 tentang Pengelolaan BMN</p>
-        </div>
+      {/* Report Container for PDF */}
+      <div ref={reportRef}>
+        {/* ==================== PAGE 1 ==================== */}
+        <A4Page pageNum={1} totalPages={totalPages} header={header}>
+          {/* Document Title */}
+          <div className="text-center mb-4 pb-3 border-b-2 border-slate-300">
+            <h1 className="text-lg font-bold text-slate-900 uppercase tracking-[0.1em]">LAPORAN BARANG MILIK NEGARA (BMN)</h1>
+            <p className="text-[10px] text-slate-500 mt-1">Sesuai PP No. 27 Tahun 2014 tentang Pengelolaan BMN</p>
+          </div>
 
-        {/* SECTION I: RINGKASAN EKSEKUTIF */}
-        <SectionTitle num="I" title="Ringkasan Eksekutif" />
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <CompactCard 
-            title="Nilai Perolehan"
+          {/* SECTION I: RINGKASAN EKSEKUTIF */}
+          <SectionTitle num="I" title="Ringkasan Eksekutif" />
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <CompactCard 
+              title="Nilai Perolehan"
             items={[
               { label: 'Tanah', value: compactCurrency(ringkasan_eksekutif?.nilai_perolehan?.tanah?.nilai || 0) },
               { label: 'Gedung', value: compactCurrency(ringkasan_eksekutif?.nilai_perolehan?.gedung?.nilai || 0) },
