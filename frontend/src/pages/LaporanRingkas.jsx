@@ -42,12 +42,6 @@ export default function LaporanRingkas() {
       setDownloading(false);
     }, 100);
   };
-      alert('Gagal mengunduh PDF. Silakan coba lagi.');
-    } finally {
-      setPdfMode(false);
-      setDownloading(false);
-    }
-  }, []);
 
   if (loading) return <div className="flex justify-center items-center min-h-screen"><Loader2 className="animate-spin w-8 h-8 text-slate-400" /></div>;
   if (!data) return <div className="flex justify-center items-center min-h-screen text-red-500">Gagal memuat data</div>;
