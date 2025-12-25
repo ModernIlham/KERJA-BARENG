@@ -28,20 +28,21 @@ const C = { primary: '#1e3a5f', success: '#16a34a', warning: '#ca8a04', danger: 
 
 // ==================== COMPONENTS ====================
 const A4Page = ({ children, pageNum, totalPages, header }) => (
-  <div className="a4-page bg-white w-[210mm] min-h-[297mm] mx-auto mb-6 shadow-xl print:shadow-none print:mb-0 print:break-after-page relative flex flex-col">
-    <header className="bg-slate-900 text-white px-5 py-3 flex items-center gap-3">
-      <Shield className="w-8 h-8 opacity-80" />
+  <div className="a4-page bg-white mx-auto mb-6 shadow-xl print:shadow-none print:mb-0 relative flex flex-col" 
+       style={{ width: '210mm', minHeight: '297mm', maxWidth: '210mm' }}>
+    <header className="bg-slate-900 text-white px-4 py-2 flex items-center gap-2">
+      <Shield className="w-6 h-6 opacity-80" />
       <div className="flex-1">
-        <p className="text-[9px] text-slate-300 uppercase tracking-wider">{header?.kementerian}</p>
-        <h1 className="text-xs font-bold">{header?.direktorat}</h1>
+        <p className="text-[8px] text-slate-300 uppercase tracking-wider">{header?.kementerian}</p>
+        <h1 className="text-[10px] font-bold">{header?.direktorat}</h1>
       </div>
       <div className="text-right">
-        <p className="text-[8px] text-slate-400">{header?.nomor_dokumen}</p>
-        <span className="text-[9px] font-bold bg-blue-700 px-2 py-0.5 rounded">TA {header?.tahun_anggaran}</span>
+        <p className="text-[7px] text-slate-400">{header?.nomor_dokumen}</p>
+        <span className="text-[8px] font-bold bg-blue-700 px-1.5 py-0.5 rounded">TA {header?.tahun_anggaran}</span>
       </div>
     </header>
-    <main className="flex-1 px-5 py-3 overflow-hidden text-[9px]">{children}</main>
-    <footer className="px-5 py-1.5 border-t border-slate-200 flex justify-between text-[8px] text-slate-400">
+    <main className="flex-1 px-4 py-2 overflow-hidden text-[8px]">{children}</main>
+    <footer className="px-4 py-1 border-t border-slate-200 flex justify-between text-[7px] text-slate-400">
       <span>LAPORAN BMN - {new Date().toLocaleDateString('id-ID')}</span>
       <span className="font-medium">Halaman {pageNum} dari {totalPages}</span>
     </footer>
