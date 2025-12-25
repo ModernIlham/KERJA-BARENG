@@ -1151,6 +1151,8 @@ export default function LabelBMN() {
         </TabsContent>
         
         <TabsContent value="riwayat"><PrintHistoryTab /></TabsContent>
+        
+        <TabsContent value="design"><StickerDesignTab instansi={instansi} qrSettings={qrSettings} /></TabsContent>
       </Tabs>
       
       {showPrintPage && (
