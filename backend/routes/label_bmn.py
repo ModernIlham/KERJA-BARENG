@@ -323,6 +323,9 @@ async def log_print_batch(
     printed_at = datetime.now(timezone.utc).isoformat()
     logs_created = 0
     
+    # Ensure current_user is a string
+    user_str = str(current_user) if current_user else "unknown"
+    
     for item in request.items:
         barang_id = item.get("barang_id")
         ukuran = item.get("ukuran", "sedang")
@@ -348,7 +351,7 @@ async def log_print_batch(
                 "barang_id": barang_id,
                 "ukuran": ukuran,
                 "printed_at": printed_at,
-                "printed_by": current_user,
+                "printed_by": user_str,
                 "jumlah_cetak": 1
             }
             await db.label_print_logs.insert_one(log)
