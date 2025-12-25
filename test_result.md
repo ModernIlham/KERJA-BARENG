@@ -168,10 +168,17 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Document Upload & Digital Signature API"
+    - "UI Verification - All completed features"
   stuck_tasks: []
   test_all: false
   test_priority: "high"
+  
+Incorporate User Feedback:
+  - Verify UI standardization of Transaksi Persediaan page matches Transaksi Aset layout
+  - Test all 5 main tabs work correctly (Riwayat, Barang Masuk, Barang Keluar, Perubahan, Reklasifikasi)
+  - Test sub-tabs navigation in each main tab
+  - Verify Approval page displays correct statistics and pending transactions
+  - Test Dashboard loading without timeout
 
 frontend:
   - task: "Integrated Transaction System Testing"
