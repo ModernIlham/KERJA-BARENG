@@ -727,7 +727,7 @@ async def get_transaksi_detail(
         if asset:
             asset["id"] = str(asset["_id"])
             del asset["_id"]
-            transaksi["asset"] = asset
+            transaksi["asset"] = sanitize_for_json(asset)
     
     # Get linked transaction if exists
     if transaksi.get("linked_transaction_id") and ObjectId.is_valid(transaksi.get("linked_transaction_id")):
@@ -735,9 +735,9 @@ async def get_transaksi_detail(
         if linked:
             linked["id"] = str(linked["_id"])
             del linked["_id"]
-            transaksi["linked_transaction"] = linked
+            transaksi["linked_transaction"] = sanitize_for_json(linked)
     
-    return transaksi
+    return sanitize_for_json(transaksi)
 
 @router.get("/riwayat")
 async def get_riwayat_transaksi(
