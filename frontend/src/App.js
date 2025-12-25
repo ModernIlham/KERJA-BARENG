@@ -71,6 +71,7 @@ export default function App() {
             <Route path="aset-pegawai" element={<AsetPegawaiList />} />
             <Route path="gudang" element={<GudangList />} />
             <Route path="notifikasi" element={<NotificationList />} />
+            <Route path="persetujuan" element={<ApprovalPage />} />
             
             {/* New Simplified Transaction Routes */}
             <Route path="transaksi-aset" element={<TransaksiAset />} />
