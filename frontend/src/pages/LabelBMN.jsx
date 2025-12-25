@@ -1506,6 +1506,7 @@ export default function LabelBMN() {
           items={selectedItems}
           canvasSize={canvasSize}
           instansi={instansi}
+          qrSettings={qrSettings}
           onClose={() => {
             handlePrintComplete();
           }}
