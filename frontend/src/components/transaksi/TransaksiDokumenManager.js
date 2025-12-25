@@ -430,8 +430,12 @@ export default function TransaksiDokumenManager({ transaksiId, onUpdate }) {
                 {pegawaiList.map((p) => (
                   <div 
                     key={p.id}
-                    onClick={() => setSelectedPegawai(p)}
-                    className={`p-3 cursor-pointer hover:bg-slate-50 flex items-center gap-3 border-b last:border-b-0 ${selectedPegawai?.id === p.id ? 'bg-green-50 border-green-200' : ''}`}
+                    onClick={() => p.has_signature ? setSelectedPegawai(p) : null}
+                    className={`p-3 flex items-center gap-3 border-b last:border-b-0 ${
+                      p.has_signature 
+                        ? 'cursor-pointer hover:bg-slate-50' 
+                        : 'opacity-50 cursor-not-allowed bg-slate-50'
+                    } ${selectedPegawai?.id === p.id ? 'bg-green-50 border-green-200' : ''}`}
                   >
                     <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
                       {p.foto_url ? (
@@ -443,8 +447,11 @@ export default function TransaksiDokumenManager({ transaksiId, onUpdate }) {
                     <div className="flex-1">
                       <div className="text-sm font-medium">{p.nama_lengkap}</div>
                       <div className="text-xs text-slate-500">{p.nip || '-'} • {p.jabatan || '-'}</div>
+                      {!p.has_signature && (
+                        <div className="text-xs text-red-500">Belum memiliki TTD digital</div>
+                      )}
                     </div>
-                    {p.signature_url && (
+                    {p.signature_url && p.has_signature && (
                       <img src={p.signature_url} alt="TTD" className="w-12 h-8 object-contain border rounded" />
                     )}
                     {selectedPegawai?.id === p.id && (
