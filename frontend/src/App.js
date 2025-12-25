@@ -10,6 +10,7 @@ import PegawaiList from './pages/PegawaiList';
 import BandingData from './pages/BandingData';
 import StockOpname from './pages/StockOpname';
 import Laporan from './pages/Laporan';
+import LaporanInti from './pages/LaporanInti';
 import Pengaturan from './pages/Pengaturan';
 import ReferensiKode from './pages/ReferensiKode';
 import TransaksiAset from './pages/TransaksiAset';
