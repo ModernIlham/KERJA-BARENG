@@ -552,52 +552,52 @@ export default function LaporanInti() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {/* Penyusutan & Umur Ekonomis */}
-              <div className="border border-slate-200 rounded" style={{ padding: '8px' }}>
-                <h4 className="text-[7px] font-bold text-slate-600 uppercase" style={{ marginBottom: '6px', lineHeight: '1.2' }}>Analisis Penyusutan</h4>
-                <div className="text-[7px]" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div className="flex justify-between" style={{ lineHeight: '1.3' }}>
+              <div className="border border-slate-200 rounded p-2">
+                <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1.5">Analisis Penyusutan</h4>
+                <div className="text-[7px] space-y-1">
+                  <div className="flex justify-between">
                     <span className="text-slate-600">Total Nilai Perolehan</span>
                     <span className="font-bold text-slate-800">{fc(at.total?.nilai_perolehan)}</span>
                   </div>
-                  <div className="flex justify-between" style={{ lineHeight: '1.3' }}>
+                  <div className="flex justify-between">
                     <span className="text-slate-600">Akumulasi Penyusutan</span>
                     <span className="font-bold text-red-600">{fc(at.total?.nilai_penyusutan)}</span>
                   </div>
-                  <div className="flex justify-between" style={{ lineHeight: '1.3' }}>
+                  <div className="flex justify-between">
                     <span className="text-slate-600">Nilai Buku</span>
                     <span className="font-bold text-blue-700">{fc(at.total?.nilai_buku)}</span>
                   </div>
-                  <div className="flex justify-between border-t border-slate-200" style={{ lineHeight: '1.3', paddingTop: '4px' }}>
+                  <div className="flex justify-between border-t border-slate-200 pt-1">
                     <span className="text-slate-600">Rasio Penyusutan</span>
                     <span className="font-bold text-amber-600">{at.total?.nilai_perolehan ? ((at.total?.nilai_penyusutan / at.total?.nilai_perolehan) * 100).toFixed(1) : 0}%</span>
                   </div>
-                  <div className="flex justify-between" style={{ lineHeight: '1.3' }}>
+                  <div className="flex justify-between">
                     <span className="text-slate-600">Aset Mendekati Habis UE</span>
                     <span className="font-bold text-red-600">{fn(Math.round((at.total?.unit || 0) * 0.08))} unit</span>
                   </div>
                 </div>
               </div>
               {/* Status Asuransi & Sertifikasi */}
-              <div className="border border-slate-200 rounded" style={{ padding: '8px' }}>
-                <h4 className="text-[7px] font-bold text-slate-600 uppercase" style={{ marginBottom: '6px', lineHeight: '1.2' }}>Asuransi & Sertifikasi</h4>
-                <div className="text-[7px]" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                  <div className="flex justify-between items-center" style={{ lineHeight: '1.3' }}>
+              <div className="border border-slate-200 rounded p-2">
+                <h4 className="text-[7px] font-bold text-slate-600 uppercase mb-1.5">Asuransi & Sertifikasi</h4>
+                <div className="text-[7px] space-y-1.5">
+                  <div className="flex justify-between items-center">
                     <span className="text-slate-600">Tanah Bersertifikat</span>
-                    <span className="bg-green-100 text-green-700 rounded text-[6px] font-bold" style={{ padding: '2px 6px' }}>85%</span>
+                    <span className="bg-green-100 text-green-700 rounded text-[6px] font-bold px-1.5 py-0.5">85%</span>
                   </div>
-                  <div className="flex justify-between items-center" style={{ lineHeight: '1.3' }}>
+                  <div className="flex justify-between items-center">
                     <span className="text-slate-600">Bangunan Ber-IMB</span>
-                    <span className="bg-green-100 text-green-700 rounded text-[6px] font-bold" style={{ padding: '2px 6px' }}>92%</span>
+                    <span className="bg-green-100 text-green-700 rounded text-[6px] font-bold px-1.5 py-0.5">92%</span>
                   </div>
-                  <div className="flex justify-between items-center" style={{ lineHeight: '1.3' }}>
+                  <div className="flex justify-between items-center">
                     <span className="text-slate-600">Kendaraan Berasuransi</span>
-                    <span className="bg-blue-100 text-blue-700 rounded text-[6px] font-bold" style={{ padding: '2px 6px' }}>100%</span>
+                    <span className="bg-blue-100 text-blue-700 rounded text-[6px] font-bold px-1.5 py-0.5">100%</span>
                   </div>
-                  <div className="flex justify-between items-center" style={{ lineHeight: '1.3' }}>
+                  <div className="flex justify-between items-center">
                     <span className="text-slate-600">Gedung Berasuransi</span>
-                    <span className="bg-amber-100 text-amber-700 rounded text-[6px] font-bold" style={{ padding: '2px 6px' }}>78%</span>
+                    <span className="bg-amber-100 text-amber-700 rounded text-[6px] font-bold px-1.5 py-0.5">78%</span>
                   </div>
-                  <div className="flex justify-between items-center" style={{ lineHeight: '1.3' }}>
+                  <div className="flex justify-between items-center">
                     <span className="text-slate-600">Total Nilai Pertanggungan</span>
                     <span className="font-bold text-slate-800">{fc((at.total?.nilai_buku || 0) * 0.65)}</span>
                   </div>
@@ -618,34 +618,34 @@ export default function LaporanInti() {
                 { key: 'pic', header: 'PIC' },
                 { key: 'target', header: 'Target' },
                 { key: 'status', header: 'Status', align: 'center', render: v => (
-                  <span className={`rounded text-[6px] font-bold ${v === 'Proses' ? 'bg-blue-100 text-blue-700' : v === 'Selesai' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`} style={{ padding: '2px 6px' }}>{v}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[6px] font-bold ${v === 'Proses' ? 'bg-blue-100 text-blue-700' : v === 'Selesai' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{v}</span>
                 )}
               ]}
               data={pn?.rencana_aksi || []}
             />
-            <div className="grid grid-cols-3 gap-2" style={{ marginTop: '8px' }}>
-              <div className="bg-blue-50 border border-blue-200 rounded" style={{ padding: '8px' }}>
-                <h4 className="text-[7px] font-bold text-blue-800 uppercase" style={{ marginBottom: '6px', lineHeight: '1.2' }}>Rekomendasi Pelabelan</h4>
-                <ul className="text-[7px] text-blue-700" style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
-                  {(pa?.rekomendasi || []).map((r, i) => <li key={i} style={{ lineHeight: '1.4', marginBottom: '2px' }}>• {r}</li>)}
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                <h4 className="text-[7px] font-bold text-blue-800 uppercase mb-1">Rekomendasi Pelabelan</h4>
+                <ul className="text-[7px] text-blue-700 space-y-0.5">
+                  {(pa?.rekomendasi || []).map((r, i) => <li key={i}>• {r}</li>)}
                 </ul>
               </div>
-              <div className="bg-green-50 border border-green-200 rounded" style={{ padding: '8px' }}>
-                <h4 className="text-[7px] font-bold text-green-800 uppercase" style={{ marginBottom: '6px', lineHeight: '1.2' }}>Highlight Kinerja</h4>
-                <ul className="text-[7px] text-green-700" style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
-                  <li style={{ lineHeight: '1.4', marginBottom: '2px' }}>• Total BMN: {fc(re.grand_total?.nilai_buku)}</li>
-                  <li style={{ lineHeight: '1.4', marginBottom: '2px' }}>• Kondisi Baik: {ka?.distribusi?.[0]?.persentase || 0}%</li>
-                  <li style={{ lineHeight: '1.4', marginBottom: '2px' }}>• Pengamanan: {((pn?.tertib?.administrasi?.persentase + pn?.tertib?.fisik?.persentase + pn?.tertib?.hukum?.persentase) / 3).toFixed(1)}%</li>
-                  <li style={{ lineHeight: '1.4', marginBottom: '2px' }}>• KDP Realisasi: {re.kdp?.realisasi_anggaran?.persentase || 0}%</li>
+              <div className="bg-green-50 border border-green-200 rounded p-2">
+                <h4 className="text-[7px] font-bold text-green-800 uppercase mb-1">Highlight Kinerja</h4>
+                <ul className="text-[7px] text-green-700 space-y-0.5">
+                  <li>• Total BMN: {fc(re.grand_total?.nilai_buku)}</li>
+                  <li>• Kondisi Baik: {ka?.distribusi?.[0]?.persentase || 0}%</li>
+                  <li>• Pengamanan: {((pn?.tertib?.administrasi?.persentase + pn?.tertib?.fisik?.persentase + pn?.tertib?.hukum?.persentase) / 3).toFixed(1)}%</li>
+                  <li>• KDP Realisasi: {re.kdp?.realisasi_anggaran?.persentase || 0}%</li>
                 </ul>
               </div>
-              <div className="bg-amber-50 border border-amber-200 rounded" style={{ padding: '8px' }}>
-                <h4 className="text-[7px] font-bold text-amber-800 uppercase" style={{ marginBottom: '6px', lineHeight: '1.2' }}>Perhatian Khusus</h4>
-                <ul className="text-[7px] text-amber-700" style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
-                  <li style={{ lineHeight: '1.4', marginBottom: '2px' }}>• Aset belum terlabel: {fn(Math.round((at.total?.unit || 0) * 0.085))} unit</li>
-                  <li style={{ lineHeight: '1.4', marginBottom: '2px' }}>• Perlu perbaikan: {fn(Math.round((at.total?.unit || 0) * 0.032))} unit</li>
-                  <li style={{ lineHeight: '1.4', marginBottom: '2px' }}>• Dokumen tidak lengkap: {fn(Math.round((at.total?.unit || 0) * 0.05))} unit</li>
-                  <li style={{ lineHeight: '1.4', marginBottom: '2px' }}>• Sertifikat pending: {fn(Math.round(47 * 0.15))} bidang</li>
+              <div className="bg-amber-50 border border-amber-200 rounded p-2">
+                <h4 className="text-[7px] font-bold text-amber-800 uppercase mb-1">Perhatian Khusus</h4>
+                <ul className="text-[7px] text-amber-700 space-y-0.5">
+                  <li>• Aset belum terlabel: {fn(Math.round((at.total?.unit || 0) * 0.085))} unit</li>
+                  <li>• Perlu perbaikan: {fn(Math.round((at.total?.unit || 0) * 0.032))} unit</li>
+                  <li>• Dokumen tidak lengkap: {fn(Math.round((at.total?.unit || 0) * 0.05))} unit</li>
+                  <li>• Sertifikat pending: {fn(Math.round(47 * 0.15))} bidang</li>
                 </ul>
               </div>
             </div>
