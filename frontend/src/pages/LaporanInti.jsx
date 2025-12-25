@@ -52,9 +52,9 @@ const A4Page = ({ children, pageNum, totalPages, header }) => (
 
 const Section = ({ num, title, children }) => (
   <div className="mb-3">
-    <div className="flex items-center gap-1.5 mb-2 pb-1 border-b-2 border-slate-700">
-      <span className="bg-slate-900 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">{num}</span>
-      <h2 className="text-[10px] font-bold text-slate-900 uppercase">{title}</h2>
+    <div className="flex items-center gap-1.5 border-b-2 border-slate-700" style={{ marginBottom: '8px', paddingBottom: '4px' }}>
+      <span className="bg-slate-900 text-white text-[8px] font-bold rounded" style={{ padding: '2px 6px', lineHeight: '1.2' }}>{num}</span>
+      <h2 className="text-[10px] font-bold text-slate-900 uppercase" style={{ margin: 0, lineHeight: '1.2' }}>{title}</h2>
     </div>
     {children}
   </div>
@@ -62,7 +62,7 @@ const Section = ({ num, title, children }) => (
 
 const MiniCard = ({ title, items, className = '' }) => (
   <div className={`border border-slate-200 rounded text-[8px] ${className}`}>
-    <div className="bg-slate-100 px-2 border-b border-slate-200" style={{ padding: '6px 8px' }}>
+    <div className="bg-slate-100 border-b border-slate-200" style={{ padding: '6px 8px' }}>
       <h3 className="font-bold text-slate-700 uppercase text-[7px]" style={{ lineHeight: '1.2', margin: 0 }}>{title}</h3>
     </div>
     <div className="divide-y divide-slate-100">
