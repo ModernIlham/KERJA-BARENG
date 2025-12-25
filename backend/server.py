@@ -78,6 +78,9 @@ api_router.include_router(approval.router, prefix="/approval", tags=["Transactio
 # Transaction document & signature
 api_router.include_router(transaksi_dokumen.router, prefix="/transaksi-dokumen", tags=["Transaction Documents"])
 
+# Label BMN Management
+api_router.include_router(label_bmn.router, prefix="/label-bmn", tags=["Label BMN Management"])
+
 @api_router.get("/")
 async def root():
     return {"message": "SIMAN-G API Ready"}
