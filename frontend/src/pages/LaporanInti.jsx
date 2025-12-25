@@ -386,7 +386,7 @@ export default function LaporanInti() {
 
         <div className="border border-slate-200 rounded p-3">
           <h4 className="text-[9px] font-bold text-slate-600 uppercase mb-2">Tren Pengamanan (%)</h4>
-          <div className="h-28">
+          <div className="h-24">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={pengamanan_aset?.tren_pengamanan || []}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -400,6 +400,38 @@ export default function LaporanInti() {
               </LineChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        {/* Per Unit Kerja Table - Compact */}
+        <div className="mt-3">
+          <CompactTable 
+            title="Status per Unit Kerja"
+            columns={[
+              { key: 'unit', header: 'Unit' },
+              { key: 'total', header: 'Total', align: 'center' },
+              { key: 'admin', header: 'Admin', align: 'center', render: (v) => `${v}%` },
+              { key: 'fisik', header: 'Fisik', align: 'center', render: (v) => `${v}%` },
+              { key: 'hukum', header: 'Hukum', align: 'center', render: (v) => `${v}%` },
+              { key: 'overall', header: 'Total', align: 'center', render: (v) => `${v}%`, bold: true }
+            ]}
+            data={(pengamanan_aset?.per_unit_kerja || []).slice(0, 5)}
+          />
+        </div>
+
+        {/* Rencana Aksi - Compact */}
+        <div className="mt-3">
+          <CompactTable 
+            title="Rencana Aksi Q1 2025"
+            columns={[
+              { key: 'kegiatan', header: 'Kegiatan' },
+              { key: 'pic', header: 'PIC' },
+              { key: 'target', header: 'Target' },
+              { key: 'status', header: 'Status', align: 'center', render: (v) => (
+                <span className={`px-1 py-0.5 rounded text-[8px] font-bold ${v === 'Proses' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{v}</span>
+              )}
+            ]}
+            data={(pengamanan_aset?.rencana_aksi || []).slice(0, 3)}
+          />
         </div>
       </A4Page>
 
