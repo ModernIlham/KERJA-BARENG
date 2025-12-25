@@ -677,10 +677,10 @@ export default function LaporanInti() {
                 </div>
               ))}
             </div>
-            <p className="text-center text-[7px] text-slate-500 mt-4">{dh?.metadata?.tanggal_cetak}</p>
+            <p className="text-center text-[6px] text-slate-500 mt-2">{dh?.metadata?.tanggal_cetak}</p>
           </div>
 
-          <div className="border-t border-slate-200 text-[7px] text-slate-400 text-center mt-3 pt-2">
+          <div className="border-t border-slate-200 text-[6px] text-slate-400 text-center mt-2 pt-1">
             Dokumen dibuat otomatis oleh SIMAN-G • © {new Date().getFullYear()} Kementerian Contoh RI
           </div>
         </A4Page>
@@ -700,43 +700,43 @@ export default function LaporanInti() {
             margin: 0 !important; 
             padding: 0 !important;
             width: 210mm !important;
-            height: 297mm !important;
-            overflow: visible !important;
             background: white !important;
           }
           
-          /* Hide ALL UI elements except content */
+          /* Hide ALL UI elements */
           .no-print,
           nav,
           aside,
           [class*="sidebar"],
           [class*="Sidebar"],
           [class*="sticky"],
-          [class*="fixed"] { 
+          [class*="fixed"],
+          .print-container > div:first-child { 
             display: none !important;
             visibility: hidden !important;
           }
           
-          /* Reset all containers */
+          /* Reset ALL containers */
           .min-h-screen,
           .bg-slate-200,
           .bg-slate-50,
+          .print-container,
           [class*="md:ml-"] {
-            min-height: 0 !important;
+            min-height: auto !important;
             margin: 0 !important;
             padding: 0 !important;
             margin-left: 0 !important;
-            background: transparent !important;
-            width: 100% !important;
+            background: white !important;
+            width: auto !important;
           }
           
-          /* Print wrapper */
-          div[ref] {
+          /* Print content wrapper */
+          .print-content {
             margin: 0 !important;
             padding: 0 !important;
           }
           
-          /* A4 Page - exact sizing */
+          /* A4 Page - exact sizing and scaling */
           .a4-page { 
             width: 210mm !important;
             height: 297mm !important;
