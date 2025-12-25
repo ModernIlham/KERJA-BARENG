@@ -185,12 +185,8 @@ async def get_assets_for_labeling(
     count_result = await db.barang.aggregate(count_pipeline).to_list(1)
     total = count_result[0]["total"] if count_result else 0
     
-    # Sanitize results
-    result = []
-    for asset in assets:
-        asset["id"] = str(asset["_id"])
-        del asset["_id"]
-        result.append(asset)
+    # Sanitize results using helper function
+    result = [sanitize_doc(asset) for asset in assets]
     
     return {
         "data": result,
