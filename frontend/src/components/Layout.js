@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, Package, Users, LogOut, Menu, X, FileSpreadsheet, FileText, 
   Settings, Mail, ChevronDown, ChevronRight, Book, Box, Building, Network, 
   Clock, Briefcase, FileCheck, ClipboardList, ArrowRightLeft, ChevronsLeft, ChevronsRight,
-  Calendar, Activity, Warehouse, Bell, CheckCircle2,
+  Calendar, Activity, Warehouse, Bell, CheckCircle2, ArrowDownToLine, ArrowUpFromLine,
+  History
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -160,17 +161,28 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
   const { logout } = useAuth();
 
   // Define menu items for groups to pass to popup
+  const kepegawaianItems = [
+    { to: '/kepegawaian', icon: Briefcase, label: 'Dashboard HR' },
+    { to: '/pegawai', icon: Users, label: 'Data Pegawai' },
+    { to: '/kepegawaian/lembur', icon: Clock, label: 'Manajemen Lembur' },
+    { to: '/kepegawaian/tugas', icon: ClipboardList, label: 'Tugas Tim' },
+    { to: '/kepegawaian/absensi', icon: Calendar, label: 'Riwayat Absensi' },
+  ];
+
   const asetTetapItems = [
     { to: '/barang?tab=aset-tetap', icon: ClipboardList, label: 'Daftar Aset' },
     { to: '/transaksi-aset', icon: ArrowRightLeft, label: 'Transaksi Aset' },
+    { to: '/aset-pegawai', icon: Package, label: 'Aset Pegawai' },
+    { to: '/notifikasi', icon: Bell, label: 'Notifikasi Aset' },
     { to: '/opname', icon: FileCheck, label: 'Stock Opname' },
   ];
 
   const persediaanItems = [
     { to: '/barang?tab=persediaan', icon: ClipboardList, label: 'Daftar Barang' },
-    { to: '/transaksi-persediaan/masuk', icon: ArrowRightLeft, label: 'Barang Masuk' },
-    { to: '/transaksi-persediaan/keluar', icon: ArrowRightLeft, label: 'Barang Keluar' },
-    { to: '/transaksi-persediaan/riwayat', icon: FileText, label: 'Riwayat Transaksi' },
+    { to: '/transaksi-persediaan?tab=masuk', icon: ArrowDownToLine, label: 'Barang Masuk' },
+    { to: '/transaksi-persediaan?tab=keluar', icon: ArrowUpFromLine, label: 'Barang Keluar' },
+    { to: '/transaksi-persediaan?tab=riwayat', icon: History, label: 'Riwayat Transaksi' },
+    { to: '/gudang', icon: Warehouse, label: 'Manajemen Gudang' },
   ];
 
   const laporanItems = [
@@ -178,6 +190,14 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
     { to: '/laporan/posisi', icon: FileText, label: 'Posisi Stok' },
     { to: '/laporan/mutasi', icon: FileText, label: 'Mutasi Barang' },
     { to: '/laporan/kartu', icon: FileText, label: 'Kartu Gudang' },
+  ];
+
+  const sistemItems = [
+    { to: '/organisasi', icon: Network, label: 'Struktur Organisasi' },
+    { to: '/referensi', icon: Book, label: 'Referensi Kode' },
+    { to: '/banding', icon: ArrowRightLeft, label: 'Banding Data' },
+    { to: '/aktivitas', icon: Activity, label: 'Log Aktivitas' },
+    { to: '/pengaturan', icon: Settings, label: 'Pengaturan' },
   ];
 
   return (
@@ -199,10 +219,15 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
         </button>
       </div>
         
-      <ScrollArea className="flex-1 py-6 px-3">
-          <div className="space-y-6">
-            {/* Main */}
+      <ScrollArea className="flex-1 py-4 px-3">
+          <div className="space-y-5">
+            {/* Dashboard Utama */}
             <div className="space-y-1">
+                {!collapsed && (
+                    <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                        Beranda
+                    </div>
+                )}
                 <SidebarItem to="/" icon={LayoutDashboard} label="Dashboard Utama" end collapsed={collapsed} />
             </div>
 
@@ -213,47 +238,64 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                         Kepegawaian
                     </div>
                 )}
-                <SidebarItem to="/kepegawaian" icon={Briefcase} label="Dashboard HR" end collapsed={collapsed} />
-                <SidebarItem to="/kepegawaian/lembur" icon={Clock} label="Manajemen Lembur" collapsed={collapsed} />
-                <SidebarItem to="/pegawai" icon={Users} label="Data Pegawai" collapsed={collapsed} />
-                <SidebarItem to="/aset-pegawai" icon={Package} label="Aset Pegawai" collapsed={collapsed} />
-                <SidebarItem to="/gudang" icon={Warehouse} label="Manajemen Gudang" collapsed={collapsed} />
-                <SidebarItem to="/notifikasi" icon={Bell} label="Notifikasi Aset" collapsed={collapsed} />
-                <SidebarItem to="/kepegawaian/tugas" icon={ClipboardList} label="Tugas Tim" collapsed={collapsed} />
-                <SidebarItem to="/kepegawaian/absensi" icon={Calendar} label="Riwayat Absensi" collapsed={collapsed} />
+                <SidebarGroup 
+                    icon={Briefcase} 
+                    label="Manajemen SDM" 
+                    activePaths={['/kepegawaian', '/pegawai']} 
+                    collapsed={collapsed}
+                    items={kepegawaianItems}
+                >
+                    <SidebarItem to="/kepegawaian" icon={Briefcase} label="Dashboard HR" end />
+                    <SidebarItem to="/pegawai" icon={Users} label="Data Pegawai" />
+                    <SidebarItem to="/kepegawaian/lembur" icon={Clock} label="Manajemen Lembur" />
+                    <SidebarItem to="/kepegawaian/tugas" icon={ClipboardList} label="Tugas Tim" />
+                    <SidebarItem to="/kepegawaian/absensi" icon={Calendar} label="Riwayat Absensi" />
+                </SidebarGroup>
             </div>
 
-            {/* Aset & Inventaris */}
+            {/* Aset Tetap (BMN) */}
             <div className="space-y-1">
                 {!collapsed && (
                     <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                        Aset & Logistik
+                        Aset Tetap (BMN)
                     </div>
                 )}
                 
                 <SidebarGroup 
                     icon={Package} 
-                    label="Aset Tetap (BMN)" 
-                    activePaths={['/barang', '/transaksi-aset', '/opname']} 
+                    label="Kelola Aset" 
+                    activePaths={['/barang', '/transaksi-aset', '/opname', '/aset-pegawai', '/notifikasi']} 
                     collapsed={collapsed}
                     items={asetTetapItems}
                 >
                     <SidebarItem to="/barang?tab=aset-tetap" icon={ClipboardList} label="Daftar Aset" />
                     <SidebarItem to="/transaksi-aset" icon={ArrowRightLeft} label="Transaksi Aset" />
+                    <SidebarItem to="/aset-pegawai" icon={Package} label="Aset Pegawai" />
+                    <SidebarItem to="/notifikasi" icon={Bell} label="Notifikasi Aset" />
                     <SidebarItem to="/opname" icon={FileCheck} label="Stock Opname" />
                 </SidebarGroup>
+            </div>
 
+            {/* Persediaan (Gudang) */}
+            <div className="space-y-1">
+                {!collapsed && (
+                    <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                        Persediaan (Gudang)
+                    </div>
+                )}
+                
                 <SidebarGroup 
                     icon={Box} 
-                    label="Persediaan (Gudang)" 
-                    activePaths={['/barang', '/transaksi-persediaan']} 
+                    label="Kelola Persediaan" 
+                    activePaths={['/transaksi-persediaan', '/gudang']} 
                     collapsed={collapsed}
                     items={persediaanItems}
                 >
                     <SidebarItem to="/barang?tab=persediaan" icon={ClipboardList} label="Daftar Barang" />
-                    <SidebarItem to="/transaksi-persediaan/masuk" icon={ArrowRightLeft} label="Barang Masuk" />
-                    <SidebarItem to="/transaksi-persediaan/keluar" icon={ArrowRightLeft} label="Barang Keluar" />
-                    <SidebarItem to="/transaksi-persediaan/riwayat" icon={FileText} label="Riwayat Transaksi" />
+                    <SidebarItem to="/transaksi-persediaan?tab=masuk" icon={ArrowDownToLine} label="Barang Masuk" />
+                    <SidebarItem to="/transaksi-persediaan?tab=keluar" icon={ArrowUpFromLine} label="Barang Keluar" />
+                    <SidebarItem to="/transaksi-persediaan?tab=riwayat" icon={History} label="Riwayat Transaksi" />
+                    <SidebarItem to="/gudang" icon={Warehouse} label="Manajemen Gudang" />
                 </SidebarGroup>
             </div>
 
@@ -282,18 +324,26 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 </SidebarGroup>
             </div>
 
-            {/* Pengaturan */}
+            {/* Sistem */}
             <div className="space-y-1">
                 {!collapsed && (
                     <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                         Sistem
                     </div>
                 )}
-                <SidebarItem to="/organisasi" icon={Network} label="Struktur Organisasi" collapsed={collapsed} />
-                <SidebarItem to="/referensi" icon={Book} label="Referensi Kode" end collapsed={collapsed} />
-                <SidebarItem to="/banding" icon={ArrowRightLeft} label="Banding Data" collapsed={collapsed} />
-                <SidebarItem to="/aktivitas" icon={Activity} label="Log Aktivitas" collapsed={collapsed} />
-                <SidebarItem to="/pengaturan" icon={Settings} label="Pengaturan" collapsed={collapsed} />
+                <SidebarGroup 
+                    icon={Settings} 
+                    label="Pengaturan Sistem" 
+                    activePaths={['/organisasi', '/referensi', '/banding', '/aktivitas', '/pengaturan']} 
+                    collapsed={collapsed}
+                    items={sistemItems}
+                >
+                    <SidebarItem to="/organisasi" icon={Network} label="Struktur Organisasi" />
+                    <SidebarItem to="/referensi" icon={Book} label="Referensi Kode" end />
+                    <SidebarItem to="/banding" icon={ArrowRightLeft} label="Banding Data" />
+                    <SidebarItem to="/aktivitas" icon={Activity} label="Log Aktivitas" />
+                    <SidebarItem to="/pengaturan" icon={Settings} label="Pengaturan" />
+                </SidebarGroup>
             </div>
           </div>
       </ScrollArea>
