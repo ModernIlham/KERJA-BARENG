@@ -101,8 +101,10 @@ export default function SelfieCapture({ onCapture, onLocationChange, disabled = 
 
   // Load location on mount
   useEffect(() => {
+    // Call getLocation on mount to get initial location
     getLocation();
-  }, [getLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Face detection loop
   useEffect(() => {
