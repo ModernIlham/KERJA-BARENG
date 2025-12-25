@@ -644,66 +644,6 @@ const StikerBesar = ({ data, instansi, qrDataUrl, qrSettings = DEFAULT_QR_SETTIN
     </div>
   );
 };
-          <div className="flex-1 min-w-0">
-            <div className="text-white font-bold truncate leading-tight" style={{ fontSize: `${s(7)}px` }}>
-              {instansi?.nama_instansi || 'INSTANSI'}
-            </div>
-            <div className="text-blue-200 truncate font-mono" style={{ fontSize: `${s(5)}px` }}>
-              {data.kode_register_full}
-            </div>
-          </div>
-        </div>
-        
-        {/* Content */}
-        <div className="flex-1 px-2 py-1.5 space-y-2 bg-white">
-          <div className="flex justify-between items-center border-b border-gray-200 pb-1">
-            <span className="text-gray-500 font-medium" style={{ fontSize: `${s(6)}px` }}>NUP</span>
-            <span className="font-bold" style={{ fontSize: `${s(8)}px` }}>{data.nup || '1'}</span>
-          </div>
-          
-          <div className="font-bold text-blue-900" style={{ fontSize: `${s(8)}px` }}>
-            {data.kategori_singkat}
-          </div>
-          
-          <div className="leading-tight text-gray-700 line-clamp-5" style={{ fontSize: `${s(6)}px` }}>
-            {data.deskripsi}
-          </div>
-          
-          <div className="text-gray-500" style={{ fontSize: `${s(5.5)}px` }}>
-            Tahun: <span className="font-medium">{data.tahun}</span>
-          </div>
-        </div>
-        
-        {/* Footer */}
-        <div 
-          className="text-center font-bold italic py-1"
-          style={{ 
-            fontSize: `${s(5.5)}px`, 
-            color: '#dc2626',
-            borderTop: '1px dashed #e5e5e5',
-            background: '#fef2f2'
-          }}
-        >
-          Tidak Untuk Diperjualbelikan
-        </div>
-        
-        {/* Vertical Code */}
-        <div 
-          className="absolute right-0 top-0 h-full flex items-center justify-center"
-          style={{ 
-            writingMode: 'vertical-rl', 
-            fontSize: `${s(5)}px`, 
-            width: `${s(7)}mm`,
-            background: 'linear-gradient(to bottom, #f3f4f6, #e5e7eb)',
-            borderLeft: '1px solid #d1d5db'
-          }}
-        >
-          <span className="text-gray-600 font-mono tracking-wider">{data.kode_vertikal}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // ==================== PRINT CANVAS COMPONENT ====================
 const PrintCanvas = ({ items, canvasSize, instansi, qrSettings, onClose }) => {
