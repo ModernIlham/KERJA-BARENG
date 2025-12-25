@@ -79,6 +79,8 @@ export default function App() {
             
             <Route path="laporan" element={<Navigate to="/laporan/inti" replace />} />
             <Route path="laporan/inti" element={<LaporanInti />} />
+            <Route path="laporan/ringkas" element={<LaporanRingkas />} />
+            <Route path="laporan/bmn" element={<LaporanRingkas />} />
             <Route path="surat" element={<Surat />} />
             <Route path="laporan/:type" element={<Laporan />} />
             
