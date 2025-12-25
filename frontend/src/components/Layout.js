@@ -185,6 +185,7 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
   const pengamananItems = [
     { to: '/pengamanan-bmn', icon: Shield, label: 'Dashboard Pengamanan' },
     { to: '/opname', icon: FileCheck, label: 'Stock Opname' },
+    { to: '/label-bmn', icon: Tag, label: 'Cetak Label BMN' },
   ];
 
   const laporanItems = [
