@@ -152,11 +152,14 @@ export default function LaporanInti() {
   const totalPages = 4;
 
   return (
-    <div className="print-container bg-slate-200 min-h-screen py-6 print:bg-white print:py-0 print:min-h-0">
+    <div className="print-container bg-slate-200 min-h-screen py-6">
       {/* Action Bar - Hidden during print */}
-      <div className="no-print sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center shadow-sm mb-4">
-        <h1 className="text-sm font-bold text-slate-800">📊 Laporan Inti BMN</h1>
-        <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-1 h-3 w-3" />Cetak</Button>
+      <div className="no-print sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2 shadow-sm mb-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-sm font-bold text-slate-800">📊 Laporan Inti BMN</h1>
+          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-1 h-3 w-3" />Cetak</Button>
+        </div>
+        <p className="text-[10px] text-slate-500 mt-1">💡 Saat mencetak: Pastikan margin = "None" dan skala = "100%"</p>
       </div>
 
       <div ref={reportRef} className="print-content">
