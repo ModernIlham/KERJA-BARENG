@@ -234,18 +234,24 @@ export default function SelfieCapture({ onCapture, onLocationChange, disabled = 
         </div>
       )}
       
-      {/* Location Section */}
-      <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+      {/* Location Section - Required */}
+      <div className={cn(
+        "p-4 rounded-lg border",
+        location ? "bg-slate-50 border-slate-200" : "bg-red-50 border-red-200"
+      )}>
         <div className="flex items-start gap-3">
           <div className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-            location ? "bg-green-100 text-green-600" : "bg-slate-200 text-slate-500"
+            location ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
           )}>
             <MapPin size={20} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-1">
-              <h4 className="text-sm font-semibold text-slate-700">Lokasi Saat Ini</h4>
+              <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                Lokasi Saat Ini
+                <span className="text-red-500 text-xs">*wajib</span>
+              </h4>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -270,7 +276,7 @@ export default function SelfieCapture({ onCapture, onLocationChange, disabled = 
                 </p>
               </>
             ) : (
-              <p className="text-xs text-slate-500">Lokasi belum tersedia</p>
+              <p className="text-xs text-red-500 font-medium">Lokasi belum tersedia - mohon izinkan akses lokasi</p>
             )}
           </div>
         </div>
