@@ -47,34 +47,34 @@ export default function LaporanRingkas() {
   }));
 
   return (
-    <div className="bg-slate-200 min-h-screen py-6 print:bg-white print:py-0 print:min-h-0">
+    <div className="print-container bg-slate-200 min-h-screen py-6 print:bg-white print:py-0 print:min-h-0">
       {/* Action Bar - Hidden during print */}
-      <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center no-print shadow-sm mb-4">
+      <div className="no-print sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center shadow-sm mb-4">
         <h1 className="text-sm font-bold text-slate-800">📋 Laporan Ringkas BMN</h1>
         <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-1 h-3 w-3" />Cetak</Button>
       </div>
 
       {/* Single A4 Page */}
-      <div ref={reportRef} className="a4-page bg-white w-[210mm] min-h-[297mm] mx-auto shadow-xl print:shadow-none relative">
+      <div ref={reportRef} className="a4-page bg-white mx-auto shadow-xl print:shadow-none relative" style={{ width: '210mm', minHeight: '297mm', maxWidth: '210mm' }}>
         
         {/* Header */}
-        <header className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 py-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center border-2 border-white/30">
-              <Shield className="w-7 h-7" />
+        <header className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center border-2 border-white/30">
+              <Shield className="w-6 h-6" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] text-slate-300 uppercase tracking-wider">{header?.kementerian}</p>
-              <h1 className="text-sm font-bold">{header?.direktorat}</h1>
+              <p className="text-[9px] text-slate-300 uppercase tracking-wider">{header?.kementerian}</p>
+              <h1 className="text-[11px] font-bold">{header?.direktorat}</h1>
             </div>
             <div className="text-right">
-              <p className="text-[9px] text-slate-400">{header?.nomor_dokumen}</p>
-              <span className="text-[10px] font-bold bg-blue-600 px-3 py-1 rounded inline-block mt-1">TA {header?.tahun_anggaran}</span>
+              <p className="text-[8px] text-slate-400">{header?.nomor_dokumen}</p>
+              <span className="text-[9px] font-bold bg-blue-600 px-2 py-0.5 rounded inline-block mt-0.5">TA {header?.tahun_anggaran}</span>
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-white/20 text-center">
-            <h2 className="text-lg font-bold uppercase tracking-wide">RINGKASAN EKSEKUTIF LAPORAN BMN</h2>
-            <p className="text-[10px] text-slate-300 mt-1">One-Page Executive Summary • {header?.tanggal}</p>
+          <div className="mt-3 pt-2 border-t border-white/20 text-center">
+            <h2 className="text-base font-bold uppercase tracking-wide">RINGKASAN EKSEKUTIF LAPORAN BMN</h2>
+            <p className="text-[9px] text-slate-300 mt-0.5">One-Page Executive Summary • {header?.tanggal}</p>
           </div>
         </header>
 
