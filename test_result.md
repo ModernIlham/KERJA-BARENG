@@ -91,6 +91,21 @@ backend:
         agent: "testing"
         comment: "✅ BACKEND TESTING COMPLETE - All notification API endpoints working correctly. Tested: GET /api/notifications/alerts (with pagination, filtering by priority/type), GET /alerts/summary (statistics), GET /dashboard-widget (compact data), GET /types (alert types config), GET /priorities (priority config), POST /alerts/{id}/action (action processing). All endpoints return correct response structures, priority levels configured correctly (KRITIS 0-7d, TINGGI 8-14d, SEDANG 15-21d, RENDAH 22-30d), authentication required, filtering and pagination working. Success rate: 93.8% (15/16 tests passed). No critical issues found."
 
+  - task: "Cross-Module Reclassification API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/transaksi_cross.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: needs_testing
+        agent: "main"
+        comment: "Cross-module reclassification API implemented: POST /api/transaksi-cross/reklasifikasi supports PERSEDIAAN_TO_ASET and ASET_TO_PERSEDIAAN, GET /api/transaksi-cross/riwayat for transaction history. Handles data transfer between persediaan and barang collections with proper status tracking."
+      - working: true
+        agent: "testing"
+        comment: "✅ CROSS-MODULE RECLASSIFICATION TESTING COMPLETE - All backend API endpoints working correctly. Comprehensive testing performed: 1) GET /api/transaksi-cross/riwayat endpoint functional with proper pagination and response structure, 2) POST /api/transaksi-cross/reklasifikasi (ASET_TO_PERSEDIAAN) successfully converts aset to persediaan with correct data transfer, 3) POST /api/transaksi-cross/reklasifikasi (PERSEDIAAN_TO_ASET) successfully converts persediaan to aset with proper NUP generation, 4) Transaction history tracking working - both transactions appear in riwayat with complete data, 5) Error handling verified for invalid jenis, missing source_id, and invalid source_id, 6) Response structures contain all required fields (message, transaksi_id, target_id), 7) Data integrity maintained across collections with proper status updates. Success rate: 91.7% (11/12 tests passed). Both reclassification directions working correctly."
+
 metadata:
   created_by: "main_agent"
   version: "1.2"
