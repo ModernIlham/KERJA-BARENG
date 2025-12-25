@@ -728,7 +728,8 @@ async def create_sticker_design(design: Dict[str, Any] = Body(...), current_user
     
     result = await db.sticker_designs.insert_one(design_doc)
     design_doc["id"] = str(result.inserted_id)
-    del design_doc["_id"] if "_id" in design_doc else None
+    if "_id" in design_doc:
+        del design_doc["_id"]
     
     return {"success": True, "design": sanitize_doc(design_doc)}
 
