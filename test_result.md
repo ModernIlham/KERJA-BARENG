@@ -347,3 +347,16 @@ agent_communication:
 - Chart rendering
 - Responsive design
 
+backend:
+  - task: "Laporan Inti BMN - Comprehensive BMN Report API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/laporan_inti.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ LAPORAN INTI BMN COMPREHENSIVE TESTING COMPLETE - All backend API endpoints for the comprehensive BMN report are working correctly. COMPREHENSIVE TESTING PERFORMED: 1) GET /api/laporan-inti/full-report - Successfully returns all 8 sections with proper data structure (response time: 0.66s), header contains all required fields (kementerian, direktorat, nomor_dokumen: DOC/BMN/2025/XII/001, tahun_anggaran: 2025), 2) GET /api/laporan-inti/ringkasan-eksekutif - Section I verified with nilai_perolehan (total: 67.5T IDR), penyusutan, nilai_buku, and summary fields, 3) GET /api/laporan-inti/kondisi-aset - Section III verified with distribusi (3 condition types: Baik 100%, Rusak Ringan 0%, Rusak Berat 0%), total_aset: 13,553, per_unit_kerja data, 4) GET /api/laporan-inti/pelabelan-aset - Section V verified with status_label (91.5% labeled), status_cetak, jenis_rusak, detail_per_kategori, rekomendasi, 5) GET /api/laporan-inti/pengamanan-aset - Section VI verified with tertib percentages (Administrasi: 93.8%, Fisik: 91.5%, Hukum: 89.0%), tren_pengamanan, detail sections, 6) GET /api/laporan-inti/persediaan - Section VII verified with nilai_persediaan (total: 15B IDR, 2 items), status, mutasi, distribusi_kategori, rekomendasi, 7) Authentication properly required (401 without token), 8) All response structures match PDF template requirements. SUCCESS RATE: 100% (8/8 tests passed). The Laporan Inti BMN backend is fully functional with all 8 sections implemented, database integration working correctly, professional document structure ready for A4 layout, and legal compliance sections complete."
+
