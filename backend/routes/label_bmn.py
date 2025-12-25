@@ -15,6 +15,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from bson import ObjectId
 from datetime import datetime, timezone
+import math
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
@@ -22,7 +23,42 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 
-# --- Models ---
+# --- Helper Functions ---
+def sanitize_float(val):
+    """Sanitize float values to be JSON compliant"""
+    if val is None:
+        return 0
+    if isinstance(val, float):
+        if math.isnan(val) or math.isinf(val):
+            return 0
+    return val
+
+
+def sanitize_doc(doc):
+    """Convert MongoDB document to JSON-serializable dict"""
+    if doc is None:
+        return None
+    
+    if isinstance(doc, dict):
+        result = {}
+        for key, val in doc.items():
+            if key == '_id':
+                result['id'] = str(val)
+            elif isinstance(val, ObjectId):
+                result[key] = str(val)
+            elif isinstance(val, datetime):
+                result[key] = val.isoformat()
+            elif isinstance(val, float):
+                result[key] = sanitize_float(val)
+            elif isinstance(val, dict):
+                result[key] = sanitize_doc(val)
+            elif isinstance(val, list):
+                result[key] = [sanitize_doc(item) if isinstance(item, dict) else item for item in val]
+            else:
+                result[key] = val
+        return result
+    
+    return doc
 class LabelPrintLog(BaseModel):
     """Log setiap kali label dicetak"""
     id: Optional[str] = None
