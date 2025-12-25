@@ -1165,6 +1165,10 @@ export default function LabelBMN() {
             <LayoutGrid className="w-4 h-4" />
             Daftar Aset
           </TabsTrigger>
+          <TabsTrigger value="qr-settings" className="flex items-center gap-1">
+            <Palette className="w-4 h-4" />
+            Customisasi QR
+          </TabsTrigger>
           <TabsTrigger value="cetak" className="flex items-center gap-1">
             <Printer className="w-4 h-4" />
             Antrian Cetak ({selectedItems.length})
@@ -1174,6 +1178,35 @@ export default function LabelBMN() {
             Riwayat Cetak
           </TabsTrigger>
         </TabsList>
+        
+        {/* TAB: QR Settings */}
+        <TabsContent value="qr-settings" className="space-y-4">
+          <QRSettingsPanel 
+            settings={qrSettings}
+            onChange={setQrSettings}
+            instansi={instansi}
+            previewText={selectedItems[0] 
+              ? `#${selectedItems[0].kode_register || selectedItems[0].kode_barang}-${selectedItems[0].nup || '1'}`
+              : "#SAMPLE-001"
+            }
+          />
+          
+          {/* Quick Tips */}
+          <Card className="bg-amber-50 border-amber-200">
+            <CardContent className="p-4">
+              <h4 className="font-medium text-amber-800 flex items-center gap-2 mb-2">
+                <Settings2 className="w-4 h-4" />
+                Tips Customisasi QR Code
+              </h4>
+              <ul className="text-sm text-amber-700 space-y-1">
+                <li>• Gunakan <strong>Error Correction Level "High"</strong> jika ingin menambahkan logo di tengah QR</li>
+                <li>• <strong>Warna kontras tinggi</strong> (hitam-putih) memberikan hasil scan terbaik</li>
+                <li>• <strong>Margin minimal 1 block</strong> untuk kompatibilitas scanner</li>
+                <li>• Logo sebaiknya tidak melebihi <strong>30% dari ukuran QR</strong></li>
+              </ul>
+            </CardContent>
+          </Card>
+        </TabsContent>
         
         {/* TAB: Daftar Aset */}
         <TabsContent value="daftar" className="space-y-4">
