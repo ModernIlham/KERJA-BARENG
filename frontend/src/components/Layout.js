@@ -322,12 +322,13 @@ const Sidebar = ({ isOpen, toggleSidebar, collapsed, toggleCollapse }) => {
                 <SidebarGroup 
                     icon={Shield} 
                     label="Tertib & Pengamanan" 
-                    activePaths={['/pengamanan-bmn', '/opname']} 
+                    activePaths={['/pengamanan-bmn', '/opname', '/label-bmn']} 
                     collapsed={collapsed}
                     items={pengamananItems}
                 >
                     <SidebarItem to="/pengamanan-bmn" icon={Shield} label="Dashboard Pengamanan" />
                     <SidebarItem to="/opname" icon={FileCheck} label="Stock Opname" />
+                    <SidebarItem to="/label-bmn" icon={Tag} label="Cetak Label BMN" />
                 </SidebarGroup>
             </div>
 
