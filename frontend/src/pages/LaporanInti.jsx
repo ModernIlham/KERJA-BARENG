@@ -487,15 +487,15 @@ export default function LaporanInti() {
                 ]} />
               </div>
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded mb-2" style={{ padding: '8px' }}>
-              <h4 className="text-[7px] font-bold text-amber-800 uppercase flex items-center gap-1" style={{ marginBottom: '6px', lineHeight: '1.2' }}>
+            <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-2">
+              <h4 className="text-[7px] font-bold text-amber-800 uppercase flex items-center gap-1 mb-1.5">
                 <AlertTriangle className="w-3 h-3" /> Stok Kritis
               </h4>
               <div className="grid grid-cols-5 gap-1.5 text-[7px]">
                 {(ps?.stok_rendah || []).map((s, i) => (
-                  <div key={i} className={`rounded ${s.status === 'Kritis' ? 'bg-red-100 border border-red-200' : 'bg-amber-100 border border-amber-200'}`} style={{ padding: '6px' }}>
-                    <p className="font-bold truncate" style={{ lineHeight: '1.3', margin: 0 }}>{s.nama}</p>
-                    <p className="text-[6px]" style={{ lineHeight: '1.3', marginTop: '3px', marginBottom: 0 }}>Stok: {s.stok}/{s.min} {s.unit}</p>
+                  <div key={i} className={`p-1.5 rounded ${s.status === 'Kritis' ? 'bg-red-100 border border-red-200' : 'bg-amber-100 border border-amber-200'}`}>
+                    <p className="font-bold truncate">{s.nama}</p>
+                    <p className="text-[6px] mt-0.5">Stok: {s.stok}/{s.min} {s.unit}</p>
                   </div>
                 ))}
               </div>
