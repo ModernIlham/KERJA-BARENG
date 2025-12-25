@@ -146,7 +146,7 @@ async def get_assets_for_labeling(
     if kategori:
         query["golongan_barang"] = {"$regex": kategori, "$options": "i"}
     
-    # Get assets with aggregation to include print info
+    # Get assets with aggregation to include print info and child count
     pipeline = [
         {"$match": query},
         {"$lookup": {
@@ -155,12 +155,20 @@ async def get_assets_for_labeling(
             "foreignField": "barang_id",
             "as": "print_logs"
         }},
+        {"$lookup": {
+            "from": "child_assets",
+            "localField": "_id",
+            "foreignField": "parent_barang_id",
+            "as": "child_assets"
+        }},
         {"$addFields": {
             "print_count": {"$size": "$print_logs"},
-            "last_printed": {"$max": "$print_logs.printed_at"}
+            "last_printed": {"$max": "$print_logs.printed_at"},
+            "child_count": {"$size": "$child_assets"}
         }},
         {"$project": {
-            "print_logs": 0  # Exclude logs array from result
+            "print_logs": 0,  # Exclude logs array from result
+            "child_assets": 0  # Exclude child assets array from result
         }}
     ]
     
