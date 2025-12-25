@@ -1516,3 +1516,1079 @@ function PrintHistoryTab() {
     </div>
   );
 }
+
+
+// ==================== DEFAULT STICKER DESIGN CONFIGS ====================
+const DEFAULT_DESIGN_CONFIGS = {
+  kecil: {
+    name: "Stiker Kecil - Default",
+    size_type: "kecil",
+    width: 23.8,
+    height: 39.8,
+    layout: "portrait",
+    qr_position: "top",
+    qr_size: 85,
+    qr_padding: 2,
+    show_header: false,
+    header_show_logo: false,
+    header_font_size: 6.5,
+    header_sub_font_size: 6,
+    header_text: "",
+    header_bg_color: "#ffffff",
+    header_text_color: "#1a1a1a",
+    kode_font_size: 8,
+    kode_font_weight: 700,
+    nama_font_size: 6.5,
+    nama_font_weight: 600,
+    show_nup: true,
+    nup_font_size: 10,
+    nup_min_width: 28,
+    nup_bg_color: "#ffffff",
+    nup_text_color: "#1a1a1a",
+    show_description: true,
+    desc_font_size: 5,
+    show_warning: false,
+    warning_text: "",
+    warning_font_size: 5,
+    warning_color: "#DC2626",
+    show_vertical_code: true,
+    vertical_font_size: 6,
+    vertical_width: 13,
+    vertical_show_border: false,
+    show_gold_stripe: true,
+    gold_stripe_height: 3,
+    gold_stripe_color: "#D4AF37",
+    border_width: 1,
+    border_color: "#2c2c2c",
+    border_radius: 0,
+    font_family: "Roboto",
+    background_color: "#ffffff",
+    text_color: "#1a1a1a"
+  },
+  sedang: {
+    name: "Stiker Sedang - Default",
+    size_type: "sedang",
+    width: 69.8,
+    height: 22.1,
+    layout: "landscape",
+    qr_position: "left",
+    qr_size: 90,
+    qr_padding: 3,
+    show_header: true,
+    header_show_logo: true,
+    header_logo_size: 16,
+    header_font_size: 7.5,
+    header_sub_font_size: 6.5,
+    header_text: "Otorita Ibu Kota Nusantara",
+    header_bg_color: "#ffffff",
+    header_text_color: "#1a1a1a",
+    kode_font_size: 7.5,
+    kode_font_weight: 700,
+    nama_font_size: 6.5,
+    nama_font_weight: 500,
+    show_nup: true,
+    nup_font_size: 11,
+    nup_min_width: 34,
+    nup_bg_color: "#ffffff",
+    nup_text_color: "#1a1a1a",
+    show_description: true,
+    desc_font_size: 5.5,
+    show_warning: true,
+    warning_text: "Tidak Untuk Diperjualbelikan",
+    warning_font_size: 6,
+    warning_color: "#DC2626",
+    show_vertical_code: true,
+    vertical_font_size: 6,
+    vertical_width: 13,
+    vertical_show_border: false,
+    show_gold_stripe: false,
+    gold_stripe_height: 3,
+    gold_stripe_color: "#D4AF37",
+    border_width: 1,
+    border_color: "#2c2c2c",
+    border_radius: 0,
+    font_family: "Roboto",
+    background_color: "#ffffff",
+    text_color: "#1a1a1a"
+  },
+  besar: {
+    name: "Stiker Besar - Default",
+    size_type: "besar",
+    width: 94.9,
+    height: 32.2,
+    layout: "landscape",
+    qr_position: "left",
+    qr_size: 95,
+    qr_padding: 5,
+    show_header: true,
+    header_show_logo: true,
+    header_logo_size: 22,
+    header_font_size: 10,
+    header_sub_font_size: 9,
+    header_text: "Otorita Ibu Kota Nusantara",
+    header_bg_color: "#ffffff",
+    header_text_color: "#1a1a1a",
+    kode_font_size: 10,
+    kode_font_weight: 700,
+    nama_font_size: 9,
+    nama_font_weight: 500,
+    show_nup: true,
+    nup_font_size: 14,
+    nup_min_width: 45,
+    nup_bg_color: "#ffffff",
+    nup_text_color: "#1a1a1a",
+    show_description: true,
+    desc_font_size: 8,
+    show_warning: true,
+    warning_text: "Tidak Untuk Diperjualbelikan",
+    warning_font_size: 9,
+    warning_color: "#DC2626",
+    show_vertical_code: true,
+    vertical_font_size: 9,
+    vertical_width: 21,
+    vertical_show_border: false,
+    show_gold_stripe: false,
+    gold_stripe_height: 3,
+    gold_stripe_color: "#D4AF37",
+    border_width: 1,
+    border_color: "#2c2c2c",
+    border_radius: 0,
+    font_family: "Roboto",
+    background_color: "#ffffff",
+    text_color: "#1a1a1a"
+  }
+};
+
+// ==================== STICKER DESIGN EDITOR TAB ====================
+function StickerDesignTab({ instansi, qrSettings }) {
+  const [designs, setDesigns] = useState({ kecil: [], sedang: [], besar: [], custom: [] });
+  const [selectedSizeType, setSelectedSizeType] = useState('sedang');
+  const [selectedDesign, setSelectedDesign] = useState(null);
+  const [editingDesign, setEditingDesign] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  
+  // Load designs
+  useEffect(() => {
+    loadDesigns();
+  }, []);
+  
+  const loadDesigns = async () => {
+    try {
+      const res = await api.get('/api/label-bmn/sticker-designs');
+      setDesigns(res.data);
+      
+      // Set default selected design
+      const defaultDesign = res.data[selectedSizeType]?.find(d => d.is_default) || res.data[selectedSizeType]?.[0];
+      if (defaultDesign) {
+        setSelectedDesign(defaultDesign);
+        setEditingDesign({ ...defaultDesign });
+      }
+    } catch (err) {
+      toast.error('Gagal memuat design stiker');
+      // Use local defaults
+      const defaultDesign = { ...DEFAULT_DESIGN_CONFIGS[selectedSizeType], id: `default_${selectedSizeType}` };
+      setSelectedDesign(defaultDesign);
+      setEditingDesign({ ...defaultDesign });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleSelectSizeType = (sizeType) => {
+    setSelectedSizeType(sizeType);
+    const designList = designs[sizeType] || [];
+    const defaultDesign = designList.find(d => d.is_default) || designList[0] || { ...DEFAULT_DESIGN_CONFIGS[sizeType], id: `default_${sizeType}` };
+    setSelectedDesign(defaultDesign);
+    setEditingDesign({ ...defaultDesign });
+  };
+  
+  const handleSelectDesign = (design) => {
+    setSelectedDesign(design);
+    setEditingDesign({ ...design });
+  };
+  
+  const handleSaveDesign = async () => {
+    if (!editingDesign) return;
+    setSaving(true);
+    
+    try {
+      if (editingDesign.id?.startsWith('default_')) {
+        // Create new design from default
+        const res = await api.post('/api/label-bmn/sticker-design', {
+          ...editingDesign,
+          name: editingDesign.name.includes('(Kustom)') ? editingDesign.name : `${editingDesign.name} (Kustom)`
+        });
+        toast.success('Design baru berhasil disimpan');
+        await loadDesigns();
+        setSelectedDesign(res.data.design);
+        setEditingDesign(res.data.design);
+      } else {
+        // Update existing
+        await api.put(`/api/label-bmn/sticker-design/${editingDesign.id}`, editingDesign);
+        toast.success('Design berhasil diperbarui');
+        await loadDesigns();
+      }
+    } catch (err) {
+      toast.error('Gagal menyimpan design');
+    } finally {
+      setSaving(false);
+    }
+  };
+  
+  const handleDuplicateDesign = async (design) => {
+    try {
+      const res = await api.post(`/api/label-bmn/sticker-design/${design.id}/duplicate`);
+      toast.success('Design berhasil diduplikasi');
+      await loadDesigns();
+      setSelectedDesign(res.data.design);
+      setEditingDesign(res.data.design);
+    } catch (err) {
+      toast.error('Gagal menduplikasi design');
+    }
+  };
+  
+  const handleDeleteDesign = async (design) => {
+    if (design.id?.startsWith('default_')) {
+      return toast.error('Tidak dapat menghapus design default');
+    }
+    if (!confirm('Hapus design ini?')) return;
+    
+    try {
+      await api.delete(`/api/label-bmn/sticker-design/${design.id}`);
+      toast.success('Design dihapus');
+      await loadDesigns();
+    } catch (err) {
+      toast.error('Gagal menghapus design');
+    }
+  };
+  
+  const handleSetActive = async () => {
+    if (!selectedDesign) return;
+    try {
+      await api.post('/api/label-bmn/sticker-design/set-active', {
+        size_type: selectedSizeType,
+        design_id: selectedDesign.id
+      });
+      toast.success('Design aktif berhasil diatur');
+    } catch (err) {
+      toast.error('Gagal mengatur design aktif');
+    }
+  };
+  
+  const handleResetToDefault = () => {
+    const defaultConfig = DEFAULT_DESIGN_CONFIGS[selectedSizeType];
+    if (defaultConfig) {
+      setEditingDesign({ ...defaultConfig, id: editingDesign?.id, name: editingDesign?.name });
+      toast.info('Design direset ke default');
+    }
+  };
+  
+  // Sample data for preview
+  const sampleData = {
+    kode_barang: '1030101001000001',
+    kode_register: '1030101001000001',
+    nama_barang: 'Laptop HP EliteBook 840',
+    merk: 'HP',
+    tipe: 'EliteBook 840 G8',
+    nup: '1',
+    tahun: '2024',
+    kode_vertikal: '103010T/1/2024'
+  };
+  
+  if (loading) return <div className="text-center py-8">Memuat...</div>;
+  
+  return (
+    <div className="space-y-4">
+      {/* Size Type Selector */}
+      <div className="flex gap-2">
+        {['kecil', 'sedang', 'besar'].map(size => (
+          <Button 
+            key={size}
+            variant={selectedSizeType === size ? 'default' : 'outline'}
+            onClick={() => handleSelectSizeType(size)}
+            className="capitalize"
+          >
+            <Tag className="w-4 h-4 mr-2" />
+            Stiker {size}
+          </Button>
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-3 gap-4">
+        {/* Left Panel - Design List */}
+        <Card className="col-span-1">
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span className="flex items-center gap-2"><Layers className="w-4 h-4" />Template Design</span>
+              <Button size="sm" variant="outline" onClick={() => handleDuplicateDesign(selectedDesign || { ...DEFAULT_DESIGN_CONFIGS[selectedSizeType], id: `default_${selectedSizeType}` })}>
+                <Plus className="w-4 h-4 mr-1" />Baru
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
+            {(designs[selectedSizeType] || []).map(design => (
+              <div 
+                key={design.id}
+                onClick={() => handleSelectDesign(design)}
+                className={`p-3 border rounded-lg cursor-pointer transition-all ${selectedDesign?.id === design.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-slate-50'}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-sm">{design.name}</div>
+                    <div className="text-xs text-gray-500">{design.width}mm × {design.height}mm</div>
+                  </div>
+                  <div className="flex gap-1">
+                    {design.is_default && <Badge variant="secondary" className="text-xs">Default</Badge>}
+                    {!design.id?.startsWith('default_') && (
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => { e.stopPropagation(); handleDeleteDesign(design); }}>
+                        <Trash2 className="w-3 h-3 text-red-500" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        
+        {/* Middle Panel - Preview */}
+        <Card className="col-span-1">
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm flex items-center gap-2"><Eye className="w-4 h-4" />Preview Stiker</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center p-4 bg-slate-100 min-h-[350px]">
+            <div className="transform scale-150">
+              {editingDesign && (
+                <CustomSticker design={editingDesign} data={sampleData} instansi={instansi} qrSettings={qrSettings} />
+              )}
+            </div>
+          </CardContent>
+          <div className="p-3 border-t flex gap-2 justify-center">
+            <Button size="sm" variant="outline" onClick={handleResetToDefault}>
+              <RotateCcw className="w-4 h-4 mr-1" />Reset
+            </Button>
+            <Button size="sm" onClick={handleSaveDesign} disabled={saving}>
+              <Save className="w-4 h-4 mr-1" />{saving ? 'Menyimpan...' : 'Simpan'}
+            </Button>
+            <Button size="sm" variant="secondary" onClick={handleSetActive}>
+              <CheckCircle2 className="w-4 h-4 mr-1" />Set Aktif
+            </Button>
+          </div>
+        </Card>
+        
+        {/* Right Panel - Editor */}
+        <Card className="col-span-1">
+          <CardHeader className="py-3">
+            <CardTitle className="text-sm flex items-center gap-2"><Settings2 className="w-4 h-4" />Editor Design</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 max-h-[450px] overflow-y-auto">
+            {editingDesign && (
+              <DesignEditorForm design={editingDesign} onChange={setEditingDesign} />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ==================== DESIGN EDITOR FORM ====================
+function DesignEditorForm({ design, onChange }) {
+  const updateField = (field, value) => {
+    onChange({ ...design, [field]: value });
+  };
+  
+  const [activeSection, setActiveSection] = useState('dimensi');
+  
+  const sections = [
+    { id: 'dimensi', label: 'Dimensi', icon: Ruler },
+    { id: 'qr', label: 'QR Code', icon: QrCode },
+    { id: 'header', label: 'Header', icon: Type },
+    { id: 'konten', label: 'Konten', icon: AlignLeft },
+    { id: 'tampilan', label: 'Tampilan', icon: PaintBucket }
+  ];
+  
+  return (
+    <div className="space-y-4">
+      {/* Section Tabs */}
+      <div className="flex flex-wrap gap-1">
+        {sections.map(s => (
+          <Button 
+            key={s.id} 
+            variant={activeSection === s.id ? 'default' : 'ghost'} 
+            size="sm"
+            onClick={() => setActiveSection(s.id)}
+            className="text-xs"
+          >
+            <s.icon className="w-3 h-3 mr-1" />{s.label}
+          </Button>
+        ))}
+      </div>
+      
+      {/* Nama Template */}
+      <div>
+        <Label className="text-xs">Nama Template</Label>
+        <Input 
+          value={design.name || ''} 
+          onChange={e => updateField('name', e.target.value)}
+          className="h-8 text-sm"
+        />
+      </div>
+      
+      {/* Dimensi Section */}
+      {activeSection === 'dimensi' && (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">Lebar (mm)</Label>
+              <Input 
+                type="number" 
+                step="0.1"
+                value={design.width || 69.8} 
+                onChange={e => updateField('width', parseFloat(e.target.value))}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Tinggi (mm)</Label>
+              <Input 
+                type="number"
+                step="0.1" 
+                value={design.height || 22.1} 
+                onChange={e => updateField('height', parseFloat(e.target.value))}
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <Label className="text-xs">Orientasi Layout</Label>
+            <Select value={design.layout || 'landscape'} onValueChange={v => updateField('layout', v)}>
+              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="landscape">Landscape (Horizontal)</SelectItem>
+                <SelectItem value="portrait">Portrait (Vertikal)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">Tebal Border (px)</Label>
+              <Input 
+                type="number" 
+                value={design.border_width || 1} 
+                onChange={e => updateField('border_width', parseFloat(e.target.value))}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Radius Border (px)</Label>
+              <Input 
+                type="number" 
+                value={design.border_radius || 0} 
+                onChange={e => updateField('border_radius', parseFloat(e.target.value))}
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* QR Code Section */}
+      {activeSection === 'qr' && (
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs">Posisi QR Code</Label>
+            <Select value={design.qr_position || 'left'} onValueChange={v => updateField('qr_position', v)}>
+              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Kiri</SelectItem>
+                <SelectItem value="right">Kanan</SelectItem>
+                <SelectItem value="top">Atas</SelectItem>
+                <SelectItem value="bottom">Bawah</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label className="text-xs">Ukuran QR ({design.qr_size || 90}%)</Label>
+            <Slider 
+              value={[design.qr_size || 90]} 
+              onValueChange={([v]) => updateField('qr_size', v)}
+              min={50} max={100} step={5}
+              className="mt-2"
+            />
+          </div>
+          
+          <div>
+            <Label className="text-xs">Padding QR (mm)</Label>
+            <Input 
+              type="number"
+              step="0.5" 
+              value={design.qr_padding || 3} 
+              onChange={e => updateField('qr_padding', parseFloat(e.target.value))}
+              className="h-8 text-sm"
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Header Section */}
+      {activeSection === 'header' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Tampilkan Header</Label>
+            <Switch checked={design.show_header} onCheckedChange={v => updateField('show_header', v)} />
+          </div>
+          
+          {design.show_header && (
+            <>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Tampilkan Logo</Label>
+                <Switch checked={design.header_show_logo} onCheckedChange={v => updateField('header_show_logo', v)} />
+              </div>
+              
+              {design.header_show_logo && (
+                <div>
+                  <Label className="text-xs">Ukuran Logo (px)</Label>
+                  <Input 
+                    type="number" 
+                    value={design.header_logo_size || 16} 
+                    onChange={e => updateField('header_logo_size', parseFloat(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              )}
+              
+              <div>
+                <Label className="text-xs">Teks Header</Label>
+                <Input 
+                  value={design.header_text || ''} 
+                  onChange={e => updateField('header_text', e.target.value)}
+                  className="h-8 text-sm"
+                  placeholder="Nama Instansi"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Font Header (pt)</Label>
+                  <Input 
+                    type="number"
+                    step="0.5" 
+                    value={design.header_font_size || 7.5} 
+                    onChange={e => updateField('header_font_size', parseFloat(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Font Sub (pt)</Label>
+                  <Input 
+                    type="number"
+                    step="0.5" 
+                    value={design.header_sub_font_size || 6.5} 
+                    onChange={e => updateField('header_sub_font_size', parseFloat(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      
+      {/* Content Section */}
+      {activeSection === 'konten' && (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">Font Kode (pt)</Label>
+              <Input 
+                type="number"
+                step="0.5" 
+                value={design.kode_font_size || 7.5} 
+                onChange={e => updateField('kode_font_size', parseFloat(e.target.value))}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Font Nama (pt)</Label>
+              <Input 
+                type="number"
+                step="0.5" 
+                value={design.nama_font_size || 6.5} 
+                onChange={e => updateField('nama_font_size', parseFloat(e.target.value))}
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Tampilkan NUP</Label>
+            <Switch checked={design.show_nup} onCheckedChange={v => updateField('show_nup', v)} />
+          </div>
+          
+          {design.show_nup && (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Font NUP (pt)</Label>
+                <Input 
+                  type="number"
+                  step="0.5" 
+                  value={design.nup_font_size || 11} 
+                  onChange={e => updateField('nup_font_size', parseFloat(e.target.value))}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Lebar Min NUP (px)</Label>
+                <Input 
+                  type="number" 
+                  value={design.nup_min_width || 34} 
+                  onChange={e => updateField('nup_min_width', parseFloat(e.target.value))}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Tampilkan Deskripsi</Label>
+            <Switch checked={design.show_description} onCheckedChange={v => updateField('show_description', v)} />
+          </div>
+          
+          {design.show_description && (
+            <div>
+              <Label className="text-xs">Font Deskripsi (pt)</Label>
+              <Input 
+                type="number"
+                step="0.5" 
+                value={design.desc_font_size || 5.5} 
+                onChange={e => updateField('desc_font_size', parseFloat(e.target.value))}
+                className="h-8 text-sm"
+              />
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Tampilkan Warning</Label>
+            <Switch checked={design.show_warning} onCheckedChange={v => updateField('show_warning', v)} />
+          </div>
+          
+          {design.show_warning && (
+            <>
+              <div>
+                <Label className="text-xs">Teks Warning</Label>
+                <Input 
+                  value={design.warning_text || ''} 
+                  onChange={e => updateField('warning_text', e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Font Warning (pt)</Label>
+                  <Input 
+                    type="number"
+                    step="0.5" 
+                    value={design.warning_font_size || 6} 
+                    onChange={e => updateField('warning_font_size', parseFloat(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Warna Warning</Label>
+                  <Input 
+                    type="color" 
+                    value={design.warning_color || '#DC2626'} 
+                    onChange={e => updateField('warning_color', e.target.value)}
+                    className="h-8 w-full"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Kode Vertikal</Label>
+            <Switch checked={design.show_vertical_code} onCheckedChange={v => updateField('show_vertical_code', v)} />
+          </div>
+          
+          {design.show_vertical_code && (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Font Vertikal (pt)</Label>
+                <Input 
+                  type="number"
+                  step="0.5" 
+                  value={design.vertical_font_size || 6} 
+                  onChange={e => updateField('vertical_font_size', parseFloat(e.target.value))}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Lebar Area (px)</Label>
+                <Input 
+                  type="number" 
+                  value={design.vertical_width || 13} 
+                  onChange={e => updateField('vertical_width', parseFloat(e.target.value))}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Appearance Section */}
+      {activeSection === 'tampilan' && (
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs">Font Family</Label>
+            <Select value={design.font_family || 'Roboto'} onValueChange={v => updateField('font_family', v)}>
+              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Roboto">Roboto</SelectItem>
+                <SelectItem value="Arial">Arial</SelectItem>
+                <SelectItem value="Helvetica">Helvetica</SelectItem>
+                <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                <SelectItem value="Courier New">Courier New</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">Background</Label>
+              <Input 
+                type="color" 
+                value={design.background_color || '#ffffff'} 
+                onChange={e => updateField('background_color', e.target.value)}
+                className="h-8 w-full"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Warna Teks</Label>
+              <Input 
+                type="color" 
+                value={design.text_color || '#1a1a1a'} 
+                onChange={e => updateField('text_color', e.target.value)}
+                className="h-8 w-full"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <Label className="text-xs">Warna Border</Label>
+            <Input 
+              type="color" 
+              value={design.border_color || '#2c2c2c'} 
+              onChange={e => updateField('border_color', e.target.value)}
+              className="h-8 w-full"
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Gold Stripe (Kecil)</Label>
+            <Switch checked={design.show_gold_stripe} onCheckedChange={v => updateField('show_gold_stripe', v)} />
+          </div>
+          
+          {design.show_gold_stripe && (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Tinggi Stripe (px)</Label>
+                <Input 
+                  type="number" 
+                  value={design.gold_stripe_height || 3} 
+                  onChange={e => updateField('gold_stripe_height', parseFloat(e.target.value))}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Warna Stripe</Label>
+                <Input 
+                  type="color" 
+                  value={design.gold_stripe_color || '#D4AF37'} 
+                  onChange={e => updateField('gold_stripe_color', e.target.value)}
+                  className="h-8 w-full"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==================== CUSTOM STICKER COMPONENT ====================
+const CustomSticker = ({ design, data, instansi, qrSettings }) => {
+  // Landscape layout (sedang/besar style)
+  if (design.layout === 'landscape') {
+    return (
+      <div 
+        style={{
+          width: `${design.width}mm`,
+          height: `${design.height}mm`,
+          background: design.background_color || '#ffffff',
+          border: `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}`,
+          borderRadius: `${design.border_radius || 0}px`,
+          display: 'flex',
+          fontFamily: `'${design.font_family || 'Roboto'}', Arial, sans-serif`,
+          overflow: 'hidden',
+          color: design.text_color || '#1a1a1a'
+        }}
+      >
+        {/* QR Area */}
+        <div style={{
+          width: `${design.height}mm`,
+          minWidth: `${design.height}mm`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRight: `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}`,
+          padding: `${design.qr_padding || 3}px`,
+          background: qrSettings?.backgroundColor || '#ffffff'
+        }}>
+          <StyledQRCode 
+            data={data.kode_barang}
+            settings={qrSettings}
+            logoUrl={instansi?.logo_url}
+            size={Math.floor((design.height || 22.1) * 3 * (design.qr_size || 90) / 100)}
+          />
+        </div>
+        
+        {/* Middle Content */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {/* Header */}
+          {design.show_header && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              borderBottom: `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}`,
+              padding: '3px 5px',
+              background: design.header_bg_color || '#ffffff'
+            }}>
+              {design.header_show_logo && instansi?.logo_url && (
+                <img src={instansi.logo_url} alt="" style={{ width: `${design.header_logo_size || 16}px`, height: `${design.header_logo_size || 16}px`, objectFit: 'contain', marginRight: '8px' }} />
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: `${design.header_font_size || 7.5}pt`, fontWeight: 700, lineHeight: 1.2, color: design.header_text_color || '#1a1a1a' }}>
+                  {design.header_text || instansi?.nama_instansi || 'Nama Instansi'}
+                </span>
+                <span style={{ fontSize: `${design.header_sub_font_size || 6.5}pt`, fontWeight: 700, lineHeight: 1.2 }}>
+                  {instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}
+                </span>
+              </div>
+            </div>
+          )}
+          
+          {/* Main Content */}
+          <div style={{ flex: 1, display: 'flex' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: design.show_vertical_code ? `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}` : 'none' }}>
+              {/* Kode & NUP Row */}
+              <div style={{ display: 'flex', borderBottom: `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}` }}>
+                <div style={{ flex: 1, padding: '2px 5px' }}>
+                  <div style={{ fontSize: `${design.kode_font_size || 7.5}pt`, fontWeight: design.kode_font_weight || 700, lineHeight: 1.2 }}>{data.kode_barang}</div>
+                  <div style={{ fontSize: `${design.nama_font_size || 6.5}pt`, fontWeight: design.nama_font_weight || 500, lineHeight: 1.2 }}>{data.nama_barang}</div>
+                </div>
+                {design.show_nup && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: `${design.nup_font_size || 11}pt`,
+                    fontWeight: 700,
+                    minWidth: `${design.nup_min_width || 34}px`,
+                    padding: '2px 5px',
+                    borderLeft: `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}`,
+                    background: design.nup_bg_color || '#ffffff',
+                    color: design.nup_text_color || '#1a1a1a'
+                  }}>
+                    {data.nup || '1'}
+                  </div>
+                )}
+              </div>
+              
+              {/* Description Area */}
+              {design.show_description && (
+                <div style={{ flex: 1, padding: '2px 5px' }}>
+                  <p style={{ fontSize: `${design.desc_font_size || 5.5}pt`, lineHeight: 1.3 }}>{data.merk_tipe || data.merk || '-'}</p>
+                  {design.show_warning && (
+                    <p style={{ fontSize: `${design.warning_font_size || 6}pt`, fontWeight: 700, color: design.warning_color || '#DC2626', marginTop: '2px' }}>
+                      {design.warning_text || 'Tidak Untuk Diperjualbelikan'}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Vertical Code */}
+        {design.show_vertical_code && (
+          <div style={{
+            width: `${design.vertical_width || 13}px`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span style={{
+              writingMode: 'vertical-rl',
+              textOrientation: 'mixed',
+              fontSize: `${design.vertical_font_size || 6}pt`,
+              fontWeight: 700,
+              letterSpacing: '0.3px',
+              whiteSpace: 'nowrap'
+            }}>
+              {data.kode_vertikal}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+  
+  // Portrait layout (kecil style)
+  return (
+    <div 
+      style={{
+        width: `${design.width}mm`,
+        height: `${design.height}mm`,
+        background: design.background_color || '#ffffff',
+        border: `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}`,
+        borderRadius: `${design.border_radius || 0}px`,
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: `'${design.font_family || 'Roboto'}', Arial, sans-serif`,
+        overflow: 'hidden',
+        color: design.text_color || '#1a1a1a'
+      }}
+    >
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: design.show_vertical_code ? `calc(100% - ${design.vertical_width || 13}px)` : '100%' }}>
+          {/* QR Area */}
+          <div style={{
+            aspectRatio: '1/1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderBottom: `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}`,
+            padding: `${design.qr_padding || 2}px`,
+            background: qrSettings?.backgroundColor || '#ffffff'
+          }}>
+            <StyledQRCode 
+              data={data.kode_barang}
+              settings={qrSettings}
+              logoUrl={instansi?.logo_url}
+              size={Math.floor((design.width || 23.8) * 3 * (design.qr_size || 85) / 100)}
+            />
+          </div>
+          
+          {/* Gold Stripe */}
+          {design.show_gold_stripe && (
+            <div style={{
+              width: '100%',
+              height: `${design.gold_stripe_height || 3}px`,
+              background: `linear-gradient(90deg, ${design.gold_stripe_color || '#D4AF37'}, ${design.gold_stripe_color || '#C9A227'})`
+            }} />
+          )}
+          
+          {/* Info Section */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            {/* Nama & NUP Row */}
+            <div style={{ display: 'flex', borderBottom: `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}` }}>
+              <div style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: `${design.nama_font_size || 6.5}pt`,
+                fontWeight: design.nama_font_weight || 600,
+                padding: '2px 3px',
+                lineHeight: 1.2,
+                borderRight: design.show_nup ? `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}` : 'none',
+                textAlign: 'center',
+                overflow: 'hidden'
+              }}>
+                {data.nama_barang}
+              </div>
+              {design.show_nup && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: `${design.nup_font_size || 10}pt`,
+                  fontWeight: 700,
+                  minWidth: `${design.nup_min_width || 28}px`,
+                  padding: '2px 3px'
+                }}>
+                  {data.nup || '1'}
+                </div>
+              )}
+            </div>
+            
+            {/* Kode */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: `${design.kode_font_size || 8}pt`,
+              fontWeight: design.kode_font_weight || 700,
+              padding: '3px 2px',
+              borderBottom: design.show_description ? `${design.border_width || 1}px solid ${design.border_color || '#2c2c2c'}` : 'none'
+            }}>
+              {data.kode_barang}
+            </div>
+            
+            {/* Description */}
+            {design.show_description && (
+              <div style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                fontSize: `${design.desc_font_size || 5}pt`,
+                fontWeight: 400,
+                padding: '2px 3px',
+                lineHeight: 1.3
+              }}>
+                <span>
+                  <strong style={{ fontSize: `${(design.desc_font_size || 5) + 0.5}pt`, fontWeight: 700 }}>
+                    {data.tahun || new Date().getFullYear()}
+                  </strong>
+                  {' - '}{data.merk_tipe || data.merk || '-'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Vertical Code */}
+        {design.show_vertical_code && (
+          <div style={{
+            width: `${design.vertical_width || 13}px`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span style={{
+              writingMode: 'vertical-rl',
+              textOrientation: 'mixed',
+              fontSize: `${design.vertical_font_size || 6}pt`,
+              fontWeight: 700,
+              letterSpacing: '0.3px',
+              whiteSpace: 'nowrap'
+            }}>
+              {data.kode_vertikal}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
