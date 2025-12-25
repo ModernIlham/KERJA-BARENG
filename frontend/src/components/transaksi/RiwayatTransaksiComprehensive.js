@@ -56,7 +56,7 @@ export default function RiwayatTransaksiComprehensive() {
       const params = {
         page,
         limit: pagination.limit,
-        ...(jenisFilter && { jenis: jenisFilter }),
+        ...(jenisFilter && jenisFilter !== 'all' && { jenis: jenisFilter }),
         ...(search && { search }),
         ...(startDate && { start_date: startDate }),
         ...(endDate && { end_date: endDate })
