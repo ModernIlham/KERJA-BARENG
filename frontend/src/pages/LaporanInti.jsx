@@ -125,6 +125,7 @@ export default function LaporanInti() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [pdfMode, setPdfMode] = useState(false);
   const reportRef = useRef(null);
 
   useEffect(() => {
@@ -134,22 +135,80 @@ export default function LaporanInti() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = useCallback(async () => {
     if (!reportRef.current) return;
     setDownloading(true);
+    setPdfMode(true);
+    
+    // Wait for charts to re-render without animations
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     try {
+      const element = reportRef.current;
       const filename = `Laporan_BMN_${new Date().toISOString().split('T')[0].replace(/-/g, '_')}.pdf`;
-      await html2pdf().set({
-        margin: 0, filename,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(reportRef.current).save();
+      
+      // A4 dimensions in mm
+      const a4Width = 210;
+      const a4Height = 297;
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Get all A4 pages
+      const pages = element.querySelectorAll('.a4-page');
+      
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        
+        // Capture each page with high quality
+        const canvas = await html2canvas(page, {
+          scale: 2.5, // Higher scale for better quality
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          width: page.scrollWidth,
+          height: page.scrollHeight,
+          onclone: (clonedDoc) => {
+            // Force visibility of all elements in cloned document
+            const clonedPage = clonedDoc.querySelector('.a4-page');
+            if (clonedPage) {
+              clonedPage.style.overflow = 'visible';
+              clonedPage.style.height = 'auto';
+            }
+          }
+        });
+        
+        // Calculate dimensions to fit A4
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgWidth = a4Width;
+        const imgHeight = (canvas.height * a4Width) / canvas.width;
+        
+        // Add page (except for first page which is already created)
+        if (i > 0) {
+          pdf.addPage();
+        }
+        
+        // Add image to PDF, centered and scaled to fit
+        const yOffset = imgHeight > a4Height ? 0 : (a4Height - imgHeight) / 2;
+        pdf.addImage(imgData, 'JPEG', 0, Math.max(0, yOffset), imgWidth, Math.min(imgHeight, a4Height));
+      }
+      
+      // Save PDF
+      pdf.save(filename);
+      
     } catch (err) {
-      alert('Gagal mengunduh PDF');
+      console.error('PDF generation error:', err);
+      alert('Gagal mengunduh PDF. Silakan coba lagi.');
+    } finally {
+      setPdfMode(false);
+      setDownloading(false);
     }
-    setDownloading(false);
-  };
+  }, []);
 
   if (loading) return <div className="flex justify-center items-center min-h-screen"><Loader2 className="animate-spin w-8 h-8 text-slate-400" /></div>;
   if (!data) return <div className="flex justify-center items-center min-h-screen text-red-500">Gagal memuat data</div>;
@@ -157,6 +216,9 @@ export default function LaporanInti() {
   const { ringkasan_eksekutif: re, rekapitulasi_kategori: rk, kondisi_aset: ka, pelabelan_aset: pa, pengamanan_aset: pn, persediaan: ps, dasar_hukum: dh, header } = data;
   const at = re.aset_tetap;
   const totalPages = 4;
+  
+  // Animation duration - disable during PDF generation
+  const animDuration = pdfMode ? 0 : 400;
 
   return (
     <div className="bg-slate-200 min-h-screen py-6 print:bg-white print:py-0">
