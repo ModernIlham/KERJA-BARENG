@@ -3,6 +3,38 @@
 ## Testing Protocol
 (DO NOT EDIT - Standard testing protocol for all features)
 
+## Current Testing Task
+Testing the new cross-module reclassification feature (Reklasifikasi Persediaan ↔ Aset):
+
+### Features to Test:
+1. **Frontend - Reklasifikasi Persediaan → Aset Form**
+   - Navigate to `/transaksi-persediaan/reklasifikasi`
+   - Click on "Persediaan → Aset" sub-tab
+   - Search for persediaan items
+   - Select items, fill SPPA number, date, golongan tujuan, kode barang tujuan
+   - Submit and verify transaction is created
+
+2. **Frontend - Reklasifikasi Aset → Persediaan Form**
+   - Navigate to `/transaksi-persediaan/reklasifikasi`
+   - Click on "Aset → Persediaan" sub-tab
+   - Search for aset items
+   - Select items, fill SPPA number, date, alasan reklasifikasi
+   - Submit and verify transaction is created
+
+3. **Backend API - Cross-module Reklasifikasi**
+   - POST `/api/transaksi-cross/reklasifikasi` with PERSEDIAAN_TO_ASET
+   - POST `/api/transaksi-cross/reklasifikasi` with ASET_TO_PERSEDIAAN
+   - GET `/api/transaksi-cross/riwayat` - history endpoint
+
+### Test Credentials:
+- Email: admin@example.com
+- Password: admin123
+
+### Files Involved:
+- Frontend: `/app/frontend/src/components/transaksi/ReklasifikasiPersediaanAsetForm.js`
+- Frontend: `/app/frontend/src/pages/TransaksiPersediaan.js`
+- Backend: `/app/backend/routes/transaksi_cross.py`
+
 ## Incorporate User Feedback
 - User requested Unit Penerima with hierarchy based on organizational structure (Eselon I-V)
 - User requested Pegawai Penerima with search functionality and unit info display
