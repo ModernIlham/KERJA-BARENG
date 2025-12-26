@@ -3856,15 +3856,15 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
           </div>
         </div>
         
-        {/* Vertical Code */}
+        {/* Vertical Code - tanpa border kiri karena sudah ada dari left content */}
         {design.show_vertical_code && (
           <div style={{
             width: `${design.vertical_width || 13}px`,
+            minWidth: `${design.vertical_width || 13}px`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: design.vertical_bg_color || '#ffffff',
-            borderLeft: design.vertical_show_border ? getBorderStyle() : 'none'
+            background: design.vertical_bg_color || '#ffffff'
           }}>
             <span style={{
               writingMode: 'vertical-rl',
