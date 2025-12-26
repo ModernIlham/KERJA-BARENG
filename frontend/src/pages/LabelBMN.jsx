@@ -3134,7 +3134,7 @@ function DesignEditorForm({ design, onChange }) {
                 </SelectContent>
               </Select>
             </div>
-            <BorderControl prefix="border" label="Sisi Border Aktif" />
+            <BorderControlComponent design={design} updateField={updateField} prefix="border" label="Sisi Border Aktif" />
           </div>
           
           {/* Section Border (Inner Dividers) */}
