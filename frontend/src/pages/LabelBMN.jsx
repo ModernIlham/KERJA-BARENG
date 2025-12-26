@@ -3063,7 +3063,7 @@ function DesignEditorForm({ design, onChange }) {
                   </div>
                   <AlignSelectorSimple value={design.warning_align || 'left'} onChange={v => updateField('warning_align', v)} label="Align Teks" />
                 </div>
-                <FullAlignSelector value={design.warning_full_align || 'bottom-left'} onChange={v => updateField('warning_full_align', v)} label="Posisi Warning (9 Arah)" />
+                <FullAlignSelectorComponent value={design.warning_full_align || 'bottom-left'} onChange={v => updateField('warning_full_align', v)} label="Posisi Warning (9 Arah)" />
               </>
             )}
           </div>
