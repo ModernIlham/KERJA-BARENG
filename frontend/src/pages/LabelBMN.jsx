@@ -3466,7 +3466,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
           ...getFullAlignStyle(design.qr_align || 'top-left')
         }}>
           <StyledQRCode 
-            data={data.kode_barang}
+            data={`#${data.kode_register || data.kode_barang}`}
             settings={qrSettings}
             logoUrl={instansi?.logo_url}
             size={Math.floor((design.height || 22.1) * 3.78 * (design.qr_size || 100) / 100) - (
