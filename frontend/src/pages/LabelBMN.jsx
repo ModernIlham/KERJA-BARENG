@@ -2440,6 +2440,11 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
         size_type: selectedSizeType,
         design_id: selectedDesign.id
       });
+      // Update local active design state
+      setActiveDesignIds(prev => ({
+        ...prev,
+        [selectedSizeType]: selectedDesign.id
+      }));
       toast.success('Design aktif berhasil diatur');
     } catch (err) {
       toast.error('Gagal mengatur design aktif');
