@@ -2263,7 +2263,7 @@ const DEFAULT_DESIGN_CONFIGS = {
 };
 
 // ==================== STICKER DESIGN EDITOR TAB ====================
-function StickerDesignTab({ instansi, qrSettings, qrTemplates, onQrTemplatesChange }) {
+function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplates, onQrTemplatesChange }) {
   const [designs, setDesigns] = useState({ kecil: [], sedang: [], besar: [], custom: [] });
   const [selectedSizeType, setSelectedSizeType] = useState('sedang');
   const [selectedDesign, setSelectedDesign] = useState(null);
@@ -2271,12 +2271,28 @@ function StickerDesignTab({ instansi, qrSettings, qrTemplates, onQrTemplatesChan
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showQRTemplates, setShowQRTemplates] = useState(false);
+  const [activeDesignIds, setActiveDesignIds] = useState({});
   
-  // Function to apply QR template
+  // Function to apply QR template - properly apply to qrSettings
   const setQrSettingsFromTemplate = (template) => {
-    // This would need to be passed up to parent to update qrSettings
-    // For now, just show toast
-    toast.success(`Template QR "${template.name}" dipilih`);
+    const newSettings = {
+      size: template.size || 200,
+      margin: template.margin || 0,
+      dotsColor: template.dotsColor || template.bodyColor || '#000000',
+      dotsStyle: template.dotsStyle || template.bodyStyle || 'square',
+      cornerSquareColor: template.cornerSquareColor || template.eyeColor || '#000000',
+      cornerSquareStyle: template.cornerSquareStyle || template.eyeStyle || 'square',
+      cornerDotColor: template.cornerDotColor || '#000000',
+      cornerDotStyle: template.cornerDotStyle || 'square',
+      backgroundColor: template.backgroundColor || '#ffffff',
+      logoEnabled: template.logoEnabled !== false,
+      logoSize: template.logoSize || 25,
+      logoBackgroundEnabled: template.logoBackgroundEnabled !== false,
+      logoBackgroundColor: template.logoBackgroundColor || '#ffffff',
+      errorCorrectionLevel: template.errorCorrectionLevel || 'M'
+    };
+    onQrSettingsChange?.(newSettings);
+    toast.success(`Template QR "${template.name}" berhasil diterapkan`);
   };
   
   // Load designs
