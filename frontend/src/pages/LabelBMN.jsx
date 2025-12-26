@@ -2665,8 +2665,9 @@ function QRTemplatesPanel({ qrSettings, onSelectTemplate, templates, onTemplates
   const handleSetActive = async (template) => {
     try {
       await api.post('/api/label-bmn/qr-template/set-active', { template_id: template.id });
-      toast.success('Template QR aktif diatur');
+      // Apply template settings immediately to the UI
       onSelectTemplate?.(template);
+      toast.success(`Template QR "${template.name}" diterapkan`);
     } catch {
       toast.error('Gagal mengatur template aktif');
     }
