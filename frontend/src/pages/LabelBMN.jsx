@@ -3008,7 +3008,7 @@ function DesignEditorForm({ design, onChange }) {
                     <Switch checked={design.nup_border_left !== false} onCheckedChange={v => updateField('nup_border_left', v)} />
                   </div>
                 </div>
-                <FullAlignSelector value={design.nup_full_align || 'center'} onChange={v => updateField('nup_full_align', v)} label="Posisi NUP (9 Arah)" />
+                <FullAlignSelectorComponent value={design.nup_full_align || 'center'} onChange={v => updateField('nup_full_align', v)} label="Posisi NUP (9 Arah)" />
               </>
             )}
           </div>
