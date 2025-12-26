@@ -1668,8 +1668,8 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
   
   // Sample data for preview - dengan format register aset yang benar
   const sampleData = {
-    kode_barang: '1030101001000001',
-    kode_register: '1030101001000001',
+    kode_barang: '1B2111EC4E19B902E063BBAAD80A6667',
+    kode_register: '1B2111EC4E19B902E063BBAAD80A6667',
     nama_barang: 'Laptop HP EliteBook 840',
     merk: 'HP',
     tipe: 'EliteBook 840 G8',
