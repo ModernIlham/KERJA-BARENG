@@ -664,13 +664,13 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
         ]);
         
         setDesigns({
-          kecil: kecilRes.data || DEFAULT_DESIGN_CONFIGS.kecil,
-          sedang: sedangRes.data || DEFAULT_DESIGN_CONFIGS.sedang,
-          besar: besarRes.data || DEFAULT_DESIGN_CONFIGS.besar
+          kecil: kecilRes.data || BASIC_DEFAULTS.kecil,
+          sedang: sedangRes.data || BASIC_DEFAULTS.sedang,
+          besar: besarRes.data || BASIC_DEFAULTS.besar
         });
       } catch {
         // Use defaults
-        setDesigns(DEFAULT_DESIGN_CONFIGS);
+        setDesigns(BASIC_DEFAULTS);
       }
     };
     
