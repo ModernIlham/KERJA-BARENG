@@ -1576,7 +1576,7 @@ function PrintHistoryTab() {
 }
 
 // ==================== QR CODE CUSTOMIZATION PANEL ====================
-function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTemplates, onQrTemplatesChange }) {
+function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTemplates, onQrTemplatesChange, activeDesigns }) {
   const [localSettings, setLocalSettings] = useState(qrSettings);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templateName, setTemplateName] = useState('');
@@ -1584,6 +1584,9 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
   
   // Use shared templates from parent if available
   const templates = qrTemplates || [];
+  
+  // Get active design for current preview type
+  const currentActiveDesign = activeDesigns?.[previewStickerType];
   
   useEffect(() => {
     setLocalSettings(qrSettings);
