@@ -211,12 +211,14 @@ const StikerKecil = ({ data, instansi, qrSettings }) => {
       padding: '2px 3px',
       lineHeight: 1.3
     },
-    // Vertical code TANPA border (sesuai permintaan user)
+    // Vertical code area - di sebelah kanan, TANPA border kiri (sudah ada dari leftContent)
     verticalCode: {
       width: '13px',
+      minWidth: '13px',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      background: '#ffffff'
     },
     verticalText: {
       writingMode: 'vertical-rl',
@@ -238,7 +240,7 @@ const StikerKecil = ({ data, instansi, qrSettings }) => {
               data={`#${data.kode_register || data.kode_barang}`}
               settings={qrSettings}
               logoUrl={instansi?.logo_url}
-              size={72}
+              size={68}
             />
           </div>
           <div style={styles.goldStripe} />
