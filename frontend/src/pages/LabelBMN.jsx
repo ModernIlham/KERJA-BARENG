@@ -3337,16 +3337,15 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
           {design.show_header && (
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: getJustify(design.header_align),
               borderBottom: design.header_border_bottom !== false ? getBorderStyle() : 'none',
               padding: `${design.header_padding || 4}px`,
-              background: design.header_bg_color || '#ffffff'
+              background: design.header_bg_color || '#ffffff',
+              ...getFullAlignStyle(design.header_full_align || 'center-left')
             }}>
               {design.header_show_logo && instansi?.logo_url && (
                 <img src={instansi.logo_url} alt="" style={{ width: `${design.header_logo_size || 16}px`, height: `${design.header_logo_size || 16}px`, objectFit: 'contain', marginRight: '8px' }} />
               )}
-              <div style={{ display: 'flex', flexDirection: 'column', textAlign: getTextAlign(design.header_align) }}>
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: getFullAlignStyle(design.header_full_align || 'center-left').textAlign }}>
                 <span style={{ fontSize: `${design.header_font_size || 7.5}pt`, fontWeight: 700, lineHeight: 1.2, color: design.header_text_color || '#1a1a1a' }}>
                   {design.header_text || instansi?.nama_instansi || 'Nama Instansi'}
                 </span>
@@ -3363,17 +3362,20 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
               {/* Kode & NUP Row */}
               <div style={{ display: 'flex', borderBottom: getBorderStyle() }}>
                 <div style={{ 
-                  flex: 1, 
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
                   padding: `${design.kode_padding || 4}px`,
-                  textAlign: getTextAlign(design.kode_align),
-                  background: design.kode_bg_color || '#ffffff'
+                  background: design.kode_bg_color || '#ffffff',
+                  ...getFullAlignStyle(design.kode_full_align || 'center-left')
                 }}>
                   <div style={{ 
                     fontSize: `${design.kode_font_size || 7.5}pt`, 
                     fontWeight: design.kode_font_weight || 700, 
                     lineHeight: 1.2,
                     letterSpacing: `${design.kode_letter_spacing || 0}px`,
-                    textTransform: design.kode_text_transform || 'none'
+                    textTransform: design.kode_text_transform || 'none',
+                    textAlign: getFullAlignStyle(design.kode_full_align || 'center-left').textAlign
                   }}>
                     {data.kode_barang}
                   </div>
@@ -3381,7 +3383,8 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
                     fontSize: `${design.nama_font_size || 6.5}pt`, 
                     fontWeight: design.nama_font_weight || 500, 
                     lineHeight: design.nama_line_height || 1.2,
-                    textAlign: getTextAlign(design.nama_align)
+                    textAlign: getFullAlignStyle(design.nama_full_align || 'center-left').textAlign,
+                    ...getFullAlignStyle(design.nama_full_align || 'center-left')
                   }}>
                     {data.nama_barang}
                   </div>
@@ -3389,15 +3392,14 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
                 {design.show_nup && (
                   <div style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                     fontSize: `${design.nup_font_size || 11}pt`,
                     fontWeight: 700,
                     minWidth: `${design.nup_min_width || 34}px`,
                     padding: '2px 5px',
                     borderLeft: design.nup_border_left !== false ? getBorderStyle() : 'none',
                     background: design.nup_bg_color || '#ffffff',
-                    color: design.nup_text_color || '#1a1a1a'
+                    color: design.nup_text_color || '#1a1a1a',
+                    ...getFullAlignStyle(design.nup_full_align || 'center')
                   }}>
                     {data.nup || '1'}
                   </div>
