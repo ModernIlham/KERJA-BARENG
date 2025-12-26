@@ -3715,8 +3715,11 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
   
   // Portrait layout (kecil style)
   // Hitung lebar konten (tanpa vertical code)
-  const contentWidth = design.width - (design.show_vertical_code ? (design.vertical_width || 13) / 3.78 : 0);
-  const qrBoxSize = contentWidth; // QR box persegi dengan ukuran = lebar konten
+  const verticalWidthMm = design.show_vertical_code ? (design.vertical_width || 13) / 3.78 : 0;
+  const contentWidthMm = design.width - verticalWidthMm;
+  // QR box persegi dengan ukuran maksimum yang tidak melebihi 50% tinggi stiker
+  const maxQrBoxSize = Math.min(contentWidthMm, design.height * 0.55);
+  const qrBoxSizeMm = maxQrBoxSize;
   
   return (
     <div 
@@ -3748,12 +3751,12 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
           flexDirection: 'column',
           borderRight: design.show_vertical_code ? getBorderStyle() : 'none'
         }}>
-          {/* QR Area - box persegi dengan ukuran tetap berdasarkan lebar konten */}
+          {/* QR Area - box persegi dengan ukuran yang proporsional */}
           <div style={{
-            width: `${contentWidth}mm`,
-            height: `${contentWidth}mm`,
-            minHeight: `${contentWidth}mm`,
-            maxHeight: `${contentWidth}mm`,
+            width: `${contentWidthMm}mm`,
+            height: `${qrBoxSizeMm}mm`,
+            minHeight: `${qrBoxSizeMm}mm`,
+            maxHeight: `${qrBoxSizeMm}mm`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -3775,7 +3778,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
                 settings={qrSettings}
                 logoUrl={instansi?.logo_url}
                 size={Math.max(10, Math.floor(
-                  (contentWidth * 3.78) * ((design.qr_size || 100) / 100) - 
+                  (qrBoxSizeMm * 3.78) * ((design.qr_size || 100) / 100) - 
                   ((design.qr_margin_top || 0) + (design.qr_margin_bottom || 0) + (design.qr_margin_left || 0) + (design.qr_margin_right || 0))
                 ))}
                 style={{
