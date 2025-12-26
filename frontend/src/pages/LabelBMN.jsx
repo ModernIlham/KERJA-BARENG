@@ -3714,6 +3714,10 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
   }
   
   // Portrait layout (kecil style)
+  // Hitung lebar konten (tanpa vertical code)
+  const contentWidth = design.width - (design.show_vertical_code ? (design.vertical_width || 13) / 3.78 : 0);
+  const qrBoxSize = contentWidth; // QR box persegi dengan ukuran = lebar konten
+  
   return (
     <div 
       style={{
@@ -3744,10 +3748,12 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
           flexDirection: 'column',
           borderRight: design.show_vertical_code ? getBorderStyle() : 'none'
         }}>
-          {/* QR Area - box persegi sendiri dengan ukuran berdasarkan lebar area konten */}
+          {/* QR Area - box persegi dengan ukuran tetap berdasarkan lebar konten */}
           <div style={{
-            width: '100%',
-            aspectRatio: '1/1',
+            width: `${contentWidth}mm`,
+            height: `${contentWidth}mm`,
+            minHeight: `${contentWidth}mm`,
+            maxHeight: `${contentWidth}mm`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -3769,7 +3775,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
                 settings={qrSettings}
                 logoUrl={instansi?.logo_url}
                 size={Math.max(10, Math.floor(
-                  ((design.width - (design.show_vertical_code ? (design.vertical_width || 13) / 3.78 : 0)) * 3.78) * ((design.qr_size || 100) / 100) - 
+                  (contentWidth * 3.78) * ((design.qr_size || 100) / 100) - 
                   ((design.qr_margin_top || 0) + (design.qr_margin_bottom || 0) + (design.qr_margin_left || 0) + (design.qr_margin_right || 0))
                 ))}
                 style={{
