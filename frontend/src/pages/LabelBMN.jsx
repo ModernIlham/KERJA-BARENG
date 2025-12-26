@@ -1586,17 +1586,6 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
     toast.success(`Template "${template.name}" dimuat`);
   };
   
-  const handleDeleteTemplate = async (templateId) => {
-    if (!confirm('Hapus template ini?')) return;
-    try {
-      await api.delete(`/api/label-bmn/qr-template/${templateId}`);
-      toast.success('Template dihapus');
-      loadTemplates();
-    } catch {
-      toast.error('Gagal menghapus');
-    }
-  };
-  
   const handleReset = () => {
     setLocalSettings(DEFAULT_QR_SETTINGS);
     onSettingsChange(DEFAULT_QR_SETTINGS);
