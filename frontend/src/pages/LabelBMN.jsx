@@ -1927,10 +1927,11 @@ const DEFAULT_DESIGN_CONFIGS = {
     qr_position: "top",
     qr_size: 85,
     qr_padding: 0,
-    qr_margin_top: 2,
+    // QR margins - default 0 untuk dekat dengan border
+    qr_margin_top: 0,
     qr_margin_bottom: 0,
-    qr_margin_left: 2,
-    qr_margin_right: 2,
+    qr_margin_left: 0,
+    qr_margin_right: 0,
     qr_align: "center",
     
     // Header Settings
