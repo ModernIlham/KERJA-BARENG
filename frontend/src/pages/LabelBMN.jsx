@@ -1642,14 +1642,16 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
     toast.info('Pengaturan direset ke default');
   };
   
-  // Sample data for preview
+  // Sample data for preview - dengan format register aset yang benar
   const sampleData = {
-    kode_barang: '3030103001',
-    nama_barang: 'Battery Charger',
-    merk: 'DJI',
+    kode_barang: '1030101001000001',
+    kode_register: '1030101001000001',
+    nama_barang: 'Laptop HP EliteBook 840',
+    merk: 'HP',
+    tipe: 'EliteBook 840 G8',
     nup: '1',
     tahun: '2024',
-    kode_vertikal: '06435T/621001/2024'
+    kode_vertikal: '103010T/1/2024'
   };
   
   return (
