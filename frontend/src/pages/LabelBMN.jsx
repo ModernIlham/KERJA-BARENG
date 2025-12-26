@@ -3390,26 +3390,29 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
           padding: design.content_padding || 0
         }}
       >
-        {/* QR Area - dengan margin yang bisa sangat kecil */}
+        {/* QR Area - dengan margin yang bisa diatur sampai 0 */}
         <div style={{
           width: `${design.height}mm`,
           minWidth: `${design.height}mm`,
           display: 'flex',
-          alignItems: design.qr_align === 'top' ? 'flex-start' : design.qr_align === 'bottom' ? 'flex-end' : 'center',
-          justifyContent: getJustify(design.qr_align),
           borderRight: getBorderStyle(true),
-          paddingTop: `${design.qr_margin_top ?? 2}px`,
-          paddingRight: `${design.qr_margin_right ?? 2}px`,
-          paddingBottom: `${design.qr_margin_bottom ?? 2}px`,
-          paddingLeft: `${design.qr_margin_left ?? 2}px`,
-          background: qrSettings?.backgroundColor || '#ffffff'
+          padding: 0,
+          background: qrSettings?.backgroundColor || '#ffffff',
+          ...getFullAlignStyle(design.qr_align || 'center')
         }}>
-          <StyledQRCode 
-            data={data.kode_barang}
-            settings={qrSettings}
-            logoUrl={instansi?.logo_url}
-            size={Math.floor((design.height || 22.1) * 3.2 * (design.qr_size || 90) / 100)}
-          />
+          <div style={{
+            paddingTop: `${design.qr_margin_top !== undefined ? design.qr_margin_top : 0}px`,
+            paddingRight: `${design.qr_margin_right !== undefined ? design.qr_margin_right : 0}px`,
+            paddingBottom: `${design.qr_margin_bottom !== undefined ? design.qr_margin_bottom : 0}px`,
+            paddingLeft: `${design.qr_margin_left !== undefined ? design.qr_margin_left : 0}px`,
+          }}>
+            <StyledQRCode 
+              data={data.kode_barang}
+              settings={qrSettings}
+              logoUrl={instansi?.logo_url}
+              size={Math.floor((design.height || 22.1) * 3.2 * (design.qr_size || 90) / 100)}
+            />
+          </div>
         </div>
         
         {/* Middle Content */}
