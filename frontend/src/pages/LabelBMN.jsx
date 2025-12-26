@@ -2921,19 +2921,16 @@ function DesignEditorForm({ design, onChange }) {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <AlignSelectorSimple value={design.kode_align || 'left'} onChange={v => updateField('kode_align', v)} label="Alignment Teks" />
-              <div>
-                <Label className="text-[10px] text-gray-500">Transform</Label>
-                <Select value={design.kode_text_transform || 'none'} onValueChange={v => updateField('kode_text_transform', v)}>
-                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Normal</SelectItem>
-                    <SelectItem value="uppercase">UPPERCASE</SelectItem>
-                    <SelectItem value="lowercase">lowercase</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label className="text-[10px] text-gray-500">Transform</Label>
+              <Select value={design.kode_text_transform || 'none'} onValueChange={v => updateField('kode_text_transform', v)}>
+                <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Normal</SelectItem>
+                  <SelectItem value="uppercase">UPPERCASE</SelectItem>
+                  <SelectItem value="lowercase">lowercase</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <FullAlignSelectorComponent value={design.kode_full_align || 'center-left'} onChange={v => updateField('kode_full_align', v)} label="Posisi Kode (9 Arah)" />
             <div className="grid grid-cols-2 gap-2">
