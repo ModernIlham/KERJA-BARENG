@@ -3503,35 +3503,45 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
           padding: design.content_padding || 0
         }}
       >
-        {/* QR Area - dengan margin yang bisa diatur sampai 0 */}
+        {/* QR Area - dengan margin yang bisa diatur sampai 0 dan resize dari center */}
         <div style={{
           width: `${design.height}mm`,
           minWidth: `${design.height}mm`,
           maxWidth: `${design.height}mm`,
           height: `${design.height}mm`,
           display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           borderRight: getBorderStyle(true),
           padding: 0,
           margin: 0,
           boxSizing: 'border-box',
           background: qrSettings?.backgroundColor || '#ffffff',
-          ...getFullAlignStyle(design.qr_align || 'center')
         }}>
-          <StyledQRCode 
-            data={`#${data.kode_register || data.kode_barang}`}
-            settings={qrSettings}
-            logoUrl={instansi?.logo_url}
-            size={Math.floor(
-              ((design.height || 22.1) * 3.78) * ((design.qr_size || 100) / 100) - 
-              ((design.qr_margin_top || 0) + (design.qr_margin_bottom || 0) + (design.qr_margin_left || 0) + (design.qr_margin_right || 0)) / 2
-            )}
-            style={{
-              marginTop: `${design.qr_margin_top !== undefined ? design.qr_margin_top : 0}px`,
-              marginRight: `${design.qr_margin_right !== undefined ? design.qr_margin_right : 0}px`,
-              marginBottom: `${design.qr_margin_bottom !== undefined ? design.qr_margin_bottom : 0}px`,
-              marginLeft: `${design.qr_margin_left !== undefined ? design.qr_margin_left : 0}px`,
-            }}
-          />
+          {/* Inner wrapper for alignment - QR akan selalu resize dari center */}
+          <div style={{
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+            ...getFullAlignStyle(design.qr_align || 'center')
+          }}>
+            <StyledQRCode 
+              data={`#${data.kode_register || data.kode_barang}`}
+              settings={qrSettings}
+              logoUrl={instansi?.logo_url}
+              size={Math.max(10, Math.floor(
+                ((design.height || 22.1) * 3.78) * ((design.qr_size || 100) / 100) - 
+                ((design.qr_margin_top || 0) + (design.qr_margin_bottom || 0) + (design.qr_margin_left || 0) + (design.qr_margin_right || 0))
+              ))}
+              style={{
+                marginTop: `${design.qr_margin_top !== undefined ? design.qr_margin_top : 0}px`,
+                marginRight: `${design.qr_margin_right !== undefined ? design.qr_margin_right : 0}px`,
+                marginBottom: `${design.qr_margin_bottom !== undefined ? design.qr_margin_bottom : 0}px`,
+                marginLeft: `${design.qr_margin_left !== undefined ? design.qr_margin_left : 0}px`,
+                transition: 'all 0.15s ease-out'
+              }}
+            />
+          </div>
         </div>
         
         {/* Middle Content */}
