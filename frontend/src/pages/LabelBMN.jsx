@@ -2836,7 +2836,7 @@ function DesignEditorForm({ design, onChange }) {
             💡 Atur margin ke 0 untuk QR dekat sekali dengan garis border
           </div>
         </div>
-      )}}
+      )}
       
       {/* ==================== HEADER SECTION ==================== */}
       {activeSection === 'header' && (
