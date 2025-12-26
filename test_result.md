@@ -4,11 +4,18 @@
 (DO NOT EDIT - Standard testing protocol for all features)
 
 ## Current Testing Task
-Testing: Pelabelan Aksesori & Tracking Status Cetak - COMPLETED ✅
+Testing: Label BMN Page Improvements - IN PROGRESS
 
 ### Task Description:
-1. Verify Aksesori (Child Asset) Management feature
-2. Verify Print Status Tracking feature
+1. Verify QR Customization with QR size (px) setting
+2. Verify Preview Stiker for all sizes (Kecil, Sedang, Besar) in QR Customization tab
+3. Verify "Simpan Design" updates existing design instead of creating new
+4. Verify 9-position alignment selector in Editor Design
+5. Verify tab switching (Stiker Kecil/Sedang/Besar) without data leakage
+
+### Test Credentials:
+- Email: admin@example.com
+- Password: admin123
 
 ### Test Results Summary:
 ✅ **PELABELAN AKSESORI & TRACKING STATUS CETAK TESTING COMPLETE**
