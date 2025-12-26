@@ -2156,10 +2156,11 @@ const DEFAULT_DESIGN_CONFIGS = {
     qr_position: "left",
     qr_size: 98,
     qr_padding: 0,
-    qr_margin_top: 3,
-    qr_margin_bottom: 3,
-    qr_margin_left: 3,
-    qr_margin_right: 3,
+    // QR margins - default 0 untuk dekat dengan border
+    qr_margin_top: 0,
+    qr_margin_bottom: 0,
+    qr_margin_left: 0,
+    qr_margin_right: 0,
     qr_align: "center",
     
     // Header Settings
