@@ -2244,13 +2244,20 @@ function StickerDesignTab({ instansi, qrSettings }) {
     }
   };
   
-  const handleSelectSizeType = (sizeType) => {
+  const handleSelectSizeType = useCallback((sizeType) => {
+    // Prevent state leakage by clearing current state first
+    setSelectedDesign(null);
+    setEditingDesign(null);
     setSelectedSizeType(sizeType);
-    const designList = designs[sizeType] || [];
-    const defaultDesign = designList.find(d => d.is_default) || designList[0] || { ...DEFAULT_DESIGN_CONFIGS[sizeType], id: `default_${sizeType}` };
-    setSelectedDesign(defaultDesign);
-    setEditingDesign({ ...defaultDesign });
-  };
+    
+    // Wait for next tick to ensure clean state
+    setTimeout(() => {
+      const designList = designs[sizeType] || [];
+      const defaultDesign = designList.find(d => d.is_default) || designList[0] || { ...DEFAULT_DESIGN_CONFIGS[sizeType], id: `default_${sizeType}` };
+      setSelectedDesign(defaultDesign);
+      setEditingDesign({ ...defaultDesign });
+    }, 0);
+  }, [designs]);
   
   const handleSelectDesign = (design) => {
     setSelectedDesign(design);
