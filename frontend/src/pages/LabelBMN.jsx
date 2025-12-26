@@ -3598,22 +3598,22 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
             display: 'flex',
             borderBottom: getBorderStyle(),
             padding: 0,
+            margin: 0,
             background: qrSettings?.backgroundColor || '#ffffff',
             ...getFullAlignStyle(design.qr_align || 'center')
           }}>
-            <div style={{
-              paddingTop: `${design.qr_margin_top !== undefined ? design.qr_margin_top : 0}px`,
-              paddingRight: `${design.qr_margin_right !== undefined ? design.qr_margin_right : 0}px`,
-              paddingBottom: `${design.qr_margin_bottom !== undefined ? design.qr_margin_bottom : 0}px`,
-              paddingLeft: `${design.qr_margin_left !== undefined ? design.qr_margin_left : 0}px`,
-            }}>
-              <StyledQRCode 
-                data={data.kode_barang}
-                settings={qrSettings}
-                logoUrl={instansi?.logo_url}
-                size={Math.floor((design.width || 23.8) * 3 * (design.qr_size || 85) / 100)}
-              />
-            </div>
+            <StyledQRCode 
+              data={data.kode_barang}
+              settings={qrSettings}
+              logoUrl={instansi?.logo_url}
+              size={Math.floor((design.width || 23.8) * 3.78 * (design.qr_size || 100) / 100)}
+              style={{
+                marginTop: `${design.qr_margin_top !== undefined ? design.qr_margin_top : 0}px`,
+                marginRight: `${design.qr_margin_right !== undefined ? design.qr_margin_right : 0}px`,
+                marginBottom: `${design.qr_margin_bottom !== undefined ? design.qr_margin_bottom : 0}px`,
+                marginLeft: `${design.qr_margin_left !== undefined ? design.qr_margin_left : 0}px`,
+              }}
+            />
           </div>
           
           {/* Gold Stripe */}
