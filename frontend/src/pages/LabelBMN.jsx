@@ -1789,6 +1789,22 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
             <p className="text-[10px] text-gray-500">Ukuran QR code dalam pixel untuk cetak</p>
           </div>
           
+          {/* Margin (blocks) - Quiet Zone */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Margin (blocks)</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Margin ({localSettings.margin || 0} blocks)</Label>
+                <Slider value={[localSettings.margin || 0]} onValueChange={([v]) => updateSetting('margin', v)} min={0} max={10} step={1} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Atau input manual</Label>
+                <Input type="number" value={localSettings.margin || 0} onChange={e => updateSetting('margin', parseInt(e.target.value) || 0)} className="h-8 text-sm" min={0} max={20} />
+              </div>
+            </div>
+            <p className="text-[10px] text-gray-500">Quiet zone di sekitar QR code (dalam satuan modul/blocks)</p>
+          </div>
+          
           {/* Logo Settings */}
           <div className="space-y-2 p-2 border rounded-lg">
             <div className="flex items-center justify-between">
