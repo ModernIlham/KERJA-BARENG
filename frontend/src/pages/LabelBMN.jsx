@@ -634,10 +634,41 @@ const StikerBesar = ({ data, instansi, qrSettings }) => {
 };
 
 // ==================== PRINT PAGE COMPONENT ====================
-const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintComplete }) => {
+const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintComplete, activeDesigns }) => {
   const [loading, setLoading] = useState(true);
+  const [designs, setDesigns] = useState(activeDesigns || {});
   const printRef = useRef(null);
   const canvas = CANVAS_SIZES[canvasSize];
+  
+  // Load active designs if not provided
+  useEffect(() => {
+    const loadActiveDesigns = async () => {
+      if (activeDesigns) {
+        setDesigns(activeDesigns);
+        return;
+      }
+      
+      try {
+        // Load active design for each size
+        const [kecilRes, sedangRes, besarRes] = await Promise.all([
+          api.get('/api/label-bmn/sticker-design/active/kecil').catch(() => ({ data: null })),
+          api.get('/api/label-bmn/sticker-design/active/sedang').catch(() => ({ data: null })),
+          api.get('/api/label-bmn/sticker-design/active/besar').catch(() => ({ data: null }))
+        ]);
+        
+        setDesigns({
+          kecil: kecilRes.data || DEFAULT_DESIGN_CONFIGS.kecil,
+          sedang: sedangRes.data || DEFAULT_DESIGN_CONFIGS.sedang,
+          besar: besarRes.data || DEFAULT_DESIGN_CONFIGS.besar
+        });
+      } catch {
+        // Use defaults
+        setDesigns(DEFAULT_DESIGN_CONFIGS);
+      }
+    };
+    
+    loadActiveDesigns();
+  }, [activeDesigns]);
   
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
