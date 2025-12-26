@@ -741,23 +741,26 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
       */}
       <style>{`
         @media print {
-          /* Sembunyikan SEMUA elemen terlebih dahulu */
-          body * {
-            visibility: hidden !important;
+          /* Sembunyikan SEMUA elemen UI */
+          body > *:not(#print-area) {
+            display: none !important;
           }
           
-          /* Tampilkan HANYA area cetak dan semua child-nya */
-          #print-area,
-          #print-area * {
+          .no-print {
+            display: none !important;
+          }
+          
+          /* Tampilkan area cetak */
+          #print-area {
+            display: block !important;
+            position: static !important;
+            left: 0 !important;
+            top: 0 !important;
             visibility: visible !important;
           }
           
-          /* Posisikan area cetak di pojok kiri atas */
-          #print-area {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
+          #print-area * {
+            visibility: visible !important;
           }
           
           /* Page break untuk setiap halaman */
@@ -772,12 +775,6 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
             page-break-after: auto !important;
           }
           
-          /* Sembunyikan elemen no-print */
-          .no-print {
-            display: none !important;
-            visibility: hidden !important;
-          }
-          
           /* Pengaturan body untuk cetak */
           body {
             -webkit-print-color-adjust: exact !important;
@@ -785,6 +782,7 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
             color-adjust: exact !important;
             margin: 0 !important;
             padding: 0 !important;
+            background: white !important;
           }
           
           /* Pengaturan halaman cetak */
