@@ -2057,7 +2057,7 @@ const DEFAULT_DESIGN_CONFIGS = {
     // Vertical Code Settings
     show_vertical_code: true,
     vertical_font_size: 6,
-    vertical_width: 13,
+    vertical_width: 15,
     vertical_show_border: false,
     vertical_bg_color: "#ffffff",
     vertical_text_color: "#1a1a1a",
@@ -2172,7 +2172,7 @@ const DEFAULT_DESIGN_CONFIGS = {
     // Vertical Code Settings
     show_vertical_code: true,
     vertical_font_size: 6,
-    vertical_width: 13,
+    vertical_width: 15,
     vertical_show_border: false,
     vertical_bg_color: "#ffffff",
     vertical_text_color: "#1a1a1a",
