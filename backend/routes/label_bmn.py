@@ -882,22 +882,25 @@ async def get_active_design(size_type: str, current_user: str = Depends(get_curr
 # ==================== QR CODE TEMPLATE MANAGEMENT ====================
 
 @router.get("/qr-templates")
-async def get_qr_templates(current_user: str = Depends(get_current_user)):
+async def get_qr_templates(current_user = Depends(get_current_user)):
     """Get all saved QR code templates"""
     templates = await db.qr_templates.find({}).to_list(50)
     return [sanitize_doc(t) for t in templates]
 
 
 @router.post("/qr-template")
-async def save_qr_template(template: Dict[str, Any] = Body(...), current_user: str = Depends(get_current_user)):
+async def save_qr_template(template: Dict[str, Any] = Body(...), current_user = Depends(get_current_user)):
     """Save a new QR code template"""
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Convert user to string ID
+    user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user)
     
     template_doc = {
         **template,
         "created_at": now,
         "updated_at": now,
-        "created_by": current_user
+        "created_by": user_id
     }
     
     result = await db.qr_templates.insert_one(template_doc)
@@ -907,11 +910,14 @@ async def save_qr_template(template: Dict[str, Any] = Body(...), current_user: s
 
 
 @router.put("/qr-template/{template_id}")
-async def update_qr_template(template_id: str, template: Dict[str, Any] = Body(...), current_user: str = Depends(get_current_user)):
+async def update_qr_template(template_id: str, template: Dict[str, Any] = Body(...), current_user = Depends(get_current_user)):
     """Update an existing QR template"""
     try:
+        # Convert user to string ID
+        user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user)
+        
         template["updated_at"] = datetime.now(timezone.utc).isoformat()
-        template["updated_by"] = current_user
+        template["updated_by"] = user_id
         
         update_data = {k: v for k, v in template.items() if k not in ["id", "_id"]}
         
@@ -930,7 +936,7 @@ async def update_qr_template(template_id: str, template: Dict[str, Any] = Body(.
 
 
 @router.delete("/qr-template/{template_id}")
-async def delete_qr_template(template_id: str, current_user: str = Depends(get_current_user)):
+async def delete_qr_template(template_id: str, current_user = Depends(get_current_user)):
     """Delete a QR template"""
     try:
         result = await db.qr_templates.delete_one({"_id": ObjectId(template_id)})
