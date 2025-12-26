@@ -1531,6 +1531,7 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi }) {
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [templates, setTemplates] = useState([]);
   const [templateName, setTemplateName] = useState('');
+  const [previewStickerType, setPreviewStickerType] = useState('kecil');
   
   useEffect(() => {
     setLocalSettings(qrSettings);
