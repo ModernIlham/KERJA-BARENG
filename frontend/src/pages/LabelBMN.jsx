@@ -2348,18 +2348,16 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
   };
   
   const handleSelectSizeType = useCallback((sizeType) => {
-    // Prevent state leakage by clearing current state first
-    setSelectedDesign(null);
-    setEditingDesign(null);
+    // Prevent state leakage by clearing current state first  
     setSelectedSizeType(sizeType);
     
-    // Wait for next tick to ensure clean state
-    setTimeout(() => {
-      const designList = designs[sizeType] || [];
-      const defaultDesign = designList.find(d => d.is_default) || designList[0] || { ...DEFAULT_DESIGN_CONFIGS[sizeType], id: `default_${sizeType}` };
-      setSelectedDesign(defaultDesign);
-      setEditingDesign({ ...defaultDesign });
-    }, 0);
+    // Immediately get design for the new size type
+    const designList = designs[sizeType] || [];
+    const defaultDesign = designList.find(d => d.is_default) || designList[0] || { ...DEFAULT_DESIGN_CONFIGS[sizeType], id: `default_${sizeType}` };
+    
+    // Update both states at once to avoid intermediate state
+    setSelectedDesign(defaultDesign);
+    setEditingDesign({ ...defaultDesign });
   }, [designs]);
   
   const handleSelectDesign = (design) => {
