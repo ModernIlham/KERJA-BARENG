@@ -3715,19 +3715,25 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
         borderLeftWidth: design.border_left === false ? 0 : `${design.border_width || 1}px`,
         borderRadius: `${design.border_radius || 0}px`,
         display: 'flex',
-        flexDirection: 'column',
         fontFamily: `'${design.font_family || 'Roboto'}', Arial, sans-serif`,
         overflow: 'hidden',
         color: design.text_color || '#1a1a1a',
         padding: design.content_padding || 0
       }}
     >
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: design.show_vertical_code ? `calc(100% - ${design.vertical_width || 13}px)` : '100%' }}>
-          {/* QR Area - dengan margin yang bisa diatur sampai 0 dan resize dari center */}
+      {/* Main horizontal container */}
+      <div style={{ display: 'flex', flex: 1, width: '100%' }}>
+        {/* Left content area with border right if vertical code exists */}
+        <div style={{ 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column',
+          borderRight: design.show_vertical_code ? getBorderStyle() : 'none'
+        }}>
+          {/* QR Area - box persegi sendiri dengan ukuran berdasarkan lebar area konten */}
           <div style={{
-            width: `${design.width}mm`,
-            height: `${design.width}mm`,
+            width: '100%',
+            aspectRatio: '1/1',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -3749,7 +3755,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
                 settings={qrSettings}
                 logoUrl={instansi?.logo_url}
                 size={Math.max(10, Math.floor(
-                  ((design.width || 23.8) * 3.78) * ((design.qr_size || 100) / 100) - 
+                  ((design.width - (design.show_vertical_code ? (design.vertical_width || 13) / 3.78 : 0)) * 3.78) * ((design.qr_size || 100) / 100) - 
                   ((design.qr_margin_top || 0) + (design.qr_margin_bottom || 0) + (design.qr_margin_left || 0) + (design.qr_margin_right || 0))
                 ))}
                 style={{
