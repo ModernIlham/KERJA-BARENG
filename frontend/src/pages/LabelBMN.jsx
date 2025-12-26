@@ -2262,21 +2262,34 @@ function StickerDesignTab({ instansi, qrSettings }) {
     setSaving(true);
     
     try {
-      if (editingDesign.id?.startsWith('default_')) {
-        // Create new design from default
+      if (editingDesign.id?.startsWith('default_') || !editingDesign.id) {
+        // Create new design from default - only when ID is default
         const res = await api.post('/api/label-bmn/sticker-design', {
           ...editingDesign,
           name: editingDesign.name.includes('(Kustom)') ? editingDesign.name : `${editingDesign.name} (Kustom)`
         });
         toast.success('Design baru berhasil disimpan');
-        await loadDesigns();
-        setSelectedDesign(res.data.design);
-        setEditingDesign(res.data.design);
+        // Update selected design with new data from server
+        const newDesign = res.data.design;
+        setSelectedDesign(newDesign);
+        setEditingDesign({ ...newDesign });
+        // Reload designs but keep the newly created design selected
+        const designsRes = await api.get('/api/label-bmn/sticker-designs');
+        setDesigns(designsRes.data);
       } else {
-        // Update existing
+        // Update existing - always update the selected design in place
         await api.put(`/api/label-bmn/sticker-design/${editingDesign.id}`, editingDesign);
         toast.success('Design berhasil diperbarui');
-        await loadDesigns();
+        // Update local state without full reload
+        setDesigns(prev => {
+          const sizeType = editingDesign.size_type || selectedSizeType;
+          const updatedList = (prev[sizeType] || []).map(d => 
+            d.id === editingDesign.id ? { ...editingDesign } : d
+          );
+          return { ...prev, [sizeType]: updatedList };
+        });
+        // Keep selection
+        setSelectedDesign({ ...editingDesign });
       }
     } catch (err) {
       toast.error('Gagal menyimpan design');
