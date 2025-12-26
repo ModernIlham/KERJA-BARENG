@@ -3714,12 +3714,16 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
   }
   
   // Portrait layout (kecil style)
-  // Hitung lebar konten (tanpa vertical code)
-  const verticalWidthMm = design.show_vertical_code ? (design.vertical_width || 13) / 3.78 : 0;
-  const contentWidthMm = design.width - verticalWidthMm;
-  // QR box persegi dengan ukuran maksimum yang tidak melebihi 50% tinggi stiker
-  const maxQrBoxSize = Math.min(contentWidthMm, design.height * 0.55);
-  const qrBoxSizeMm = maxQrBoxSize;
+  // Hitung lebar konten (tanpa vertical code) - dalam px untuk konsistensi
+  const verticalWidthPx = design.show_vertical_code ? (design.vertical_width || 15) : 0;
+  // Konversi lebar stiker dari mm ke px (1mm ≈ 3.78px)
+  const stickerWidthPx = design.width * 3.78;
+  const contentWidthPx = stickerWidthPx - verticalWidthPx;
+  const contentWidthMm = contentWidthPx / 3.78;
+  
+  // QR box persegi dengan ukuran maksimum yang tidak melebihi 55% tinggi stiker
+  const maxQrBoxSizeMm = Math.min(contentWidthMm, design.height * 0.55);
+  const qrBoxSizeMm = maxQrBoxSizeMm;
   
   return (
     <div 
