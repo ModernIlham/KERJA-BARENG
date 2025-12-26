@@ -2875,7 +2875,6 @@ function DesignEditorForm({ design, onChange }) {
                 </div>
               </div>
               
-              <AlignSelectorSimple value={design.header_align || 'left'} onChange={v => updateField('header_align', v)} label="Alignment Header" />
               <FullAlignSelectorComponent value={design.header_full_align || 'center-left'} onChange={v => updateField('header_full_align', v)} label="Posisi Header (9 Arah)" />
               
               <div className="grid grid-cols-2 gap-2">
