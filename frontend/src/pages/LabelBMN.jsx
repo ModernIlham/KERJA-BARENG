@@ -2580,18 +2580,23 @@ function QRTemplatesPanel({ qrSettings, onSelectTemplate, templates, onTemplates
                 <div className="flex gap-1">
                   <div 
                     className="w-4 h-4 rounded border" 
-                    style={{ backgroundColor: template.bodyColor || '#000' }}
-                    title={`Body: ${template.bodyColor}`}
+                    style={{ backgroundColor: template.dotsColor || template.bodyColor || '#000' }}
+                    title="Body"
                   />
                   <div 
                     className="w-4 h-4 rounded border" 
-                    style={{ backgroundColor: template.eyeColor || '#000' }}
-                    title={`Eye: ${template.eyeColor}`}
+                    style={{ backgroundColor: template.cornerSquareColor || template.eyeColor || '#000' }}
+                    title="External Eye"
+                  />
+                  <div 
+                    className="w-4 h-4 rounded border" 
+                    style={{ backgroundColor: template.cornerDotColor || '#000' }}
+                    title="Internal Eye"
                   />
                   <div 
                     className="w-4 h-4 rounded border" 
                     style={{ backgroundColor: template.backgroundColor || '#fff' }}
-                    title={`BG: ${template.backgroundColor}`}
+                    title="Background"
                   />
                 </div>
                 <Button 
