@@ -2434,25 +2434,15 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
     setSaving(true);
     
     try {
-      if (editingDesign.id?.startsWith('default_') || !editingDesign.id) {
-        // Create new design from default - only when ID is default
-        const res = await api.post('/api/label-bmn/sticker-design', {
-          ...editingDesign,
-          name: editingDesign.name.includes('(Kustom)') ? editingDesign.name : `${editingDesign.name} (Kustom)`
-        });
-        toast.success('Design baru berhasil disimpan');
-        // Update selected design with new data from server
-        const newDesign = res.data.design;
-        setSelectedDesign(newDesign);
-        setEditingDesign({ ...newDesign });
-        // Reload designs but keep the newly created design selected
-        const designsRes = await api.get('/api/label-bmn/sticker-designs');
-        setDesigns(designsRes.data);
-      } else {
-        // Update existing - always update the selected design in place
+      // Cek apakah design sudah ada di database (bukan default dari kode)
+      const isDefaultFromCode = editingDesign.id?.startsWith('default_');
+      const hasDbId = editingDesign.id && !isDefaultFromCode;
+      
+      if (hasDbId) {
+        // Update existing design di database
         await api.put(`/api/label-bmn/sticker-design/${editingDesign.id}`, editingDesign);
         toast.success('Design berhasil diperbarui');
-        // Update local state without full reload
+        // Update local state
         setDesigns(prev => {
           const sizeType = editingDesign.size_type || selectedSizeType;
           const updatedList = (prev[sizeType] || []).map(d => 
@@ -2460,8 +2450,27 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
           );
           return { ...prev, [sizeType]: updatedList };
         });
-        // Keep selection
         setSelectedDesign({ ...editingDesign });
+      } else {
+        // Design default dari kode - simpan sebagai design baru di database
+        // Tapi dengan nama yang sama (bukan nama baru dengan suffix)
+        const designToSave = {
+          ...editingDesign,
+          id: undefined, // Hapus ID default agar API membuat ID baru
+          is_default: true // Tandai sebagai default untuk size ini
+        };
+        
+        const res = await api.post('/api/label-bmn/sticker-design', designToSave);
+        toast.success('Design default berhasil disimpan');
+        
+        // Update dengan design baru dari server
+        const newDesign = res.data.design;
+        setSelectedDesign(newDesign);
+        setEditingDesign({ ...newDesign });
+        
+        // Reload designs
+        const designsRes = await api.get('/api/label-bmn/sticker-designs');
+        setDesigns(designsRes.data);
       }
     } catch (err) {
       toast.error('Gagal menyimpan design');
