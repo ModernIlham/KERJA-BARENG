@@ -2972,12 +2972,13 @@ function DesignEditorForm({ design, onChange }) {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <AlignSelector value={design.nama_align || 'left'} onChange={v => updateField('nama_align', v)} label="Alignment" />
+              <AlignSelector value={design.nama_align || 'left'} onChange={v => updateField('nama_align', v)} label="Alignment Teks" />
               <div>
                 <Label className="text-[10px] text-gray-500">Line Height</Label>
                 <Input type="number" step="0.1" value={design.nama_line_height || 1.2} onChange={e => updateField('nama_line_height', parseFloat(e.target.value))} className="h-7 text-xs" />
               </div>
             </div>
+            <FullAlignSelector value={design.nama_full_align || 'center-left'} onChange={v => updateField('nama_full_align', v)} label="Posisi Nama (9 Arah)" />
           </div>
           
           {/* NUP/Quantity */}
