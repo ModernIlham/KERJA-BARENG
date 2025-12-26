@@ -2194,7 +2194,7 @@ const DEFAULT_DESIGN_CONFIGS = {
 };
 
 // ==================== STICKER DESIGN EDITOR TAB ====================
-function StickerDesignTab({ instansi, qrSettings }) {
+function StickerDesignTab({ instansi, qrSettings, qrTemplates, onQrTemplatesChange }) {
   const [designs, setDesigns] = useState({ kecil: [], sedang: [], besar: [], custom: [] });
   const [selectedSizeType, setSelectedSizeType] = useState('sedang');
   const [selectedDesign, setSelectedDesign] = useState(null);
