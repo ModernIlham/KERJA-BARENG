@@ -782,6 +782,23 @@ async def delete_sticker_design(design_id: str, current_user: str = Depends(get_
         raise HTTPException(status_code=400, detail="Invalid design ID")
 
 
+@router.delete("/sticker-designs/reset-all")
+async def reset_all_sticker_designs(current_user: str = Depends(get_current_user)):
+    """Delete all custom sticker designs and reset to defaults only"""
+    try:
+        # Delete all custom sticker designs (not defaults)
+        result = await db.sticker_designs.delete_many({})
+        deleted_count = result.deleted_count
+        
+        return {
+            "success": True,
+            "message": f"Berhasil menghapus {deleted_count} design kustom",
+            "deleted_count": deleted_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gagal reset designs: {str(e)}")
+
+
 @router.post("/sticker-design/{design_id}/duplicate")
 async def duplicate_sticker_design(design_id: str, current_user: str = Depends(get_current_user)):
     """Duplicate an existing sticker design"""
