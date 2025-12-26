@@ -2370,6 +2370,29 @@ function StickerDesignTab({ instansi, qrSettings, qrTemplates, onQrTemplatesChan
     kode_vertikal: '103010T/1/2024'
   };
   
+  // Reset all designs to default
+  const handleResetAllDesigns = async () => {
+    if (!confirm('Apakah Anda yakin ingin menghapus SEMUA design kustom?\n\nSemua salinan/kustom akan dihapus dan hanya design default yang tersisa.\n\nTindakan ini tidak dapat dibatalkan!')) {
+      return;
+    }
+    
+    try {
+      // Reset sticker designs
+      await api.delete('/api/label-bmn/sticker-designs/reset-all');
+      
+      // Reset QR templates
+      await api.delete('/api/label-bmn/qr-templates/reset-all');
+      onQrTemplatesChange?.();
+      
+      toast.success('Semua design berhasil direset ke default');
+      
+      // Reload designs
+      await loadDesigns();
+    } catch (err) {
+      toast.error('Gagal mereset design');
+    }
+  };
+  
   if (loading) return <div className="text-center py-8">Memuat...</div>;
   
   return (
@@ -2391,6 +2414,10 @@ function StickerDesignTab({ instansi, qrSettings, qrTemplates, onQrTemplatesChan
         <Button variant="outline" onClick={() => setShowQRTemplates(prev => !prev)}>
           <QrCode className="w-4 h-4 mr-2" />
           Template QR
+        </Button>
+        <Button variant="destructive" size="sm" onClick={handleResetAllDesigns}>
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Reset Semua ke Default
         </Button>
       </div>
       
