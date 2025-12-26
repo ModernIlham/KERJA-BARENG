@@ -319,7 +319,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "UI Verification - All completed features"
+    - "Label BMN QR Customization & Save Design Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high"
