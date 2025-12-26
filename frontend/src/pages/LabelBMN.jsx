@@ -3422,24 +3422,38 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
               {design.show_description && (
                 <div style={{ 
                   flex: 1, 
+                  display: 'flex',
+                  flexDirection: 'column',
                   padding: `${design.desc_padding || 4}px`,
-                  textAlign: getTextAlign(design.desc_align),
-                  background: design.desc_bg_color || '#ffffff'
+                  background: design.desc_bg_color || '#ffffff',
+                  ...getFullAlignStyle(design.desc_full_align)
                 }}>
-                  <p style={{ fontSize: `${design.desc_font_size || 5.5}pt`, lineHeight: design.desc_line_height || 1.3 }}>
+                  <p style={{ 
+                    fontSize: `${design.desc_font_size || 5.5}pt`, 
+                    lineHeight: design.desc_line_height || 1.3,
+                    textAlign: getTextAlign(design.desc_align)
+                  }}>
                     {data.merk_tipe || data.merk || '-'}
                   </p>
-                  {design.show_warning && (
-                    <p style={{ 
-                      fontSize: `${design.warning_font_size || 6}pt`, 
-                      fontWeight: design.warning_font_weight || 700, 
-                      color: design.warning_color || '#DC2626', 
-                      marginTop: '2px',
-                      textAlign: getTextAlign(design.warning_align)
-                    }}>
-                      {design.warning_text || 'Tidak Untuk Diperjualbelikan'}
-                    </p>
-                  )}
+                </div>
+              )}
+              
+              {/* Warning Area - Separate with 9-position alignment */}
+              {design.show_warning && (
+                <div style={{ 
+                  display: 'flex',
+                  padding: `${design.desc_padding || 4}px`,
+                  paddingTop: design.show_description ? '0px' : `${design.desc_padding || 4}px`,
+                  ...getFullAlignStyle(design.warning_full_align)
+                }}>
+                  <p style={{ 
+                    fontSize: `${design.warning_font_size || 6}pt`, 
+                    fontWeight: design.warning_font_weight || 700, 
+                    color: design.warning_color || '#DC2626',
+                    textAlign: getFullAlignStyle(design.warning_full_align).textAlign || getTextAlign(design.warning_align)
+                  }}>
+                    {design.warning_text || 'Tidak Untuk Diperjualbelikan'}
+                  </p>
                 </div>
               )}
             </div>
