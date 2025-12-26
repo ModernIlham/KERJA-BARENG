@@ -2485,6 +2485,13 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
       await api.delete('/api/label-bmn/qr-templates/reset-all');
       onQrTemplatesChange?.();
       
+      // Reset active design state
+      setActiveDesignIds({
+        kecil: 'default_kecil',
+        sedang: 'default_sedang',
+        besar: 'default_besar'
+      });
+      
       toast.success('Semua design berhasil direset ke default');
       
       // Reload designs
