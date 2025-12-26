@@ -3042,7 +3042,7 @@ function DesignEditorForm({ design, onChange }) {
             {design.show_warning && (
               <>
                 <Input value={design.warning_text || ''} onChange={e => updateField('warning_text', e.target.value)} className="h-7 text-xs" placeholder="Teks peringatan..." />
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-[10px] text-gray-500">Font (pt)</Label>
                     <Input type="number" step="0.5" value={design.warning_font_size || 6} onChange={e => updateField('warning_font_size', parseFloat(e.target.value))} className="h-7 text-xs" />
@@ -3051,7 +3051,6 @@ function DesignEditorForm({ design, onChange }) {
                     <Label className="text-[10px] text-gray-500">Warna</Label>
                     <Input type="color" value={design.warning_color || '#DC2626'} onChange={e => updateField('warning_color', e.target.value)} className="h-7 w-full" />
                   </div>
-                  <AlignSelectorSimple value={design.warning_align || 'left'} onChange={v => updateField('warning_align', v)} label="Align Teks" />
                 </div>
                 <FullAlignSelectorComponent value={design.warning_full_align || 'bottom-left'} onChange={v => updateField('warning_full_align', v)} label="Posisi Warning (9 Arah)" />
               </>
