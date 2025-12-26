@@ -2154,7 +2154,7 @@ const DEFAULT_DESIGN_CONFIGS = {
     
     // QR Code Settings (Advanced)
     qr_position: "left",
-    qr_size: 98,
+    qr_size: 100,
     qr_padding: 0,
     // QR margins - default 0 untuk dekat dengan border
     qr_margin_top: 0,
