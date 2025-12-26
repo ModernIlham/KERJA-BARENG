@@ -2544,28 +2544,42 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
-            {(designs[selectedSizeType] || []).map(design => (
-              <div 
-                key={design.id}
-                onClick={() => handleSelectDesign(design)}
-                className={`p-3 border rounded-lg cursor-pointer transition-all ${selectedDesign?.id === design.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-slate-50'}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-sm">{design.name}</div>
-                    <div className="text-xs text-gray-500">{design.width}mm × {design.height}mm</div>
-                  </div>
-                  <div className="flex gap-1">
-                    {design.is_default && <Badge variant="secondary" className="text-xs">Default</Badge>}
-                    {!design.id?.startsWith('default_') && (
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => { e.stopPropagation(); handleDeleteDesign(design); }}>
-                        <Trash2 className="w-3 h-3 text-red-500" />
-                      </Button>
-                    )}
+            {(designs[selectedSizeType] || []).map(design => {
+              const isActive = activeDesignIds[selectedSizeType] === design.id;
+              const isSelected = selectedDesign?.id === design.id;
+              return (
+                <div 
+                  key={design.id}
+                  onClick={() => handleSelectDesign(design)}
+                  className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                    isActive 
+                      ? 'border-green-500 bg-green-50 ring-2 ring-green-200' 
+                      : isSelected 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-transparent hover:bg-slate-50 hover:border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-sm flex items-center gap-2">
+                        {isActive && <CheckCircle2 className="w-4 h-4 text-green-600" />}
+                        {design.name}
+                      </div>
+                      <div className="text-xs text-gray-500">{design.width}mm × {design.height}mm</div>
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      {isActive && <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">AKTIF</Badge>}
+                      {design.is_default && <Badge variant="secondary" className="text-xs">Default</Badge>}
+                      {!design.id?.startsWith('default_') && (
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => { e.stopPropagation(); handleDeleteDesign(design); }}>
+                          <Trash2 className="w-3 h-3 text-red-500" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
         
