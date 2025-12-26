@@ -912,6 +912,7 @@ export default function LabelBMN() {
   const [showChildModal, setShowChildModal] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
   const [activeTab, setActiveTab] = useState('daftar');
+  const [activeDesigns, setActiveDesigns] = useState({});
   
   // Load QR templates - shared between QRCustomizationPanel and StickerDesignTab
   const loadQrTemplates = async () => {
@@ -920,6 +921,25 @@ export default function LabelBMN() {
       setQrTemplates(res.data);
     } catch {
       // Ignore error
+    }
+  };
+  
+  // Load active designs for each size
+  const loadActiveDesigns = async () => {
+    try {
+      const [kecilRes, sedangRes, besarRes] = await Promise.all([
+        api.get('/api/label-bmn/sticker-design/active/kecil').catch(() => ({ data: null })),
+        api.get('/api/label-bmn/sticker-design/active/sedang').catch(() => ({ data: null })),
+        api.get('/api/label-bmn/sticker-design/active/besar').catch(() => ({ data: null }))
+      ]);
+      
+      setActiveDesigns({
+        kecil: kecilRes.data || null,
+        sedang: sedangRes.data || null,
+        besar: besarRes.data || null
+      });
+    } catch {
+      // Use null for fallback to legacy components
     }
   };
   
