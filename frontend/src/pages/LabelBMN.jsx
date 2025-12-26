@@ -2977,7 +2977,7 @@ function DesignEditorForm({ design, onChange }) {
                 <Input type="number" step="0.1" value={design.nama_line_height || 1.2} onChange={e => updateField('nama_line_height', parseFloat(e.target.value))} className="h-7 text-xs" />
               </div>
             </div>
-            <FullAlignSelector value={design.nama_full_align || 'center-left'} onChange={v => updateField('nama_full_align', v)} label="Posisi Nama (9 Arah)" />
+            <FullAlignSelectorComponent value={design.nama_full_align || 'center-left'} onChange={v => updateField('nama_full_align', v)} label="Posisi Nama (9 Arah)" />
           </div>
           
           {/* NUP/Quantity */}
