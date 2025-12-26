@@ -2936,7 +2936,7 @@ function DesignEditorForm({ design, onChange }) {
                 </Select>
               </div>
             </div>
-            <FullAlignSelector value={design.kode_full_align || 'center-left'} onChange={v => updateField('kode_full_align', v)} label="Posisi Kode (9 Arah)" />
+            <FullAlignSelectorComponent value={design.kode_full_align || 'center-left'} onChange={v => updateField('kode_full_align', v)} label="Posisi Kode (9 Arah)" />
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-[10px] text-gray-500">Letter Spacing</Label>
