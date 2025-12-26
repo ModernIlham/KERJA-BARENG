@@ -1730,6 +1730,22 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi }) {
             <Input type="color" value={localSettings.backgroundColor || '#ffffff'} onChange={e => updateSetting('backgroundColor', e.target.value)} className="h-8 w-full" />
           </div>
           
+          {/* QR Size in Pixels */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Ukuran QR Code (px)</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-gray-500">Ukuran ({localSettings.size || 200}px)</Label>
+                <Slider value={[localSettings.size || 200]} onValueChange={([v]) => updateSetting('size', v)} min={50} max={400} step={10} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-[10px] text-gray-500">Atau input manual</Label>
+                <Input type="number" value={localSettings.size || 200} onChange={e => updateSetting('size', parseInt(e.target.value) || 200)} className="h-8 text-sm" min={50} max={500} />
+              </div>
+            </div>
+            <p className="text-[10px] text-gray-500">Ukuran QR code dalam pixel untuk cetak</p>
+          </div>
+          
           {/* Logo Settings */}
           <div className="space-y-2 p-2 border rounded-lg">
             <div className="flex items-center justify-between">
