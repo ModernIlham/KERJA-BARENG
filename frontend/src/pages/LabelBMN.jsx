@@ -1924,9 +1924,18 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
               </Button>
             ))}
           </div>
-          <div className="bg-slate-100 p-3 rounded-lg flex justify-center overflow-auto">
+          <div className="bg-slate-100 p-4 rounded-lg flex items-center justify-center min-h-[180px] overflow-hidden">
             {currentActiveDesign ? (
-              <div className={`transform ${previewStickerType === 'sedang' ? 'scale-75' : previewStickerType === 'besar' ? 'scale-50' : ''} origin-center`}>
+              <div 
+                className="transform origin-center"
+                style={{
+                  transform: previewStickerType === 'kecil' 
+                    ? 'scale(1)' 
+                    : previewStickerType === 'sedang' 
+                      ? 'scale(0.7)' 
+                      : 'scale(0.45)'
+                }}
+              >
                 <CustomSticker 
                   data={sampleData} 
                   design={currentActiveDesign} 
@@ -1935,21 +1944,26 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
                 />
               </div>
             ) : (
-              <>
+              <div 
+                className="transform origin-center"
+                style={{
+                  transform: previewStickerType === 'kecil' 
+                    ? 'scale(1)' 
+                    : previewStickerType === 'sedang' 
+                      ? 'scale(0.7)' 
+                      : 'scale(0.45)'
+                }}
+              >
                 {previewStickerType === 'kecil' && (
                   <StikerKecil data={sampleData} instansi={instansi} qrSettings={localSettings} />
                 )}
                 {previewStickerType === 'sedang' && (
-                  <div className="transform scale-75 origin-center">
-                    <StikerSedang data={sampleData} instansi={instansi} qrSettings={localSettings} />
-                  </div>
+                  <StikerSedang data={sampleData} instansi={instansi} qrSettings={localSettings} />
                 )}
                 {previewStickerType === 'besar' && (
-                  <div className="transform scale-50 origin-center">
-                    <StikerBesar data={sampleData} instansi={instansi} qrSettings={localSettings} />
-                  </div>
+                  <StikerBesar data={sampleData} instansi={instansi} qrSettings={localSettings} />
                 )}
-              </>
+              </div>
             )}
           </div>
           {currentActiveDesign && (
