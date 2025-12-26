@@ -1153,6 +1153,10 @@ export default function LabelBMN() {
         
         <TabsContent value="riwayat"><PrintHistoryTab /></TabsContent>
         
+        <TabsContent value="qr-custom">
+          <QRCustomizationPanel qrSettings={qrSettings} onSettingsChange={setQrSettings} instansi={instansi} />
+        </TabsContent>
+        
         <TabsContent value="design"><StickerDesignTab instansi={instansi} qrSettings={qrSettings} /></TabsContent>
       </Tabs>
       
