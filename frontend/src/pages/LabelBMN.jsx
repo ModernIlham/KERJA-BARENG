@@ -2623,6 +2623,87 @@ function QRTemplatesPanel({ qrSettings, onSelectTemplate }) {
   );
 }
 
+// ==================== ALIGNMENT SELECTOR COMPONENTS ====================
+// Simple horizontal alignment selector (left, center, right)
+const AlignSelectorSimple = ({ value, onChange, label }) => (
+  <div>
+    <Label className="text-xs">{label}</Label>
+    <div className="flex gap-1 mt-1">
+      {['left', 'center', 'right'].map(align => (
+        <Button
+          key={align}
+          variant={value === align ? 'default' : 'outline'}
+          size="sm"
+          className="h-7 w-8 p-0"
+          onClick={() => onChange(align)}
+        >
+          {align === 'left' && <AlignLeft className="w-3 h-3" />}
+          {align === 'center' && <span className="text-xs">≡</span>}
+          {align === 'right' && <AlignRight className="w-3 h-3" />}
+        </Button>
+      ))}
+    </div>
+  </div>
+);
+
+// Full alignment selector - 9 positions (3x3 grid)
+const POSITION_ICONS = {
+  'top-left': '↖', 'top-center': '↑', 'top-right': '↗',
+  'center-left': '←', 'center': '•', 'center-right': '→',
+  'bottom-left': '↙', 'bottom-center': '↓', 'bottom-right': '↘'
+};
+
+const POSITION_LABELS = {
+  'top-left': 'Atas Kiri', 'top-center': 'Atas Tengah', 'top-right': 'Atas Kanan',
+  'center-left': 'Tengah Kiri', 'center': 'Tengah', 'center-right': 'Tengah Kanan',
+  'bottom-left': 'Bawah Kiri', 'bottom-center': 'Bawah Tengah', 'bottom-right': 'Bawah Kanan'
+};
+
+const POSITIONS_GRID = [
+  ['top-left', 'top-center', 'top-right'],
+  ['center-left', 'center', 'center-right'],
+  ['bottom-left', 'bottom-center', 'bottom-right']
+];
+
+const FullAlignSelectorComponent = ({ value, onChange, label }) => (
+  <div>
+    <Label className="text-xs">{label}</Label>
+    <div className="grid grid-cols-3 gap-1 mt-1 p-1 border rounded-lg bg-slate-50">
+      {POSITIONS_GRID.flat().map(pos => (
+        <Button
+          key={pos}
+          variant={value === pos ? 'default' : 'ghost'}
+          size="sm"
+          className="h-6 w-full p-0 text-[10px]"
+          onClick={() => onChange(pos)}
+          title={POSITION_LABELS[pos]}
+        >
+          {POSITION_ICONS[pos]}
+        </Button>
+      ))}
+    </div>
+    <p className="text-[9px] text-gray-500 mt-1">Posisi: {POSITION_LABELS[value] || 'Tengah'}</p>
+  </div>
+);
+
+// Border control component
+const BorderControlComponent = ({ design, updateField, prefix, label }) => (
+  <div className="space-y-2 p-2 border rounded-lg bg-slate-50">
+    <Label className="text-xs font-medium">{label}</Label>
+    <div className="grid grid-cols-4 gap-1">
+      {['top', 'right', 'bottom', 'left'].map(side => (
+        <div key={side} className="flex flex-col items-center">
+          <Switch 
+            checked={design[`${prefix}_${side}`] !== false} 
+            onCheckedChange={v => updateField(`${prefix}_${side}`, v)} 
+          />
+          <span className="text-[9px] text-gray-500 capitalize">{side}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 // ==================== DESIGN EDITOR FORM (ADVANCED) ====================
 function DesignEditorForm({ design, onChange }) {
   const updateField = (field, value) => {
@@ -2639,88 +2720,6 @@ function DesignEditorForm({ design, onChange }) {
     { id: 'border', label: 'Border', icon: Square },
     { id: 'tampilan', label: 'Tampilan', icon: PaintBucket }
   ];
-  
-  // Alignment selector component - Simple horizontal (left, center, right)
-  const AlignSelector = ({ value, onChange: onAlignChange, label }) => (
-    <div>
-      <Label className="text-xs">{label}</Label>
-      <div className="flex gap-1 mt-1">
-        {['left', 'center', 'right'].map(align => (
-          <Button
-            key={align}
-            variant={value === align ? 'default' : 'outline'}
-            size="sm"
-            className="h-7 w-8 p-0"
-            onClick={() => onAlignChange(align)}
-          >
-            {align === 'left' && <AlignLeft className="w-3 h-3" />}
-            {align === 'center' && <span className="text-xs">≡</span>}
-            {align === 'right' && <AlignRight className="w-3 h-3" />}
-          </Button>
-        ))}
-      </div>
-    </div>
-  );
-  
-  // Full alignment selector - 9 positions (3x3 grid)
-  const FullAlignSelector = ({ value, onChange: onAlignChange, label }) => {
-    const positions = [
-      ['top-left', 'top-center', 'top-right'],
-      ['center-left', 'center', 'center-right'],
-      ['bottom-left', 'bottom-center', 'bottom-right']
-    ];
-    
-    const positionIcons = {
-      'top-left': '↖', 'top-center': '↑', 'top-right': '↗',
-      'center-left': '←', 'center': '•', 'center-right': '→',
-      'bottom-left': '↙', 'bottom-center': '↓', 'bottom-right': '↘'
-    };
-    
-    const positionLabels = {
-      'top-left': 'Atas Kiri', 'top-center': 'Atas Tengah', 'top-right': 'Atas Kanan',
-      'center-left': 'Tengah Kiri', 'center': 'Tengah', 'center-right': 'Tengah Kanan',
-      'bottom-left': 'Bawah Kiri', 'bottom-center': 'Bawah Tengah', 'bottom-right': 'Bawah Kanan'
-    };
-    
-    return (
-      <div>
-        <Label className="text-xs">{label}</Label>
-        <div className="grid grid-cols-3 gap-1 mt-1 p-1 border rounded-lg bg-slate-50">
-          {positions.flat().map(pos => (
-            <Button
-              key={pos}
-              variant={value === pos ? 'default' : 'ghost'}
-              size="sm"
-              className="h-6 w-full p-0 text-[10px]"
-              onClick={() => onAlignChange(pos)}
-              title={positionLabels[pos]}
-            >
-              {positionIcons[pos]}
-            </Button>
-          ))}
-        </div>
-        <p className="text-[9px] text-gray-500 mt-1">Posisi: {positionLabels[value] || 'Tengah'}</p>
-      </div>
-    );
-  };
-  
-  // Border control component
-  const BorderControl = ({ prefix, label }) => (
-    <div className="space-y-2 p-2 border rounded-lg bg-slate-50">
-      <Label className="text-xs font-medium">{label}</Label>
-      <div className="grid grid-cols-4 gap-1">
-        {['top', 'right', 'bottom', 'left'].map(side => (
-          <div key={side} className="flex flex-col items-center">
-            <Switch 
-              checked={design[`${prefix}_${side}`] !== false} 
-              onCheckedChange={v => updateField(`${prefix}_${side}`, v)} 
-            />
-            <span className="text-[9px] text-gray-500 capitalize">{side}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
   
   return (
     <div className="space-y-3">
