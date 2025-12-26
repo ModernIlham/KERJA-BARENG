@@ -2829,7 +2829,7 @@ function DesignEditorForm({ design, onChange }) {
             </div>
           </div>
           
-          <FullAlignSelector value={design.qr_align || 'center'} onChange={v => updateField('qr_align', v)} label="Alignment QR (9 Posisi)" />
+          <FullAlignSelectorComponent value={design.qr_align || 'center'} onChange={v => updateField('qr_align', v)} label="Alignment QR (9 Posisi)" />
           
           <div className="p-2 bg-blue-50 rounded text-xs text-blue-700">
             💡 Atur margin ke 0 untuk QR dekat sekali dengan garis border
