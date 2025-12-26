@@ -1817,11 +1817,36 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi }) {
           )}
         </CardContent>
         
-        {/* Preview with sticker */}
+        {/* Preview with sticker - All sizes */}
         <div className="p-3 border-t">
           <Label className="text-xs font-medium mb-2 block">Preview di Stiker</Label>
-          <div className="bg-slate-100 p-3 rounded-lg flex justify-center">
-            <StikerKecil data={sampleData} instansi={instansi} qrSettings={localSettings} />
+          <div className="flex gap-1 mb-2">
+            {['kecil', 'sedang', 'besar'].map(type => (
+              <Button
+                key={type}
+                size="sm"
+                variant={previewStickerType === type ? 'default' : 'outline'}
+                onClick={() => setPreviewStickerType(type)}
+                className="text-xs capitalize h-7 flex-1"
+              >
+                {type}
+              </Button>
+            ))}
+          </div>
+          <div className="bg-slate-100 p-3 rounded-lg flex justify-center overflow-auto">
+            {previewStickerType === 'kecil' && (
+              <StikerKecil data={sampleData} instansi={instansi} qrSettings={localSettings} />
+            )}
+            {previewStickerType === 'sedang' && (
+              <div className="transform scale-75 origin-center">
+                <StikerSedang data={sampleData} instansi={instansi} qrSettings={localSettings} />
+              </div>
+            )}
+            {previewStickerType === 'besar' && (
+              <div className="transform scale-50 origin-center">
+                <StikerBesar data={sampleData} instansi={instansi} qrSettings={localSettings} />
+              </div>
+            )}
           </div>
         </div>
       </Card>
