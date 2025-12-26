@@ -2295,10 +2295,35 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
     toast.success(`Template QR "${template.name}" berhasil diterapkan`);
   };
   
-  // Load designs
+  // Load designs and active designs
   useEffect(() => {
     loadDesigns();
+    loadActiveDesigns();
   }, []);
+  
+  const loadActiveDesigns = async () => {
+    try {
+      // Load active design for each size
+      const [kecilRes, sedangRes, besarRes] = await Promise.all([
+        api.get('/api/label-bmn/sticker-design/active/kecil').catch(() => ({ data: null })),
+        api.get('/api/label-bmn/sticker-design/active/sedang').catch(() => ({ data: null })),
+        api.get('/api/label-bmn/sticker-design/active/besar').catch(() => ({ data: null }))
+      ]);
+      
+      setActiveDesignIds({
+        kecil: kecilRes.data?.id || `default_kecil`,
+        sedang: sedangRes.data?.id || `default_sedang`,
+        besar: besarRes.data?.id || `default_besar`
+      });
+    } catch {
+      // Use defaults
+      setActiveDesignIds({
+        kecil: 'default_kecil',
+        sedang: 'default_sedang',
+        besar: 'default_besar'
+      });
+    }
+  };
   
   const loadDesigns = async () => {
     try {
