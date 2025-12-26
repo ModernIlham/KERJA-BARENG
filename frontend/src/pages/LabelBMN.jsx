@@ -125,28 +125,32 @@ const StikerKecil = ({ data, instansi, qrSettings }) => {
       background: 'white',
       border: '1px solid #2c2c2c',
       display: 'flex',
-      flexDirection: 'column',
       fontFamily: "'Roboto', Arial, sans-serif",
       overflow: 'hidden'
     },
+    // Main horizontal container
     mainContainer: {
       display: 'flex',
       flex: 1,
-      minHeight: 0
+      width: '100%'
     },
+    // Left content area (excluding vertical code)
     leftContent: {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      maxWidth: 'calc(100% - 13px)'
+      borderRight: '1px solid #2c2c2c'
     },
+    // QR Area - box persegi sendiri dengan border bawah
     qrArea: {
+      width: '100%',
       aspectRatio: '1/1',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       borderBottom: '1px solid #2c2c2c',
       padding: '2px',
+      boxSizing: 'border-box',
       background: qrSettings?.backgroundColor || '#ffffff'
     },
     goldStripe: {
