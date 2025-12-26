@@ -2466,26 +2466,10 @@ function StickerDesignTab({ instansi, qrSettings }) {
 }
 
 // ==================== QR TEMPLATES PANEL ====================
-function QRTemplatesPanel({ qrSettings, onSelectTemplate }) {
-  const [templates, setTemplates] = useState([]);
-  const [loading, setLoading] = useState(true);
+function QRTemplatesPanel({ qrSettings, onSelectTemplate, templates, onTemplatesChange }) {
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
-  
-  useEffect(() => {
-    loadTemplates();
-  }, []);
-  
-  const loadTemplates = async () => {
-    try {
-      const res = await api.get('/api/label-bmn/qr-templates');
-      setTemplates(res.data);
-    } catch {
-      // Ignore error, will show empty list
-    } finally {
-      setLoading(false);
-    }
-  };
   
   const handleSaveTemplate = async () => {
     if (!newTemplateName.trim()) return toast.error('Masukkan nama template');
@@ -2497,10 +2481,10 @@ function QRTemplatesPanel({ qrSettings, onSelectTemplate }) {
         ...qrSettings
       };
       
-      const res = await api.post('/api/label-bmn/qr-template', templateData);
+      await api.post('/api/label-bmn/qr-template', templateData);
       toast.success('Template QR berhasil disimpan');
       setNewTemplateName('');
-      await loadTemplates();
+      onTemplatesChange?.(); // Notify parent to reload
     } catch {
       toast.error('Gagal menyimpan template');
     } finally {
@@ -2513,7 +2497,7 @@ function QRTemplatesPanel({ qrSettings, onSelectTemplate }) {
     try {
       await api.delete(`/api/label-bmn/qr-template/${templateId}`);
       toast.success('Template dihapus');
-      await loadTemplates();
+      onTemplatesChange?.(); // Notify parent to reload
     } catch {
       toast.error('Gagal menghapus template');
     }
