@@ -702,11 +702,11 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
   };
   
   const renderSticker = (item, stickerData) => {
-    switch (item.ukuran) {
-      case 'kecil': return <StikerKecil data={stickerData} instansi={instansi} qrSettings={qrSettings} />;
-      case 'sedang': return <StikerSedang data={stickerData} instansi={instansi} qrSettings={qrSettings} />;
-      default: return <StikerBesar data={stickerData} instansi={instansi} qrSettings={qrSettings} />;
-    }
+    const sizeType = item.ukuran || 'sedang';
+    const design = designs[sizeType] || DEFAULT_DESIGN_CONFIGS[sizeType];
+    
+    // Use CustomSticker with active design for proper alignment support
+    return <CustomSticker design={design} data={stickerData} instansi={instansi} qrSettings={qrSettings} />;
   };
   
   if (loading) {
