@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class BarangAPITester:
-    def __init__(self, base_url: str = "https://stickerlab-5.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://label-manager-6.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0

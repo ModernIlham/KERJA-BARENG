@@ -9,7 +9,7 @@ import json
 import time
 
 class ExistingSuratTester:
-    def __init__(self, base_url="https://stickerlab-5.preview.emergentagent.com"):
+    def __init__(self, base_url="https://label-manager-6.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
 
