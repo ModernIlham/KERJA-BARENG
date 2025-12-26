@@ -1207,7 +1207,7 @@ export default function LabelBMN() {
           <QRCustomizationPanel qrSettings={qrSettings} onSettingsChange={setQrSettings} instansi={instansi} qrTemplates={qrTemplates} onQrTemplatesChange={loadQrTemplates} />
         </TabsContent>
         
-        <TabsContent value="design"><StickerDesignTab instansi={instansi} qrSettings={qrSettings} qrTemplates={qrTemplates} onQrTemplatesChange={loadQrTemplates} /></TabsContent>
+        <TabsContent value="design"><StickerDesignTab instansi={instansi} qrSettings={qrSettings} onQrSettingsChange={setQrSettings} qrTemplates={qrTemplates} onQrTemplatesChange={loadQrTemplates} /></TabsContent>
       </Tabs>
       
       {showPrintPage && (
