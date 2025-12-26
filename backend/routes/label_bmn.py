@@ -738,14 +738,17 @@ async def create_sticker_design(design: Dict[str, Any] = Body(...), current_user
 
 
 @router.put("/sticker-design/{design_id}")
-async def update_sticker_design(design_id: str, design: Dict[str, Any] = Body(...), current_user: str = Depends(get_current_user)):
+async def update_sticker_design(design_id: str, design: Dict[str, Any] = Body(...), current_user = Depends(get_current_user)):
     """Update an existing sticker design"""
     if design_id.startswith("default_"):
         raise HTTPException(status_code=400, detail="Cannot edit default designs. Create a copy instead.")
     
     try:
+        # Convert user to string ID
+        user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user)
+        
         design["updated_at"] = datetime.now(timezone.utc).isoformat()
-        design["updated_by"] = current_user
+        design["updated_by"] = user_id
         
         # Remove id from update data
         update_data = {k: v for k, v in design.items() if k not in ["id", "_id"]}
