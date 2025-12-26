@@ -3471,14 +3471,15 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
           margin: 0,
           boxSizing: 'border-box',
           background: qrSettings?.backgroundColor || '#ffffff',
-          ...getFullAlignStyle(design.qr_align || 'top-left')
+          ...getFullAlignStyle(design.qr_align || 'center')
         }}>
           <StyledQRCode 
             data={`#${data.kode_register || data.kode_barang}`}
             settings={qrSettings}
             logoUrl={instansi?.logo_url}
-            size={Math.floor((design.height || 22.1) * 3.78 * (design.qr_size || 100) / 100) - (
-              (design.qr_margin_top || 0) + (design.qr_margin_bottom || 0)
+            size={Math.floor(
+              ((design.height || 22.1) * 3.78) * ((design.qr_size || 100) / 100) - 
+              ((design.qr_margin_top || 0) + (design.qr_margin_bottom || 0) + (design.qr_margin_left || 0) + (design.qr_margin_right || 0)) / 2
             )}
             style={{
               marginTop: `${design.qr_margin_top !== undefined ? design.qr_margin_top : 0}px`,
