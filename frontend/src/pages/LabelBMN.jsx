@@ -1881,9 +1881,9 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
           )}
         </CardContent>
         
-        {/* Preview with sticker - All sizes */}
+        {/* Preview with sticker - All sizes using active design */}
         <div className="p-3 border-t">
-          <Label className="text-xs font-medium mb-2 block">Preview di Stiker</Label>
+          <Label className="text-xs font-medium mb-2 block">Preview di Stiker (Design Aktif)</Label>
           <div className="flex gap-1 mb-2">
             {['kecil', 'sedang', 'besar'].map(type => (
               <Button
@@ -1898,20 +1898,38 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
             ))}
           </div>
           <div className="bg-slate-100 p-3 rounded-lg flex justify-center overflow-auto">
-            {previewStickerType === 'kecil' && (
-              <StikerKecil data={sampleData} instansi={instansi} qrSettings={localSettings} />
-            )}
-            {previewStickerType === 'sedang' && (
-              <div className="transform scale-75 origin-center">
-                <StikerSedang data={sampleData} instansi={instansi} qrSettings={localSettings} />
+            {currentActiveDesign ? (
+              <div className={`transform ${previewStickerType === 'sedang' ? 'scale-75' : previewStickerType === 'besar' ? 'scale-50' : ''} origin-center`}>
+                <CustomSticker 
+                  data={sampleData} 
+                  design={currentActiveDesign} 
+                  instansi={instansi} 
+                  qrSettings={localSettings} 
+                />
               </div>
-            )}
-            {previewStickerType === 'besar' && (
-              <div className="transform scale-50 origin-center">
-                <StikerBesar data={sampleData} instansi={instansi} qrSettings={localSettings} />
-              </div>
+            ) : (
+              <>
+                {previewStickerType === 'kecil' && (
+                  <StikerKecil data={sampleData} instansi={instansi} qrSettings={localSettings} />
+                )}
+                {previewStickerType === 'sedang' && (
+                  <div className="transform scale-75 origin-center">
+                    <StikerSedang data={sampleData} instansi={instansi} qrSettings={localSettings} />
+                  </div>
+                )}
+                {previewStickerType === 'besar' && (
+                  <div className="transform scale-50 origin-center">
+                    <StikerBesar data={sampleData} instansi={instansi} qrSettings={localSettings} />
+                  </div>
+                )}
+              </>
             )}
           </div>
+          {currentActiveDesign && (
+            <p className="text-[10px] text-gray-500 mt-1 text-center">
+              Menggunakan design: {currentActiveDesign.name}
+            </p>
+          )}
         </div>
       </Card>
     </div>
