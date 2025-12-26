@@ -2536,9 +2536,7 @@ function QRTemplatesPanel({ qrSettings, onSelectTemplate, templates, onTemplates
         </div>
         
         {/* Template List */}
-        {loading ? (
-          <div className="text-center py-4 text-sm text-gray-500">Memuat...</div>
-        ) : templates.length === 0 ? (
+        {(!templates || templates.length === 0) ? (
           <div className="text-center py-4 text-sm text-gray-500">
             <QrCode className="w-8 h-8 mx-auto mb-2 opacity-30" />
             <p>Belum ada template QR tersimpan</p>
