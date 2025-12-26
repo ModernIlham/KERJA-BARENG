@@ -852,7 +852,7 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
         AREA CETAK - Hanya ini yang tampil saat mencetak
         ID "print-area" digunakan oleh CSS @media print
       */}
-      <div id="print-area" ref={printRef} className="fixed left-0 top-0 hidden print:block">
+      <div id="print-area" ref={printRef} style={{ position: 'fixed', left: '-9999px', top: 0 }} className="print:static print:left-0">
         {Array.from({ length: pages }).map((_, pageIdx) => {
           const pageItems = items.slice(pageIdx * itemsPerPage, (pageIdx + 1) * itemsPerPage);
           const size = STICKER_SIZES[items[0].ukuran];
@@ -863,11 +863,13 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
               className="print-page bg-white relative"
               style={{ 
                 width: `${canvas.width}mm`, 
-                height: `${canvas.height}mm`
+                height: `${canvas.height}mm`,
+                pageBreakAfter: pageIdx < pages - 1 ? 'always' : 'auto'
               }}
             >
-              {/* Crop Marks */}
+              {/* Crop Marks for cutting */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
+                {/* Corner crop marks */}
                 <line x1="0" y1={`${CROP_MARK_LENGTH}mm`} x2="0" y2="0" stroke="black" strokeWidth="0.3" />
                 <line x1="0" y1="0" x2={`${CROP_MARK_LENGTH}mm`} y2="0" stroke="black" strokeWidth="0.3" />
                 <line x1={`${canvas.width}mm`} y1={`${CROP_MARK_LENGTH}mm`} x2={`${canvas.width}mm`} y2="0" stroke="black" strokeWidth="0.3" />
@@ -878,17 +880,25 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
                 <line x1={`${canvas.width}mm`} y1={`${canvas.height}mm`} x2={`${canvas.width - CROP_MARK_LENGTH}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
               </svg>
               
+              {/* Sticker Grid with cutting marks */}
               <div 
-                className="absolute grid"
+                className="absolute"
                 style={{ 
                   left: `${MARGIN}mm`, 
                   top: `${MARGIN}mm`,
+                  display: 'grid',
                   gap: `${GAP}mm`,
                   gridTemplateColumns: `repeat(${cols}, ${size.width}mm)`
                 }}
               >
                 {pageItems.map((item, idx) => (
-                  <div key={idx}>{renderSticker(item, prepareStickerData(item))}</div>
+                  <div key={idx} style={{ 
+                    width: `${size.width}mm`, 
+                    height: `${size.height}mm`,
+                    overflow: 'hidden'
+                  }}>
+                    {renderSticker(item, prepareStickerData(item))}
+                  </div>
                 ))}
               </div>
             </div>
