@@ -3271,9 +3271,28 @@ function DesignEditorForm({ design, onChange }) {
 
 // ==================== CUSTOM STICKER COMPONENT (ADVANCED) ====================
 const CustomSticker = ({ design, data, instansi, qrSettings }) => {
-  // Helper untuk alignment
+  // Helper untuk alignment sederhana
   const getJustify = (align) => align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
   const getTextAlign = (align) => align || 'left';
+  
+  // Helper untuk 9-posisi alignment (full alignment)
+  const getFullAlignStyle = (fullAlign) => {
+    if (!fullAlign) return {};
+    
+    const alignMap = {
+      'top-left': { alignItems: 'flex-start', justifyContent: 'flex-start', textAlign: 'left' },
+      'top-center': { alignItems: 'flex-start', justifyContent: 'center', textAlign: 'center' },
+      'top-right': { alignItems: 'flex-start', justifyContent: 'flex-end', textAlign: 'right' },
+      'center-left': { alignItems: 'center', justifyContent: 'flex-start', textAlign: 'left' },
+      'center': { alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+      'center-right': { alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
+      'bottom-left': { alignItems: 'flex-end', justifyContent: 'flex-start', textAlign: 'left' },
+      'bottom-center': { alignItems: 'flex-end', justifyContent: 'center', textAlign: 'center' },
+      'bottom-right': { alignItems: 'flex-end', justifyContent: 'flex-end', textAlign: 'right' }
+    };
+    
+    return alignMap[fullAlign] || alignMap['center'];
+  };
   
   // Helper untuk border style
   const getBorderStyle = (side = true) => {
