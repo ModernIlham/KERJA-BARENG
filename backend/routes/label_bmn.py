@@ -826,13 +826,16 @@ async def duplicate_sticker_design(design_id: str, current_user: str = Depends(g
 
 
 @router.post("/sticker-design/set-active")
-async def set_active_design(data: Dict[str, str] = Body(...), current_user: str = Depends(get_current_user)):
+async def set_active_design(data: Dict[str, str] = Body(...), current_user = Depends(get_current_user)):
     """Set the active design for a size type"""
     size_type = data.get("size_type")
     design_id = data.get("design_id")
     
     if not size_type or not design_id:
         raise HTTPException(status_code=400, detail="size_type and design_id required")
+    
+    # Convert user to string ID
+    user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user)
     
     # Save to user preferences or system settings
     await db.sticker_active_designs.update_one(
@@ -841,7 +844,7 @@ async def set_active_design(data: Dict[str, str] = Body(...), current_user: str 
             "size_type": size_type,
             "design_id": design_id,
             "updated_at": datetime.now(timezone.utc).isoformat(),
-            "updated_by": current_user
+            "updated_by": user_id
         }},
         upsert=True
     )
