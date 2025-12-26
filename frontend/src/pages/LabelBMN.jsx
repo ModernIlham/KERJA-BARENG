@@ -46,8 +46,8 @@ const CANVAS_SIZES = {
 };
 
 const CROP_MARK_LENGTH = 3;
-const MARGIN = 5;
-const GAP = 2;
+const MARGIN = 8;  // Margin lebih besar untuk cutting
+const GAP = 4;     // Jarak antar stiker untuk cutting (4mm)
 
 // Default QR Settings
 const DEFAULT_QR_SETTINGS = {
