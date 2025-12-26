@@ -3743,10 +3743,11 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
       }}
     >
       {/* Main horizontal container */}
-      <div style={{ display: 'flex', flex: 1, width: '100%' }}>
+      <div style={{ display: 'flex', flex: 1, width: '100%', overflow: 'visible' }}>
         {/* Left content area with border right if vertical code exists */}
         <div style={{ 
-          flex: 1, 
+          flex: design.show_vertical_code ? 'none' : 1,
+          width: design.show_vertical_code ? `calc(100% - ${design.vertical_width || 15}px)` : '100%',
           display: 'flex', 
           flexDirection: 'column',
           borderRight: design.show_vertical_code ? getBorderStyle() : 'none'
