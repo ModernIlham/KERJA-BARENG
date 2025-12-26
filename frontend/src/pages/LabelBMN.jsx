@@ -1526,26 +1526,18 @@ function PrintHistoryTab() {
 }
 
 // ==================== QR CODE CUSTOMIZATION PANEL ====================
-function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi }) {
+function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTemplates, onQrTemplatesChange }) {
   const [localSettings, setLocalSettings] = useState(qrSettings);
   const [savingTemplate, setSavingTemplate] = useState(false);
-  const [templates, setTemplates] = useState([]);
   const [templateName, setTemplateName] = useState('');
   const [previewStickerType, setPreviewStickerType] = useState('kecil');
   
+  // Use shared templates from parent if available
+  const templates = qrTemplates || [];
+  
   useEffect(() => {
     setLocalSettings(qrSettings);
-    loadTemplates();
   }, [qrSettings]);
-  
-  const loadTemplates = async () => {
-    try {
-      const res = await api.get('/api/label-bmn/qr-templates');
-      setTemplates(res.data);
-    } catch {
-      // Ignore
-    }
-  };
   
   const updateSetting = (key, value) => {
     const newSettings = { ...localSettings, [key]: value };
@@ -1560,11 +1552,23 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi }) {
       await api.post('/api/label-bmn/qr-template', { name: templateName, ...localSettings });
       toast.success('Template QR berhasil disimpan');
       setTemplateName('');
-      loadTemplates();
+      // Notify parent to reload templates
+      onQrTemplatesChange?.();
     } catch {
       toast.error('Gagal menyimpan template');
     } finally {
       setSavingTemplate(false);
+    }
+  };
+  
+  const handleDeleteTemplate = async (templateId) => {
+    if (!confirm('Hapus template QR ini?')) return;
+    try {
+      await api.delete(`/api/label-bmn/qr-template/${templateId}`);
+      toast.success('Template dihapus');
+      onQrTemplatesChange?.();
+    } catch {
+      toast.error('Gagal menghapus');
     }
   };
   
