@@ -68,7 +68,7 @@ const DEFAULT_QR_SETTINGS = {
 };
 
 // ==================== QR CODE COMPONENT ====================
-const StyledQRCode = ({ data, settings, logoUrl, size = 200 }) => {
+const StyledQRCode = ({ data, settings, logoUrl, size = 200, style = {} }) => {
   const qrRef = useRef(null);
 
   useEffect(() => {
@@ -102,7 +102,7 @@ const StyledQRCode = ({ data, settings, logoUrl, size = 200 }) => {
     qrCode.append(qrRef.current);
   }, [data, settings, logoUrl, size]);
 
-  return <div ref={qrRef} style={{ width: size, height: size }} />;
+  return <div ref={qrRef} style={{ width: size, height: size, ...style }} />;
 };
 
 // ==================== STICKER COMPONENTS - FROM HTML TEMPLATES ====================
