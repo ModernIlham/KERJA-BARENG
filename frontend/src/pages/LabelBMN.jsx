@@ -2384,7 +2384,12 @@ function StickerDesignTab({ instansi, qrSettings, qrTemplates, onQrTemplatesChan
       
       {/* QR Templates Panel */}
       {showQRTemplates && (
-        <QRTemplatesPanel qrSettings={qrSettings} onSelectTemplate={setQrSettingsFromTemplate} />
+        <QRTemplatesPanel 
+          qrSettings={qrSettings} 
+          onSelectTemplate={setQrSettingsFromTemplate}
+          templates={qrTemplates}
+          onTemplatesChange={onQrTemplatesChange}
+        />
       )}
       
       <div className="grid grid-cols-3 gap-4">
