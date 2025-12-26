@@ -714,16 +714,19 @@ async def get_sticker_design(design_id: str, current_user: str = Depends(get_cur
 
 
 @router.post("/sticker-design")
-async def create_sticker_design(design: Dict[str, Any] = Body(...), current_user: str = Depends(get_current_user)):
+async def create_sticker_design(design: Dict[str, Any] = Body(...), current_user = Depends(get_current_user)):
     """Create a new sticker design configuration"""
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Convert user to string ID
+    user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user)
     
     design_doc = {
         **design,
         "is_default": False,
         "created_at": now,
         "updated_at": now,
-        "created_by": current_user
+        "created_by": user_id
     }
     
     result = await db.sticker_designs.insert_one(design_doc)
