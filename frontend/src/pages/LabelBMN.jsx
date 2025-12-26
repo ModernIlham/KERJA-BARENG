@@ -634,9 +634,16 @@ const StikerBesar = ({ data, instansi, qrSettings }) => {
 };
 
 // ==================== PRINT PAGE COMPONENT ====================
+// Basic default designs for immediate use while loading from API
+const BASIC_DEFAULTS = {
+  kecil: { layout: 'portrait', width: 23.8, height: 39.8, size_type: 'kecil' },
+  sedang: { layout: 'landscape', width: 69.8, height: 22.1, size_type: 'sedang' },
+  besar: { layout: 'landscape', width: 94.9, height: 32.2, size_type: 'besar' }
+};
+
 const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintComplete, activeDesigns }) => {
   const [loading, setLoading] = useState(true);
-  const [designs, setDesigns] = useState(activeDesigns || {});
+  const [designs, setDesigns] = useState(activeDesigns || BASIC_DEFAULTS);
   const printRef = useRef(null);
   const canvas = CANVAS_SIZES[canvasSize];
   
