@@ -3758,7 +3758,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
         }}>
           {/* QR Area - box persegi dengan ukuran yang proporsional */}
           <div style={{
-            width: `${contentWidthMm}mm`,
+            width: '100%',
             height: `${qrBoxSizeMm}mm`,
             minHeight: `${qrBoxSizeMm}mm`,
             maxHeight: `${qrBoxSizeMm}mm`,
