@@ -948,12 +948,15 @@ async def delete_qr_template(template_id: str, current_user = Depends(get_curren
 
 
 @router.post("/qr-template/set-active")
-async def set_active_qr_template(data: Dict[str, str] = Body(...), current_user: str = Depends(get_current_user)):
+async def set_active_qr_template(data: Dict[str, str] = Body(...), current_user = Depends(get_current_user)):
     """Set the active QR template"""
     template_id = data.get("template_id")
     
     if not template_id:
         raise HTTPException(status_code=400, detail="template_id required")
+    
+    # Convert user to string ID
+    user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user)
     
     await db.system_settings.update_one(
         {"key": "active_qr_template"},
@@ -961,7 +964,7 @@ async def set_active_qr_template(data: Dict[str, str] = Body(...), current_user:
             "key": "active_qr_template",
             "value": template_id,
             "updated_at": datetime.now(timezone.utc).isoformat(),
-            "updated_by": current_user
+            "updated_by": user_id
         }},
         upsert=True
     )
