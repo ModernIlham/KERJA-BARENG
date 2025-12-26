@@ -3062,8 +3062,9 @@ function DesignEditorForm({ design, onChange }) {
                     <Label className="text-[10px] text-gray-500">Warna</Label>
                     <Input type="color" value={design.warning_color || '#DC2626'} onChange={e => updateField('warning_color', e.target.value)} className="h-7 w-full" />
                   </div>
-                  <AlignSelector value={design.warning_align || 'left'} onChange={v => updateField('warning_align', v)} label="Align" />
+                  <AlignSelector value={design.warning_align || 'left'} onChange={v => updateField('warning_align', v)} label="Align Teks" />
                 </div>
+                <FullAlignSelector value={design.warning_full_align || 'bottom-left'} onChange={v => updateField('warning_full_align', v)} label="Posisi Warning (9 Arah)" />
               </>
             )}
           </div>
