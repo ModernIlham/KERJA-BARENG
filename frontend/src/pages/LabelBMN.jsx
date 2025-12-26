@@ -2640,7 +2640,7 @@ function DesignEditorForm({ design, onChange }) {
     { id: 'tampilan', label: 'Tampilan', icon: PaintBucket }
   ];
   
-  // Alignment selector component
+  // Alignment selector component - Simple horizontal (left, center, right)
   const AlignSelector = ({ value, onChange: onAlignChange, label }) => (
     <div>
       <Label className="text-xs">{label}</Label>
@@ -2661,6 +2661,48 @@ function DesignEditorForm({ design, onChange }) {
       </div>
     </div>
   );
+  
+  // Full alignment selector - 9 positions (3x3 grid)
+  const FullAlignSelector = ({ value, onChange: onAlignChange, label }) => {
+    const positions = [
+      ['top-left', 'top-center', 'top-right'],
+      ['center-left', 'center', 'center-right'],
+      ['bottom-left', 'bottom-center', 'bottom-right']
+    ];
+    
+    const positionIcons = {
+      'top-left': '↖', 'top-center': '↑', 'top-right': '↗',
+      'center-left': '←', 'center': '•', 'center-right': '→',
+      'bottom-left': '↙', 'bottom-center': '↓', 'bottom-right': '↘'
+    };
+    
+    const positionLabels = {
+      'top-left': 'Atas Kiri', 'top-center': 'Atas Tengah', 'top-right': 'Atas Kanan',
+      'center-left': 'Tengah Kiri', 'center': 'Tengah', 'center-right': 'Tengah Kanan',
+      'bottom-left': 'Bawah Kiri', 'bottom-center': 'Bawah Tengah', 'bottom-right': 'Bawah Kanan'
+    };
+    
+    return (
+      <div>
+        <Label className="text-xs">{label}</Label>
+        <div className="grid grid-cols-3 gap-1 mt-1 p-1 border rounded-lg bg-slate-50">
+          {positions.flat().map(pos => (
+            <Button
+              key={pos}
+              variant={value === pos ? 'default' : 'ghost'}
+              size="sm"
+              className="h-6 w-full p-0 text-[10px]"
+              onClick={() => onAlignChange(pos)}
+              title={positionLabels[pos]}
+            >
+              {positionIcons[pos]}
+            </Button>
+          ))}
+        </div>
+        <p className="text-[9px] text-gray-500 mt-1">Posisi: {positionLabels[value] || 'Tengah'}</p>
+      </div>
+    );
+  };
   
   // Border control component
   const BorderControl = ({ prefix, label }) => (
