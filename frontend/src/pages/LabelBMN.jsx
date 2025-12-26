@@ -589,7 +589,7 @@ const StikerBesar = ({ data, instansi, qrSettings }) => {
     <div style={styles.container}>
       <div style={styles.qrArea}>
         <StyledQRCode 
-          data={data.kode_barang}
+          data={`#${data.kode_register || data.kode_barang}`}
           settings={qrSettings}
           logoUrl={instansi?.logo_url}
           size={105}
