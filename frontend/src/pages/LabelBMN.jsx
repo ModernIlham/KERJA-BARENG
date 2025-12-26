@@ -3418,44 +3418,49 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
                 )}
               </div>
               
-              {/* Description Area */}
-              {design.show_description && (
-                <div style={{ 
-                  flex: 1, 
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: `${design.desc_padding || 4}px`,
-                  background: design.desc_bg_color || '#ffffff',
-                  ...getFullAlignStyle(design.desc_full_align)
-                }}>
-                  <p style={{ 
-                    fontSize: `${design.desc_font_size || 5.5}pt`, 
-                    lineHeight: design.desc_line_height || 1.3,
-                    textAlign: getTextAlign(design.desc_align)
+              {/* Description & Warning Content Area */}
+              <div style={{ 
+                flex: 1, 
+                display: 'flex',
+                flexDirection: 'column',
+                padding: `${design.desc_padding || 4}px`,
+                background: design.desc_bg_color || '#ffffff',
+                position: 'relative'
+              }}>
+                {/* Description */}
+                {design.show_description && (
+                  <div style={{ 
+                    display: 'flex',
+                    ...getFullAlignStyle(design.desc_full_align)
                   }}>
-                    {data.merk_tipe || data.merk || '-'}
-                  </p>
-                </div>
-              )}
-              
-              {/* Warning Area - Separate with 9-position alignment */}
-              {design.show_warning && (
-                <div style={{ 
-                  display: 'flex',
-                  padding: `${design.desc_padding || 4}px`,
-                  paddingTop: design.show_description ? '0px' : `${design.desc_padding || 4}px`,
-                  ...getFullAlignStyle(design.warning_full_align)
-                }}>
-                  <p style={{ 
-                    fontSize: `${design.warning_font_size || 6}pt`, 
-                    fontWeight: design.warning_font_weight || 700, 
-                    color: design.warning_color || '#DC2626',
-                    textAlign: getFullAlignStyle(design.warning_full_align).textAlign || getTextAlign(design.warning_align)
+                    <p style={{ 
+                      fontSize: `${design.desc_font_size || 5.5}pt`, 
+                      lineHeight: design.desc_line_height || 1.3,
+                      textAlign: getFullAlignStyle(design.desc_full_align).textAlign || getTextAlign(design.desc_align)
+                    }}>
+                      {data.merk_tipe || data.merk || '-'}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Warning with 9-position alignment */}
+                {design.show_warning && (
+                  <div style={{ 
+                    flex: 1,
+                    display: 'flex',
+                    ...getFullAlignStyle(design.warning_full_align || 'bottom-left')
                   }}>
-                    {design.warning_text || 'Tidak Untuk Diperjualbelikan'}
-                  </p>
-                </div>
-              )}
+                    <p style={{ 
+                      fontSize: `${design.warning_font_size || 6}pt`, 
+                      fontWeight: design.warning_font_weight || 700, 
+                      color: design.warning_color || '#DC2626',
+                      textAlign: getFullAlignStyle(design.warning_full_align).textAlign || getTextAlign(design.warning_align)
+                    }}>
+                      {design.warning_text || 'Tidak Untuk Diperjualbelikan'}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
