@@ -869,10 +869,21 @@ export default function LabelBMN() {
   const [selectedSize, setSelectedSize] = useState('sedang');
   const [canvasSize, setCanvasSize] = useState('A4');
   const [qrSettings, setQrSettings] = useState(DEFAULT_QR_SETTINGS);
+  const [qrTemplates, setQrTemplates] = useState([]);
   const [showPrintPage, setShowPrintPage] = useState(false);
   const [showChildModal, setShowChildModal] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
   const [activeTab, setActiveTab] = useState('daftar');
+  
+  // Load QR templates - shared between QRCustomizationPanel and StickerDesignTab
+  const loadQrTemplates = async () => {
+    try {
+      const res = await api.get('/api/label-bmn/qr-templates');
+      setQrTemplates(res.data);
+    } catch {
+      // Ignore error
+    }
+  };
   
   const loadAssets = async () => {
     setLoading(true);
