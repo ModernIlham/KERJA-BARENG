@@ -964,6 +964,22 @@ async def delete_qr_template(template_id: str, current_user = Depends(get_curren
         raise HTTPException(status_code=400, detail="Invalid template ID")
 
 
+@router.delete("/qr-templates/reset-all")
+async def reset_all_qr_templates(current_user = Depends(get_current_user)):
+    """Delete all QR templates"""
+    try:
+        result = await db.qr_templates.delete_many({})
+        deleted_count = result.deleted_count
+        
+        return {
+            "success": True,
+            "message": f"Berhasil menghapus {deleted_count} template QR",
+            "deleted_count": deleted_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gagal reset templates: {str(e)}")
+
+
 @router.post("/qr-template/set-active")
 async def set_active_qr_template(data: Dict[str, str] = Body(...), current_user = Depends(get_current_user)):
     """Set the active QR template"""
