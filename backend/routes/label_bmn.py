@@ -802,13 +802,17 @@ async def duplicate_sticker_design(design_id: str, current_user: str = Depends(g
     
     # Create duplicate
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Convert user to string ID
+    user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user)
+    
     new_design = {
         **source,
         "name": f"{source.get('name', 'Design')} (Salinan)",
         "is_default": False,
         "created_at": now,
         "updated_at": now,
-        "created_by": current_user
+        "created_by": user_id
     }
     
     # Remove old id
