@@ -2924,7 +2924,7 @@ function DesignEditorForm({ design, onChange }) {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <AlignSelector value={design.kode_align || 'left'} onChange={v => updateField('kode_align', v)} label="Alignment" />
+              <AlignSelector value={design.kode_align || 'left'} onChange={v => updateField('kode_align', v)} label="Alignment Teks" />
               <div>
                 <Label className="text-[10px] text-gray-500">Transform</Label>
                 <Select value={design.kode_text_transform || 'none'} onValueChange={v => updateField('kode_text_transform', v)}>
@@ -2937,6 +2937,7 @@ function DesignEditorForm({ design, onChange }) {
                 </Select>
               </div>
             </div>
+            <FullAlignSelector value={design.kode_full_align || 'center-left'} onChange={v => updateField('kode_full_align', v)} label="Posisi Kode (9 Arah)" />
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-[10px] text-gray-500">Letter Spacing</Label>
