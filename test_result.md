@@ -331,7 +331,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Label BMN QR Customization & Save Design Testing"
+    - "Label BMN Sticker Sizes & Template Design Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high"
