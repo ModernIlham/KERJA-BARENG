@@ -1662,13 +1662,13 @@ function QRCustomizationPanel({ qrSettings, onSettingsChange, instansi, qrTempla
         <CardContent className="flex flex-col items-center justify-center p-4 bg-slate-100 min-h-[300px]">
           <div className="bg-white p-4 rounded-lg shadow">
             <StyledQRCode 
-              data={sampleData.kode_barang}
+              data={`#${sampleData.kode_barang}`}
               settings={localSettings}
               logoUrl={instansi?.logo_url}
               size={150}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-2">Data: {sampleData.kode_barang}</p>
+          <p className="text-xs text-gray-500 mt-2">Data: #{sampleData.kode_barang}</p>
         </CardContent>
         
         {/* Save Template */}
