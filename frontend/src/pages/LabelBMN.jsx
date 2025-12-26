@@ -3024,12 +3024,9 @@ function DesignEditorForm({ design, onChange }) {
                     <Input type="number" step="0.1" value={design.desc_line_height || 1.3} onChange={e => updateField('desc_line_height', parseFloat(e.target.value))} className="h-7 text-xs" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <AlignSelectorSimple value={design.desc_align || 'left'} onChange={v => updateField('desc_align', v)} label="Alignment Teks" />
-                  <div>
-                    <Label className="text-[10px] text-gray-500">Padding (px)</Label>
-                    <Input type="number" value={design.desc_padding || 4} onChange={e => updateField('desc_padding', parseFloat(e.target.value))} className="h-7 text-xs" />
-                  </div>
+                <div>
+                  <Label className="text-[10px] text-gray-500">Padding (px)</Label>
+                  <Input type="number" value={design.desc_padding || 4} onChange={e => updateField('desc_padding', parseFloat(e.target.value))} className="h-7 text-xs" />
                 </div>
                 <FullAlignSelectorComponent value={design.desc_full_align || 'top-left'} onChange={v => updateField('desc_full_align', v)} label="Posisi Deskripsi (9 Arah)" />
               </>
