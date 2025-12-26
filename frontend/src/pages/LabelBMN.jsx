@@ -958,6 +958,7 @@ export default function LabelBMN() {
     api.get('/api/label-bmn/print-stats').then(res => setStats(res.data)).catch(() => {});
     api.get('/api/label-bmn/instansi-info').then(res => setInstansi(res.data)).catch(() => {});
     loadQrTemplates(); // Load QR templates on mount
+    loadActiveDesigns(); // Load active designs on mount
   }, []);
   
   const toggleSelect = (asset) => {
