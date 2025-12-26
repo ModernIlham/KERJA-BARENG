@@ -710,7 +710,7 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
   
   const renderSticker = (item, stickerData) => {
     const sizeType = item.ukuran || 'sedang';
-    const design = designs[sizeType] || DEFAULT_DESIGN_CONFIGS[sizeType];
+    const design = designs[sizeType] || BASIC_DEFAULTS[sizeType];
     
     // Use CustomSticker with active design for proper alignment support
     return <CustomSticker design={design} data={stickerData} instansi={instansi} qrSettings={qrSettings} />;
