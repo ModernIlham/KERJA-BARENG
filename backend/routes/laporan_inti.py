@@ -625,3 +625,979 @@ async def get_laporan_ringkas(current_user: str = Depends(get_current_user)):
             "nip": "19700812 199503 1 002"
         }
     })
+
+
+
+# ==================== PDF GENERATION ENDPOINTS ====================
+
+def generate_laporan_ringkas_html(data):
+    """Generate HTML for Laporan Ringkas (1 page executive summary)"""
+    header = data.get('header', {})
+    ib = data.get('ikhtisar_bmn', {})
+    at = ib.get('aset_tetap', {})
+    ka = data.get('kondisi_aset', {})
+    pg = data.get('pengamanan', {})
+    pl = data.get('pelabelan', {})
+    
+    html = f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            @page {{
+                size: A4;
+                margin: 10mm;
+            }}
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            body {{
+                font-family: Arial, sans-serif;
+                font-size: 8pt;
+                color: #1a1a1a;
+                line-height: 1.3;
+            }}
+            .page {{
+                width: 190mm;
+                height: 277mm;
+                padding: 0;
+            }}
+            .header {{
+                background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 4px 4px 0 0;
+            }}
+            .header-title {{
+                font-size: 7pt;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+            .header-main {{
+                font-size: 10pt;
+                font-weight: bold;
+                margin-top: 2px;
+            }}
+            .header-badge {{
+                background: #2563eb;
+                padding: 2px 8px;
+                border-radius: 3px;
+                font-size: 8pt;
+                font-weight: bold;
+            }}
+            .grand-total {{
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                color: white;
+                padding: 12px;
+                border-radius: 4px;
+                margin: 10px 0;
+            }}
+            .grand-total-grid {{
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                text-align: center;
+            }}
+            .grand-total-item {{
+                border-right: 1px solid rgba(255,255,255,0.2);
+                padding-right: 10px;
+            }}
+            .grand-total-item:last-child {{
+                border-right: none;
+            }}
+            .grand-total-label {{
+                font-size: 6pt;
+                color: #bfdbfe;
+                text-transform: uppercase;
+            }}
+            .grand-total-value {{
+                font-size: 12pt;
+                font-weight: bold;
+                margin-top: 2px;
+            }}
+            .section-box {{
+                border: 1px solid #e2e8f0;
+                border-radius: 4px;
+                margin-bottom: 8px;
+                overflow: hidden;
+            }}
+            .section-header {{
+                padding: 4px 8px;
+                font-size: 7pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                color: white;
+            }}
+            .section-header.blue {{ background: #1e3a5f; }}
+            .section-header.green {{ background: #15803d; }}
+            .section-header.purple {{ background: #7e22ce; }}
+            .section-header.amber {{ background: #d97706; }}
+            .section-header.red {{ background: #dc2626; }}
+            .section-content {{
+                padding: 8px;
+            }}
+            .stat-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }}
+            .stat-box {{
+                text-align: center;
+                padding: 6px;
+                border-radius: 4px;
+                border: 1px solid #e2e8f0;
+            }}
+            .stat-box.blue {{ background: #eff6ff; border-color: #bfdbfe; }}
+            .stat-box.green {{ background: #f0fdf4; border-color: #bbf7d0; }}
+            .stat-box.amber {{ background: #fffbeb; border-color: #fde68a; }}
+            .stat-box.red {{ background: #fef2f2; border-color: #fecaca; }}
+            .stat-value {{
+                font-size: 10pt;
+                font-weight: bold;
+            }}
+            .stat-label {{
+                font-size: 5pt;
+                color: #64748b;
+                text-transform: uppercase;
+                margin-top: 2px;
+            }}
+            .main-content {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }}
+            .table-mini {{
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 6pt;
+            }}
+            .table-mini th {{
+                background: #f1f5f9;
+                padding: 3px 4px;
+                text-align: left;
+                font-weight: bold;
+                border-bottom: 1px solid #e2e8f0;
+            }}
+            .table-mini td {{
+                padding: 3px 4px;
+                border-bottom: 1px solid #f1f5f9;
+            }}
+            .table-mini td.right {{
+                text-align: right;
+            }}
+            .footer {{
+                margin-top: 10px;
+                padding-top: 8px;
+                border-top: 1px solid #e2e8f0;
+                text-align: center;
+                font-size: 6pt;
+                color: #64748b;
+            }}
+            .progress-bar {{
+                height: 6px;
+                background: #e2e8f0;
+                border-radius: 3px;
+                overflow: hidden;
+                margin-top: 4px;
+            }}
+            .progress-fill {{
+                height: 100%;
+                border-radius: 3px;
+            }}
+            .progress-fill.green {{ background: #16a34a; }}
+            .progress-fill.amber {{ background: #d97706; }}
+            .progress-fill.red {{ background: #dc2626; }}
+            .flex {{
+                display: flex;
+            }}
+            .flex-between {{
+                justify-content: space-between;
+                align-items: center;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="page">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="flex flex-between">
+                    <div>
+                        <div class="header-title">{header.get('kementerian', 'KEMENTERIAN/LEMBAGA')}</div>
+                        <div class="header-main">{header.get('direktorat', 'DIREKTORAT/UNIT')}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="header-badge">TA {header.get('tahun_anggaran', '2024')}</span>
+                    </div>
+                </div>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); text-align: center;">
+                    <div style="font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">RINGKASAN EKSEKUTIF LAPORAN BMN</div>
+                    <div style="font-size: 7pt; color: #94a3b8; margin-top: 2px;">One-Page Executive Summary • {header.get('tanggal', datetime.now().strftime('%d %B %Y'))}</div>
+                </div>
+            </div>
+            
+            <!-- GRAND TOTAL -->
+            <div class="grand-total">
+                <div class="grand-total-grid">
+                    <div class="grand-total-item">
+                        <div class="grand-total-label">Total Perolehan</div>
+                        <div class="grand-total-value">{format_currency(ib.get('grand_total_perolehan', 0))}</div>
+                    </div>
+                    <div class="grand-total-item">
+                        <div class="grand-total-label">Total Nilai Buku</div>
+                        <div class="grand-total-value">{format_currency(ib.get('grand_total_buku', 0))}</div>
+                    </div>
+                    <div class="grand-total-item">
+                        <div class="grand-total-label">Total Unit</div>
+                        <div class="grand-total-value">{format_number(at.get('total_unit', 0))}</div>
+                    </div>
+                    <div class="grand-total-item">
+                        <div class="grand-total-label">Akumulasi Penyusutan</div>
+                        <div class="grand-total-value">{format_currency((ib.get('grand_total_perolehan', 0) or 0) - (ib.get('grand_total_buku', 0) or 0))}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MAIN CONTENT -->
+            <div class="main-content">
+                <!-- COLUMN 1: ASET TETAP -->
+                <div>
+                    <div class="section-box">
+                        <div class="section-header blue">🏢 Aset Tetap • {format_number(at.get('total_unit', 0))} unit</div>
+                        <div class="section-content">
+                            <table class="table-mini">
+                                <tr><th>Kategori</th><th class="right">Nilai Buku</th></tr>
+                                {''.join([f'<tr><td>{item.get("nama", "")}</td><td class="right">{format_currency(item.get("nilai", 0))}</td></tr>' for item in at.get('breakdown', [])[:6]])}
+                                <tr style="font-weight: bold; background: #f8fafc;"><td>TOTAL</td><td class="right" style="color: #2563eb;">{format_currency(at.get('total_buku', 0))}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="section-box">
+                        <div class="section-header green">📦 Persediaan</div>
+                        <div class="section-content">
+                            <div class="stat-grid">
+                                <div class="stat-box green"><div class="stat-value">{format_currency(ib.get('persediaan', {}).get('total_nilai', 0))}</div><div class="stat-label">Nilai</div></div>
+                                <div class="stat-box"><div class="stat-value">{format_number(ib.get('persediaan', {}).get('total_item', 0))}</div><div class="stat-label">Item</div></div>
+                                <div class="stat-box red"><div class="stat-value">{ib.get('persediaan', {}).get('stok_kritis', 0)}</div><div class="stat-label">Kritis</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- COLUMN 2: KONDISI ASET -->
+                <div>
+                    <div class="section-box">
+                        <div class="section-header blue">📊 Kondisi Aset</div>
+                        <div class="section-content">
+                            <div style="margin-bottom: 8px;">
+                                <div class="flex flex-between"><span>Baik</span><span style="font-weight: bold; color: #16a34a;">{ka.get('baik_persen', 85)}%</span></div>
+                                <div class="progress-bar"><div class="progress-fill green" style="width: {ka.get('baik_persen', 85)}%;"></div></div>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <div class="flex flex-between"><span>Rusak Ringan</span><span style="font-weight: bold; color: #d97706;">{ka.get('rusak_ringan_persen', 10)}%</span></div>
+                                <div class="progress-bar"><div class="progress-fill amber" style="width: {ka.get('rusak_ringan_persen', 10)}%;"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex flex-between"><span>Rusak Berat</span><span style="font-weight: bold; color: #dc2626;">{ka.get('rusak_berat_persen', 5)}%</span></div>
+                                <div class="progress-bar"><div class="progress-fill red" style="width: {ka.get('rusak_berat_persen', 5)}%;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-box">
+                        <div class="section-header purple">🔒 Pengamanan BMN</div>
+                        <div class="section-content">
+                            <div class="stat-grid">
+                                <div class="stat-box green"><div class="stat-value">{pg.get('aman_persen', 95)}%</div><div class="stat-label">Diamankan</div></div>
+                                <div class="stat-box amber"><div class="stat-value">{pg.get('proses', 0)}</div><div class="stat-label">Proses</div></div>
+                                <div class="stat-box red"><div class="stat-value">{pg.get('belum', 0)}</div><div class="stat-label">Belum</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- COLUMN 3: PELABELAN -->
+                <div>
+                    <div class="section-box">
+                        <div class="section-header amber">🏷️ Pelabelan Aset</div>
+                        <div class="section-content">
+                            <div style="margin-bottom: 8px;">
+                                <div class="flex flex-between"><span>Terlabel</span><span style="font-weight: bold; color: #16a34a;">{pl.get('terlabel_persen', 91.5)}%</span></div>
+                                <div class="progress-bar"><div class="progress-fill green" style="width: {pl.get('terlabel_persen', 91.5)}%;"></div></div>
+                            </div>
+                            <div class="stat-grid" style="margin-top: 10px;">
+                                <div class="stat-box amber"><div class="stat-value">{format_number(pl.get('belum_label', 0))}</div><div class="stat-label">Belum Label</div></div>
+                                <div class="stat-box red"><div class="stat-value">{format_number(pl.get('label_rusak', 0))}</div><div class="stat-label">Label Rusak</div></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-box">
+                        <div class="section-header blue">💡 Highlights</div>
+                        <div class="section-content" style="font-size: 6pt;">
+                            {''.join([f'<div style="padding: 3px 0; border-bottom: 1px solid #f1f5f9;">{"📈" if h.get("icon") == "up" else "✅" if h.get("icon") == "check" else "⚠️" if h.get("icon") == "alert" else "⏰"} {h.get("text", "")}</div>' for h in data.get('highlight', [])])}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FOOTER -->
+            <div class="footer">
+                <div>LAPORAN BMN - Dicetak pada {datetime.now().strftime('%d %B %Y %H:%M')}</div>
+                <div style="margin-top: 2px;">Dokumen ini dibuat secara otomatis oleh Sistem Informasi BMN</div>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    return html
+
+
+def generate_laporan_inti_html(data):
+    """Generate HTML for Laporan Inti (Full multi-page report)"""
+    header = data.get('header', {})
+    re = data.get('ringkasan_eksekutif', {})
+    at = re.get('aset_tetap', {})
+    rk = data.get('rekapitulasi_kategori', {})
+    ka = data.get('kondisi_aset', {})
+    pa = data.get('pelabelan_aset', {})
+    pn = data.get('pengamanan_aset', {})
+    
+    # Page 1: Executive Summary
+    page1 = f'''
+    <div class="a4-page">
+        <div class="page-header">
+            <div class="header-left">
+                <div class="header-kementerian">{header.get('kementerian', 'KEMENTERIAN/LEMBAGA')}</div>
+                <div class="header-direktorat">{header.get('direktorat', 'DIREKTORAT/UNIT')}</div>
+            </div>
+            <div class="header-right">
+                <div class="header-nomor">{header.get('nomor_dokumen', '')}</div>
+                <span class="header-badge">TA {header.get('tahun_anggaran', '2024')}</span>
+            </div>
+        </div>
+        
+        <div class="page-content">
+            <div class="page-title">
+                <h1>LAPORAN BARANG MILIK NEGARA (BMN)</h1>
+                <p>Sesuai PP No. 27 Tahun 2014</p>
+            </div>
+            
+            <div class="section">
+                <div class="section-title"><span class="section-num">I</span>RINGKASAN EKSEKUTIF - ASET TETAP</div>
+                <div class="card-grid-5">
+                    <div class="mini-card">
+                        <div class="mini-card-header">Tanah (1.3.1)</div>
+                        <div class="mini-card-content">
+                            <div class="mini-row"><span>Perolehan</span><span>{format_currency(at.get('tanah', {}).get('nilai_perolehan', 0))}</span></div>
+                            <div class="mini-row"><span>Penyusutan</span><span>{format_currency(at.get('tanah', {}).get('nilai_penyusutan', 0))}</span></div>
+                            <div class="mini-row highlight"><span>Nilai Buku</span><span>{format_currency(at.get('tanah', {}).get('nilai_buku', 0))}</span></div>
+                            <div class="mini-row"><span>Unit</span><span>{format_number(at.get('tanah', {}).get('unit', 0))}</span></div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-card-header">Peralatan & Mesin (1.3.2)</div>
+                        <div class="mini-card-content">
+                            <div class="mini-row"><span>Perolehan</span><span>{format_currency(at.get('peralatan_mesin', {}).get('nilai_perolehan', 0))}</span></div>
+                            <div class="mini-row"><span>Penyusutan</span><span>{format_currency(at.get('peralatan_mesin', {}).get('nilai_penyusutan', 0))}</span></div>
+                            <div class="mini-row highlight"><span>Nilai Buku</span><span>{format_currency(at.get('peralatan_mesin', {}).get('nilai_buku', 0))}</span></div>
+                            <div class="mini-row"><span>Unit</span><span>{format_number(at.get('peralatan_mesin', {}).get('unit', 0))}</span></div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-card-header">Gedung & Bangunan (1.3.3)</div>
+                        <div class="mini-card-content">
+                            <div class="mini-row"><span>Perolehan</span><span>{format_currency(at.get('gedung_bangunan', {}).get('nilai_perolehan', 0))}</span></div>
+                            <div class="mini-row"><span>Penyusutan</span><span>{format_currency(at.get('gedung_bangunan', {}).get('nilai_penyusutan', 0))}</span></div>
+                            <div class="mini-row highlight"><span>Nilai Buku</span><span>{format_currency(at.get('gedung_bangunan', {}).get('nilai_buku', 0))}</span></div>
+                            <div class="mini-row"><span>Unit</span><span>{format_number(at.get('gedung_bangunan', {}).get('unit', 0))}</span></div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-card-header">Jalan, Irigasi (1.3.4)</div>
+                        <div class="mini-card-content">
+                            <div class="mini-row"><span>Perolehan</span><span>{format_currency(at.get('jalan_irigasi', {}).get('nilai_perolehan', 0))}</span></div>
+                            <div class="mini-row"><span>Penyusutan</span><span>{format_currency(at.get('jalan_irigasi', {}).get('nilai_penyusutan', 0))}</span></div>
+                            <div class="mini-row highlight"><span>Nilai Buku</span><span>{format_currency(at.get('jalan_irigasi', {}).get('nilai_buku', 0))}</span></div>
+                            <div class="mini-row"><span>Unit</span><span>{format_number(at.get('jalan_irigasi', {}).get('unit', 0))}</span></div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-card-header">Aset Tetap Lain (1.3.5)</div>
+                        <div class="mini-card-content">
+                            <div class="mini-row"><span>Perolehan</span><span>{format_currency(at.get('aset_tetap_lainnya', {}).get('nilai_perolehan', 0))}</span></div>
+                            <div class="mini-row"><span>Penyusutan</span><span>{format_currency(at.get('aset_tetap_lainnya', {}).get('nilai_penyusutan', 0))}</span></div>
+                            <div class="mini-row highlight"><span>Nilai Buku</span><span>{format_currency(at.get('aset_tetap_lainnya', {}).get('nilai_buku', 0))}</span></div>
+                            <div class="mini-row"><span>Unit</span><span>{format_number(at.get('aset_tetap_lainnya', {}).get('unit', 0))}</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="total-box">
+                    <div class="total-row">
+                        <span>TOTAL ASET TETAP</span>
+                        <span class="total-value">{format_currency(at.get('total_buku', 0))}</span>
+                    </div>
+                    <div class="total-detail">
+                        Perolehan: {format_currency(at.get('total_perolehan', 0))} | Penyusutan: {format_currency(at.get('total_penyusutan', 0))} | Unit: {format_number(at.get('total_unit', 0))}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title"><span class="section-num">II</span>KONDISI ASET</div>
+                <div class="kondisi-grid">
+                    <div class="kondisi-item green">
+                        <div class="kondisi-value">{ka.get('baik_persen', 85)}%</div>
+                        <div class="kondisi-label">Kondisi Baik</div>
+                        <div class="kondisi-count">{format_number(ka.get('baik_unit', 0))} unit</div>
+                    </div>
+                    <div class="kondisi-item amber">
+                        <div class="kondisi-value">{ka.get('rusak_ringan_persen', 10)}%</div>
+                        <div class="kondisi-label">Rusak Ringan</div>
+                        <div class="kondisi-count">{format_number(ka.get('rusak_ringan_unit', 0))} unit</div>
+                    </div>
+                    <div class="kondisi-item red">
+                        <div class="kondisi-value">{ka.get('rusak_berat_persen', 5)}%</div>
+                        <div class="kondisi-label">Rusak Berat</div>
+                        <div class="kondisi-count">{format_number(ka.get('rusak_berat_unit', 0))} unit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            <span>LAPORAN BMN - {datetime.now().strftime('%d %B %Y')}</span>
+            <span>Halaman 1 dari 2</span>
+        </div>
+    </div>
+    '''
+    
+    # Page 2: Pelabelan & Pengamanan
+    page2 = f'''
+    <div class="a4-page">
+        <div class="page-header">
+            <div class="header-left">
+                <div class="header-kementerian">{header.get('kementerian', 'KEMENTERIAN/LEMBAGA')}</div>
+                <div class="header-direktorat">{header.get('direktorat', 'DIREKTORAT/UNIT')}</div>
+            </div>
+            <div class="header-right">
+                <span class="header-badge">TA {header.get('tahun_anggaran', '2024')}</span>
+            </div>
+        </div>
+        
+        <div class="page-content">
+            <div class="section">
+                <div class="section-title"><span class="section-num">III</span>PELABELAN ASET</div>
+                <div class="two-col">
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <span>Progres Pelabelan</span>
+                            <span class="progress-percent">{pa.get('progress_persen', 91.5)}%</span>
+                        </div>
+                        <div class="progress-bar-large">
+                            <div class="progress-fill green" style="width: {pa.get('progress_persen', 91.5)}%;"></div>
+                        </div>
+                        <div class="progress-stats">
+                            <div class="stat green"><span>Terlabel</span><span>{format_number(pa.get('total_terlabel', 0))}</span></div>
+                            <div class="stat amber"><span>Belum</span><span>{format_number(pa.get('total_belum', 0))}</span></div>
+                            <div class="stat red"><span>Rusak</span><span>{format_number(pa.get('label_rusak', 0))}</span></div>
+                        </div>
+                    </div>
+                    <div class="label-breakdown">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Kategori</th><th>Terlabel</th><th>Belum</th><th>%</th></tr>
+                            </thead>
+                            <tbody>
+                                {''.join([f'<tr><td>{item.get("kategori", "")}</td><td class="right">{format_number(item.get("terlabel", 0))}</td><td class="right">{format_number(item.get("belum", 0))}</td><td class="right">{item.get("persen", 0)}%</td></tr>' for item in pa.get('breakdown', [])])}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title"><span class="section-num">IV</span>PENGAMANAN ASET</div>
+                <div class="pengamanan-grid">
+                    <div class="pengamanan-item">
+                        <div class="pengamanan-icon">📜</div>
+                        <div class="pengamanan-label">Administrasi</div>
+                        <div class="pengamanan-value">{pn.get('administrasi', {}).get('persen', 95)}%</div>
+                        <div class="pengamanan-detail">{format_number(pn.get('administrasi', {}).get('unit', 0))} unit</div>
+                    </div>
+                    <div class="pengamanan-item">
+                        <div class="pengamanan-icon">⚖️</div>
+                        <div class="pengamanan-label">Hukum</div>
+                        <div class="pengamanan-value">{pn.get('hukum', {}).get('persen', 92)}%</div>
+                        <div class="pengamanan-detail">{format_number(pn.get('hukum', {}).get('unit', 0))} unit</div>
+                    </div>
+                    <div class="pengamanan-item">
+                        <div class="pengamanan-icon">🔒</div>
+                        <div class="pengamanan-label">Fisik</div>
+                        <div class="pengamanan-value">{pn.get('fisik', {}).get('persen', 88)}%</div>
+                        <div class="pengamanan-detail">{format_number(pn.get('fisik', {}).get('unit', 0))} unit</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-location">{header.get('lokasi', 'Jakarta')}, {datetime.now().strftime('%d %B %Y')}</div>
+                    <div class="signature-title">{data.get('tanda_tangan', {}).get('jabatan', 'Kepala Bagian BMN')}</div>
+                    <div class="signature-space"></div>
+                    <div class="signature-name">{data.get('tanda_tangan', {}).get('nama', 'Nama Pejabat')}</div>
+                    <div class="signature-nip">NIP. {data.get('tanda_tangan', {}).get('nip', '...')}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-footer">
+            <span>LAPORAN BMN - {datetime.now().strftime('%d %B %Y')}</span>
+            <span>Halaman 2 dari 2</span>
+        </div>
+    </div>
+    '''
+    
+    html = f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            @page {{
+                size: A4;
+                margin: 8mm;
+            }}
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            body {{
+                font-family: Arial, sans-serif;
+                font-size: 7pt;
+                color: #1a1a1a;
+                line-height: 1.3;
+            }}
+            .a4-page {{
+                width: 194mm;
+                height: 281mm;
+                page-break-after: always;
+                display: flex;
+                flex-direction: column;
+            }}
+            .a4-page:last-child {{
+                page-break-after: auto;
+            }}
+            .page-header {{
+                background: #1e293b;
+                color: white;
+                padding: 8px 12px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }}
+            .header-kementerian {{
+                font-size: 6pt;
+                color: #94a3b8;
+                text-transform: uppercase;
+            }}
+            .header-direktorat {{
+                font-size: 9pt;
+                font-weight: bold;
+            }}
+            .header-nomor {{
+                font-size: 6pt;
+                color: #94a3b8;
+            }}
+            .header-badge {{
+                background: #2563eb;
+                padding: 2px 8px;
+                border-radius: 3px;
+                font-size: 7pt;
+                font-weight: bold;
+            }}
+            .page-content {{
+                flex: 1;
+                padding: 10px;
+            }}
+            .page-title {{
+                text-align: center;
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #cbd5e1;
+            }}
+            .page-title h1 {{
+                font-size: 11pt;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+            .page-title p {{
+                font-size: 7pt;
+                color: #64748b;
+            }}
+            .section {{
+                margin-bottom: 12px;
+            }}
+            .section-title {{
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                margin-bottom: 8px;
+                padding-bottom: 4px;
+                border-bottom: 2px solid #1e293b;
+            }}
+            .section-num {{
+                background: #1e293b;
+                color: white;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 7pt;
+                font-weight: bold;
+            }}
+            .section-title {{
+                font-size: 9pt;
+                font-weight: bold;
+                text-transform: uppercase;
+            }}
+            .card-grid-5 {{
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 6px;
+            }}
+            .mini-card {{
+                border: 1px solid #e2e8f0;
+                border-radius: 4px;
+                overflow: hidden;
+            }}
+            .mini-card-header {{
+                background: #f1f5f9;
+                padding: 4px 6px;
+                font-size: 6pt;
+                font-weight: bold;
+                color: #475569;
+                text-transform: uppercase;
+                border-bottom: 1px solid #e2e8f0;
+            }}
+            .mini-card-content {{
+                padding: 4px;
+            }}
+            .mini-row {{
+                display: flex;
+                justify-content: space-between;
+                padding: 2px 4px;
+                font-size: 6pt;
+            }}
+            .mini-row.highlight {{
+                background: #eff6ff;
+                font-weight: bold;
+                color: #2563eb;
+            }}
+            .total-box {{
+                background: linear-gradient(135deg, #1e3a5f, #2563eb);
+                color: white;
+                padding: 10px;
+                border-radius: 4px;
+                margin-top: 10px;
+            }}
+            .total-row {{
+                display: flex;
+                justify-content: space-between;
+                font-size: 9pt;
+                font-weight: bold;
+            }}
+            .total-value {{
+                font-size: 12pt;
+            }}
+            .total-detail {{
+                font-size: 7pt;
+                color: #bfdbfe;
+                margin-top: 4px;
+            }}
+            .kondisi-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }}
+            .kondisi-item {{
+                text-align: center;
+                padding: 10px;
+                border-radius: 6px;
+            }}
+            .kondisi-item.green {{ background: #f0fdf4; border: 1px solid #bbf7d0; }}
+            .kondisi-item.amber {{ background: #fffbeb; border: 1px solid #fde68a; }}
+            .kondisi-item.red {{ background: #fef2f2; border: 1px solid #fecaca; }}
+            .kondisi-value {{
+                font-size: 18pt;
+                font-weight: bold;
+            }}
+            .kondisi-item.green .kondisi-value {{ color: #16a34a; }}
+            .kondisi-item.amber .kondisi-value {{ color: #d97706; }}
+            .kondisi-item.red .kondisi-value {{ color: #dc2626; }}
+            .kondisi-label {{
+                font-size: 8pt;
+                font-weight: bold;
+                margin-top: 4px;
+            }}
+            .kondisi-count {{
+                font-size: 7pt;
+                color: #64748b;
+            }}
+            .two-col {{
+                display: grid;
+                grid-template-columns: 1fr 1.5fr;
+                gap: 15px;
+            }}
+            .progress-section {{
+                padding: 10px;
+                background: #f8fafc;
+                border-radius: 6px;
+            }}
+            .progress-header {{
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+            }}
+            .progress-percent {{
+                font-size: 14pt;
+                font-weight: bold;
+                color: #16a34a;
+            }}
+            .progress-bar-large {{
+                height: 12px;
+                background: #e2e8f0;
+                border-radius: 6px;
+                overflow: hidden;
+            }}
+            .progress-fill {{
+                height: 100%;
+                border-radius: 6px;
+            }}
+            .progress-fill.green {{ background: #16a34a; }}
+            .progress-stats {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                margin-top: 10px;
+            }}
+            .progress-stats .stat {{
+                text-align: center;
+                padding: 6px;
+                border-radius: 4px;
+            }}
+            .progress-stats .stat.green {{ background: #dcfce7; }}
+            .progress-stats .stat.amber {{ background: #fef3c7; }}
+            .progress-stats .stat.red {{ background: #fee2e2; }}
+            .data-table {{
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 7pt;
+            }}
+            .data-table th {{
+                background: #1e293b;
+                color: white;
+                padding: 6px;
+                text-align: left;
+            }}
+            .data-table td {{
+                padding: 5px 6px;
+                border-bottom: 1px solid #e2e8f0;
+            }}
+            .data-table td.right {{
+                text-align: right;
+            }}
+            .pengamanan-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }}
+            .pengamanan-item {{
+                text-align: center;
+                padding: 15px;
+                background: #f8fafc;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+            }}
+            .pengamanan-icon {{
+                font-size: 24pt;
+                margin-bottom: 6px;
+            }}
+            .pengamanan-label {{
+                font-size: 8pt;
+                font-weight: bold;
+                color: #475569;
+            }}
+            .pengamanan-value {{
+                font-size: 18pt;
+                font-weight: bold;
+                color: #16a34a;
+                margin: 4px 0;
+            }}
+            .pengamanan-detail {{
+                font-size: 7pt;
+                color: #64748b;
+            }}
+            .signature-section {{
+                margin-top: 20px;
+                display: flex;
+                justify-content: flex-end;
+            }}
+            .signature-box {{
+                text-align: center;
+                width: 60mm;
+            }}
+            .signature-location {{
+                font-size: 8pt;
+                margin-bottom: 4px;
+            }}
+            .signature-title {{
+                font-size: 8pt;
+                font-weight: bold;
+            }}
+            .signature-space {{
+                height: 25mm;
+            }}
+            .signature-name {{
+                font-size: 9pt;
+                font-weight: bold;
+                border-bottom: 1px solid #1a1a1a;
+                padding-bottom: 2px;
+            }}
+            .signature-nip {{
+                font-size: 7pt;
+                margin-top: 2px;
+            }}
+            .page-footer {{
+                padding: 6px 12px;
+                border-top: 1px solid #e2e8f0;
+                display: flex;
+                justify-content: space-between;
+                font-size: 6pt;
+                color: #64748b;
+            }}
+        </style>
+    </head>
+    <body>
+        {page1}
+        {page2}
+    </body>
+    </html>
+    '''
+    return html
+
+
+@router.get("/ringkas/pdf")
+async def get_laporan_ringkas_pdf(current_user = Depends(get_current_user)):
+    """Generate PDF for Laporan Ringkas using WeasyPrint"""
+    # Get the data
+    data = generate_ringkas_dummy_data()
+    
+    # Generate HTML
+    html_content = generate_laporan_ringkas_html(data)
+    
+    # Convert to PDF using WeasyPrint
+    pdf_bytes = weasyprint.HTML(string=html_content).write_pdf()
+    
+    # Return PDF response
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=laporan_ringkas_bmn_{datetime.now().strftime('%Y%m%d')}.pdf"
+        }
+    )
+
+
+@router.get("/full-report/pdf")
+async def get_laporan_inti_pdf(current_user = Depends(get_current_user)):
+    """Generate PDF for Laporan Inti using WeasyPrint"""
+    # Get the data
+    data = generate_comprehensive_dummy_data()
+    report_data = {
+        'header': data['header'],
+        'ringkasan_eksekutif': data['ringkasan_eksekutif'],
+        'rekapitulasi_kategori': data.get('rekapitulasi_kategori', {}),
+        'kondisi_aset': data['kondisi_aset'],
+        'pelabelan_aset': data['pelabelan_aset'],
+        'pengamanan_aset': data['pengamanan_aset'],
+        'tanda_tangan': data.get('tanda_tangan', {})
+    }
+    
+    # Generate HTML
+    html_content = generate_laporan_inti_html(report_data)
+    
+    # Convert to PDF using WeasyPrint
+    pdf_bytes = weasyprint.HTML(string=html_content).write_pdf()
+    
+    # Return PDF response
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=laporan_inti_bmn_{datetime.now().strftime('%Y%m%d')}.pdf"
+        }
+    )
+
+
+def generate_ringkas_dummy_data():
+    """Generate dummy data for Laporan Ringkas"""
+    return {
+        "header": {
+            "kementerian": "Otorita Ibu Kota Nusantara",
+            "direktorat": "Biro Pengelolaan BMN",
+            "tahun_anggaran": "2024",
+            "tanggal": datetime.now().strftime("%d %B %Y")
+        },
+        "ikhtisar_bmn": {
+            "grand_total_perolehan": 892_500_000_000,
+            "grand_total_buku": 756_750_000_000,
+            "aset_tetap": {
+                "total_unit": 13553,
+                "total_buku": 720_500_000_000,
+                "breakdown": [
+                    {"nama": "Tanah", "nilai": 485_000_000_000},
+                    {"nama": "Peralatan & Mesin", "nilai": 78_250_000_000},
+                    {"nama": "Gedung & Bangunan", "nilai": 95_500_000_000},
+                    {"nama": "Jalan, Irigasi", "nilai": 28_750_000_000},
+                    {"nama": "Aset Tetap Lainnya", "nilai": 18_500_000_000},
+                    {"nama": "KDP", "nilai": 14_500_000_000}
+                ]
+            },
+            "persediaan": {
+                "total_nilai": 8_500_000_000,
+                "total_item": 1250,
+                "stok_kritis": 5
+            },
+            "aset_tak_berwujud": {
+                "total_nilai": 12_500_000_000,
+                "nilai_buku": 8_750_000_000,
+                "total_item": 85
+            }
+        },
+        "kondisi_aset": {
+            "baik_persen": 96.1,
+            "rusak_ringan_persen": 2.8,
+            "rusak_berat_persen": 1.1
+        },
+        "pengamanan": {
+            "aman_persen": 94.5,
+            "proses": 245,
+            "belum": 128
+        },
+        "pelabelan": {
+            "terlabel_persen": 91.5,
+            "belum_label": 1153,
+            "label_rusak": 254
+        },
+        "highlight": [
+            {"icon": "up", "text": "Total BMN naik 12.5% dari tahun sebelumnya"},
+            {"icon": "check", "text": "96.1% aset dalam kondisi baik"},
+            {"icon": "alert", "text": "5 item persediaan dalam status stok kritis"},
+            {"icon": "clock", "text": "4 proyek KDP on-track untuk selesai 2025"}
+        ]
+    }
