@@ -1601,6 +1601,9 @@ export default function LabelBMN() {
           qrSettings={qrSettings}
           onClose={() => setShowPrintPage(false)}
           onPrintComplete={selectedItems.some(i => i.is_child) ? handleChildPrintComplete : handlePrintComplete}
+          activeDesigns={activeDesigns}
+          onGeneratePdf={handleGeneratePdf}
+          generatingPdf={generatingPdf}
         />
       )}
       
