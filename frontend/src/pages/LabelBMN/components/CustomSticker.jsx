@@ -93,15 +93,64 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
   const namaInstansi = instansi?.nama || 'Otorita Ibu Kota Nusantara';
   const logoUrl = instansi?.logo_url;
   
-  // Common styles
-  const borderColor = design?.border_color || '#000000';
-  const fontFamily = design?.font_family || 'Arial';
-  const goldStripeColor = design?.gold_stripe_color || '#D4AF37';
-  const warningText = design?.warning_text || 'Tidak Untuk Diperjualbelikan';
-  const showWarning = design?.show_warning !== false;
+  // ==================== DESIGN SETTINGS ====================
+  // Dimensions
+  const width = design?.width || (sizeType === 'kecil' ? 23.8 : sizeType === 'besar' ? 94.9 : 69.8);
+  const height = design?.height || (sizeType === 'kecil' ? 39.8 : sizeType === 'besar' ? 32.2 : 22.1);
   
-  // Get alignments from design
-  const qrAlign = getAlignmentStyle(design?.qr_full_align || design?.qr_align || 'center');
+  // Border settings
+  const borderColor = design?.border_color || '#000000';
+  const borderWidth = design?.border_width ?? 1;
+  const borderRadius = design?.border_radius || 0;
+  
+  // Background & Font
+  const bgColor = design?.background_color || '#ffffff';
+  const fontFamily = design?.font_family || 'Arial';
+  const textColor = design?.text_color || '#1a1a1a';
+  
+  // Gold Stripe
+  const showGoldStripe = design?.show_gold_stripe !== false;
+  const goldStripeColor = design?.gold_stripe_color || '#D4AF37';
+  const goldStripeHeight = design?.gold_stripe_height || 2.5;
+  
+  // Warning
+  const showWarning = design?.show_warning !== false;
+  const warningText = design?.warning_text || 'Tidak Untuk Diperjualbelikan';
+  const warningColor = design?.warning_color || '#cc0000';
+  const warningFontSize = design?.warning_font_size || 6;
+  
+  // Header settings
+  const showHeader = design?.show_header !== false;
+  const showLogo = design?.header_show_logo !== false;
+  const headerFontSize = design?.header_font_size || 7;
+  const headerSubFontSize = design?.header_sub_font_size || 6;
+  const headerBgColor = design?.header_bg_color || '#ffffff';
+  const headerPadding = design?.header_padding || 2;
+  const headerBorderBottom = design?.header_border_bottom !== false;
+  const logoSize = design?.header_logo_size || 16;
+  
+  // QR Settings
+  const qrSize = design?.qr_size || 90;
+  const qrMarginTop = design?.qr_margin_top ?? 2;
+  const qrMarginRight = design?.qr_margin_right ?? 2;
+  const qrMarginBottom = design?.qr_margin_bottom ?? 2;
+  const qrMarginLeft = design?.qr_margin_left ?? 2;
+  
+  // Content settings
+  const kodeFontSize = design?.kode_font_size || 8;
+  const kodeFontWeight = design?.kode_font_weight || 700;
+  const kodeTextTransform = design?.kode_text_transform || 'none';
+  
+  const namaFontSize = design?.nama_font_size || 7;
+  const namaFontWeight = design?.nama_font_weight || 600;
+  
+  const nupFontSize = design?.nup_font_size || 10;
+  const showNupLabel = design?.show_nup_label !== false;
+  
+  const descFontSize = design?.desc_font_size || 6;
+  
+  // Alignments
+  const qrAlign = getAlignmentStyle(design?.qr_align || design?.qr_full_align || 'center');
   const headerAlign = getAlignmentStyle(design?.header_full_align || 'center-left');
   const kodeAlign = getAlignmentStyle(design?.kode_full_align || 'center-left');
   const namaAlign = getAlignmentStyle(design?.nama_full_align || 'center-left');
@@ -109,15 +158,19 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
   const descAlign = getAlignmentStyle(design?.desc_full_align || 'center-left');
   const warningAlign = getAlignmentStyle(design?.warning_full_align || 'center');
 
-  // STIKER KECIL - Portrait Layout
+  // ==================== STIKER KECIL - Portrait Layout ====================
   if (sizeType === 'kecil') {
+    const qrAreaSize = Math.min(width, height * 0.5) * 3.2 * (qrSize / 100);
+    
     return (
       <div style={{
-        width: `${design?.width || 23.8}mm`,
-        height: `${design?.height || 39.8}mm`,
-        border: `1px solid ${borderColor}`,
-        background: '#ffffff',
+        width: `${width}mm`,
+        height: `${height}mm`,
+        border: `${borderWidth}px solid ${borderColor}`,
+        borderRadius: `${borderRadius}px`,
+        background: bgColor,
         fontFamily: `${fontFamily}, Arial, sans-serif`,
+        color: textColor,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -127,42 +180,38 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         <div style={{
           flex: 1,
           display: 'flex',
-          padding: '2mm',
-          borderBottom: `1px solid ${borderColor}`,
+          padding: `${qrMarginTop}mm ${qrMarginRight}mm ${qrMarginBottom}mm ${qrMarginLeft}mm`,
+          borderBottom: `${borderWidth}px solid ${borderColor}`,
           ...qrAlign
         }}>
           <StyledQRCode 
             data={`#${data.kode_register || data.kode_barang}`}
             settings={qrSettings}
             logoUrl={logoUrl}
-            size={Math.floor((design?.width || 23.8) * 3.2)}
+            size={qrAreaSize}
           />
         </div>
         
         {/* Gold Stripe */}
-        <div style={{
-          height: '2.5mm',
-          background: goldStripeColor,
-          width: '100%'
-        }} />
+        {showGoldStripe && (
+          <div style={{
+            height: `${goldStripeHeight}mm`,
+            background: goldStripeColor,
+            width: '100%'
+          }} />
+        )}
         
         {/* Content Table */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Row 1: Nama + NUP */}
-          <div style={{
-            display: 'flex',
-            borderBottom: `1px solid ${borderColor}`
-          }}>
+          <div style={{ display: 'flex', borderBottom: `${borderWidth}px solid ${borderColor}` }}>
             <div style={{
               flex: 1,
               padding: '1mm 1.5mm',
-              fontSize: `${design?.nama_font_size || 6.5}pt`,
-              fontWeight: design?.nama_font_weight || 'bold',
+              fontSize: `${namaFontSize}pt`,
+              fontWeight: namaFontWeight,
               display: 'flex',
-              borderRight: `1px solid ${borderColor}`,
+              borderRight: `${borderWidth}px solid ${borderColor}`,
               lineHeight: 1.2,
               ...namaAlign
             }}>
@@ -171,7 +220,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
             <div style={{
               width: '7mm',
               padding: '0.5mm',
-              fontSize: `${design?.nup_font_size || 11}pt`,
+              fontSize: `${nupFontSize}pt`,
               fontWeight: 'bold',
               display: 'flex',
               ...nupAlign
@@ -183,9 +232,10 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {/* Row 2: Kode Barang */}
           <div style={{
             padding: '0.8mm 1.5mm',
-            fontSize: `${design?.kode_font_size || 7}pt`,
-            fontWeight: design?.kode_font_weight || 'bold',
-            borderBottom: `1px solid ${borderColor}`,
+            fontSize: `${kodeFontSize}pt`,
+            fontWeight: kodeFontWeight,
+            textTransform: kodeTextTransform,
+            borderBottom: `${borderWidth}px solid ${borderColor}`,
             display: 'flex',
             ...kodeAlign
           }}>
@@ -195,7 +245,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {/* Row 3: Tahun - Merk - Tipe */}
           <div style={{
             padding: '0.8mm 1.5mm',
-            fontSize: `${design?.desc_font_size || 5.5}pt`,
+            fontSize: `${descFontSize}pt`,
             lineHeight: 1.2,
             display: 'flex',
             ...descAlign
@@ -207,19 +257,20 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
     );
   }
 
-  // STIKER SEDANG & BESAR - Landscape Layout
+  // ==================== STIKER SEDANG & BESAR - Landscape Layout ====================
   const isBesar = sizeType === 'besar';
-  const stickerWidth = design?.width || (isBesar ? 94.9 : 69.8);
-  const stickerHeight = design?.height || (isBesar ? 32.2 : 22.1);
-  const qrAreaWidth = stickerHeight; // QR area is square based on height
+  const qrAreaWidth = height; // QR area is square based on height
+  const qrDisplaySize = qrAreaWidth * 3.5 * (qrSize / 100);
 
   return (
     <div style={{
-      width: `${stickerWidth}mm`,
-      height: `${stickerHeight}mm`,
-      border: `1px solid ${borderColor}`,
-      background: '#ffffff',
+      width: `${width}mm`,
+      height: `${height}mm`,
+      border: `${borderWidth}px solid ${borderColor}`,
+      borderRadius: `${borderRadius}px`,
+      background: bgColor,
       fontFamily: `${fontFamily}, Arial, sans-serif`,
+      color: textColor,
       display: 'flex',
       flexDirection: 'row',
       overflow: 'hidden',
@@ -231,15 +282,17 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         minWidth: `${qrAreaWidth}mm`,
         height: '100%',
         display: 'flex',
-        borderRight: `1px solid ${borderColor}`,
-        background: '#ffffff',
+        borderRight: `${borderWidth}px solid ${borderColor}`,
+        background: bgColor,
+        padding: `${qrMarginTop}mm ${qrMarginRight}mm ${qrMarginBottom}mm ${qrMarginLeft}mm`,
+        boxSizing: 'border-box',
         ...qrAlign
       }}>
         <StyledQRCode 
           data={`#${data.kode_register || data.kode_barang}`}
           settings={qrSettings}
           logoUrl={logoUrl}
-          size={Math.floor(qrAreaWidth * 3.5)}
+          size={qrDisplaySize}
         />
       </div>
       
@@ -251,83 +304,77 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         minWidth: 0
       }}>
         {/* Header Row: Logo | Nama Instansi + Kode UAKPB */}
-        <div style={{
-          display: 'flex',
-          borderBottom: `1px solid ${borderColor}`,
-          minHeight: isBesar ? '9mm' : '6.5mm'
-        }}>
-          {/* Logo Cell */}
+        {showHeader && (
           <div style={{
-            width: isBesar ? '9mm' : '6.5mm',
-            minWidth: isBesar ? '9mm' : '6.5mm',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRight: `1px solid ${borderColor}`,
-            padding: '0.5mm'
+            borderBottom: headerBorderBottom ? `${borderWidth}px solid ${borderColor}` : 'none',
+            minHeight: isBesar ? '9mm' : '6.5mm',
+            background: headerBgColor
           }}>
-            {logoUrl ? (
-              <img 
-                src={logoUrl} 
-                alt="Logo" 
-                style={{ 
-                  maxWidth: '100%', 
-                  maxHeight: '100%', 
-                  objectFit: 'contain' 
-                }} 
-              />
-            ) : (
-              <div style={{ 
-                width: '100%', 
-                height: '100%', 
-                background: '#f0f0f0',
+            {/* Logo Cell */}
+            {showLogo && (
+              <div style={{
+                width: `${logoSize}px`,
+                minWidth: `${logoSize}px`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '4pt',
-                color: '#999'
-              }}>Logo</div>
+                borderRight: `${borderWidth}px solid ${borderColor}`,
+                padding: '0.5mm'
+              }}>
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt="Logo" 
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
+                  />
+                ) : (
+                  <div style={{ 
+                    width: '100%', height: '100%', background: '#f0f0f0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '4pt', color: '#999'
+                  }}>Logo</div>
+                )}
+              </div>
             )}
-          </div>
-          
-          {/* Nama Instansi + Kode */}
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '0.5mm 1.5mm',
-            ...headerAlign
-          }}>
+            
+            {/* Nama Instansi + Kode */}
             <div style={{
-              fontSize: `${design?.header_font_size || (isBesar ? 8 : 6.5)}pt`,
-              fontWeight: 'bold',
-              fontStyle: 'italic',
-              lineHeight: 1.2
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: `${headerPadding}px`,
+              ...headerAlign
             }}>
-              {namaInstansi}
-            </div>
-            <div style={{
-              fontSize: `${design?.header_sub_font_size || (isBesar ? 7 : 6)}pt`,
-              fontWeight: 'bold',
-              lineHeight: 1.2
-            }}>
-              {kodeUakpb}.{tahun}
+              <div style={{
+                fontSize: `${headerFontSize}pt`,
+                fontWeight: 'bold',
+                fontStyle: 'italic',
+                lineHeight: 1.2
+              }}>
+                {design?.header_text || namaInstansi}
+              </div>
+              <div style={{
+                fontSize: `${headerSubFontSize}pt`,
+                fontWeight: 'bold',
+                lineHeight: 1.2
+              }}>
+                {kodeUakpb}.{tahun}
+              </div>
             </div>
           </div>
-        </div>
+        )}
         
         {/* Content Table */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {/* Row 1: Kode Barang | NUP */}
-          <div style={{
-            display: 'flex',
-            borderBottom: `1px solid ${borderColor}`
-          }}>
+          <div style={{ display: 'flex', borderBottom: `${borderWidth}px solid ${borderColor}` }}>
             <div style={{
               flex: 1,
               padding: '0.5mm 1.5mm',
-              fontSize: `${design?.kode_font_size || (isBesar ? 10 : 8)}pt`,
-              fontWeight: design?.kode_font_weight || 'bold',
+              fontSize: `${kodeFontSize}pt`,
+              fontWeight: kodeFontWeight,
+              textTransform: kodeTextTransform,
               display: 'flex',
               ...kodeAlign
             }}>
@@ -336,22 +383,23 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
             <div style={{
               minWidth: isBesar ? '14mm' : '12mm',
               padding: '0.5mm 1.5mm',
-              fontSize: `${design?.nup_font_size || (isBesar ? 10 : 8)}pt`,
+              fontSize: `${nupFontSize}pt`,
               fontWeight: 'bold',
               display: 'flex',
-              borderLeft: `1px solid ${borderColor}`,
+              borderLeft: `${borderWidth}px solid ${borderColor}`,
               ...nupAlign
             }}>
-              {data.nup || '1'}
+              {showNupLabel ? `NUP: ${data.nup || '1'}` : (data.nup || '1')}
             </div>
           </div>
           
           {/* Row 2: Nama Barang */}
           <div style={{
             padding: '0.5mm 1.5mm',
-            fontSize: `${design?.nama_font_size || (isBesar ? 9 : 7)}pt`,
+            fontSize: `${namaFontSize}pt`,
+            fontWeight: namaFontWeight,
             fontStyle: 'italic',
-            borderBottom: `1px solid ${borderColor}`,
+            borderBottom: `${borderWidth}px solid ${borderColor}`,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -364,11 +412,11 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {/* Row 3: Merk - Tipe */}
           <div style={{
             padding: '0.5mm 1.5mm',
-            fontSize: `${design?.desc_font_size || (isBesar ? 8 : 6.5)}pt`,
+            fontSize: `${descFontSize}pt`,
             fontStyle: 'italic',
             flex: 1,
             display: 'flex',
-            borderBottom: showWarning ? `1px solid ${borderColor}` : 'none',
+            borderBottom: showWarning ? `${borderWidth}px solid ${borderColor}` : 'none',
             ...descAlign
           }}>
             {data.merk || '-'} {data.tipe ? `- ${data.tipe}` : ''}
@@ -378,10 +426,10 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {showWarning && (
             <div style={{
               padding: '0.5mm 1.5mm',
-              fontSize: `${design?.warning_font_size || (isBesar ? 7 : 5.5)}pt`,
+              fontSize: `${warningFontSize}pt`,
               fontWeight: 'bold',
               fontStyle: 'italic',
-              color: design?.warning_color || '#cc0000',
+              color: warningColor,
               display: 'flex',
               ...warningAlign
             }}>
