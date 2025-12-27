@@ -1068,12 +1068,22 @@ export default function LabelBMN() {
     
     setSelectingAll(true);
     try {
-      const res = await api.get('/api/label-bmn/assets/all', { 
-        params: { search, status_cetak: statusFilter } 
-      });
+      // Pass ALL active filters to get only filtered data
+      const params = { 
+        search, 
+        status_cetak: statusFilter 
+      };
+      
+      // Add advanced filters if set
+      if (filterNup) params.filter_nup = filterNup;
+      if (filterTahun) params.filter_tahun = filterTahun;
+      if (filterNilaiMin) params.filter_nilai_min = parseFloat(filterNilaiMin);
+      if (filterNilaiMax) params.filter_nilai_max = parseFloat(filterNilaiMax);
+      
+      const res = await api.get('/api/label-bmn/assets/all', { params });
       const allAssets = res.data.data || [];
       setSelectedItems(allAssets.map(a => ({ ...a, ukuran: selectedSize })));
-      toast.success(`${allAssets.length} aset dipilih`);
+      toast.success(`${allAssets.length} aset dipilih (sesuai filter)`);
     } catch {
       toast.error('Gagal memuat semua data');
     }
