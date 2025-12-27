@@ -19,7 +19,6 @@ import { toast } from 'sonner';
 
 // Import Refactored Components
 import StickerCanvasEditor from './LabelBMN/components/StickerCanvasEditor';
-import { PencilRuler } from 'lucide-react';
 
 import AssetTable from './LabelBMN/components/AssetTable';
 import PrintPage from './LabelBMN/components/PrintPage';
