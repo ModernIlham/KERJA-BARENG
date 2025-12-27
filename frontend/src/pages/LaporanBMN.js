@@ -221,6 +221,12 @@ export default function LaporanBMN({ onBack }) {
     };
     fetchData();
   }, []);
+  
+  const { downloading, downloadPdf } = usePdfDownload();
+  
+  const handleDownloadPdf = () => {
+    downloadPdf('/api/laporan-bmn/bmn-summary/pdf', `laporan_bmn_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
 
   if (loading) return <div className="flex justify-center p-12 min-h-screen items-center"><Loader2 className="animate-spin w-8 h-8 text-slate-400" /></div>;
   if (!data) return <div className="text-center p-12 text-red-500 font-medium">Gagal memuat data laporan.</div>;
