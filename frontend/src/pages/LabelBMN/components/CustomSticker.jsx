@@ -55,6 +55,31 @@ export const StyledQRCode = ({ data, settings = {}, logoUrl, size = 80, style = 
   return <div ref={qrRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', ...style }} />;
 };
 
+// Helper function to convert alignment value to CSS flexbox styles
+const getAlignmentStyle = (alignment) => {
+  const alignMap = {
+    'top-left': { alignItems: 'flex-start', justifyContent: 'flex-start' },
+    'top-center': { alignItems: 'flex-start', justifyContent: 'center' },
+    'top-right': { alignItems: 'flex-start', justifyContent: 'flex-end' },
+    'center-left': { alignItems: 'center', justifyContent: 'flex-start' },
+    'center': { alignItems: 'center', justifyContent: 'center' },
+    'center-right': { alignItems: 'center', justifyContent: 'flex-end' },
+    'bottom-left': { alignItems: 'flex-end', justifyContent: 'flex-start' },
+    'bottom-center': { alignItems: 'flex-end', justifyContent: 'center' },
+    'bottom-right': { alignItems: 'flex-end', justifyContent: 'flex-end' },
+    'left': { alignItems: 'center', justifyContent: 'flex-start' },
+    'right': { alignItems: 'center', justifyContent: 'flex-end' }
+  };
+  return alignMap[alignment] || alignMap['center'];
+};
+
+// Helper to get text-align from alignment
+const getTextAlign = (alignment) => {
+  if (alignment?.includes('left')) return 'left';
+  if (alignment?.includes('right')) return 'right';
+  return 'center';
+};
+
 // Main CustomSticker Component
 const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
   const sizeType = design?.size_type || 'sedang';
