@@ -137,20 +137,29 @@ export default function LabelBMN() {
         params: {
           page,
           limit: 20,
-          search: filters.search,
-          status_cetak: filters.status,
-          nup: filters.nup,
-          tahun: filters.tahun,
-          nilai_min: filters.nilaiMin,
-          nilai_max: filters.nilaiMax,
-          sort_by: filters.sortField,
-          sort_order: filters.sortOrder
+          search: filters.search || '',
+          status_cetak: filters.status || 'semua',
+          nup: filters.nup || '',
+          tahun: filters.tahun || '',
+          nilai_min: filters.nilaiMin || '',
+          nilai_max: filters.nilaiMax || '',
+          sort_by: filters.sortField || 'kode_barang',
+          sort_order: filters.sortOrder || 'asc'
         }
       });
-      setAssets(res.data.data);
-      setTotalPages(res.data.total_pages || res.data.meta?.total_pages || 1);
+      console.log('Asset API Response:', res.data);
+      if (res.data && res.data.data) {
+        setAssets(res.data.data);
+        setTotalPages(res.data.total_pages || res.data.meta?.total_pages || 1);
+      } else {
+        console.error('Invalid API response structure:', res.data);
+        setAssets([]);
+        setTotalPages(1);
+      }
     } catch (err) {
+      console.error('Error loading assets:', err);
       toast.error('Gagal memuat data aset');
+      setAssets([]);
     } finally {
       setLoading(false);
     }
