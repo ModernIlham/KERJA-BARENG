@@ -861,8 +861,19 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
       {/* 
         AREA CETAK - Hanya ini yang tampil saat mencetak
         ID "print-area" digunakan oleh CSS @media print
+        Disembunyikan di layar dengan opacity:0 dan pointer-events:none
+        tapi tetap di-render di DOM agar bisa dicetak
       */}
-      <div id="print-area" ref={printRef} style={{ position: 'fixed', left: '-9999px', top: 0 }} className="print:static print:left-0">
+      <div 
+        id="print-area" 
+        ref={printRef} 
+        style={{ 
+          position: 'absolute', 
+          left: '-9999px', 
+          top: 0,
+          opacity: 0,
+          pointerEvents: 'none'
+        }}
         {Array.from({ length: pages }).map((_, pageIdx) => {
           const pageItems = items.slice(pageIdx * itemsPerPage, (pageIdx + 1) * itemsPerPage);
           const size = STICKER_SIZES[items[0].ukuran];
