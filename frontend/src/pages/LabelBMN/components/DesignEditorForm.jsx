@@ -795,7 +795,7 @@ function DesignEditorForm({ design, onChange }) {
               <AccordionContent className="px-3 pb-3 space-y-2">
                 <div className="flex items-center gap-2 mb-2">
                   <Switch checked={design.show_nup_label !== false} onCheckedChange={v => updateField('show_nup_label', v)} />
-                  <span className="text-xs">Tampilkan Label "NUP:"</span>
+                  <span className="text-xs">Tampilkan Label &quot;NUP:&quot;</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
