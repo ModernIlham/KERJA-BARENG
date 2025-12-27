@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Trash2, CheckCircle2, XCircle, Link2, RefreshCw, Eye, Settings2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Plus, Trash2, CheckCircle2, XCircle, Link2, RefreshCw, Eye, Settings2, RotateCcw, ChevronDown, ChevronUp, Printer } from 'lucide-react';
 
 const STICKER_SIZES = {
   kecil: { width: 23.8, height: 39.8, label: 'Kecil (2.38x3.98cm)', desc: 'Aksesori' },
