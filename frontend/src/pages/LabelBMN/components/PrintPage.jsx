@@ -83,9 +83,9 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
   const prepareStickerData = (item) => ({
     ...item,
     kode_register: item.kode_register || item.kode_barang,
-    kode_vertikal: `${item.kode_barang?.substring(0, 6) || '000000'}T/${item.nup || '1'}/${item.tahun || new Date().getFullYear()}`,
+    kode_vertikal: `${item.kode_barang?.substring(0, 6) || '000000'}T/${item.nup || '1'}/${item.tahun || item.tahun_anggaran || (item.tgl_perolehan ? item.tgl_perolehan.substring(0, 4) : new Date().getFullYear())}`,
     merk_tipe: item.merk && item.tipe ? `${item.merk} - ${item.tipe}` : item.merk || item.tipe || '',
-    tahun: item.tahun_anggaran || item.tgl_perolehan?.substring(0, 4) || new Date().getFullYear()
+    tahun: item.tahun || item.tahun_anggaran || (item.tgl_perolehan ? item.tgl_perolehan.substring(0, 4) : new Date().getFullYear())
   });
   
   const preparePrintContent = async () => {
