@@ -233,7 +233,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         )}
         
         {/* Gold Stripe - after QR for kecil */}
-        {goldStripePosition === 'after_qr' && <GoldStripe />}
+        {showGoldStripe && goldStripePosition === 'after_qr' && <div style={goldStripeStyle} />}
         
         {/* Content Table */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
