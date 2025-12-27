@@ -268,11 +268,6 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
           `;
         }
       }).join('');
-              ` : ''}
-            </div>
-          `;
-        }
-      }).join('');
       
       pagesHtml += `
         <div style="width: ${pageWidth}; min-height: ${pageHeight}; padding: ${MARGIN}mm; background: white; page-break-after: ${pageIdx < pages - 1 ? 'always' : 'auto'}; box-sizing: border-box; position: relative;">
