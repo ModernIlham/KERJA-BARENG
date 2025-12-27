@@ -37,7 +37,7 @@ Testing: Label BMN Print Preview Functionality
 ### Test Execution Summary
 **Date:** December 26, 2025
 **Tester:** Testing Agent
-**Environment:** Production (https://label-manager-6.preview.emergentagent.com)
+**Environment:** Production (https://sticker-system.preview.emergentagent.com)
 
 ### Test Cases Executed:
 
