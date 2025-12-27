@@ -824,19 +824,27 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
           @page { size: ${pageSize}; margin: 0; }
           @media print {
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .no-print { display: none !important; }
           }
+          .print-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 9999;
+          }
+          .print-button:hover { background: #1d4ed8; }
         </style>
       </head>
       <body>
+        <button class="print-button no-print" onclick="window.print()">🖨️ Cetak Sekarang</button>
         ${pagesHtml}
-        <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.print();
-              setTimeout(function() { window.close(); }, 500);
-            }, 500);
-          };
-        </script>
       </body>
       </html>
     `;
