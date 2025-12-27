@@ -100,13 +100,18 @@ export default function LabelBMN() {
 
   // ==================== EFFECTS ====================
   
+  // Initial load
   useEffect(() => {
-    loadAssets();
     loadInstansi();
     loadQrTemplates();
     loadStats();
     loadActiveDesigns();
-  }, [page, filters]); // Reload when page or filters change
+  }, []); // Run only once on mount
+
+  // Load assets when page or filters change
+  useEffect(() => {
+    loadAssets();
+  }, [page, filters.search, filters.status, filters.nup, filters.tahun, filters.nilaiMin, filters.nilaiMax, filters.sortField, filters.sortOrder]); // Specific dependencies
 
   // Poll for PDF status
   useEffect(() => {
