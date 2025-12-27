@@ -410,6 +410,7 @@ export default function LabelBMN() {
           <TabsTrigger value="riwayat" className="flex items-center gap-1"><History className="w-4 h-4" />Riwayat</TabsTrigger>
           <TabsTrigger value="qr-custom" className="flex items-center gap-1"><QrCode className="w-4 h-4" />Kustomisasi QR</TabsTrigger>
           <TabsTrigger value="design" className="flex items-center gap-1"><Settings2 className="w-4 h-4" />Pengaturan Design</TabsTrigger>
+          <TabsTrigger value="canvas" className="flex items-center gap-1"><PencilRuler className="w-4 h-4" />Canvas Editor (Beta)</TabsTrigger>
         </TabsList>
         
         <TabsContent value="daftar">
