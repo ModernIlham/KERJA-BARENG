@@ -122,8 +122,10 @@ export default function StickerCanvasEditor({ design, onSave, onBack }) {
   const selectedElement = elements.find(el => el.id === selectedId);
 
   // ==================== HANDLERS ====================
+  const generateId = useCallback(() => Math.random().toString(36).substr(2, 9), []);
+  
   const addElement = (type, customProps = {}) => {
-    const newId = `${type}_${Date.now()}`;
+    const newId = `${type}_${generateId()}`;
     const defaultProps = {
       text: { x: 5, y: 5, width: 30, height: 8, content: 'Teks Baru', style: { fontSize: 8, color: '#000000', fontFamily: 'Arial' } },
       qr: { x: 5, y: 5, width: 20, height: 20, content: '#{kode_register}', style: {} },
@@ -160,7 +162,7 @@ export default function StickerCanvasEditor({ design, onSave, onBack }) {
   };
 
   const duplicateElement = (element) => {
-    const newId = `${element.type}_${Date.now()}`;
+    const newId = `${element.type}_${generateId()}`;
     const newElement = { ...element, id: newId, x: element.x + 3, y: element.y + 3 };
     setElements([...elements, newElement]);
     setSelectedId(newId);
@@ -711,7 +713,7 @@ export default function StickerCanvasEditor({ design, onSave, onBack }) {
                       <SelectItem value="{nup}">NUP</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-[10px] text-gray-400">Prefix "#" akan otomatis ditambahkan sesuai pengaturan</p>
+                  <p className="text-[10px] text-gray-400">Prefix # akan otomatis ditambahkan sesuai pengaturan</p>
                 </div>
               )}
               

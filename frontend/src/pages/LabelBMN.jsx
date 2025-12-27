@@ -470,7 +470,7 @@ export default function LabelBMN() {
               {selectedItems.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 bg-slate-50 rounded-lg">
                   <Package className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                  <p>Antrian kosong. Pilih aset dari tab "Daftar Aset"</p>
+                  <p>Antrian kosong. Pilih aset dari tab Daftar Aset</p>
                 </div>
               ) : (
                 <div className="space-y-2">
