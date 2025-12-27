@@ -36,15 +36,13 @@ function AssetTable({
   onPreview,
   filters,
   setFilters,
-  loadAssets
+  loadAssets,
+  selectedSize,
+  setSelectedSize
 }) {
   const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
   const [statusFilter, setStatusFilter] = useState('semua');
-  const [selectedSize, setSelectedSize] = useState('sedang');
   const [canvasSize, setCanvasSize] = useState('A4');
-  
-  // Pass size changes up to parent or handle locally? 
-  // For now, these seem to be part of the "view/selection" state.
   
   return (
     <div className="space-y-4">
