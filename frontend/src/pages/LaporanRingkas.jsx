@@ -91,32 +91,6 @@ export default function LaporanRingkas() {
     { name: 'RB', value: ka?.rusak_berat_persen || 5, color: '#dc2626' }
   ];
 
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
-  
-  const handleDownloadPdf = async () => {
-    setDownloadingPdf(true);
-    try {
-      const response = await api.get('/api/laporan-inti/ringkas/pdf', {
-        responseType: 'blob'
-      });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `laporan_ringkas_bmn_${new Date().toISOString().split('T')[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to download PDF:', error);
-      alert('Gagal mengunduh PDF. Silakan coba lagi.');
-    } finally {
-      setDownloadingPdf(false);
-    }
-  };
-
   return (
     <div className="print-container bg-slate-200 min-h-screen py-6">
       {/* Action Bar */}
@@ -131,7 +105,7 @@ export default function LaporanRingkas() {
             </Button>
           </div>
         </div>
-        <p className="text-[10px] text-slate-500 mt-1">💡 Gunakan "Download PDF" untuk hasil cetak terbaik dengan WeasyPrint</p>
+        <p className="text-[10px] text-slate-500 mt-1">💡 Gunakan &quot;Download PDF&quot; untuk hasil cetak terbaik dengan WeasyPrint</p>
       </div>
 
       {/* Single A4 Page */}
