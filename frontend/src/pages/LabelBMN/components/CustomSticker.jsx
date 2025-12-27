@@ -427,7 +427,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         )}
         
         {/* Gold Stripe - after header position */}
-        {goldStripePosition === 'after_header' && <GoldStripe />}
+        {showGoldStripe && goldStripePosition === 'after_header' && <div style={goldStripeStyle} />}
         
         {/* Content Table */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
