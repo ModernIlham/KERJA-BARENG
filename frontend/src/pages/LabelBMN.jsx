@@ -143,7 +143,7 @@ export default function LabelBMN() {
         }
       });
       setAssets(res.data.data);
-      setTotalPages(res.data.meta.total_pages);
+      setTotalPages(res.data.total_pages || res.data.meta?.total_pages || 1);
     } catch (err) {
       toast.error('Gagal memuat data aset');
     } finally {
