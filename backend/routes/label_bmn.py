@@ -332,11 +332,15 @@ async def get_assets_for_labeling(
 async def get_all_assets_for_selection(
     search: str = "",
     status_cetak: str = "",
+    filter_nup: str = "",
+    filter_tahun: str = "",
+    filter_nilai_min: float = None,
+    filter_nilai_max: float = None,
     current_user: str = Depends(get_current_user)
 ):
     """
     Get all assets (without pagination) for bulk selection.
-    Returns minimal data for selection: id, nama_barang, kode_barang, kode_register, merk, tipe, nup, tahun, tgl_perolehan
+    Supports all advanced filters to match the main assets endpoint.
     """
     query = {"status_aset": {"$ne": "Dihapuskan"}}
     
@@ -347,6 +351,28 @@ async def get_all_assets_for_selection(
             {"kode_register": {"$regex": search, "$options": "i"}},
             {"merk": {"$regex": search, "$options": "i"}}
         ]
+    
+    # Advanced filters
+    if filter_nup:
+        query["nup"] = filter_nup
+    
+    if filter_tahun:
+        year_filter = [
+            {"tgl_perolehan": {"$regex": f"^{filter_tahun}", "$options": "i"}},
+            {"tahun_anggaran": filter_tahun}
+        ]
+        if query.get("$or"):
+            query["$and"] = [{"$or": query.pop("$or")}, {"$or": year_filter}]
+        else:
+            query["$or"] = year_filter
+    
+    if filter_nilai_min is not None:
+        query["nilai_perolehan"] = query.get("nilai_perolehan", {})
+        query["nilai_perolehan"]["$gte"] = filter_nilai_min
+    
+    if filter_nilai_max is not None:
+        query["nilai_perolehan"] = query.get("nilai_perolehan", {})
+        query["nilai_perolehan"]["$lte"] = filter_nilai_max
     
     pipeline = [
         {"$match": query},
