@@ -994,46 +994,145 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
           return (
             <div 
               key={pageIdx}
-              className="print-page bg-white relative"
+              className="print-page"
               style={{ 
                 width: `${canvas.width}mm`, 
                 height: `${canvas.height}mm`,
-                pageBreakAfter: pageIdx < pages - 1 ? 'always' : 'auto'
+                pageBreakAfter: pageIdx < pages - 1 ? 'always' : 'auto',
+                position: 'relative',
+                background: 'white',
+                padding: `${MARGIN}mm`
               }}
             >
-              {/* Crop Marks for cutting */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
-                {/* Corner crop marks */}
-                <line x1="0" y1={`${CROP_MARK_LENGTH}mm`} x2="0" y2="0" stroke="black" strokeWidth="0.3" />
-                <line x1="0" y1="0" x2={`${CROP_MARK_LENGTH}mm`} y2="0" stroke="black" strokeWidth="0.3" />
-                <line x1={`${canvas.width}mm`} y1={`${CROP_MARK_LENGTH}mm`} x2={`${canvas.width}mm`} y2="0" stroke="black" strokeWidth="0.3" />
-                <line x1={`${canvas.width}mm`} y1="0" x2={`${canvas.width - CROP_MARK_LENGTH}mm`} y2="0" stroke="black" strokeWidth="0.3" />
-                <line x1="0" y1={`${canvas.height - CROP_MARK_LENGTH}mm`} x2="0" y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
-                <line x1="0" y1={`${canvas.height}mm`} x2={`${CROP_MARK_LENGTH}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
-                <line x1={`${canvas.width}mm`} y1={`${canvas.height - CROP_MARK_LENGTH}mm`} x2={`${canvas.width}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
-                <line x1={`${canvas.width}mm`} y1={`${canvas.height}mm`} x2={`${canvas.width - CROP_MARK_LENGTH}mm`} y2={`${canvas.height}mm`} stroke="black" strokeWidth="0.3" />
-              </svg>
-              
-              {/* Sticker Grid with cutting marks */}
+              {/* Sticker Grid */}
               <div 
-                className="absolute"
                 style={{ 
-                  left: `${MARGIN}mm`, 
-                  top: `${MARGIN}mm`,
                   display: 'grid',
                   gap: `${GAP}mm`,
                   gridTemplateColumns: `repeat(${cols}, ${size.width}mm)`
                 }}
               >
-                {pageItems.map((item, idx) => (
-                  <div key={idx} style={{ 
-                    width: `${size.width}mm`, 
-                    height: `${size.height}mm`,
-                    overflow: 'hidden'
-                  }}>
-                    {renderSticker(item, prepareStickerData(item))}
-                  </div>
-                ))}
+                {pageItems.map((item, idx) => {
+                  const stickerData = prepareStickerData(item);
+                  const sizeType = item.ukuran || 'sedang';
+                  const design = designs[sizeType] || BASIC_DEFAULTS[sizeType];
+                  const isPortrait = sizeType === 'kecil';
+                  
+                  // Render sticker with inline styles for print
+                  return (
+                    <div 
+                      key={idx} 
+                      style={{ 
+                        width: `${size.width}mm`, 
+                        height: `${size.height}mm`,
+                        border: '0.5px solid #e0e0e0',
+                        overflow: 'hidden',
+                        background: 'white',
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: isPortrait ? 'column' : 'row',
+                        padding: '1mm'
+                      }}
+                    >
+                      {isPortrait ? (
+                        /* Portrait layout (kecil) */
+                        <>
+                          <div style={{ 
+                            width: '100%', 
+                            height: '60%', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center' 
+                          }}>
+                            <div 
+                              id={`qr-print-${pageIdx}-${idx}`}
+                              style={{ 
+                                width: `${Math.min(size.width * 0.8, size.height * 0.5)}mm`,
+                                height: `${Math.min(size.width * 0.8, size.height * 0.5)}mm`,
+                                background: '#f0f0f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '6px'
+                              }}
+                            >
+                              QR: #{stickerData.kode_register}
+                            </div>
+                          </div>
+                          <div style={{ 
+                            width: '100%', 
+                            height: '40%', 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
+                            padding: '1mm'
+                          }}>
+                            <div style={{ fontSize: '5px', fontWeight: 'bold' }}>NUP: {stickerData.nup || '1'}</div>
+                            <div style={{ fontSize: '4px', wordBreak: 'break-all' }}>#{stickerData.kode_register}</div>
+                          </div>
+                        </>
+                      ) : (
+                        /* Landscape layout (sedang, besar) */
+                        <>
+                          <div style={{ 
+                            width: `${size.height * 0.85}mm`,
+                            height: `${size.height - 2}mm`,
+                            flexShrink: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: '1mm'
+                          }}>
+                            <div 
+                              id={`qr-print-${pageIdx}-${idx}`}
+                              style={{ 
+                                width: `${size.height * 0.8}mm`,
+                                height: `${size.height * 0.8}mm`,
+                                background: '#f0f0f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '5px',
+                                textAlign: 'center',
+                                wordBreak: 'break-all'
+                              }}
+                            >
+                              QR: #{stickerData.kode_register?.substring(0, 10)}
+                            </div>
+                          </div>
+                          <div style={{ 
+                            flex: 1, 
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            overflow: 'hidden',
+                            paddingRight: '1mm'
+                          }}>
+                            {instansi?.nama && (
+                              <div style={{ fontSize: '5px', fontWeight: 'bold', marginBottom: '0.5mm' }}>
+                                {instansi.nama.substring(0, 25)}
+                              </div>
+                            )}
+                            <div style={{ fontSize: '5px', fontWeight: 'bold', marginBottom: '0.5mm', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {stickerData.nama_barang?.substring(0, 30)}
+                            </div>
+                            <div style={{ fontSize: '4px', color: '#333', marginBottom: '0.5mm' }}>
+                              #{stickerData.kode_register}
+                            </div>
+                            <div style={{ fontSize: '3.5px', color: '#666' }}>
+                              {stickerData.merk_tipe?.substring(0, 25)} | {stickerData.tahun}
+                            </div>
+                            <div style={{ fontSize: '3.5px', color: '#666' }}>
+                              {stickerData.kode_vertikal}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
