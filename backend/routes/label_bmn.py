@@ -5,9 +5,11 @@ Features:
 - Parent-Child asset relationship for accessories
 - Print tracking (count, dates, user)
 - Multiple sticker sizes (small, medium, large)
+- Background PDF generation
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Body
+from fastapi import APIRouter, HTTPException, Depends, Body, BackgroundTasks
+from fastapi.responses import FileResponse
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 from auth import get_current_user
@@ -16,11 +18,26 @@ import os
 from bson import ObjectId
 from datetime import datetime, timezone
 import math
+import uuid
+import asyncio
+from reportlab.lib.pagesizes import A4, A3
+from reportlab.lib.units import mm
+from reportlab.pdfgen import canvas as pdf_canvas
+from reportlab.lib.utils import ImageReader
+import qrcode
+from io import BytesIO
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Store for background job status
+pdf_jobs = {}
+
+# PDF output directory
+PDF_OUTPUT_DIR = "/app/backend/generated_pdfs"
+os.makedirs(PDF_OUTPUT_DIR, exist_ok=True)
 
 
 # --- Helper Functions ---
