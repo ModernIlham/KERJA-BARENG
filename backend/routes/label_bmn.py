@@ -1398,7 +1398,8 @@ async def download_pdf(job_id: str, current_user: str = Depends(get_current_user
     
     job = pdf_jobs[job_id]
     if job["status"] != "completed":
-        raise HTTPException(status_code=400, detail=f"PDF not ready. Status: {job[\"status\"]}")
+        job_status = job["status"]
+        raise HTTPException(status_code=400, detail=f"PDF not ready. Status: {job_status}")
     
     pdf_path = os.path.join(PDF_OUTPUT_DIR, f"{job_id}.pdf")
     if not os.path.exists(pdf_path):
