@@ -207,10 +207,17 @@ async def get_assets_for_labeling(
     status_cetak: str = "",  # belum_cetak, sudah_cetak, semua
     page: int = 1,
     limit: int = 50,
+    sort_field: str = "kode_barang",
+    sort_order: str = "asc",
+    filter_nup: str = "",
+    filter_tahun: str = "",
+    filter_nilai_min: float = None,
+    filter_nilai_max: float = None,
     current_user: str = Depends(get_current_user)
 ):
     """
     Get assets list with print status for label management
+    Supports advanced filtering and sorting
     """
     skip = (page - 1) * limit
     query = {"status_aset": {"$ne": "Dihapuskan"}}
@@ -225,6 +232,31 @@ async def get_assets_for_labeling(
     
     if kategori:
         query["golongan_barang"] = {"$regex": kategori, "$options": "i"}
+    
+    # Advanced filters
+    if filter_nup:
+        query["nup"] = filter_nup
+    
+    if filter_tahun:
+        # Filter by year from tgl_perolehan or tahun_anggaran
+        query["$or"] = query.get("$or", [])
+        year_filter = [
+            {"tgl_perolehan": {"$regex": f"^{filter_tahun}", "$options": "i"}},
+            {"tahun_anggaran": filter_tahun}
+        ]
+        if query.get("$or"):
+            # Combine with existing $or
+            query["$and"] = [{"$or": query.pop("$or")}, {"$or": year_filter}]
+        else:
+            query["$or"] = year_filter
+    
+    if filter_nilai_min is not None:
+        query["nilai_perolehan"] = query.get("nilai_perolehan", {})
+        query["nilai_perolehan"]["$gte"] = filter_nilai_min
+    
+    if filter_nilai_max is not None:
+        query["nilai_perolehan"] = query.get("nilai_perolehan", {})
+        query["nilai_perolehan"]["$lte"] = filter_nilai_max
     
     # Get assets with aggregation to include print info and child count
     pipeline = [
@@ -267,8 +299,14 @@ async def get_assets_for_labeling(
     count_pipeline = pipeline.copy()
     count_pipeline.append({"$count": "total"})
     
+    # Sorting
+    sort_direction = 1 if sort_order == "asc" else -1
+    valid_sort_fields = ["kode_barang", "nama_barang", "nup", "tgl_perolehan", "nilai_perolehan", "nilai_buku", "print_count"]
+    if sort_field not in valid_sort_fields:
+        sort_field = "kode_barang"
+    
     pipeline.extend([
-        {"$sort": {"kode_barang": 1, "nup": 1}},
+        {"$sort": {sort_field: sort_direction, "nup": 1}},
         {"$skip": skip},
         {"$limit": limit}
     ])
