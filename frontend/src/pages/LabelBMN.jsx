@@ -709,20 +709,106 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
     tahun: item.tahun_anggaran || item.tgl_perolehan?.substring(0, 4) || new Date().getFullYear()
   });
   
-  const handlePrint = () => {
+  const handlePrint = async () => {
     // Get print area content
     const printArea = printRef.current;
     if (!printArea) return;
     
+    // First, generate QR codes as data URLs
+    const qrDataUrls = {};
+    const qrPromises = items.map(async (item, idx) => {
+      const pageIdx = Math.floor(idx / itemsPerPage);
+      const itemIdx = idx % itemsPerPage;
+      const qrData = item.kode_register || item.kode_barang || 'UNKNOWN';
+      
+      try {
+        const qr = new QRCodeStyling({
+          width: 200,
+          height: 200,
+          data: `#${qrData}`,
+          dotsOptions: { color: "#000000", type: "square" },
+          backgroundOptions: { color: "#ffffff" },
+          qrOptions: { errorCorrectionLevel: "M" }
+        });
+        
+        const blob = await qr.getRawData("png");
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            qrDataUrls[`${pageIdx}-${itemIdx}`] = reader.result;
+            resolve();
+          };
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        return Promise.resolve();
+      }
+    });
+    
+    await Promise.all(qrPromises);
+    
     // Create a new window for printing
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) {
-      alert('Pop-up blocked. Please allow pop-ups for this site.');
+      toast.error('Pop-up diblokir. Izinkan pop-up untuk situs ini.');
       return;
     }
     
     // Get the canvas size for page setup
     const pageSize = canvasSize === 'A3' ? 'A3 portrait' : 'A4 portrait';
+    const pageWidth = canvasSize === 'A3' ? '297mm' : '210mm';
+    const pageHeight = canvasSize === 'A3' ? '420mm' : '297mm';
+    
+    // Build HTML content with QR codes
+    let pagesHtml = '';
+    const size = STICKER_SIZES[items[0]?.ukuran || 'sedang'];
+    const isPortrait = (items[0]?.ukuran || 'sedang') === 'kecil';
+    
+    for (let pageIdx = 0; pageIdx < pages; pageIdx++) {
+      const pageItems = items.slice(pageIdx * itemsPerPage, (pageIdx + 1) * itemsPerPage);
+      
+      let stickersHtml = pageItems.map((item, idx) => {
+        const stickerData = prepareStickerData(item);
+        const qrUrl = qrDataUrls[`${pageIdx}-${idx}`] || '';
+        
+        if (isPortrait) {
+          return `
+            <div style="width: ${size.width}mm; height: ${size.height}mm; border: 0.5px solid #ccc; background: white; display: flex; flex-direction: column; padding: 1mm; overflow: hidden;">
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+                ${qrUrl ? `<img src="${qrUrl}" style="width: ${size.width * 0.7}mm; height: ${size.width * 0.7}mm;" />` : `<div style="width: ${size.width * 0.7}mm; height: ${size.width * 0.7}mm; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 6px;">QR</div>`}
+              </div>
+              <div style="text-align: center; padding: 1mm;">
+                <div style="font-size: 5px; font-weight: bold;">NUP: ${stickerData.nup || '1'}</div>
+                <div style="font-size: 4px;">#${stickerData.kode_register || ''}</div>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div style="width: ${size.width}mm; height: ${size.height}mm; border: 0.5px solid #ccc; background: white; display: flex; flex-direction: row; padding: 1mm; overflow: hidden;">
+              <div style="width: ${size.height * 0.85}mm; height: ${size.height - 2}mm; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${qrUrl ? `<img src="${qrUrl}" style="width: ${size.height * 0.8}mm; height: ${size.height * 0.8}mm;" />` : `<div style="width: ${size.height * 0.8}mm; height: ${size.height * 0.8}mm; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 6px;">QR</div>`}
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 1mm; overflow: hidden;">
+                ${instansi?.nama ? `<div style="font-size: 5px; font-weight: bold; margin-bottom: 0.5mm;">${instansi.nama.substring(0, 25)}</div>` : ''}
+                <div style="font-size: 5px; font-weight: bold; margin-bottom: 0.5mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${stickerData.nama_barang?.substring(0, 30) || ''}</div>
+                <div style="font-size: 4px; color: #333; margin-bottom: 0.5mm;">#${stickerData.kode_register || ''}</div>
+                <div style="font-size: 3.5px; color: #666;">${stickerData.merk_tipe?.substring(0, 25) || ''} | ${stickerData.tahun || ''}</div>
+                <div style="font-size: 3.5px; color: #666;">${stickerData.kode_vertikal || ''}</div>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+      
+      pagesHtml += `
+        <div class="print-page" style="width: ${pageWidth}; height: ${pageHeight}; padding: ${MARGIN}mm; background: white; page-break-after: ${pageIdx < pages - 1 ? 'always' : 'auto'}; position: relative;">
+          <div style="display: grid; gap: ${GAP}mm; grid-template-columns: repeat(${cols}, ${size.width}mm);">
+            ${stickersHtml}
+          </div>
+        </div>
+      `;
+    }
     
     // Build the print document
     printWindow.document.write(`
@@ -731,84 +817,37 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
       <head>
         <title>Cetak Label BMN</title>
         <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          
+          * { margin: 0; padding: 0; box-sizing: border-box; }
           html, body {
             width: 100%;
-            height: auto;
             background: white;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            color-adjust: exact !important;
           }
-          
-          @page {
-            size: ${pageSize};
-            margin: 0;
-          }
-          
-          .print-page {
-            width: ${canvasSize === 'A3' ? '297mm' : '210mm'};
-            height: ${canvasSize === 'A3' ? '420mm' : '297mm'};
-            padding: 8mm;
-            background: white;
-            page-break-after: always;
-            position: relative;
-            overflow: hidden;
-          }
-          
-          .print-page:last-child {
-            page-break-after: auto;
-          }
-          
-          .sticker-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4mm;
-            align-content: flex-start;
-          }
-          
-          .sticker-item {
-            border: 0.5px solid #e0e0e0;
-            overflow: hidden;
-            background: white;
-          }
-          
+          @page { size: ${pageSize}; margin: 0; }
           @media print {
-            body {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
+            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           }
         </style>
       </head>
       <body>
-        ${printArea.innerHTML}
+        ${pagesHtml}
       </body>
       </html>
     `);
     
     printWindow.document.close();
     
-    // Wait for content to load, then print
-    printWindow.onload = () => {
+    // Wait for images to load, then print
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
       setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-        // Close after print dialog
-        printWindow.onafterprint = () => printWindow.close();
-        // Fallback close after delay
-        setTimeout(() => {
-          if (!printWindow.closed) printWindow.close();
-        }, 1000);
-      }, 500);
-    };
+        if (!printWindow.closed) printWindow.close();
+      }, 2000);
+    }, 1000);
     
-    if (onPrintComplete) setTimeout(() => onPrintComplete(), 1000);
+    if (onPrintComplete) setTimeout(() => onPrintComplete(), 1500);
   };
   
   const renderSticker = (item, stickerData) => {
