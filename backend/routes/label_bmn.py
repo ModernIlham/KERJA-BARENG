@@ -11,6 +11,9 @@ Features:
 from fastapi import APIRouter, HTTPException, Depends, Body, BackgroundTasks
 from fastapi.responses import FileResponse
 from typing import List, Optional, Dict, Any
+import weasyprint
+from weasyprint import HTML, CSS
+
 from pydantic import BaseModel
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
