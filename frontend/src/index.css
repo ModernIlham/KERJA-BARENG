@@ -172,9 +172,30 @@ code {
     page-break-after: auto !important;
   }
   
+  /* Show screen-hidden elements during print */
+  .screen-hidden {
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    z-index: 99999 !important;
+  }
+  
   /* Page Setup */
   @page {
     size: A4 portrait;
     margin: 0;
   }
+}
+
+/* Hide screen-hidden class on screen */
+.screen-hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: -1;
 }
