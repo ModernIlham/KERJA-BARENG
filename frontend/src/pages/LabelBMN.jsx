@@ -385,6 +385,25 @@ export default function LabelBMN() {
     setShowPrintPage(true);
   };
 
+  const handleSaveCanvasDesign = async (designData) => {
+    try {
+      // Use a prompt to get name, or default
+      const name = prompt("Nama Design:", "Canvas Design " + new Date().toLocaleDateString());
+      if (!name) return;
+
+      await api.post('/api/label-bmn/sticker-design', {
+        name: name,
+        size_type: "custom",
+        layout: "custom",
+        ...designData
+      });
+      toast.success("Design canvas berhasil disimpan");
+      loadActiveDesigns(); // Reload designs
+    } catch (err) {
+      toast.error("Gagal menyimpan design");
+    }
+  };
+
   // ==================== RENDER ====================
 
   return (
