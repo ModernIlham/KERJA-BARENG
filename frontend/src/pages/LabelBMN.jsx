@@ -874,18 +874,20 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
       {/* 
         AREA CETAK - Hanya ini yang tampil saat mencetak
         ID "print-area" digunakan oleh CSS @media print
-        Disembunyikan di layar dengan opacity:0 dan pointer-events:none
+        Disembunyikan di layar dengan class 'screen-hidden'
         tapi tetap di-render di DOM agar bisa dicetak
       */}
       <div 
         id="print-area" 
         ref={printRef} 
+        className="screen-hidden"
         style={{ 
-          position: 'absolute', 
-          left: '-9999px', 
+          position: 'fixed',
+          left: 0,
           top: 0,
-          opacity: 0,
-          pointerEvents: 'none'
+          width: '210mm',
+          background: 'white',
+          zIndex: -1
         }}
       >
         {Array.from({ length: pages }).map((_, pageIdx) => {
