@@ -419,8 +419,3 @@ async def get_laporan_bmn_pdf(current_user = Depends(get_current_user)):
             "Content-Disposition": f"attachment; filename=laporan_bmn_{datetime.now().strftime('%Y%m%d')}.pdf"
         }
     )
-
-        "kib": kib_list
-    }
-    
-    return sanitize_json(summary)
