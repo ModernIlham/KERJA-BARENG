@@ -174,24 +174,6 @@ export default function LaporanInti() {
   const { ringkasan_eksekutif: re, rekapitulasi_kategori: rk, kondisi_aset: ka, pelabelan_aset: pa, pengamanan_aset: pn, persediaan: ps, dasar_hukum: dh, header } = data;
   const at = re.aset_tetap;
   const totalPages = 4;
-      });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `laporan_inti_bmn_${new Date().toISOString().split('T')[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to download PDF:', error);
-      alert('Gagal mengunduh PDF. Silakan coba lagi.');
-    } finally {
-      setDownloadingPdf(false);
-    }
-  };
 
   return (
     <div className="print-container bg-slate-200 min-h-screen py-6">
@@ -207,7 +189,7 @@ export default function LaporanInti() {
             </Button>
           </div>
         </div>
-        <p className="text-[10px] text-slate-500 mt-1">💡 Gunakan "Download PDF" untuk hasil cetak terbaik dengan WeasyPrint</p>
+        <p className="text-[10px] text-slate-500 mt-1">💡 Gunakan &quot;Download PDF&quot; untuk hasil cetak terbaik dengan WeasyPrint</p>
       </div>
 
       <div ref={reportRef} className="print-content">
