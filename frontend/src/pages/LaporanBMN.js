@@ -4,6 +4,33 @@ import { Button } from '../components/ui/button';
 import { Loader2, Printer, Download, ArrowLeft, Shield, CheckCircle, AlertTriangle, XCircle, FileText, TrendingUp, TrendingDown, Building2 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 
+// PDF Download Handler
+const usePdfDownload = () => {
+  const [downloading, setDownloading] = useState(false);
+  
+  const downloadPdf = async (endpoint, filename) => {
+    setDownloading(true);
+    try {
+      const response = await api.get(endpoint, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      alert('Gagal mengunduh PDF. Silakan coba lagi.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+  
+  return { downloading, downloadPdf };
+};
+
 // --- Sub-components adapted from the provided design ---
 
 const GovReportHeader = ({ ministryName, institutionName, address, reportTitle, regulation, reportYear, reportNumber }) => {
