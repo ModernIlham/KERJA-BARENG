@@ -647,7 +647,7 @@ const BASIC_DEFAULTS = {
   besar: { layout: 'landscape', width: 94.9, height: 32.2, size_type: 'besar' }
 };
 
-const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintComplete, activeDesigns }) => {
+const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintComplete, activeDesigns, onGeneratePdf, generatingPdf }) => {
   const [loading, setLoading] = useState(true);
   const [designs, setDesigns] = useState(activeDesigns || BASIC_DEFAULTS);
   const printRef = useRef(null);
