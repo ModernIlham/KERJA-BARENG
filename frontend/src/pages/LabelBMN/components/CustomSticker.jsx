@@ -359,7 +359,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         minWidth: 0
       }}>
         {/* Gold Stripe - after QR position */}
-        {goldStripePosition === 'after_qr' && <GoldStripe />}
+        {showGoldStripe && goldStripePosition === 'after_qr' && <div style={goldStripeStyle} />}
         
         {/* Header Row: Logo | Nama Instansi + Kode UAKPB */}
         {showHeader && (
