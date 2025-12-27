@@ -481,6 +481,17 @@ export default function LabelBMN() {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold">Antrian Cetak ({selectedItems.length})</h3>
                 <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs text-gray-500 whitespace-nowrap">Ukuran Semua:</Label>
+                    <Select 
+                      value={selectedItems[0]?.ukuran || 'sedang'} 
+                      onValueChange={(val) => setSelectedItems(prev => prev.map(item => ({ ...item, ukuran: val })))}
+                      disabled={selectedItems.length === 0}
+                    >
+                      <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                      <SelectContent>{Object.entries(STICKER_SIZES).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
                   <Select value={canvasSize} onValueChange={setCanvasSize}>
                     <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                     <SelectContent>{Object.entries(CANVAS_SIZES).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
