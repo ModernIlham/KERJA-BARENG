@@ -1170,3 +1170,243 @@ async def get_active_qr_template(current_user: str = Depends(get_current_user)):
         "logoSize": 0.3,
         "logoBgEnabled": True
     }
+
+
+
+# ==================== PDF BACKGROUND GENERATION ====================
+
+class PDFGenerationRequest(BaseModel):
+    """Request model for PDF generation"""
+    items: List[Dict[str, Any]]
+    canvas_size: str = "A4"
+    qr_settings: Optional[Dict[str, Any]] = None
+
+class PDFJobStatus(BaseModel):
+    """Status model for PDF job"""
+    job_id: str
+    status: str  # pending, processing, completed, failed
+    progress: int = 0
+    total: int = 0
+    pdf_url: Optional[str] = None
+    error: Optional[str] = None
+    created_at: str
+    completed_at: Optional[str] = None
+
+
+def generate_qr_code(data: str, size: int = 100) -> BytesIO:
+    """Generate QR code as image"""
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=0,
+    )
+    qr.add_data(f"#{data}")
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Resize to target size
+    img = img.resize((size, size))
+    
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+    return buffer
+
+
+async def generate_pdf_task(job_id: str, items: List[Dict], canvas_size: str, instansi: Dict, user_id: str):
+    """Background task to generate PDF"""
+    try:
+        pdf_jobs[job_id]["status"] = "processing"
+        pdf_jobs[job_id]["total"] = len(items)
+        
+        # Page sizes
+        page_sizes = {
+            "A4": A4,
+            "A3": A3
+        }
+        page_size = page_sizes.get(canvas_size, A4)
+        
+        # Sticker sizes in mm
+        sticker_sizes = {
+            "kecil": {"width": 23.8, "height": 39.8},
+            "sedang": {"width": 69.8, "height": 22.1},
+            "besar": {"width": 94.9, "height": 32.2}
+        }
+        
+        # Create PDF
+        pdf_path = os.path.join(PDF_OUTPUT_DIR, f"{job_id}.pdf")
+        c = pdf_canvas.Canvas(pdf_path, pagesize=page_size)
+        
+        page_width, page_height = page_size
+        margin = 8 * mm
+        gap = 4 * mm
+        
+        for idx, item in enumerate(items):
+            size_type = item.get("ukuran", "sedang")
+            size = sticker_sizes.get(size_type, sticker_sizes["sedang"])
+            
+            sticker_width = size["width"] * mm
+            sticker_height = size["height"] * mm
+            
+            # Calculate grid
+            cols = int((page_width - 2 * margin + gap) / (sticker_width + gap))
+            rows = int((page_height - 2 * margin + gap) / (sticker_height + gap))
+            items_per_page = cols * rows
+            
+            # Position on page
+            item_on_page = idx % items_per_page
+            col = item_on_page % cols
+            row = item_on_page // cols
+            
+            # New page if needed
+            if idx > 0 and item_on_page == 0:
+                c.showPage()
+            
+            # Calculate position
+            x = margin + col * (sticker_width + gap)
+            y = page_height - margin - (row + 1) * sticker_height - row * gap
+            
+            # Draw sticker background
+            c.setStrokeColorRGB(0.8, 0.8, 0.8)
+            c.setLineWidth(0.5)
+            c.rect(x, y, sticker_width, sticker_height, stroke=1, fill=0)
+            
+            # Generate QR code
+            qr_data = item.get("kode_register") or item.get("kode_barang", "UNKNOWN")
+            qr_size = int(min(sticker_width, sticker_height) * 0.6 / mm)
+            qr_buffer = generate_qr_code(qr_data, qr_size)
+            qr_img = ImageReader(qr_buffer)
+            
+            # Draw QR code
+            qr_x = x + 2 * mm
+            qr_y = y + (sticker_height - qr_size * mm) / 2
+            c.drawImage(qr_img, qr_x, qr_y, qr_size * mm, qr_size * mm)
+            
+            # Draw text
+            c.setFont("Helvetica-Bold", 6)
+            text_x = qr_x + qr_size * mm + 2 * mm
+            text_y = y + sticker_height - 4 * mm
+            
+            # Institution name
+            if instansi:
+                c.drawString(text_x, text_y, instansi.get("nama", "")[:30])
+                text_y -= 3 * mm
+            
+            # Asset name
+            c.setFont("Helvetica", 5)
+            asset_name = item.get("nama_barang", "")[:35]
+            c.drawString(text_x, text_y, asset_name)
+            text_y -= 2.5 * mm
+            
+            # Code
+            c.setFont("Helvetica", 4)
+            c.drawString(text_x, text_y, f"#{qr_data}")
+            
+            # Update progress
+            pdf_jobs[job_id]["progress"] = idx + 1
+            
+            # Small delay to prevent blocking
+            if idx % 50 == 0:
+                await asyncio.sleep(0.01)
+        
+        c.save()
+        
+        # Update job status
+        pdf_jobs[job_id]["status"] = "completed"
+        pdf_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+        pdf_jobs[job_id]["pdf_url"] = f"/api/label-bmn/pdf/{job_id}"
+        
+        # Record print logs
+        db_client = AsyncIOMotorClient(mongo_url)
+        db_async = db_client[os.environ["DB_NAME"]]
+        
+        for item in items:
+            log = {
+                "barang_id": item.get("id"),
+                "ukuran": item.get("ukuran", "sedang"),
+                "printed_at": datetime.now(timezone.utc).isoformat(),
+                "printed_by": user_id,
+                "print_type": "pdf_batch",
+                "job_id": job_id
+            }
+            await db_async.label_print_logs.insert_one(log)
+        
+        db_client.close()
+        
+    except Exception as e:
+        pdf_jobs[job_id]["status"] = "failed"
+        pdf_jobs[job_id]["error"] = str(e)
+        pdf_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+
+
+@router.post("/generate-pdf")
+async def start_pdf_generation(
+    request: PDFGenerationRequest,
+    background_tasks: BackgroundTasks,
+    current_user: str = Depends(get_current_user)
+):
+    """Start PDF generation in background"""
+    job_id = str(uuid.uuid4())
+    
+    # Get instansi info
+    instansi = await db.instansi.find_one({})
+    instansi_data = sanitize_doc(instansi) if instansi else {}
+    
+    # Get user ID
+    user_id = str(current_user.id) if hasattr(current_user, "id") else str(current_user)
+    
+    # Create job record
+    pdf_jobs[job_id] = {
+        "job_id": job_id,
+        "status": "pending",
+        "progress": 0,
+        "total": len(request.items),
+        "pdf_url": None,
+        "error": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": None
+    }
+    
+    # Start background task
+    background_tasks.add_task(
+        generate_pdf_task,
+        job_id,
+        request.items,
+        request.canvas_size,
+        instansi_data,
+        user_id
+    )
+    
+    return {"job_id": job_id, "message": "PDF generation started"}
+
+
+@router.get("/pdf-status/{job_id}")
+async def get_pdf_status(job_id: str, current_user: str = Depends(get_current_user)):
+    """Get PDF generation job status"""
+    if job_id not in pdf_jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    return pdf_jobs[job_id]
+
+
+@router.get("/pdf/{job_id}")
+async def download_pdf(job_id: str, current_user: str = Depends(get_current_user)):
+    """Download generated PDF"""
+    if job_id not in pdf_jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    job = pdf_jobs[job_id]
+    if job["status"] != "completed":
+        raise HTTPException(status_code=400, detail=f"PDF not ready. Status: {job[\"status\"]}")
+    
+    pdf_path = os.path.join(PDF_OUTPUT_DIR, f"{job_id}.pdf")
+    if not os.path.exists(pdf_path):
+        raise HTTPException(status_code=404, detail="PDF file not found")
+    
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        filename=f"label_bmn_{job_id[:8]}.pdf"
+    )
+
