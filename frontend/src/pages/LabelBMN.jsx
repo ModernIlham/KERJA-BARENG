@@ -542,6 +542,7 @@ export default function LabelBMN() {
             qrTemplates={qrTemplates} 
             onQrTemplatesChange={loadQrTemplates} 
             api={api}
+            onDesignSaved={loadActiveDesigns}
           />
         </TabsContent>
         
