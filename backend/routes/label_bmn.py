@@ -1182,6 +1182,7 @@ class PDFGenerationRequest(BaseModel):
     items: List[Dict[str, Any]]
     canvas_size: str = "A4"
     qr_settings: Optional[Dict[str, Any]] = None
+    html_content: Optional[str] = None  # New field for direct HTML-to-PDF
 
 class PDFJobStatus(BaseModel):
     """Status model for PDF job"""
