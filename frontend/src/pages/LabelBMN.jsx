@@ -814,8 +814,21 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>Tutup</Button>
+            {onGeneratePdf && (
+              <Button 
+                onClick={onGeneratePdf} 
+                disabled={generatingPdf}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {generatingPdf ? (
+                  <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Memproses...</>
+                ) : (
+                  <><Save className="w-4 h-4 mr-2" />Generate PDF (Background)</>
+                )}
+              </Button>
+            )}
             <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
-              <Printer className="w-4 h-4 mr-2" />Cetak ({pages} Halaman)
+              <Printer className="w-4 h-4 mr-2" />Cetak Langsung ({pages} Hal)
             </Button>
           </div>
         </div>
