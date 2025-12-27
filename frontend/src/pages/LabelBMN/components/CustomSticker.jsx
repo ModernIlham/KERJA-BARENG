@@ -319,7 +319,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
               justifyContent: 'flex-end',
               borderLeft: `1px solid ${borderColor}`
             }}>
-              {isBesar ? data.nup || '1' : `NUP: ${data.nup || '1'}`}
+              {isBesar ? data.nup || '1' : data.nup || '1'}
             </div>
           </div>
           

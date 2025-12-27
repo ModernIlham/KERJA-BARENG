@@ -244,7 +244,7 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
                       ${stickerData.kode_barang || '0000000000'}
                     </div>
                     <div style="min-width: ${isBesar ? '18mm' : '14mm'}; padding: 1mm 2mm; font-size: ${isBesar ? '11pt' : '9pt'}; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; border-left: 1px solid ${borderColor};">
-                      ${isBesar ? (stickerData.nup || '1') : `NUP: ${stickerData.nup || '1'}`}
+                      ${isBesar ? (stickerData.nup || '1') : (stickerData.nup || '1')}
                     </div>
                   </div>
                   
