@@ -477,6 +477,10 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
       toast.error('Gagal menyimpan design: ' + (err.response?.data?.detail || err.message));
     } finally {
       setSaving(false);
+      // Notify parent to reload active designs for printing
+      if (onDesignSaved) {
+        onDesignSaved();
+      }
     }
   };
   
