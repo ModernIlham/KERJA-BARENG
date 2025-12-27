@@ -524,6 +524,10 @@ function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplate
         [selectedSizeType]: selectedDesign.id
       }));
       toast.success('Design aktif berhasil diatur');
+      // Notify parent to reload active designs for printing
+      if (onDesignSaved) {
+        onDesignSaved();
+      }
     } catch (err) {
       toast.error('Gagal mengatur design aktif');
     }
