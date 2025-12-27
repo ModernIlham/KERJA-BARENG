@@ -488,10 +488,7 @@ export default function LabelBMN() {
           <Card>
             <CardContent className="p-0">
               <StickerCanvasEditor 
-                onSave={(design) => {
-                  console.log("Saving design", design);
-                  toast.success("Design saved (Mock)");
-                }}
+                onSave={handleSaveCanvasDesign}
               />
             </CardContent>
           </Card>
