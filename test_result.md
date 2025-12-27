@@ -75,6 +75,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Canvas Editor comprehensively tested: ✅ 3-panel layout loads correctly, ✅ Template selection dialog with 5 options (Kecil, Sedang, Besar, A4, Custom), ✅ Canvas size changes to 94.9x32.2mm for Stiker Besar template, ✅ Element addition tools (Text, QR Code, Table, Image, Shape, Barcode), ✅ Element properties panel with position/size inputs, ✅ Font size modification, ✅ Zoom controls, ✅ Element management (duplicate/delete), ✅ Elements list in left panel, ✅ QR code rendering on canvas. Minor: Drag & drop and resize functionality not tested due to system limitations but UI elements are present and functional."
+      - working: true
+        agent: "testing"
+        comment: "Canvas Editor Save Design functionality tested successfully: ✅ Login with admin@example.com credentials, ✅ Navigation to Label BMN via Tertib & Pengamanan → Cetak Label BMN, ✅ Canvas Editor (Beta) tab opens correctly, ✅ Text element addition working, ✅ QR Code element addition working, ✅ 'Simpan Desain' button functional, ✅ Prompt dialog for design name appears, ✅ Design saved successfully with 'Test Canvas Design' name, ✅ Success toast message 'Design canvas berhasil disimpan' displayed, ✅ API call to /api/label-bmn/sticker-design working correctly. All core Canvas Editor save functionality verified working."
 
 metadata:
   created_by: "main_agent"
