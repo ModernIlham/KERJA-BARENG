@@ -1494,8 +1494,8 @@ def generate_laporan_inti_html(data):
 @router.get("/ringkas/pdf")
 async def get_laporan_ringkas_pdf(current_user = Depends(get_current_user)):
     """Generate PDF for Laporan Ringkas using WeasyPrint"""
-    # Get the data
-    data = generate_ringkas_dummy_data()
+    # Get the data from ringkas endpoint (which already has correct structure)
+    data = await get_laporan_ringkas(current_user)
     
     # Generate HTML
     html_content = generate_laporan_ringkas_html(data)
