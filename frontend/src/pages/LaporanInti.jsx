@@ -135,6 +135,7 @@ const ChartLegend = ({ items }) => (
 export default function LaporanInti() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const reportRef = useRef(null);
 
   useEffect(() => {
@@ -143,6 +144,29 @@ export default function LaporanInti() {
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, []);
+  
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      const response = await api.get('/api/laporan-inti/full-report/pdf', {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `laporan_inti_bmn_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      alert('Gagal mengunduh PDF. Silakan coba lagi.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   if (loading) return <div className="flex justify-center items-center min-h-screen"><Loader2 className="animate-spin w-8 h-8 text-slate-400" /></div>;
   if (!data) return <div className="flex justify-center items-center min-h-screen text-red-500">Gagal memuat data</div>;
@@ -150,14 +174,6 @@ export default function LaporanInti() {
   const { ringkasan_eksekutif: re, rekapitulasi_kategori: rk, kondisi_aset: ka, pelabelan_aset: pa, pengamanan_aset: pn, persediaan: ps, dasar_hukum: dh, header } = data;
   const at = re.aset_tetap;
   const totalPages = 4;
-
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
-  
-  const handleDownloadPdf = async () => {
-    setDownloadingPdf(true);
-    try {
-      const response = await api.get('/api/laporan-inti/full-report/pdf', {
-        responseType: 'blob'
       });
       
       // Create download link
