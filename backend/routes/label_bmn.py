@@ -972,15 +972,40 @@ async def get_sticker_design(design_id: str, current_user: str = Depends(get_cur
 
 @router.post("/sticker-design")
 async def create_sticker_design(design: Dict[str, Any] = Body(...), current_user = Depends(get_current_user)):
-    """Create a new sticker design configuration"""
+    """Create a new sticker design configuration or update existing default"""
     now = datetime.now(timezone.utc).isoformat()
     
     # Convert user to string ID
     user_id = str(current_user.id) if hasattr(current_user, 'id') else str(current_user)
     
+    # Check if this is a default design and if one already exists for this size_type
+    size_type = design.get('size_type', 'sedang')
+    is_default = design.get('is_default', False)
+    
+    if is_default:
+        # Check if default design already exists for this size
+        existing_default = await db.sticker_designs.find_one({
+            "size_type": size_type,
+            "is_default": True
+        })
+        
+        if existing_default:
+            # Update existing default instead of creating new
+            design["updated_at"] = now
+            design["updated_by"] = user_id
+            update_data = {k: v for k, v in design.items() if k not in ["id", "_id"]}
+            
+            await db.sticker_designs.update_one(
+                {"_id": existing_default["_id"]},
+                {"$set": update_data}
+            )
+            
+            updated = await db.sticker_designs.find_one({"_id": existing_default["_id"]})
+            return {"success": True, "design": sanitize_doc(updated), "updated": True}
+    
     design_doc = {
         **design,
-        "is_default": False,
+        "is_default": is_default,
         "created_at": now,
         "updated_at": now,
         "created_by": user_id
