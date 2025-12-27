@@ -484,16 +484,6 @@ export default function LabelBMN() {
                       <Select 
                         value={item.ukuran || 'sedang'} 
                         onValueChange={val => setSelectedItems(prev => prev.map((i, iIdx) => iIdx === idx ? { ...i, ukuran: val } : i))}
-        <TabsContent value="canvas">
-          <Card>
-            <CardContent className="p-0">
-              <StickerCanvasEditor 
-                onSave={handleSaveCanvasDesign}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
                       >
                         <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                         <SelectContent>{Object.entries(STICKER_SIZES).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
@@ -534,6 +524,16 @@ export default function LabelBMN() {
             onQrTemplatesChange={loadQrTemplates} 
             api={api}
           />
+        </TabsContent>
+        
+        <TabsContent value="canvas">
+          <Card>
+            <CardContent className="p-0">
+              <StickerCanvasEditor 
+                onSave={handleSaveCanvasDesign}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
       
