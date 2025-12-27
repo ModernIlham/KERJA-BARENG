@@ -1516,16 +1516,26 @@ async def get_laporan_ringkas_pdf(current_user = Depends(get_current_user)):
 @router.get("/full-report/pdf")
 async def get_laporan_inti_pdf(current_user = Depends(get_current_user)):
     """Generate PDF for Laporan Inti using WeasyPrint"""
-    # Get the data
-    data = generate_comprehensive_dummy_data()
+    # Get the data from full-report endpoint (which already has correct structure)
+    data = await get_full_report(current_user)
+    
     report_data = {
-        'header': data['header'],
-        'ringkasan_eksekutif': data['ringkasan_eksekutif'],
+        'header': data.get('header', {
+            'kementerian': 'KEMENTERIAN CONTOH',
+            'direktorat': 'DIREKTORAT PENGELOLAAN ASET',
+            'tahun_anggaran': datetime.now().year,
+            'lokasi': 'Jakarta'
+        }),
+        'ringkasan_eksekutif': data.get('ringkasan_eksekutif', {}),
         'rekapitulasi_kategori': data.get('rekapitulasi_kategori', {}),
-        'kondisi_aset': data['kondisi_aset'],
-        'pelabelan_aset': data['pelabelan_aset'],
-        'pengamanan_aset': data['pengamanan_aset'],
-        'tanda_tangan': data.get('tanda_tangan', {})
+        'kondisi_aset': data.get('kondisi_aset', {}),
+        'pelabelan_aset': data.get('pelabelan_aset', {}),
+        'pengamanan_aset': data.get('pengamanan_aset', {}),
+        'tanda_tangan': data.get('tanda_tangan', {
+            'jabatan': 'Kepala Bagian BMN',
+            'nama': 'Nama Pejabat',
+            'nip': '...'
+        })
     }
     
     # Generate HTML
