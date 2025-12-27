@@ -123,8 +123,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         {/* Content Table */}
         <div style={{
           display: 'flex',
-          flexDirection: 'column',
-          borderTop: `1px solid ${borderColor}`
+          flexDirection: 'column'
         }}>
           {/* Row 1: Nama + NUP */}
           <div style={{
@@ -134,20 +133,21 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
             <div style={{
               flex: 1,
               padding: '1mm 1.5mm',
-              fontSize: '7pt',
+              fontSize: '6.5pt',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               borderRight: `1px solid ${borderColor}`,
-              textAlign: 'center'
+              textAlign: 'center',
+              lineHeight: 1.2
             }}>
-              {data.nama_barang?.substring(0, 15) || 'Nama Barang'}
+              {data.nama_barang?.substring(0, 18) || 'Nama Barang'}
             </div>
             <div style={{
-              width: '8mm',
-              padding: '1mm',
-              fontSize: '12pt',
+              width: '7mm',
+              padding: '0.5mm',
+              fontSize: '11pt',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
@@ -159,8 +159,8 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           
           {/* Row 2: Kode Barang */}
           <div style={{
-            padding: '1mm 1.5mm',
-            fontSize: '8pt',
+            padding: '0.8mm 1.5mm',
+            fontSize: '7pt',
             fontWeight: 'bold',
             textAlign: 'center',
             borderBottom: `1px solid ${borderColor}`
@@ -170,9 +170,10 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           
           {/* Row 3: Tahun - Merk - Tipe */}
           <div style={{
-            padding: '1mm 1.5mm',
-            fontSize: '6pt',
-            textAlign: 'center'
+            padding: '0.8mm 1.5mm',
+            fontSize: '5.5pt',
+            textAlign: 'center',
+            lineHeight: 1.2
           }}>
             {tahun} - {data.merk || '-'} - {data.tipe || '-'}
           </div>
@@ -229,17 +230,17 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         <div style={{
           display: 'flex',
           borderBottom: `1px solid ${borderColor}`,
-          minHeight: isBesar ? '10mm' : '7mm'
+          minHeight: isBesar ? '9mm' : '6.5mm'
         }}>
           {/* Logo Cell */}
           <div style={{
-            width: isBesar ? '10mm' : '7mm',
-            minWidth: isBesar ? '10mm' : '7mm',
+            width: isBesar ? '9mm' : '6.5mm',
+            minWidth: isBesar ? '9mm' : '6.5mm',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderRight: `1px solid ${borderColor}`,
-            padding: '1mm'
+            padding: '0.5mm'
           }}>
             {logoUrl ? (
               <img 
@@ -252,7 +253,16 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
                 }} 
               />
             ) : (
-              <div style={{ fontSize: '5pt', color: '#999' }}>Logo</div>
+              <div style={{ 
+                width: '100%', 
+                height: '100%', 
+                background: '#f0f0f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '4pt',
+                color: '#999'
+              }}>Logo</div>
             )}
           </div>
           
@@ -262,18 +272,20 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            padding: '1mm 2mm'
+            padding: '0.5mm 1.5mm'
           }}>
             <div style={{
-              fontSize: isBesar ? '9pt' : '7pt',
+              fontSize: isBesar ? '8pt' : '6.5pt',
               fontWeight: 'bold',
-              fontStyle: 'italic'
+              fontStyle: 'italic',
+              lineHeight: 1.2
             }}>
               {namaInstansi}
             </div>
             <div style={{
-              fontSize: isBesar ? '8pt' : '6.5pt',
-              fontWeight: 'bold'
+              fontSize: isBesar ? '7pt' : '6pt',
+              fontWeight: 'bold',
+              lineHeight: 1.2
             }}>
               {kodeUakpb}.{tahun}
             </div>
@@ -289,8 +301,8 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           }}>
             <div style={{
               flex: 1,
-              padding: '1mm 2mm',
-              fontSize: isBesar ? '11pt' : '9pt',
+              padding: '0.5mm 1.5mm',
+              fontSize: isBesar ? '10pt' : '8pt',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center'
@@ -298,9 +310,9 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
               {data.kode_barang || '0000000000'}
             </div>
             <div style={{
-              minWidth: isBesar ? '18mm' : '14mm',
-              padding: '1mm 2mm',
-              fontSize: isBesar ? '11pt' : '9pt',
+              minWidth: isBesar ? '14mm' : '12mm',
+              padding: '0.5mm 1.5mm',
+              fontSize: isBesar ? '10pt' : '8pt',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
@@ -313,8 +325,8 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           
           {/* Row 2: Nama Barang */}
           <div style={{
-            padding: '1mm 2mm',
-            fontSize: isBesar ? '10pt' : '8pt',
+            padding: '0.5mm 1.5mm',
+            fontSize: isBesar ? '9pt' : '7pt',
             fontStyle: 'italic',
             borderBottom: `1px solid ${borderColor}`,
             overflow: 'hidden',
@@ -326,12 +338,13 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           
           {/* Row 3: Merk - Tipe */}
           <div style={{
-            padding: '1mm 2mm',
-            fontSize: isBesar ? '9pt' : '7pt',
+            padding: '0.5mm 1.5mm',
+            fontSize: isBesar ? '8pt' : '6.5pt',
             fontStyle: 'italic',
             flex: 1,
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            borderBottom: showWarning ? `1px solid ${borderColor}` : 'none'
           }}>
             {data.merk || '-'} {data.tipe ? `- ${data.tipe}` : ''}
           </div>
@@ -339,13 +352,15 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {/* Row 4: Warning Text (Red) */}
           {showWarning && (
             <div style={{
-              padding: '1mm 2mm',
-              fontSize: isBesar ? '8pt' : '6.5pt',
+              padding: '0.5mm 1.5mm',
+              fontSize: isBesar ? '7pt' : '5.5pt',
               fontWeight: 'bold',
               fontStyle: 'italic',
               color: '#cc0000',
               textAlign: 'center',
-              borderTop: `1px solid ${borderColor}`
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}>
               {warningText}
             </div>
