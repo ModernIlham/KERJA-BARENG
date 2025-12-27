@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from '../components/ui/label';
 import { 
   Printer, LayoutGrid, Settings2, History, QrCode, Tag,
-  RefreshCw, CheckCircle2, XCircle, Package, Trash2
+  RefreshCw, CheckCircle2, XCircle, Package, Trash2, PencilRuler
 } from 'lucide-react';
 import { toast } from 'sonner';
 
