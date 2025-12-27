@@ -1004,7 +1004,43 @@ export default function LabelBMN() {
   };
   
   const selectAll = () => {
-    setSelectedItems(selectedItems.length === assets.length ? [] : assets.map(a => ({ ...a, ukuran: selectedSize })));
+    // Select/deselect only current page items
+    const currentPageIds = assets.map(a => a.id);
+    const otherSelected = selectedItems.filter(i => !currentPageIds.includes(i.id));
+    
+    if (assets.every(a => selectedItems.some(i => i.id === a.id))) {
+      // All current page items selected, deselect them
+      setSelectedItems(otherSelected);
+    } else {
+      // Select all current page items + keep other selections
+      const newItems = assets.filter(a => !selectedItems.some(i => i.id === a.id)).map(a => ({ ...a, ukuran: selectedSize }));
+      setSelectedItems([...selectedItems, ...newItems]);
+    }
+  };
+  
+  const [selectingAll, setSelectingAll] = useState(false);
+  
+  const selectAllPages = async () => {
+    if (selectingAll) return;
+    
+    // If already have selections, clear them
+    if (selectedItems.length > 0) {
+      setSelectedItems([]);
+      return;
+    }
+    
+    setSelectingAll(true);
+    try {
+      const res = await api.get('/api/label-bmn/assets/all', { 
+        params: { search, status_cetak: statusFilter } 
+      });
+      const allAssets = res.data.data || [];
+      setSelectedItems(allAssets.map(a => ({ ...a, ukuran: selectedSize })));
+      toast.success(`${allAssets.length} aset dipilih`);
+    } catch {
+      toast.error('Gagal memuat semua data');
+    }
+    setSelectingAll(false);
   };
   
   const handlePrint = () => {
