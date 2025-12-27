@@ -1169,9 +1169,30 @@ export default function LabelBMN() {
           </Card>
           
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Checkbox checked={selectedItems.length === assets.length && assets.length > 0} onCheckedChange={selectAll} />
-              <span className="text-sm text-gray-500">{selectedItems.length} dipilih</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox 
+                  checked={assets.length > 0 && assets.every(a => selectedItems.some(i => i.id === a.id))} 
+                  onCheckedChange={selectAll} 
+                />
+                <span className="text-sm text-gray-500">Halaman ini</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={selectAllPages}
+                disabled={selectingAll}
+                className="text-xs"
+              >
+                {selectingAll ? (
+                  <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Memuat...</>
+                ) : selectedItems.length > 0 ? (
+                  <><Trash2 className="w-3 h-3 mr-1" />Batal Pilih ({selectedItems.length})</>
+                ) : (
+                  <><CheckCircle2 className="w-3 h-3 mr-1" />Pilih Semua Halaman</>
+                )}
+              </Button>
+              <span className="text-sm font-medium text-blue-600">{selectedItems.length} dipilih</span>
             </div>
             <Button onClick={handlePrint} disabled={selectedItems.length === 0}><Printer className="w-4 h-4 mr-2" />Cetak ({selectedItems.length})</Button>
           </div>
