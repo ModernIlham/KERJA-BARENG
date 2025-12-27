@@ -290,6 +290,62 @@ async def get_assets_for_labeling(
     }
 
 
+@router.get("/assets/all")
+async def get_all_assets_for_selection(
+    search: str = "",
+    status_cetak: str = "",
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Get all assets (without pagination) for bulk selection.
+    Returns minimal data for selection: id, nama_barang, kode_barang, kode_register, merk, tipe, nup, tahun, tgl_perolehan
+    """
+    query = {"status_aset": {"$ne": "Dihapuskan"}}
+    
+    if search:
+        query["$or"] = [
+            {"nama_barang": {"$regex": search, "$options": "i"}},
+            {"kode_barang": {"$regex": search, "$options": "i"}},
+            {"kode_register": {"$regex": search, "$options": "i"}},
+            {"merk": {"$regex": search, "$options": "i"}}
+        ]
+    
+    pipeline = [
+        {"$match": query},
+        {"$lookup": {
+            "from": "label_print_logs",
+            "localField": "_id",
+            "foreignField": "barang_id",
+            "as": "print_logs"
+        }},
+        {"$addFields": {
+            "print_count": {"$size": "$print_logs"}
+        }},
+        {"$project": {
+            "print_logs": 0
+        }}
+    ]
+    
+    # Filter by print status
+    if status_cetak == "belum_cetak":
+        pipeline.append({"$match": {"print_count": 0}})
+    elif status_cetak == "sudah_cetak":
+        pipeline.append({"$match": {"print_count": {"$gt": 0}}})
+    
+    pipeline.append({"$sort": {"kode_barang": 1, "nup": 1}})
+    
+    # Get all assets (no limit)
+    assets = await db.barang.aggregate(pipeline).to_list(None)
+    
+    # Sanitize and return minimal data
+    result = [sanitize_doc(asset) for asset in assets]
+    
+    return {
+        "data": result,
+        "total": len(result)
+    }
+
+
 @router.get("/asset/{barang_id}")
 async def get_asset_detail_for_label(
     barang_id: str,
