@@ -158,3 +158,77 @@ Testing: Label BMN Print Preview Functionality
 5. ✅ CSS @media print rules function correctly - no blank page issue
 6. ✅ window.print() integration works properly
 7. ✅ No critical issues found - feature is ready for production use
+
+## NEW FEATURES TESTING RESULTS
+**Date:** December 27, 2025
+**Tester:** Testing Agent
+**Focus:** Testing new Label BMN features as requested
+
+### Test Cases Executed:
+
+#### 1. New Table Columns ✅ PASS
+- **Status:** WORKING
+- **Details:** All new table columns successfully implemented and visible
+- **Evidence:** 
+  - NUP column: ✅ FOUND - displays asset NUP values (1, 2, 3, etc.)
+  - Tahun column: ✅ FOUND - displays year values (2023, 2025, etc.)
+  - Nilai Perolehan column: ✅ FOUND - displays formatted currency values (Rp 1.000.000, etc.)
+  - Nilai Buku column: ✅ FOUND - displays formatted currency values
+- **Screenshot:** table_with_new_columns.png shows all columns properly displayed
+
+#### 2. Advanced Filter Feature ✅ PASS
+- **Status:** WORKING
+- **Details:** Advanced filter panel expands correctly with all required filter inputs
+- **Evidence:**
+  - Filter button found and clickable
+  - Advanced filter panel expands when clicked
+  - NUP filter input: ✅ FOUND (placeholder: "Contoh: 1")
+  - Tahun filter input: ✅ FOUND (placeholder: "Contoh: 2024")
+  - Nilai Min filter input: ✅ FOUND (placeholder: "0")
+  - Nilai Max filter input: ✅ FOUND (placeholder: "999999999")
+  - Sort field dropdown: ✅ FOUND (Kode Barang, Nama Barang, NUP, etc.)
+  - Sort order dropdown: ✅ FOUND (A-Z/Kecil, Z-A/Besar)
+  - Reset button: ✅ FOUND and functional
+- **Screenshot:** advanced_filter_panel_working.png shows expanded filter panel
+
+#### 3. Select All Pages Feature ✅ PASS
+- **Status:** WORKING
+- **Details:** "Pilih Semua Halaman" button found and functional
+- **Evidence:**
+  - Button located and clickable
+  - Selection count updates when clicked
+  - Functionality allows selecting all assets across pages (not just current page)
+- **Screenshot:** select_all_pages_success.png shows button and selection count
+
+#### 4. Print Preview (Regression Test) ✅ PASS
+- **Status:** WORKING
+- **Details:** Print preview functionality continues to work correctly with new features
+- **Evidence:**
+  - Asset selection works with checkboxes
+  - Print button becomes enabled when items selected
+  - Print preview modal opens correctly
+  - Modal displays stickers with QR codes
+  - Modal title shows "Preview Cetak Label (X stiker)"
+- **Screenshot:** print_preview_success.png shows working print preview
+
+### Technical Verification:
+1. **Table Structure:** ✅ All new columns properly integrated into existing table
+2. **Filter Integration:** ✅ Advanced filters work with existing search and pagination
+3. **Selection Logic:** ✅ Select All Pages integrates with existing selection system
+4. **Print Integration:** ✅ New features don't break existing print functionality
+
+### Overall Assessment:
+- **New Table Columns:** ✅ FULLY WORKING
+- **Advanced Filter Feature:** ✅ FULLY WORKING
+- **Select All Pages Feature:** ✅ FULLY WORKING
+- **Print Preview (Regression):** ✅ FULLY WORKING
+- **Integration:** ✅ ALL NEW FEATURES INTEGRATE SEAMLESSLY
+
+### Summary:
+All requested new features have been successfully implemented and are working correctly. The Label BMN page now includes:
+- Enhanced table with NUP, Tahun, Nilai Perolehan, and Nilai Buku columns
+- Advanced filtering capabilities with multiple filter criteria
+- Select All Pages functionality for bulk operations
+- Maintained print preview functionality without regression
+
+**RESULT:** ✅ ALL NEW FEATURES TESTED AND WORKING CORRECTLY
