@@ -432,6 +432,121 @@ async def get_all_assets_for_selection(
     }
 
 
+@router.post("/assets/all-ids")
+async def get_all_asset_ids_for_selection(
+    data: Dict[str, Any] = Body(...),
+    current_user: str = Depends(get_current_user)
+):
+    """
+    Get all asset IDs (with minimal data) for bulk selection.
+    Returns only essential fields needed for selection and printing.
+    """
+    search = data.get("search", "")
+    status_cetak = data.get("status_cetak", "")
+    filter_nup = data.get("nup", "")
+    filter_tahun = data.get("tahun", "")
+    filter_nilai_min = data.get("nilai_min")
+    filter_nilai_max = data.get("nilai_max")
+    
+    query = {"status_aset": {"$ne": "Dihapuskan"}}
+    
+    if search:
+        query["$or"] = [
+            {"nama_barang": {"$regex": search, "$options": "i"}},
+            {"kode_barang": {"$regex": search, "$options": "i"}},
+            {"kode_register": {"$regex": search, "$options": "i"}},
+            {"merk": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Advanced filters
+    if filter_nup:
+        query["nup"] = filter_nup
+    
+    if filter_tahun:
+        year_filter = [
+            {"tgl_perolehan": {"$regex": f"^{filter_tahun}", "$options": "i"}},
+            {"tahun_anggaran": filter_tahun}
+        ]
+        if query.get("$or"):
+            query["$and"] = [{"$or": query.pop("$or")}, {"$or": year_filter}]
+        else:
+            query["$or"] = year_filter
+    
+    if filter_nilai_min is not None and filter_nilai_min != "":
+        try:
+            query["nilai_perolehan"] = query.get("nilai_perolehan", {})
+            query["nilai_perolehan"]["$gte"] = float(filter_nilai_min)
+        except:
+            pass
+    
+    if filter_nilai_max is not None and filter_nilai_max != "":
+        try:
+            query["nilai_perolehan"] = query.get("nilai_perolehan", {})
+            query["nilai_perolehan"]["$lte"] = float(filter_nilai_max)
+        except:
+            pass
+    
+    pipeline = [
+        {"$match": query},
+        {"$lookup": {
+            "from": "label_print_logs",
+            "localField": "_id",
+            "foreignField": "barang_id",
+            "as": "print_logs"
+        }},
+        {"$addFields": {
+            "print_count": {"$size": "$print_logs"}
+        }}
+    ]
+    
+    # Filter by print status
+    if status_cetak == "belum_cetak":
+        pipeline.append({"$match": {"print_count": 0}})
+    elif status_cetak == "sudah_cetak":
+        pipeline.append({"$match": {"print_count": {"$gt": 0}}})
+    
+    pipeline.append({"$sort": {"kode_barang": 1, "nup": 1}})
+    
+    # Project only essential fields for selection
+    pipeline.append({
+        "$project": {
+            "_id": 1,
+            "kode_barang": 1,
+            "kode_register": 1,
+            "nama_barang": 1,
+            "merk": 1,
+            "tipe": 1,
+            "nup": 1,
+            "tahun_anggaran": 1,
+            "tgl_perolehan": 1,
+            "print_count": 1
+        }
+    })
+    
+    # Get all assets (no limit)
+    assets = await db.barang.aggregate(pipeline).to_list(None)
+    
+    # Transform to ID list with minimal data
+    ids = []
+    for asset in assets:
+        ids.append({
+            "id": str(asset.get("_id")),
+            "kode_barang": asset.get("kode_barang", ""),
+            "kode_register": asset.get("kode_register", ""),
+            "nama_barang": asset.get("nama_barang", ""),
+            "merk": asset.get("merk", ""),
+            "tipe": asset.get("tipe", ""),
+            "nup": asset.get("nup", "1"),
+            "tahun": asset.get("tahun_anggaran") or (asset.get("tgl_perolehan", "")[:4] if asset.get("tgl_perolehan") else ""),
+            "print_count": asset.get("print_count", 0)
+        })
+    
+    return {
+        "ids": ids,
+        "total": len(ids)
+    }
+
+
 @router.get("/asset/{barang_id}")
 async def get_asset_detail_for_label(
     barang_id: str,
