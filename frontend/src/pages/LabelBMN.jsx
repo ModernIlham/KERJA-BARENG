@@ -10,6 +10,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Label } from '../components/ui/label';
 import { 
   Printer, LayoutGrid, Settings2, History, QrCode, Tag,
   RefreshCw, CheckCircle2, XCircle, Package, Trash2
