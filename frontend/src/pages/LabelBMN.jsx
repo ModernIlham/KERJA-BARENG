@@ -1204,15 +1204,22 @@ export default function LabelBMN() {
                   <th className="w-10 p-3"></th>
                   <th className="text-left p-3">Kode / Nama Barang</th>
                   <th className="text-left p-3">Merk / Tipe</th>
+                  <th className="text-center p-3">NUP</th>
+                  <th className="text-center p-3">Tahun</th>
+                  <th className="text-right p-3">Nilai Perolehan</th>
+                  <th className="text-right p-3">Nilai Buku</th>
                   <th className="text-center p-3">Aksesori</th>
                   <th className="text-center p-3">Status Cetak</th>
                   <th className="text-center p-3">Aksi</th>
                 </tr></thead>
                 <tbody>
-                  {loading ? <tr><td colSpan={6} className="text-center p-8">Memuat...</td></tr> :
-                   assets.length === 0 ? <tr><td colSpan={6} className="text-center p-8 text-gray-500">Tidak ada data</td></tr> :
+                  {loading ? <tr><td colSpan={10} className="text-center p-8">Memuat...</td></tr> :
+                   assets.length === 0 ? <tr><td colSpan={10} className="text-center p-8 text-gray-500">Tidak ada data</td></tr> :
                    assets.map(asset => {
                      const isSelected = selectedItems.some(i => i.id === asset.id);
+                     const tahunPerolehan = asset.tgl_perolehan ? new Date(asset.tgl_perolehan).getFullYear() : (asset.tahun_anggaran || '-');
+                     const nilaiPerolehan = asset.nilai_perolehan || asset.harga_perolehan || 0;
+                     const nilaiBuku = asset.nilai_buku || asset.nilai_buku_sekarang || 0;
                      return (
                        <tr key={asset.id} className={`border-t ${isSelected ? 'bg-blue-50' : 'hover:bg-slate-50'}`}>
                          <td className="p-3 text-center"><Checkbox checked={isSelected} onCheckedChange={() => toggleSelect(asset)} /></td>
@@ -1221,6 +1228,18 @@ export default function LabelBMN() {
                            <code className="text-xs bg-slate-100 px-1 rounded">#{asset.kode_register || asset.kode_barang}</code>
                          </td>
                          <td className="p-3"><div>{asset.merk || '-'}</div><div className="text-xs text-gray-500">{asset.tipe || ''}</div></td>
+                         <td className="text-center p-3">
+                           <Badge variant="outline" className="font-mono">{asset.nup || '1'}</Badge>
+                         </td>
+                         <td className="text-center p-3">
+                           <span className="text-gray-600">{tahunPerolehan}</span>
+                         </td>
+                         <td className="text-right p-3">
+                           <span className="font-mono text-xs">{nilaiPerolehan.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })}</span>
+                         </td>
+                         <td className="text-right p-3">
+                           <span className="font-mono text-xs">{nilaiBuku.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })}</span>
+                         </td>
                          <td className="text-center p-3">
                            <Button 
                              variant="ghost" 
