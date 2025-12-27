@@ -502,7 +502,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           )}
           
           {/* Gold Stripe - before warning position */}
-          {goldStripePosition === 'before_warning' && <GoldStripe />}
+          {showGoldStripe && goldStripePosition === 'before_warning' && <div style={goldStripeStyle} />}
           
           {/* Row 4: Warning Text (Red) */}
           {showWarning && (
