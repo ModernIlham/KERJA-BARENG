@@ -39,28 +39,40 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
   const printRef = useRef(null);
   const canvas = CANVAS_SIZES[canvasSize];
   
-  // Load active designs if not provided
+  // Load active designs fresh from API to ensure we have the latest
   useEffect(() => {
-    const loadActiveDesigns = async () => {
-      if (activeDesigns) {
-        setDesigns(activeDesigns);
-        return;
-      }
-      
-      // Fallback: This component ideally shouldn't fetch data directly if possible,
-      // but keeping it for standalone compatibility. 
-      // In a pure component, we'd expect all data via props.
+    const loadFreshDesigns = async () => {
       try {
-        // Mock API calls or import api if needed. For refactoring, assuming props are passed.
-        // If not, we fallback to basics.
-        setDesigns(BASIC_DEFAULTS);
-      } catch {
-        setDesigns(BASIC_DEFAULTS);
+        // Always fetch fresh designs from API to ensure print uses latest design
+        const [kecilRes, sedangRes, besarRes] = await Promise.all([
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/label-bmn/sticker-design/active/kecil`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          }).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/label-bmn/sticker-design/active/sedang`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          }).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/api/label-bmn/sticker-design/active/besar`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          }).then(r => r.ok ? r.json() : null).catch(() => null)
+        ]);
+        
+        const freshDesigns = {
+          kecil: kecilRes || activeDesigns?.kecil || BASIC_DEFAULTS.kecil,
+          sedang: sedangRes || activeDesigns?.sedang || BASIC_DEFAULTS.sedang,
+          besar: besarRes || activeDesigns?.besar || BASIC_DEFAULTS.besar
+        };
+        
+        console.log('PrintPage loaded fresh designs:', freshDesigns);
+        setDesigns(freshDesigns);
+      } catch (err) {
+        console.error('Failed to load fresh designs:', err);
+        // Fallback to props or defaults
+        setDesigns(activeDesigns || BASIC_DEFAULTS);
       }
     };
     
-    loadActiveDesigns();
-  }, [activeDesigns]);
+    loadFreshDesigns();
+  }, []); // Only run once on mount
   
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
