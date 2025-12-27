@@ -58,26 +58,19 @@ export const StyledQRCode = ({ data, settings = {}, logoUrl, size = 80, style = 
 // Helper function to convert alignment value to CSS flexbox styles
 const getAlignmentStyle = (alignment) => {
   const alignMap = {
-    'top-left': { alignItems: 'flex-start', justifyContent: 'flex-start' },
-    'top-center': { alignItems: 'flex-start', justifyContent: 'center' },
-    'top-right': { alignItems: 'flex-start', justifyContent: 'flex-end' },
-    'center-left': { alignItems: 'center', justifyContent: 'flex-start' },
-    'center': { alignItems: 'center', justifyContent: 'center' },
-    'center-right': { alignItems: 'center', justifyContent: 'flex-end' },
-    'bottom-left': { alignItems: 'flex-end', justifyContent: 'flex-start' },
-    'bottom-center': { alignItems: 'flex-end', justifyContent: 'center' },
-    'bottom-right': { alignItems: 'flex-end', justifyContent: 'flex-end' },
-    'left': { alignItems: 'center', justifyContent: 'flex-start' },
-    'right': { alignItems: 'center', justifyContent: 'flex-end' }
+    'top-left': { alignItems: 'flex-start', justifyContent: 'flex-start', textAlign: 'left' },
+    'top-center': { alignItems: 'flex-start', justifyContent: 'center', textAlign: 'center' },
+    'top-right': { alignItems: 'flex-start', justifyContent: 'flex-end', textAlign: 'right' },
+    'center-left': { alignItems: 'center', justifyContent: 'flex-start', textAlign: 'left' },
+    'center': { alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+    'center-right': { alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' },
+    'bottom-left': { alignItems: 'flex-end', justifyContent: 'flex-start', textAlign: 'left' },
+    'bottom-center': { alignItems: 'flex-end', justifyContent: 'center', textAlign: 'center' },
+    'bottom-right': { alignItems: 'flex-end', justifyContent: 'flex-end', textAlign: 'right' },
+    'left': { alignItems: 'center', justifyContent: 'flex-start', textAlign: 'left' },
+    'right': { alignItems: 'center', justifyContent: 'flex-end', textAlign: 'right' }
   };
   return alignMap[alignment] || alignMap['center'];
-};
-
-// Helper to get text-align from alignment
-const getTextAlign = (alignment) => {
-  if (alignment?.includes('left')) return 'left';
-  if (alignment?.includes('right')) return 'right';
-  return 'center';
 };
 
 // Main CustomSticker Component
@@ -106,6 +99,15 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
   const goldStripeColor = design?.gold_stripe_color || '#D4AF37';
   const warningText = design?.warning_text || 'Tidak Untuk Diperjualbelikan';
   const showWarning = design?.show_warning !== false;
+  
+  // Get alignments from design
+  const qrAlign = getAlignmentStyle(design?.qr_full_align || design?.qr_align || 'center');
+  const headerAlign = getAlignmentStyle(design?.header_full_align || 'center-left');
+  const kodeAlign = getAlignmentStyle(design?.kode_full_align || 'center-left');
+  const namaAlign = getAlignmentStyle(design?.nama_full_align || 'center-left');
+  const nupAlign = getAlignmentStyle(design?.nup_full_align || 'center');
+  const descAlign = getAlignmentStyle(design?.desc_full_align || 'center-left');
+  const warningAlign = getAlignmentStyle(design?.warning_full_align || 'center');
 
   // STIKER KECIL - Portrait Layout
   if (sizeType === 'kecil') {
@@ -125,10 +127,9 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         <div style={{
           flex: 1,
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           padding: '2mm',
-          borderBottom: `1px solid ${borderColor}`
+          borderBottom: `1px solid ${borderColor}`,
+          ...qrAlign
         }}>
           <StyledQRCode 
             data={`#${data.kode_register || data.kode_barang}`}
@@ -158,25 +159,22 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
             <div style={{
               flex: 1,
               padding: '1mm 1.5mm',
-              fontSize: '6.5pt',
-              fontWeight: 'bold',
+              fontSize: `${design?.nama_font_size || 6.5}pt`,
+              fontWeight: design?.nama_font_weight || 'bold',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               borderRight: `1px solid ${borderColor}`,
-              textAlign: 'center',
-              lineHeight: 1.2
+              lineHeight: 1.2,
+              ...namaAlign
             }}>
               {data.nama_barang?.substring(0, 18) || 'Nama Barang'}
             </div>
             <div style={{
               width: '7mm',
               padding: '0.5mm',
-              fontSize: '11pt',
+              fontSize: `${design?.nup_font_size || 11}pt`,
               fontWeight: 'bold',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              ...nupAlign
             }}>
               {data.nup || '1'}
             </div>
@@ -185,10 +183,11 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {/* Row 2: Kode Barang */}
           <div style={{
             padding: '0.8mm 1.5mm',
-            fontSize: '7pt',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            borderBottom: `1px solid ${borderColor}`
+            fontSize: `${design?.kode_font_size || 7}pt`,
+            fontWeight: design?.kode_font_weight || 'bold',
+            borderBottom: `1px solid ${borderColor}`,
+            display: 'flex',
+            ...kodeAlign
           }}>
             {data.kode_barang || '0000000000'}
           </div>
@@ -196,9 +195,10 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {/* Row 3: Tahun - Merk - Tipe */}
           <div style={{
             padding: '0.8mm 1.5mm',
-            fontSize: '5.5pt',
-            textAlign: 'center',
-            lineHeight: 1.2
+            fontSize: `${design?.desc_font_size || 5.5}pt`,
+            lineHeight: 1.2,
+            display: 'flex',
+            ...descAlign
           }}>
             {tahun} - {data.merk || '-'} - {data.tipe || '-'}
           </div>
@@ -231,10 +231,9 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
         minWidth: `${qrAreaWidth}mm`,
         height: '100%',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         borderRight: `1px solid ${borderColor}`,
-        background: '#ffffff'
+        background: '#ffffff',
+        ...qrAlign
       }}>
         <StyledQRCode 
           data={`#${data.kode_register || data.kode_barang}`}
@@ -296,11 +295,11 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
-            padding: '0.5mm 1.5mm'
+            padding: '0.5mm 1.5mm',
+            ...headerAlign
           }}>
             <div style={{
-              fontSize: isBesar ? '8pt' : '6.5pt',
+              fontSize: `${design?.header_font_size || (isBesar ? 8 : 6.5)}pt`,
               fontWeight: 'bold',
               fontStyle: 'italic',
               lineHeight: 1.2
@@ -308,7 +307,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
               {namaInstansi}
             </div>
             <div style={{
-              fontSize: isBesar ? '7pt' : '6pt',
+              fontSize: `${design?.header_sub_font_size || (isBesar ? 7 : 6)}pt`,
               fontWeight: 'bold',
               lineHeight: 1.2
             }}>
@@ -327,36 +326,37 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
             <div style={{
               flex: 1,
               padding: '0.5mm 1.5mm',
-              fontSize: isBesar ? '10pt' : '8pt',
-              fontWeight: 'bold',
+              fontSize: `${design?.kode_font_size || (isBesar ? 10 : 8)}pt`,
+              fontWeight: design?.kode_font_weight || 'bold',
               display: 'flex',
-              alignItems: 'center'
+              ...kodeAlign
             }}>
               {data.kode_barang || '0000000000'}
             </div>
             <div style={{
               minWidth: isBesar ? '14mm' : '12mm',
               padding: '0.5mm 1.5mm',
-              fontSize: isBesar ? '10pt' : '8pt',
+              fontSize: `${design?.nup_font_size || (isBesar ? 10 : 8)}pt`,
               fontWeight: 'bold',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              borderLeft: `1px solid ${borderColor}`
+              borderLeft: `1px solid ${borderColor}`,
+              ...nupAlign
             }}>
-              {isBesar ? data.nup || '1' : data.nup || '1'}
+              {data.nup || '1'}
             </div>
           </div>
           
           {/* Row 2: Nama Barang */}
           <div style={{
             padding: '0.5mm 1.5mm',
-            fontSize: isBesar ? '9pt' : '7pt',
+            fontSize: `${design?.nama_font_size || (isBesar ? 9 : 7)}pt`,
             fontStyle: 'italic',
             borderBottom: `1px solid ${borderColor}`,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            ...namaAlign
           }}>
             {data.nama_barang || 'Nama Barang'}
           </div>
@@ -364,12 +364,12 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {/* Row 3: Merk - Tipe */}
           <div style={{
             padding: '0.5mm 1.5mm',
-            fontSize: isBesar ? '8pt' : '6.5pt',
+            fontSize: `${design?.desc_font_size || (isBesar ? 8 : 6.5)}pt`,
             fontStyle: 'italic',
             flex: 1,
             display: 'flex',
-            alignItems: 'center',
-            borderBottom: showWarning ? `1px solid ${borderColor}` : 'none'
+            borderBottom: showWarning ? `1px solid ${borderColor}` : 'none',
+            ...descAlign
           }}>
             {data.merk || '-'} {data.tipe ? `- ${data.tipe}` : ''}
           </div>
@@ -378,14 +378,12 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           {showWarning && (
             <div style={{
               padding: '0.5mm 1.5mm',
-              fontSize: isBesar ? '7pt' : '5.5pt',
+              fontSize: `${design?.warning_font_size || (isBesar ? 7 : 5.5)}pt`,
               fontWeight: 'bold',
               fontStyle: 'italic',
-              color: '#cc0000',
-              textAlign: 'center',
+              color: design?.warning_color || '#cc0000',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              ...warningAlign
             }}>
               {warningText}
             </div>
