@@ -188,15 +188,13 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
   const descAlign = getAlignmentStyle(design?.desc_full_align || 'center-left');
   const warningAlign = getAlignmentStyle(design?.warning_full_align || 'center-left');
 
-  // ==================== GOLD STRIPE COMPONENT ====================
-  const GoldStripe = () => showGoldStripe ? (
-    <div style={{
-      height: `${goldStripeHeight}mm`,
-      background: goldStripeColor,
-      width: '100%',
-      flexShrink: 0
-    }} />
-  ) : null;
+  // Gold Stripe inline style
+  const goldStripeStyle = {
+    height: `${goldStripeHeight}mm`,
+    background: goldStripeColor,
+    width: '100%',
+    flexShrink: 0
+  };
 
   // ==================== STIKER KECIL - Portrait Layout ====================
   if (sizeType === 'kecil') {
