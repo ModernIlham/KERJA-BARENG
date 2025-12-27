@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import api from '../api/axios';
 import { Button } from '../components/ui/button';
-import { Loader2, Printer, Shield, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Building2, Package, Wrench, MapPin, Construction, BookOpen, FileText, Car, Laptop, BarChart3 } from 'lucide-react';
+import { Loader2, Printer, Shield, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Building2, Package, Wrench, MapPin, Construction, BookOpen, FileText, Car, Laptop, BarChart3, Download } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 
 const fc = (v) => {
