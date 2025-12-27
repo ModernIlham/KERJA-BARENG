@@ -20,6 +20,8 @@ from datetime import datetime, timezone
 import math
 import uuid
 import asyncio
+import weasyprint
+from weasyprint import HTML, CSS
 from reportlab.lib.pagesizes import A4, A3
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas as pdf_canvas
