@@ -296,12 +296,6 @@ export default function LaporanBMN({ onBack }) {
     { title: "Pengelola BMN", name: "Ir. Widodo Prasetyo, M.T.", nip: "19750520 200112 1 001", date: "14 Desember 2024" },
     { title: "Kuasa Pengguna Barang", name: "Dr. Sri Mulyani, S.E., M.Ak.", nip: "19681110 199203 2 001", date: "14 Desember 2024" },
   ];
-  
-  const { downloading, downloadPdf } = usePdfDownload();
-  
-  const handleDownloadPdf = () => {
-    downloadPdf('/api/laporan-bmn/bmn-summary/pdf', `laporan_bmn_${new Date().toISOString().split('T')[0]}.pdf`);
-  };
 
   return (
     <div className="bg-slate-100 min-h-screen py-8 print:bg-white print:p-0">
