@@ -1593,6 +1593,51 @@ export default function LabelBMN() {
         <TabsContent value="design"><StickerDesignTab instansi={instansi} qrSettings={qrSettings} onQrSettingsChange={setQrSettings} qrTemplates={qrTemplates} onQrTemplatesChange={loadQrTemplates} /></TabsContent>
       </Tabs>
       
+      {/* PDF Jobs Notification */}
+      {pdfJobs.length > 0 && (
+        <div className="fixed bottom-4 right-4 z-40 space-y-2">
+          {pdfJobs.map(job => (
+            <Card key={job.id} className="p-3 shadow-lg bg-white border-l-4 border-l-blue-500 min-w-[280px]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    {job.status === 'processing' && <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />}
+                    {job.status === 'completed' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                    {job.status === 'failed' && <XCircle className="w-4 h-4 text-red-500" />}
+                    <span className="font-medium text-sm">
+                      {job.status === 'processing' && 'Membuat PDF...'}
+                      {job.status === 'completed' && 'PDF Siap!'}
+                      {job.status === 'failed' && 'Gagal'}
+                    </span>
+                  </div>
+                  {job.status === 'processing' && (
+                    <div className="mt-2">
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-500 transition-all duration-300" 
+                          style={{ width: `${(job.progress / job.total) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500">{job.progress}/{job.total} stiker</span>
+                    </div>
+                  )}
+                </div>
+                {job.status === 'completed' && (
+                  <Button size="sm" onClick={() => downloadPdf(job.id)} className="bg-green-600 hover:bg-green-700">
+                    Unduh
+                  </Button>
+                )}
+                {job.status === 'failed' && (
+                  <Button size="sm" variant="ghost" onClick={() => setPdfJobs(prev => prev.filter(j => j.id !== job.id))}>
+                    <XCircle className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+      
       {showPrintPage && (
         <PrintPage 
           items={selectedItems}
