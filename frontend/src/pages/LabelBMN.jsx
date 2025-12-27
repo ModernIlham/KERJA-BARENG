@@ -741,26 +741,34 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
       */}
       <style>{`
         @media print {
-          /* Sembunyikan SEMUA elemen UI */
-          body > *:not(#print-area) {
+          /* Hide EVERYTHING first */
+          body * {
+            visibility: hidden !important;
+          }
+          
+          /* Hide specific UI elements completely */
+          .no-print,
+          aside,
+          nav,
+          header,
+          [class*="sidebar"],
+          [class*="Sidebar"] {
             display: none !important;
           }
           
-          .no-print {
-            display: none !important;
-          }
-          
-          /* Tampilkan area cetak */
-          #print-area {
-            display: block !important;
-            position: static !important;
-            left: 0 !important;
-            top: 0 !important;
-            visibility: visible !important;
-          }
-          
+          /* Show ONLY #print-area and its contents */
+          #print-area,
           #print-area * {
             visibility: visible !important;
+          }
+          
+          #print-area {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            z-index: 99999 !important;
           }
           
           /* Page break untuk setiap halaman */
@@ -769,6 +777,8 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
             margin: 0 !important;
             padding: 0 !important;
             box-shadow: none !important;
+            position: relative !important;
+            background: white !important;
           }
           
           .print-page:last-child {
@@ -776,13 +786,15 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
           }
           
           /* Pengaturan body untuk cetak */
-          body {
+          html, body {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
             margin: 0 !important;
             padding: 0 !important;
             background: white !important;
+            width: 100% !important;
+            height: auto !important;
           }
           
           /* Pengaturan halaman cetak */
