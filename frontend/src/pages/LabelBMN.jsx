@@ -952,6 +952,15 @@ export default function LabelBMN() {
   const [activeTab, setActiveTab] = useState('daftar');
   const [activeDesigns, setActiveDesigns] = useState({});
   
+  // Advanced Filter & Sort States
+  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
+  const [sortField, setSortField] = useState('kode_barang');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [filterNup, setFilterNup] = useState('');
+  const [filterTahun, setFilterTahun] = useState('');
+  const [filterNilaiMin, setFilterNilaiMin] = useState('');
+  const [filterNilaiMax, setFilterNilaiMax] = useState('');
+  
   // Load QR templates - shared between QRCustomizationPanel and StickerDesignTab
   const loadQrTemplates = async () => {
     try {
