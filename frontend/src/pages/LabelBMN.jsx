@@ -874,6 +874,7 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
           opacity: 0,
           pointerEvents: 'none'
         }}
+      >
         {Array.from({ length: pages }).map((_, pageIdx) => {
           const pageItems = items.slice(pageIdx * itemsPerPage, (pageIdx + 1) * itemsPerPage);
           const size = STICKER_SIZES[items[0].ukuran];
