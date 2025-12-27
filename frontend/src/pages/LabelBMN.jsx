@@ -23,7 +23,6 @@ import StickerCanvasEditor from './LabelBMN/components/StickerCanvasEditor';
 import AssetTable from './LabelBMN/components/AssetTable';
 import PrintPage from './LabelBMN/components/PrintPage';
 import PrintHistoryTab from './LabelBMN/components/PrintHistoryTab';
-import QRCustomizationPanel from './LabelBMN/components/QRCustomizationPanel';
 import StickerDesignTab from './LabelBMN/components/StickerDesignTab';
 import ChildAssetModal from './LabelBMN/components/ChildAssetModal';
 
