@@ -1201,7 +1201,86 @@ export default function LabelBMN() {
                   </Select>
                 </div>
                 <Button onClick={loadAssets} variant="outline"><RefreshCw className="w-4 h-4" /></Button>
+                <Button 
+                  variant={showAdvancedFilter ? "secondary" : "outline"} 
+                  onClick={() => setShowAdvancedFilter(!showAdvancedFilter)}
+                  className="flex items-center gap-1"
+                >
+                  <Settings2 className="w-4 h-4" />
+                  Filter
+                  {showAdvancedFilter ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </Button>
               </div>
+              
+              {/* Advanced Filter Panel */}
+              {showAdvancedFilter && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex flex-wrap gap-4 items-end">
+                    <div className="w-32">
+                      <Label className="text-xs">NUP</Label>
+                      <Input 
+                        placeholder="Contoh: 1" 
+                        value={filterNup} 
+                        onChange={e => setFilterNup(e.target.value)} 
+                      />
+                    </div>
+                    <div className="w-32">
+                      <Label className="text-xs">Tahun Perolehan</Label>
+                      <Input 
+                        placeholder="Contoh: 2024" 
+                        value={filterTahun} 
+                        onChange={e => setFilterTahun(e.target.value)} 
+                      />
+                    </div>
+                    <div className="w-40">
+                      <Label className="text-xs">Nilai Min (Rp)</Label>
+                      <Input 
+                        type="number"
+                        placeholder="0" 
+                        value={filterNilaiMin} 
+                        onChange={e => setFilterNilaiMin(e.target.value)} 
+                      />
+                    </div>
+                    <div className="w-40">
+                      <Label className="text-xs">Nilai Max (Rp)</Label>
+                      <Input 
+                        type="number"
+                        placeholder="999999999" 
+                        value={filterNilaiMax} 
+                        onChange={e => setFilterNilaiMax(e.target.value)} 
+                      />
+                    </div>
+                    <div className="w-40">
+                      <Label className="text-xs">Urutkan</Label>
+                      <Select value={sortField} onValueChange={setSortField}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kode_barang">Kode Barang</SelectItem>
+                          <SelectItem value="nama_barang">Nama Barang</SelectItem>
+                          <SelectItem value="nup">NUP</SelectItem>
+                          <SelectItem value="tgl_perolehan">Tanggal Perolehan</SelectItem>
+                          <SelectItem value="nilai_perolehan">Nilai Perolehan</SelectItem>
+                          <SelectItem value="nilai_buku">Nilai Buku</SelectItem>
+                          <SelectItem value="print_count">Status Cetak</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="w-28">
+                      <Label className="text-xs">Arah</Label>
+                      <Select value={sortOrder} onValueChange={setSortOrder}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="asc">A-Z / Kecil</SelectItem>
+                          <SelectItem value="desc">Z-A / Besar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button variant="ghost" onClick={resetFilters} className="text-gray-500">
+                      <RotateCcw className="w-4 h-4 mr-1" />Reset
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
           
