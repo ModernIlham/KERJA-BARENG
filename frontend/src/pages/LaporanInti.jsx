@@ -151,15 +151,47 @@ export default function LaporanInti() {
   const at = re.aset_tetap;
   const totalPages = 4;
 
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      const response = await api.get('/api/laporan-inti/full-report/pdf', {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `laporan_inti_bmn_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      alert('Gagal mengunduh PDF. Silakan coba lagi.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
   return (
     <div className="print-container bg-slate-200 min-h-screen py-6">
       {/* Action Bar - Hidden during print */}
       <div className="no-print sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-2 shadow-sm mb-4">
         <div className="flex justify-between items-center">
           <h1 className="text-sm font-bold text-slate-800">📊 Laporan Inti BMN</h1>
-          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-1 h-3 w-3" />Cetak</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="mr-1 h-3 w-3" />Cetak Browser</Button>
+            <Button size="sm" onClick={handleDownloadPdf} disabled={downloadingPdf}>
+              {downloadingPdf ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <FileText className="mr-1 h-3 w-3" />}
+              {downloadingPdf ? 'Generating...' : 'Download PDF'}
+            </Button>
+          </div>
         </div>
-        <p className="text-[10px] text-slate-500 mt-1">💡 Saat mencetak: Pastikan margin = "None" dan skala = "100%"</p>
+        <p className="text-[10px] text-slate-500 mt-1">💡 Gunakan "Download PDF" untuk hasil cetak terbaik dengan WeasyPrint</p>
       </div>
 
       <div ref={reportRef} className="print-content">
