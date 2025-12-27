@@ -144,7 +144,6 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
     
     // Build HTML content with QR codes
     const size = STICKER_SIZES[items[0]?.ukuran || 'sedang'];
-    const isPortrait = (items[0]?.ukuran || 'sedang') === 'kecil';
     const pageWidth = canvasSize === 'A3' ? '297mm' : '210mm';
     const pageHeight = canvasSize === 'A3' ? '420mm' : '297mm';
     const pageSize = canvasSize === 'A3' ? 'A3 portrait' : 'A4 portrait';
