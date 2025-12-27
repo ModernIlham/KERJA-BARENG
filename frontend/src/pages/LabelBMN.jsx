@@ -153,10 +153,16 @@ export default function LabelBMN() {
 
   const loadInstansi = async () => {
     try {
-      const res = await api.get('/api/instansi');
+      const res = await api.get('/api/label-bmn/instansi-info');
       setInstansi(res.data);
     } catch {
-      // Ignore error if instansi not set
+      // Try fallback to settings instansi
+      try {
+        const res = await api.get('/api/settings/instansi');
+        setInstansi(res.data);
+      } catch {
+        // Ignore error if instansi not set
+      }
     }
   };
 
