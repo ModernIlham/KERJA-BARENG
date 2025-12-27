@@ -1,15 +1,32 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import Response
 from auth import get_current_user
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from datetime import datetime, timezone
 from bson import ObjectId
 import math
+import weasyprint
 
 router = APIRouter()
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Currency formatter
+def format_currency(value):
+    if not value or value == 0:
+        return 'Rp 0'
+    if value >= 1e12:
+        return f'Rp {value/1e12:.2f}T'
+    if value >= 1e9:
+        return f'Rp {value/1e9:.2f}M'
+    if value >= 1e6:
+        return f'Rp {value/1e6:.1f}Jt'
+    return f'Rp {value:,.0f}'.replace(',', '.')
+
+def format_number(value):
+    return f'{value:,}'.replace(',', '.') if value else '0'
 
 def sanitize_json(data):
     if isinstance(data, float):
