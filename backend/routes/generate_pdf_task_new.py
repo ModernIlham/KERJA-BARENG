@@ -1,34 +1,7 @@
 
-import asyncio
-import os
-import uuid
-import logging
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timezone
-from io import BytesIO
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Body
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
-from motor.motor_asyncio import AsyncIOMotorClient
-from bson import ObjectId
-import weasyprint
-from weasyprint import HTML, CSS
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Directory setup
-PDF_OUTPUT_DIR = "/app/pdf_output"
-os.makedirs(PDF_OUTPUT_DIR, exist_ok=True)
-
-# ... (Previous imports like db, auth, etc. are assumed to be in the file already, 
-# but since I'm editing an existing file via search_replace, I just need the function)
-
 async def generate_pdf_task(job_id: str, items: List[Dict], canvas_size: str, instansi: Dict, user_id: str, html_content: Optional[str] = None):
     """Background task to generate PDF using WeasyPrint (HTML to PDF)"""
     try:
-        # Update status to processing
         pdf_jobs[job_id]["status"] = "processing"
         pdf_jobs[job_id]["total"] = len(items)
         
@@ -36,43 +9,30 @@ async def generate_pdf_task(job_id: str, items: List[Dict], canvas_size: str, in
         
         if html_content:
             # === NEW METHOD: Use HTML from Frontend ===
-            logger.info(f"Job {job_id}: Generating PDF from HTML content using WeasyPrint")
-            
             # Use WeasyPrint to convert HTML to PDF
-            # We run this in a thread to avoid blocking the async event loop
             await asyncio.to_thread(
                 HTML(string=html_content).write_pdf, 
                 target=pdf_path
             )
-            
         else:
-            # === FALLBACK: Old Method (ReportLab) or Error ===
-            # Since the user specifically requested "Canvas-like" quality which implies HTML fidelity,
-            # and we are switching to WeasyPrint, we should try to construct HTML if not provided.
-            # However, for now, we will fail gracefully or implement a basic fallback if needed.
-            # But the plan is to ALWAYS send HTML from frontend.
-            
-            raise Exception("Backend requires 'html_content' for high-quality PDF generation. Please update frontend.")
+            # Fallback or Error
+            raise Exception("Backend requires 'html_content' for high-quality PDF generation.")
 
         # Update job status
         pdf_jobs[job_id]["status"] = "completed"
         pdf_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
         pdf_jobs[job_id]["pdf_url"] = f"/api/label-bmn/pdf/{job_id}"
         
-        # Record print logs in DB
-        # Note: We need to reconnect to DB inside background task if the main connection is not thread-safe or context-bound
-        # But motor is async, so we can reuse 'db' global if valid, or create new client.
-        # The previous code created a new client, so we will do the same to be safe.
-        
-        db_client = AsyncIOMotorClient(os.environ.get("MONGO_URL", "mongodb://localhost:27017"))
-        db_async = db_client[os.environ.get("DB_NAME", "bmn_db")]
+        # Record print logs
+        db_client = AsyncIOMotorClient(os.environ.get("MONGO_URL"))
+        db_async = db_client[os.environ.get("DB_NAME")]
         
         log_entries = []
         now = datetime.now(timezone.utc).isoformat()
         
         for item in items:
             log = {
-                "barang_id": item.get("id") or item.get("barang_id"), # Handle both cases
+                "barang_id": item.get("id") or item.get("barang_id"),
                 "ukuran": item.get("ukuran", "sedang"),
                 "printed_at": now,
                 "printed_by": user_id,
@@ -85,10 +45,50 @@ async def generate_pdf_task(job_id: str, items: List[Dict], canvas_size: str, in
             await db_async.label_print_logs.insert_many(log_entries)
         
         db_client.close()
-        logger.info(f"Job {job_id}: PDF generated successfully")
 
     except Exception as e:
-        logger.error(f"Job {job_id} failed: {str(e)}")
         pdf_jobs[job_id]["status"] = "failed"
         pdf_jobs[job_id]["error"] = str(e)
         pdf_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+
+
+@router.post("/generate-pdf")
+async def start_pdf_generation(
+    request: PDFGenerationRequest,
+    background_tasks: BackgroundTasks,
+    current_user: str = Depends(get_current_user)
+):
+    """Start PDF generation in background"""
+    job_id = str(uuid.uuid4())
+    
+    # Get instansi info
+    instansi = await db.instansi.find_one({})
+    instansi_data = sanitize_doc(instansi) if instansi else {}
+    
+    # Get user ID
+    user_id = str(current_user.id) if hasattr(current_user, "id") else str(current_user)
+    
+    # Create job record
+    pdf_jobs[job_id] = {
+        "job_id": job_id,
+        "status": "pending",
+        "progress": 0,
+        "total": len(request.items),
+        "pdf_url": None,
+        "error": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": None
+    }
+    
+    # Start background task
+    background_tasks.add_task(
+        generate_pdf_task,
+        job_id,
+        request.items,
+        request.canvas_size,
+        instansi_data,
+        user_id,
+        request.html_content
+    )
+    
+    return {"job_id": job_id, "message": "PDF generation started"}
