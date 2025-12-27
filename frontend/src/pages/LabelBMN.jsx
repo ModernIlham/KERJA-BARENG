@@ -1095,6 +1095,115 @@ export default function LabelBMN() {
     setShowPrintPage(true);
   };
   
+  // PDF Background Generation State
+  const [pdfJobs, setPdfJobs] = useState([]);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  
+  // Start PDF generation in background
+  const handleGeneratePdf = async () => {
+    if (selectedItems.length === 0) {
+      toast.error('Pilih minimal 1 aset');
+      return;
+    }
+    
+    setGeneratingPdf(true);
+    try {
+      const res = await api.post('/api/label-bmn/generate-pdf', {
+        items: selectedItems.map(i => ({
+          id: i.id,
+          kode_barang: i.kode_barang,
+          kode_register: i.kode_register,
+          nama_barang: i.nama_barang,
+          merk: i.merk,
+          tipe: i.tipe,
+          nup: i.nup,
+          ukuran: i.ukuran
+        })),
+        canvas_size: canvasSize,
+        qr_settings: qrSettings
+      });
+      
+      const jobId = res.data.job_id;
+      toast.success(`Proses cetak PDF dimulai (${selectedItems.length} stiker)`, {
+        description: 'Anda akan diberitahu saat PDF siap diunduh'
+      });
+      
+      // Add job to tracking list
+      setPdfJobs(prev => [...prev, { id: jobId, status: 'processing', progress: 0, total: selectedItems.length }]);
+      
+      // Start polling for status
+      pollPdfStatus(jobId);
+      
+      // Clear selection
+      setSelectedItems([]);
+      setShowPrintPage(false);
+      
+    } catch (err) {
+      toast.error('Gagal memulai proses cetak PDF');
+    }
+    setGeneratingPdf(false);
+  };
+  
+  // Poll PDF job status
+  const pollPdfStatus = async (jobId) => {
+    const checkStatus = async () => {
+      try {
+        const res = await api.get(`/api/label-bmn/pdf-status/${jobId}`);
+        const job = res.data;
+        
+        // Update job in state
+        setPdfJobs(prev => prev.map(j => j.id === jobId ? { ...j, ...job } : j));
+        
+        if (job.status === 'completed') {
+          toast.success('PDF siap diunduh!', {
+            description: 'Klik untuk mengunduh',
+            action: {
+              label: 'Unduh PDF',
+              onClick: () => downloadPdf(jobId)
+            },
+            duration: 10000
+          });
+        } else if (job.status === 'failed') {
+          toast.error('Gagal membuat PDF', {
+            description: job.error || 'Terjadi kesalahan'
+          });
+        } else if (job.status === 'processing') {
+          // Continue polling
+          setTimeout(checkStatus, 2000);
+        }
+      } catch {
+        // Job might have expired, remove from list
+        setPdfJobs(prev => prev.filter(j => j.id !== jobId));
+      }
+    };
+    
+    checkStatus();
+  };
+  
+  // Download completed PDF
+  const downloadPdf = async (jobId) => {
+    try {
+      const response = await api.get(`/api/label-bmn/pdf/${jobId}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `label_bmn_${jobId.substring(0, 8)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      // Remove job from list after download
+      setPdfJobs(prev => prev.filter(j => j.id !== jobId));
+      
+    } catch {
+      toast.error('Gagal mengunduh PDF');
+    }
+  };
+  
   const handlePrintComplete = async () => {
     try {
       await api.post('/api/label-bmn/print-batch', { items: selectedItems.map(i => ({ barang_id: i.id, ukuran: i.ukuran, is_child: false })), canvas_size: canvasSize });
