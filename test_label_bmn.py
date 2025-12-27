@@ -157,7 +157,7 @@ class LabelBMNTester:
         print("\n🔧 Step 1: Creating dummy asset for LabelBMN testing...")
         
         dummy_asset_data = {
-            "kode_barang": "1030101001000999",  # Asset code format
+            "kode_barang": "3030101001000999",  # Asset code format (starts with 3, not 1)
             "nama_barang": "Test Asset for LabelBMN",
             "merk": "Test Brand",
             "kondisi": "Baik",
