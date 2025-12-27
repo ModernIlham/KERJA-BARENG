@@ -710,8 +710,105 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
   });
   
   const handlePrint = () => {
-    window.print();
-    if (onPrintComplete) setTimeout(() => onPrintComplete(), 500);
+    // Get print area content
+    const printArea = printRef.current;
+    if (!printArea) return;
+    
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (!printWindow) {
+      alert('Pop-up blocked. Please allow pop-ups for this site.');
+      return;
+    }
+    
+    // Get the canvas size for page setup
+    const pageSize = canvasSize === 'A3' ? 'A3 portrait' : 'A4 portrait';
+    
+    // Build the print document
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Cetak Label BMN</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          html, body {
+            width: 100%;
+            height: auto;
+            background: white;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          
+          @page {
+            size: ${pageSize};
+            margin: 0;
+          }
+          
+          .print-page {
+            width: ${canvasSize === 'A3' ? '297mm' : '210mm'};
+            height: ${canvasSize === 'A3' ? '420mm' : '297mm'};
+            padding: 8mm;
+            background: white;
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+          }
+          
+          .print-page:last-child {
+            page-break-after: auto;
+          }
+          
+          .sticker-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4mm;
+            align-content: flex-start;
+          }
+          
+          .sticker-item {
+            border: 0.5px solid #e0e0e0;
+            overflow: hidden;
+            background: white;
+          }
+          
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        ${printArea.innerHTML}
+      </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Wait for content to load, then print
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        // Close after print dialog
+        printWindow.onafterprint = () => printWindow.close();
+        // Fallback close after delay
+        setTimeout(() => {
+          if (!printWindow.closed) printWindow.close();
+        }, 1000);
+      }, 500);
+    };
+    
+    if (onPrintComplete) setTimeout(() => onPrintComplete(), 1000);
   };
   
   const renderSticker = (item, stickerData) => {
