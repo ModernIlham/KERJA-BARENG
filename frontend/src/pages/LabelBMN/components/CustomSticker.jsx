@@ -520,7 +520,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings = {} }) => {
           )}
           
           {/* Gold Stripe - bottom position */}
-          {goldStripePosition === 'bottom' && <GoldStripe />}
+          {showGoldStripe && goldStripePosition === 'bottom' && <div style={goldStripeStyle} />}
         </div>
       </div>
     </div>
