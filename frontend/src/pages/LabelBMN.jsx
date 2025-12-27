@@ -466,10 +466,12 @@ export default function LabelBMN() {
             selectingAll={selectingAll}
             onPrint={handlePrint}
             onManageChildren={(asset) => { setSelectedParent(asset); setShowChildModal(true); }}
-            onPreview={(item) => { setSelectedItems([item]); setShowPrintPage(true); }}
+            onPreview={(item) => { setSelectedItems([{ ...item, ukuran: selectedSize }]); setShowPrintPage(true); }}
             filters={filters}
             setFilters={setFilters}
             loadAssets={loadAssets}
+            selectedSize={selectedSize}
+            setSelectedSize={setSelectedSize}
           />
         </TabsContent>
         
