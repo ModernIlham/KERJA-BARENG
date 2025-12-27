@@ -1377,7 +1377,7 @@ export default function LabelBMN() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   
   // Start PDF generation in background
-  const handleGeneratePdf = async () => {
+  const handleGeneratePdf = async (htmlContent) => {
     if (selectedItems.length === 0) {
       toast.error('Pilih minimal 1 aset');
       return;
@@ -1385,7 +1385,7 @@ export default function LabelBMN() {
     
     setGeneratingPdf(true);
     try {
-      const res = await api.post('/api/label-bmn/generate-pdf', {
+      const payload = {
         items: selectedItems.map(i => ({
           id: i.id,
           kode_barang: i.kode_barang,
@@ -1397,8 +1397,11 @@ export default function LabelBMN() {
           ukuran: i.ukuran
         })),
         canvas_size: canvasSize,
-        qr_settings: qrSettings
-      });
+        qr_settings: qrSettings,
+        html_content: htmlContent // Send HTML content for high-fidelity PDF
+      };
+
+      const res = await api.post('/api/label-bmn/generate-pdf', payload);
       
       const jobId = res.data.job_id;
       toast.success(`Proses cetak PDF dimulai (${selectedItems.length} stiker)`, {
