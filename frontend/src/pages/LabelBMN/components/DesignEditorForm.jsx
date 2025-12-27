@@ -277,6 +277,7 @@ function DesignEditorForm({ design, onChange }) {
     if (!design.content_rows) {
       onChange({ ...design, content_rows: getDefaultRows(design.size_type || 'sedang') });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [design.size_type]);
   
   const rows = design.content_rows || getDefaultRows(design.size_type || 'sedang');
