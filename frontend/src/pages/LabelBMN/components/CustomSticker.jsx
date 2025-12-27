@@ -154,7 +154,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
                   {design.header_text || instansi?.nama_instansi || 'Nama Instansi'}
                 </span>
                 <span style={{ fontSize: `${design.header_sub_font_size || 6.5}pt`, fontWeight: 700, lineHeight: 1.2 }}>
-                  {instansi?.kode_uakpb || ''}KP.{data.tahun || new Date().getFullYear()}
+                  {instansi?.kode_uakpb ? `${instansi.kode_uakpb}.${data.tahun || new Date().getFullYear()}` : `Tahun ${data.tahun || new Date().getFullYear()}`}
                 </span>
               </div>
             </div>
