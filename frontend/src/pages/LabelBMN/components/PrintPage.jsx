@@ -157,35 +157,109 @@ const PrintPage = ({ items, canvasSize, instansi, qrSettings, onClose, onPrintCo
       let stickersHtml = pageItems.map((item, idx) => {
         const stickerData = prepareStickerData(item);
         const qrUrl = qrDataUrls[`${pageIdx}-${idx}`] || '';
+        const sizeType = item.ukuran || 'sedang';
+        const design = designs[sizeType] || BASIC_DEFAULTS[sizeType];
+        const itemSize = STICKER_SIZES[sizeType];
         
-        if (isPortrait) {
-          // KECIL Layout (Portrait)
+        // Get design settings with fallbacks
+        const bgColor = design.background_color || '#ffffff';
+        const borderWidth = design.border_width || 1;
+        const borderColor = design.border_color || '#2c2c2c';
+        const borderRadius = design.border_radius || 0;
+        const fontFamily = design.font_family || 'Roboto';
+        const textColor = design.text_color || '#1a1a1a';
+        
+        // Header settings
+        const showHeader = design.show_header !== false;
+        const headerFontSize = design.header_font_size || 7;
+        const headerSubFontSize = design.header_sub_font_size || 6.5;
+        
+        // Content settings
+        const kodeFontSize = design.kode_font_size || 8;
+        const kodeFontWeight = design.kode_font_weight || 700;
+        const namaFontSize = design.nama_font_size || 6.5;
+        const namaFontWeight = design.nama_font_weight || 600;
+        const descFontSize = design.desc_font_size || 5;
+        
+        // NUP settings
+        const showNup = design.show_nup !== false;
+        const nupFontSize = design.nup_font_size || 10;
+        const nupMinWidth = design.nup_min_width || 28;
+        
+        // Vertical code settings
+        const showVerticalCode = design.show_vertical_code !== false;
+        const verticalFontSize = design.vertical_font_size || 6;
+        const verticalWidth = design.vertical_width || 13;
+        
+        // Gold stripe settings
+        const showGoldStripe = design.show_gold_stripe !== false;
+        const goldStripeHeight = design.gold_stripe_height || 3;
+        const goldStripeColor = design.gold_stripe_color || '#D4AF37';
+        
+        // QR settings from design
+        const qrSize = design.qr_size || 100;
+        
+        if (sizeType === 'kecil') {
+          // KECIL Layout (Portrait) - with design settings
           return `
-            <div style="width: ${size.width}mm; height: ${size.height}mm; border: 0.5px solid #ccc; background: white; display: flex; flex-direction: column; padding: 1mm; overflow: hidden; box-sizing: border-box;">
-              <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
-                ${qrUrl ? `<img src="${qrUrl}" style="width: ${size.width * 0.7}mm; height: ${size.width * 0.7}mm;" />` : `<div style="width: ${size.width * 0.7}mm; height: ${size.width * 0.7}mm; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 6px;">QR</div>`}
+            <div style="width: ${itemSize.width}mm; height: ${itemSize.height}mm; border: ${borderWidth}px solid ${borderColor}; border-radius: ${borderRadius}px; background: ${bgColor}; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; font-family: ${fontFamily}, Arial, sans-serif; color: ${textColor};">
+              ${showGoldStripe ? `<div style="height: ${goldStripeHeight}mm; background: ${goldStripeColor}; width: 100%;"></div>` : ''}
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 1mm;">
+                ${qrUrl ? `<img src="${qrUrl}" style="width: ${itemSize.width * 0.75 * (qrSize / 100)}mm; height: ${itemSize.width * 0.75 * (qrSize / 100)}mm;" />` : `<div style="width: ${itemSize.width * 0.75}mm; height: ${itemSize.width * 0.75}mm; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 6px;">QR</div>`}
               </div>
-              <div style="text-align: center; padding: 1mm;">
-                <div style="font-size: 6.5pt; font-weight: bold; font-family: Roboto, Arial, sans-serif;">${stickerData.nama_barang?.substring(0, 15)}</div>
-                <div style="font-size: 5pt; font-weight: bold; margin-top: 1px;">NUP: ${stickerData.nup || '1'}</div>
-                <div style="font-size: 4pt; font-family: monospace;">#${stickerData.kode_register || ''}</div>
+              <div style="text-align: center; padding: 1mm 2mm; background: ${bgColor};">
+                <div style="font-size: ${kodeFontSize}pt; font-weight: ${kodeFontWeight}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${stickerData.kode_barang || ''}</div>
+                <div style="font-size: ${namaFontSize}pt; font-weight: ${namaFontWeight}; margin-top: 0.5mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${stickerData.nama_barang?.substring(0, 20) || ''}</div>
+                ${showNup ? `<div style="font-size: ${nupFontSize}pt; font-weight: bold; margin-top: 0.5mm;">NUP: ${stickerData.nup || '1'}</div>` : ''}
               </div>
+              ${showVerticalCode ? `<div style="font-size: ${verticalFontSize}pt; text-align: center; padding: 1mm; border-top: 0.5px solid ${borderColor};">${stickerData.kode_vertikal || ''}</div>` : ''}
             </div>
           `;
         } else {
-          // SEDANG/BESAR Layout (Landscape)
+          // SEDANG/BESAR Layout (Landscape) - with design settings
+          const qrAreaWidth = itemSize.height * 0.95;
+          const qrDisplaySize = qrAreaWidth * 0.9 * (qrSize / 100);
+          
           return `
-            <div style="width: ${size.width}mm; height: ${size.height}mm; border: 0.5px solid #ccc; background: white; display: flex; flex-direction: row; padding: 1mm; overflow: hidden; box-sizing: border-box; font-family: Roboto, Arial, sans-serif;">
-              <div style="width: ${size.height * 0.85}mm; height: ${size.height - 2}mm; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                ${qrUrl ? `<img src="${qrUrl}" style="width: ${size.height * 0.8}mm; height: ${size.height * 0.8}mm;" />` : `<div style="width: ${size.height * 0.8}mm; height: ${size.height * 0.8}mm; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 6px;">QR</div>`}
+            <div style="width: ${itemSize.width}mm; height: ${itemSize.height}mm; border: ${borderWidth}px solid ${borderColor}; border-radius: ${borderRadius}px; background: ${bgColor}; display: flex; flex-direction: row; overflow: hidden; box-sizing: border-box; font-family: ${fontFamily}, Arial, sans-serif; color: ${textColor};">
+              <!-- QR Area -->
+              <div style="width: ${qrAreaWidth}mm; min-width: ${qrAreaWidth}mm; height: 100%; display: flex; align-items: center; justify-content: center; border-right: ${borderWidth}px solid ${borderColor};">
+                ${qrUrl ? `<img src="${qrUrl}" style="width: ${qrDisplaySize}mm; height: ${qrDisplaySize}mm;" />` : `<div style="width: ${qrDisplaySize}mm; height: ${qrDisplaySize}mm; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 6px;">QR</div>`}
               </div>
-              <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 2mm; overflow: hidden;">
-                ${instansi?.nama ? `<div style="font-size: 7.5pt; font-weight: bold; margin-bottom: 0.5mm;">${instansi.nama.substring(0, 30)}</div>` : ''}
-                <div style="font-size: 6.5pt; font-weight: bold; margin-bottom: 0.5mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${stickerData.nama_barang?.substring(0, 40) || ''}</div>
-                <div style="font-size: 7.5pt; font-weight: bold; margin-bottom: 0.5mm;">#${stickerData.kode_register || ''}</div>
-                <div style="font-size: 5.5pt; color: #333; margin-bottom: 0.5mm;">${stickerData.merk_tipe || '-'} | ${stickerData.tahun || ''}</div>
-                <div style="font-size: 6pt; font-weight: bold; color: #000;">${stickerData.kode_vertikal || ''}</div>
+              
+              <!-- Content Area -->
+              <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                ${showHeader ? `
+                  <div style="padding: 1mm 2mm; border-bottom: ${borderWidth}px solid ${borderColor}; background: ${bgColor};">
+                    <div style="font-size: ${headerFontSize}pt; font-weight: 700;">${instansi?.nama || ''}</div>
+                    <div style="font-size: ${headerSubFontSize}pt; font-weight: 700;">${instansi?.kode_uakpb || ''}.${stickerData.tahun || ''}</div>
+                  </div>
+                ` : ''}
+                
+                <!-- Main Content -->
+                <div style="flex: 1; display: flex; padding: 1mm;">
+                  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding-right: 1mm; min-width: 0;">
+                    <div style="font-size: ${kodeFontSize}pt; font-weight: ${kodeFontWeight}; margin-bottom: 0.5mm;">${stickerData.kode_barang || ''}</div>
+                    <div style="font-size: ${namaFontSize}pt; font-weight: ${namaFontWeight}; margin-bottom: 0.5mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${stickerData.nama_barang || ''}</div>
+                    <div style="font-size: ${descFontSize}pt; color: #666; margin-bottom: 0.5mm;">${stickerData.merk_tipe || '-'}</div>
+                  </div>
+                  
+                  ${showNup ? `
+                    <div style="min-width: ${nupMinWidth}px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: ${borderWidth}px solid ${borderColor}; padding-left: 1mm;">
+                      <div style="font-size: 5pt; color: #666;">NUP</div>
+                      <div style="font-size: ${nupFontSize}pt; font-weight: 700;">${stickerData.nup || '1'}</div>
+                    </div>
+                  ` : ''}
+                </div>
+                
+                ${showGoldStripe ? `<div style="height: ${goldStripeHeight}mm; background: ${goldStripeColor}; width: 100%;"></div>` : ''}
               </div>
+              
+              ${showVerticalCode ? `
+                <div style="width: ${verticalWidth}px; min-width: ${verticalWidth}px; display: flex; align-items: center; justify-content: center; border-left: ${borderWidth}px solid ${borderColor};">
+                  <span style="writing-mode: vertical-rl; text-orientation: mixed; font-size: ${verticalFontSize}pt; font-weight: 700; white-space: nowrap;">${stickerData.kode_vertikal || ''}</span>
+                </div>
+              ` : ''}
             </div>
           `;
         }
