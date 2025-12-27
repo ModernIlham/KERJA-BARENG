@@ -400,7 +400,7 @@ const CustomSticker = ({ design, data, instansi, qrSettings }) => {
                   background: design.desc_bg_color || '#ffffff'
                 }}>
                   <span>
-                    <strong>{data.tahun || new Date().getFullYear()}</strong> - {data.merk || '-'}{data.tipe ? ` ${data.tipe}` : ''}
+                    <strong>{data.tahun || data.tahun_anggaran || (data.tgl_perolehan ? new Date(data.tgl_perolehan).getFullYear() : new Date().getFullYear())}</strong> - {data.merk || '-'}{data.tipe ? ` ${data.tipe}` : ''}
                   </span>
                 </div>
               )}
