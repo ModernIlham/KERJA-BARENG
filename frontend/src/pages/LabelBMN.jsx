@@ -993,14 +993,42 @@ export default function LabelBMN() {
   const loadAssets = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/api/label-bmn/assets', { params: { search, status_cetak: statusFilter, page, limit: 50 } });
+      const params = { 
+        search, 
+        status_cetak: statusFilter, 
+        page, 
+        limit: 50,
+        sort_field: sortField,
+        sort_order: sortOrder
+      };
+      
+      // Add advanced filters if set
+      if (filterNup) params.filter_nup = filterNup;
+      if (filterTahun) params.filter_tahun = filterTahun;
+      if (filterNilaiMin) params.filter_nilai_min = parseFloat(filterNilaiMin);
+      if (filterNilaiMax) params.filter_nilai_max = parseFloat(filterNilaiMax);
+      
+      const res = await api.get('/api/label-bmn/assets', { params });
       setAssets(res.data.data);
       setTotalPages(res.data.total_pages);
     } catch { toast.error('Gagal memuat data aset'); }
     setLoading(false);
   };
   
-  useEffect(() => { loadAssets(); }, [search, statusFilter, page]);
+  // Reset filters
+  const resetFilters = () => {
+    setSearch('');
+    setStatusFilter('semua');
+    setFilterNup('');
+    setFilterTahun('');
+    setFilterNilaiMin('');
+    setFilterNilaiMax('');
+    setSortField('kode_barang');
+    setSortOrder('asc');
+    setPage(1);
+  };
+  
+  useEffect(() => { loadAssets(); }, [search, statusFilter, page, sortField, sortOrder, filterNup, filterTahun, filterNilaiMin, filterNilaiMax]);
   useEffect(() => {
     api.get('/api/label-bmn/print-stats').then(res => setStats(res.data)).catch(() => {});
     api.get('/api/label-bmn/instansi-info').then(res => setInstansi(res.data)).catch(() => {});
