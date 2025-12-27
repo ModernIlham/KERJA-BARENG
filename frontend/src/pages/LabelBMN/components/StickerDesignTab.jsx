@@ -304,7 +304,7 @@ const DEFAULT_DESIGN_CONFIGS = {
   }
 };
 
-function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplates, onQrTemplatesChange, api }) {
+function StickerDesignTab({ instansi, qrSettings, onQrSettingsChange, qrTemplates, onQrTemplatesChange, api, onDesignSaved }) {
   const [designs, setDesigns] = useState({ kecil: [], sedang: [], besar: [], custom: [] });
   const [selectedSizeType, setSelectedSizeType] = useState('sedang');
   const [selectedDesign, setSelectedDesign] = useState(null);
