@@ -102,6 +102,8 @@ code {
   /* CRITICAL: Show print-container and ALL its descendants */
   .print-container,
   .print-container *,
+  .a4-page,
+  .a4-page *,
   #print-area,
   #print-area * {
     visibility: visible !important;
