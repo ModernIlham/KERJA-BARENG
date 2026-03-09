@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 class SIMANGTester:
-    def __init__(self, base_url="https://bmntagger.preview.emergentagent.com"):
+    def __init__(self, base_url="https://app-analysis-18.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
